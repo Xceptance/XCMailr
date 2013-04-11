@@ -6,20 +6,20 @@
 	<table class="form">
 		<tr>
 			<th><label for="forename"> ${user_forename} </label></th>
-			<td><input class="input_full" type="text" id="forename" name="forename" > </input>
-
+			<td>
+			<input class="input_full" type="text" id="forename" name="forename" value="${(editUsr.forename)!}" > </input>
 			</td>
 		</tr>
 		<tr>
 			<th><label for="surname"> ${user_surname} </label></th>
-			<td><input class="input_full" type="text" id="surName" name="surName" />
+			<td><input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" />
 
 			</td>
 		</tr>
 		<tr>
 			<th><label for="mail"> ${user_mail} </label></th>
 			<td><input class="input_full" type="email" id="mail"
-				name="mail" /></td>
+				name="mail" value="${(editUsr.mail)!}"/></td>
 		</tr>
 
 		<tr>

@@ -1,15 +1,43 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> 
 <@layout.myLayout "Home page">
-<li>${editUsr.forename}</li>
-<!-- 
-<li>${editfrmdat.forename}</li>
 
 
-<li>${edt.surName}</li>
-<li>${edt.mail}</li>
-<li>${edt.pw}</li>
-<li>${edt.pwn1}</li>
-<li>${edt.pwn2}</li>
--->
+<form action="/register" method="post">
+	<table class="form">
+		<tr>
+			<th><label for="forename"> ${user_forename} </label></th>
+			<td>
+			<input class="input_full" type="text" id="forename" name="forename" value="${(editUsr.forename)!}" > </input>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="surname"> ${user_surname} </label></th>
+			<td><input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" />
+
+			</td>
+		</tr>
+		<tr>
+			<th><label for="mail"> ${user_mail} </label></th>
+			<td><input class="input_full" type="email" id="mail"
+				name="mail" value="${(editUsr.mail)!}"/></td>
+		</tr>
+
+		<tr>
+			<th><label for="user_pw"> ${user_pw} </label></th>
+			<td><input class="input_full" type="password" id="pw"
+				name="pw" /></td>
+		</tr>
+		<tr>
+			<th><label for="user_pwagain"> ${user_pwagain} </label></th>
+			<td><input class="input_full" type="password" id="pwn1"
+				name="pwn1" /></td>
+		</tr>
+	</table>
+
+	<p>
+		<input type="submit"  class="btn" value="${user_create}" /> <input type="reset"  class="btn"
+			value="Reset">
+	</p>
+</form>
 
 </@layout.myLayout>

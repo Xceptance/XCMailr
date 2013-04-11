@@ -32,8 +32,7 @@ public class UserHandler {
    * @return the result-page
    */
   public Result editUser(Context context, EditUsr edt){ 
-	  //Form<EditFrmDat> filledForm = userForm.bindFromRequest();
-	  //String msg = "";
+
 	  Long uId = new Long(context.getSessionCookie().get("id"));
 		Result result = Results.html();
 		String s;

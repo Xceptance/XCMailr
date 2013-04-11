@@ -16,11 +16,16 @@ import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.i18n.MessagesImpl;
 import ninja.params.Param;
+import ninja.validation.FieldViolation;
+import ninja.validation.JSR303Validation;
 import ninja.validation.Required;
 import ninja.validation.Validation;
 import ninja.validation.Validator;
 
 import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import javax.mail.Message;
@@ -47,7 +52,7 @@ public class Application {
 	
   public Result index() {
 
-    return Results.html().render("");
+    return Results.html();
   }
   
   
@@ -70,15 +75,17 @@ public class Application {
    * @return
    */
 
-public Result postRegisterForm(Context context, EditUsr frdat){	
+public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat, Validation validation){	
 	Result result = Results.html();
 	String s;
+
 	
-	if(false){ 
-		context.getFlashCookie().success("testmessage", null);
-		//TODO ->check if the form has errors
-		
-		return Results.html().redirect("/");
+	if(validation.hasViolations()){
+		s = msg.get("msg_formerr", context, result, "String");
+		context.getFlashCookie().error(s, null);
+
+		//return the postregisterform (same as registerform, but with prepopulated data)
+		return Results.html().render(frdat);
 	}	
 	else { //form was filled correctly, go on!
 		
@@ -143,14 +150,13 @@ public Result postRegisterForm(Context context, EditUsr frdat){
    * Handles the login-process 
    * @return the login form or the index page 
    */
-  public Result loginProc(Context context, Login l){
+  public Result loginProc(Context context, @JSR303Validation Login l, Validation validation){
 		Result result = Results.html();
 		String s;
 
 		
 	    //TODO return the filled form on errors due to the comfortability
-	  if(false){ 
-		  //TODO filledForm.hasErrors
+	  if(validation.hasViolations()){ 
 		  s = msg.get("msg_formerr", context, result, "String");
 		  context.getFlashCookie().error(s, null);
 		  return Results.redirect("/login");
@@ -197,11 +203,15 @@ public Result postRegisterForm(Context context, EditUsr frdat){
    * generates a new password and sends it to the user
    * @return index page
    */
-  public Result pwResend(Context context, Login l){
-	  
-	  if( false ) { //TODO filledForm.hasErrors
+  public Result pwResend(Context context,@JSR303Validation Login l, Validation validation){
+		Result result = Results.html();
+		String s;
+		
+	  if( validation.hasViolations() ) { 
 		  //some fields weren't filled
-		  return Results.html().template("forgotPwForm.ftl.html").render(lang.get("msg_formerr", "en"));
+		  s = msg.get("msg_formerr", context, result, "String");
+		  context.getFlashCookie().error(s, (Object)null);
+		  return Results.redirect("/pwresend");
 		  } 
 	  else {
 
@@ -213,11 +223,17 @@ public Result postRegisterForm(Context context, EditUsr frdat){
 			  //set the new pw in the db
 			  usr.setPasswd(newPw);
 			  Ebean.update(usr);
-			  return Results.html().template("index.ftl.html").render(lang.get("forgpw_succ", "en")); //TODO show Message forgpw.succ
+			  //TODO change the msg
+			  s = msg.get("forgpw_succ", context, result, "String");
+			  context.getFlashCookie().success(s, (Object)null);
+			  return Results.redirect("/");
+			  
 			   
 			  }
 		  //TODO missing else
-		  return Results.html().template("forgotPwForm.ftl.html").render(lang.get("msg_formerr", "en"));
+		  s = msg.get("msg_formerr", context, result, "String");
+		  context.getFlashCookie().error(s, (Object)null);
+		  return Results.redirect("/pwresend");
 	  }
 	  
 
@@ -231,6 +247,8 @@ public Result postRegisterForm(Context context, EditUsr frdat){
    */
   
  private String sendMail(String mail, String forename){
+
+		
 	 	  //standard-host of this application
 	 	  //TODO configurable sender-address?
 	 	  //String host = Play.application().configuration().getString("fpw.host");
@@ -248,6 +266,7 @@ public Result postRegisterForm(Context context, EditUsr frdat){
 		         message.addRecipient(Message.RecipientType.TO,
 		                                  new InternetAddress(to));
 		         //TODO message.setSubject(Messages.get("forgpw.title"));
+				  
 		         message.setSubject(lang.get("forgpw_title","en"));
 		         
 		      //add the message body
