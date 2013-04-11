@@ -1,0 +1,44 @@
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.myLayout
+"Home page">
+
+<!-- Example row of columns -->
+<div class="row">
+	<div class="span4">
+		<p>${mailbox_new}</p> 
+
+		<p>
+
+<form action="/mail/add" method="post">
+	<table class="form">
+		<tr>
+			<th><label for="address"> ${mailbox_address} </label></th>
+			<td><input class="input_full" type="text" id="address"
+				name="address" value="${ (mbFrmDat.address)!}"/></td>
+		</tr>
+		<tr>
+			<th><label for="domain"> ${mailbox_domain} </label></th>
+			<td><input class="input_full" type="text" id="domain"
+				name="domain" value="${ (mbFrmDat.domain)!}"/></td>
+		</tr>
+
+		<tr>
+			<th><label for="duration"> ${mailbox_duration} </label></th>
+			<td><input class="input_full" type="text" id="duration"
+				name="duration"  value="${ (mbFrmDat.duration)!}" /></td>
+		</tr>
+	</table>
+
+	<p>
+		<input type="submit" class="btn" value="${mailbox_edit}" /> <input type="reset" class="btn" 
+			value="Reset"> 
+			
+	</p>
+</form>
+		
+		</p>
+		
+	</div>
+</div>
+
+</@layout.myLayout>
+

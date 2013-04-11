@@ -1,0 +1,24 @@
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.myLayout
+"Home page">
+
+<!-- Example row of columns -->
+<div class="row">
+	<div class="span4">
+		<p>${string}</p> <!-- String to return some information-messages -->
+		<p> ${app_welcome} </p>
+		<p>Linklist: 
+		<ul>
+		<li><a href="./register">Register</a></li>
+		<li><a href="./login">Login</a></li>
+		<li></li>
+		<li></li>
+		</ul>
+		</p>
+		
+	</div>
+</div>
+
+</@layout.myLayout>
+
+
+

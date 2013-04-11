@@ -1,0 +1,59 @@
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.myLayout
+"Home page">
+
+<div class="row">
+	<div class="span4">
+		<p>${mailbox_title}</p> 
+
+		<p>
+		<table class="table table-hover">
+    <tr><th>${mailbox_address}</th>
+    <th>${mailbox_duration}</th><th>${mailbox_valid}</th>
+    <th>${mailbox_renew}</th><th>${mailbox_delete}</td><th>${mailbox_edit}</th></tr>
+		<#list mboxes as mBox>
+		    <#if (mBox.isExpired())>
+				<tr class="error">     
+		    <#else>
+		    <tr class="success">
+		    </#if>   
+				<td>${mBox.address}&#064;${mBox.domain}</td>
+				
+				<td>${mBox.getTSAsString()}</td>
+				
+				<#if (mBox.isActive())>
+    				<td>${msg_yes}</td>
+	    			 <td><form action="/mail/expire/${mBox.id}" method="post">
+	                    <input type="submit" class= "btn" value="${mailbox_deactivate}"/>
+	                    </form>
+	                </td>
+		    	<#else>
+	    			<td>${msg_no}</td>
+	    	    	<td>
+		    	    	<form action="/mail/expire/${mBox.id}" method="post">
+		                    <input type="submit" class= "btn" value="${mailbox_activate}"/>
+		                </form>
+	                </td>
+		    	</#if>
+		    	
+    			<td>
+    			<form action="/mail/delete/${mBox.id}" method="get"> 
+                    <input type="submit" class= "btn" value="${mailbox_delete}"/>
+                </form>
+                </td>
+                
+		        <td> 
+		        <form action="/mail/edit/${mBox.id}" method="get">
+		             <input type="submit" class= "btn" value="${mailbox_edit}"/>
+		         </form>
+		        </td>
+			</tr>
+		</#list>
+    </table>
+		
+		</p>
+		
+	</div>
+</div>
+
+</@layout.myLayout>
+

@@ -1,0 +1,51 @@
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.myLayout
+"Home page">
+
+<!-- Example row of columns -->
+<div class="row">
+	<div class="span4">
+		<p>${mailbox_new}</p> 
+
+		<p>
+
+<form action="/mail/add" method="post">
+	<table class="form">
+		<tr>
+			<th><label for="address"> ${mailbox_address} </label></th>
+			<td><input class="input_full" type="text" id="address"
+				name="address" /></td>
+		</tr>
+
+		<tr>
+			<th><label for="duration"> ${mailbox_duration} </label></th>
+			<td><input class="input_full" type="text" id="duration"
+				name="duration" /></td>
+		</tr>
+	</table>
+
+	<p>
+		<input type="submit" class="btn" value="${mailbox_new}" /> <input type="reset" class="btn" 
+			value="Reset"> 
+			
+	</p>
+</form>
+		
+		</p>
+		
+	</div>
+</div>
+
+</@layout.myLayout>
+
+    <!--
+    	<#noparse>
+      <h2>${mailbox_new}</h2>
+    @msg   <br/>
+     @form(routes.BoxHandler.addBox()) {
+        @inputText(mboxAddF("address},'_label ->Messages("mailbox_address}) 
+		@select(mboxAddF("domain}, options(optlst), '_label ->Messages("mailbox_domain})
+        @inputText(mboxAddF("duration},'_label ->Messages("mailbox_durinput}) 
+        <input type="submit" class= "btn" value="${mailbox_create}">
+        <br/>
+        </#noparse>
+        -->
