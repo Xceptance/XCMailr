@@ -50,9 +50,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory {
                 content = this.convertStreamToString(data);
                 }
 
-        
         /**
-         * test
+         * 
          */
         
         public void done() {
@@ -99,25 +98,19 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory {
 	    		         
 			    	      	
 					} catch (TextParseException e1) {
-						// TODO Auto-generated catch block
+						
 						e1.printStackTrace();
 					} catch (AddressException e) {
-						// TODO Auto-generated catch block
+						
 						e.printStackTrace();
 					} catch (MessagingException e) {
-						// TODO Auto-generated catch block
+						
 						e.printStackTrace();
 					}
 
-		    	      try{	
-
-		    		         
-		    	      }catch (Exception e) {
-		    	         e.printStackTrace();
-		    	         
-		    	      }
                 }else{
                 	//just increase the suppressed-mails counter
+                	
                 }
                 
         }

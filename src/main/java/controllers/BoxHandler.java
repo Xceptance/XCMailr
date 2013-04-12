@@ -92,7 +92,7 @@ public class BoxHandler {
 				  mb.setAddress( mbName );
 				  mb.setExpired( false );
 				  //TODO check the existence of the new domainname
-				  //TODO change the domain
+				  //TODO make the domainname dynamic
 				  mb.setDomain( "test.ccmailr");
 				  
 				  Long ts = parseDuration( mbdat.getDuration() );
@@ -264,16 +264,7 @@ public  Result showEditBox(Context context, @PathParam("id") Long boxId){
 public  Result showBoxes(Context context){
 
 	  Long id = new Long(context.getSessionCookie().get("id"));
-	  MbFrmDat mbdat = new MbFrmDat();
-	  mbdat.setAddress( getRndName() );
-	  //TODO nullpointerexception if the james-server is unavailable
-	  //List<String> lst = Arrays.asList(jmc.getDomainList());
-	  mbdat.setDuration( "5h" );
-	  
-	  
-	  return Results.html().render(MBox.allUserMap(id));
-	  
-	  //return ok( mboxAddF.render( "", MBox.allUser(id), lst, boxFrm) );.render(MBox.allUser(id))
+	  return Results.html().render(MBox.allUserMap(id));  
   }
   
   /**
@@ -303,28 +294,20 @@ public  Result showBoxes(Context context){
 	  //checks whether its valid or invalid at the DB
 	  MBox mb = MBox.getById(id);
 	  Long uid = Long.parseLong(context.getSessionCookie().get("id"));
-	  if(mb.belongsTo(uid)){
-			 //check if the mailbox belongs to the current user 	  
-			  DateTime dt = new DateTime();
-			  if( !(mb.getTS_Active() == 0) && (mb.getTS_Active() < dt.getMillis()) ){
-				  //if the validity period is over return the Edit page
-				  return Results.redirect("/mail/edit");
-				  
-			  }
-				if(MBox.enable( id )){
-					//Box is now valid
-					//TODO do sth with teh box!
-					//in the past there were the Jamesconn actions here
-				}
-				else{
-					//Box is now invalid
-					//TODO do sth with teh box!
-					//in the past there were the Jamesconn actions here
-				}
+	  if(mb.belongsTo(uid)){//check if the mailbox belongs to the current user 
+			 	  
+		  DateTime dt = new DateTime();
+		  if( !(mb.getTS_Active() == 0) && (mb.getTS_Active() < dt.getMillis()) ){
+			  //if the validity period is over return the Edit page
+			  return Results.redirect("/mail/edit");
+		  }else{
+			  //otherwise just set the new status
+			  MBox.enable( id );  
+		  }
 	  }
-		return Results.redirect("/mail");
-		
-	}
+	  return Results.redirect("/mail");
+  }
+	
 	
   
   public  long parseDuration(String s){
@@ -340,10 +323,10 @@ public  Result showBoxes(Context context){
 				
 				  if(str[i].contains("d")){
 					  helper = str[i].substring(0, str[i].indexOf('d'));
-					  d = parseHelp(helper);
+					  d = digitsOnly(helper);
 				  } else if(str[i].contains("h")){
 					  helper = str[i].substring(0, str[i].indexOf('h'));
-					  h = parseHelp(helper);
+					  h = digitsOnly(helper);
 				  }
 			  }
 			  if( (d == -1) || (h == -1) ){
@@ -381,7 +364,7 @@ public  Result showBoxes(Context context){
    * @return the integer value of the string or -1 
    * 		if the string does not match
    */
-  private  int parseHelp(String helper){
+  private  int digitsOnly(String helper){
 	  helper = helper.trim();
 	  if( helper.matches("[0-9]+") ){
 		  return Integer.parseInt(helper);

@@ -264,7 +264,9 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
 		try {
 			records = new Lookup(mail.split("@")[1], Type.MX).run();
 
-			//TODO try until the message could be sent
+			//TODO try other records until the message could be sent
+			//TODO create a helperfunction for sending mails..
+			
 	 	 MXRecord mx = (MXRecord) records[0];
 	 	 host = mx.getTarget().toString();
 	 	 host = host.substring(0,host.length()-1); //otherwise the string will end with a dot
