@@ -21,6 +21,8 @@ import ninja.ebean.NinjaEbeanModule;
 
 import com.google.inject.AbstractModule;
 
+import controllers.JobController;
+
 
 public class Module extends AbstractModule {
 
@@ -39,6 +41,7 @@ public class Module extends AbstractModule {
         // Bind the UDP ping controller so it starts up on server start
         // bind(UdpPingController.class);
          install(new NinjaEbeanModule());
+         bind(JobController.class);
         
 
     }

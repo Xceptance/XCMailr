@@ -43,6 +43,10 @@ public class MBox {
 	
 	private String domain;
 	
+	private int forwards;
+	
+	private int suppressions;
+	
 	//Owner of the Box
 	@ManyToOne
 	@JoinColumn(name = "usr_id", nullable = false)
@@ -98,9 +102,22 @@ public class MBox {
 	public boolean belongsTo(Long uid){
 		return ( this.usr.getId() == uid );
 	}
+	public int getForwards() {
+		return forwards;
+	}
+	public void setForwards(int forwards) {
+		this.forwards = forwards;
+	}
+	
 	
 	// EBean Functions
 	
+	public int getSuppressions() {
+		return suppressions;
+	}
+	public void setSuppressions(int suppressions) {
+		this.suppressions = suppressions;
+	}
 	public long getTs_Active() {
 		return ts_Active;
 	}
@@ -132,6 +149,7 @@ public class MBox {
 		return Ebean.find(MBox.class, id).getAddress();
 	}
 	
+	
 	/**
 	 * @param mbId
 	 * @return the mailaddress of the owner of this box
@@ -139,6 +157,17 @@ public class MBox {
 	public static String getFWD(Long mbId){
 		return Ebean.find(MBox.class, mbId).getUsr().getMail();
 	}
+	
+	/**
+	 * Gives the real address to a fake-address
+	 * @param mail - local part of the fake-address
+	 * @param domain - domain part of the fake-address
+	 * @return the real mailaddress of the user that owns this fake-address
+	 */
+	public static String getFwdByName(String mail, String domain){
+		return Ebean.find(MBox.class).where().eq( "address", mail.toLowerCase() ).eq("domain", domain).findUnique().getUsr().getMail();
+	}
+	
 	/**
 	 * @return all available boxes
 	 */

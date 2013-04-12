@@ -4,6 +4,8 @@ create table mailboxes (
   ts_active                 bigint,
   expired                   boolean,
   domain                    varchar(255),
+  forwards                  integer,
+  suppressions              integer,
   usr_id                    bigint,
   constraint pk_mailboxes primary key (id))
 ;
