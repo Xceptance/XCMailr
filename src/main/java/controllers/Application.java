@@ -1,6 +1,12 @@
 package controllers;
 
 import org.joda.time.DateTime;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.MXRecord;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.TextParseException;
+import org.xbill.DNS.Type;
+
 import com.avaje.ebean.Ebean;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -16,6 +22,7 @@ import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.i18n.MessagesImpl;
 import ninja.params.Param;
+import ninja.utils.NinjaProperties;
 import ninja.validation.FieldViolation;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Required;
@@ -49,7 +56,10 @@ public class Application {
 	 
 	 @Inject 
 	 Messages msg;
-	
+	 
+	@Inject 
+	NinjaProperties ninjaProp;
+
   public Result index() {
 
     return Results.html();
@@ -82,7 +92,7 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
 	
 	if(validation.hasViolations()){
 		s = msg.get("msg_formerr", context, result, "String");
-		context.getFlashCookie().error(s, null);
+		context.getFlashCookie().error(s, (Object)null);
 
 		return Results.html().render(frdat);
 	}	
@@ -96,7 +106,7 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
 				User.createUser( frdat.getAsUser());
 				
 				s = msg.get("msg_regok", context, result, "String");
-				context.getFlashCookie().success(s, null);
+				context.getFlashCookie().success(s, (Object)null);
 				
 				return Results.redirect("/");
 			
@@ -104,17 +114,17 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
 				
 				//password mismatch
 				s = msg.get("msg_formerr", context, result, "String");
-				context.getFlashCookie().error(s, null);
+				context.getFlashCookie().error(s, (Object)null);
 				return Results.redirect("/register");
 							
 			} 
 		  }
 		else{ //mailadress already exists
-			System.out.println("mailex");
+			
 			//TODO should we really show this message? or rather an unspecified msg (msg_formerr)? 
 			// [SEC] bruteforcing this form would expose existing mailadresses 
 			s = msg.get("msg_mailex", context, result, "String");
-			context.getFlashCookie().error(s, null);
+			context.getFlashCookie().error(s, (Object)null);
 			return Results.redirect("/register");
 			}
 		}
@@ -141,7 +151,7 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
 	  context.getSessionCookie().clear();
 	  Result result = Results.html();
 	  String s = msg.get("msg_logout", context, result, "String");
-	  context.getFlashCookie().success(s, null);
+	  context.getFlashCookie().success(s, (Object)null);
 	  return Results.redirect("/");
   }
   
@@ -157,7 +167,7 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
 	    //TODO return the filled form on errors due to the comfortability
 	  if(validation.hasViolations()){ 
 		  s = msg.get("msg_formerr", context, result, "String");
-		  context.getFlashCookie().error(s, null);
+		  context.getFlashCookie().error(s, (Object)null);
 		  return Results.redirect("/login");
 		  
 	  }
@@ -176,13 +186,13 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
 			  //TODO: ADM-Zugriff per DB, nicht per Cookie?
 			  
 			  s = msg.get("msg_login", context, result, "String");
-			  context.getFlashCookie().success(s, null);
+			  context.getFlashCookie().success(s, (Object)null);
 			  
 			  return Results.redirect("/"); 
 			  }
 		  //TODO maybe this should go into an else-path?
 		  s = msg.get("msg_formerr", context, result, "String");
-		  context.getFlashCookie().error(s, null);
+		  context.getFlashCookie().error(s, (Object)null);
 		  return Results.redirect("/login");
 		    
 	  }
@@ -194,7 +204,7 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
    * shows the forgot pw page
    * @return forgot-pw-form
    */
-  public Result forgotPW(){
+  public Result forgotPwForm(){
 	  return Results.html();
   }
   
@@ -218,11 +228,11 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
 		  if( usr != null ){ //mailadress was correct
 			  //generate a new pw and send it to the given mailadress
 			  //TODO [SEC]IMPORTANT! if sendMail() fails, we'll get an empty String (which will be set as PW)
-			  String newPw = sendMail(usr.getMail(), usr.getMail());
+			  String newPw = sendMail(usr.getMail(), usr.getMail(), context.getAcceptLanguage());
 			  //set the new pw in the db
-			  usr.setPasswd(newPw);
+			  usr.hashPasswd(newPw);
 			  Ebean.update(usr);
-			  //TODO change the msg
+			  
 			  s = msg.get("forgpw_succ", context, result, "String");
 			  context.getFlashCookie().success(s, (Object)null);
 			  return Results.redirect("/");
@@ -245,40 +255,48 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
    * @return the password to set it in the db
    */
   
- private String sendMail(String mail, String forename){
+ private String sendMail(String mail, String forename, String lang){
 
 		
 	 	  //standard-host of this application
-	 	  //TODO configurable sender-address?
-	 	  //String host = Play.application().configuration().getString("fpw.host");
-	 	  String host = "localhost";
-	      String to = mail;
-	      String from = "admin@"+host;
+	 	  String host = ninjaProp.get("mbox.host");
+	 	 Record[] records;
+		try {
+			records = new Lookup(mail.split("@")[1], Type.MX).run();
+
+			//TODO try until the message could be sent
+	 	 MXRecord mx = (MXRecord) records[0];
+	 	 host = mx.getTarget().toString();
+	 	 host = host.substring(0,host.length()-1); //otherwise the string will end with a dot
+ 	      System.out.println(host);
+	 	  
+	 	  String to = mail;
+	      String from = "admin@"+"xcmailr.xct";
 	      Properties properties = System.getProperties();
 	      properties.setProperty("mail.smtp.host", host);
 	      Session session = Session.getDefaultInstance(properties);
-	      	
-	      try{	
+
 	    	  //add the header-informations
 		         MimeMessage message = new MimeMessage(session);
 		         message.setFrom(new InternetAddress(from));
 		         message.addRecipient(Message.RecipientType.TO,
 		                                  new InternetAddress(to));
-		         //TODO message.setSubject(Messages.get("forgpw.title"));
-				  
-		         message.setSubject(lang.get("forgpw_title","en"));
+		         
+		         message.setSubject( msg.get("forgpw.title", lang, (Object)null));
+		         
 		         
 		      //add the message body
 		         String rueck = getRndPw();
 		         //TODO create a better message-text
-		         //message.setText(Messages.get("forgpw.msg", forename, rueck ));
-		         message.setText("Hey,"+forename+"you forgot your Password, the new is:\n"+rueck);
+		         //msg.get("forgpw.msg", lang, new String[]{forename, rueck});
+		         String tmp = "Dein passwort lautet: "+rueck;
+		         message.setText(tmp);
 		         Transport.send(message);
 		         return rueck;
 		         
 	      }catch (Exception e) {
 	         e.printStackTrace();
-	         return "";
+	         return null;
 	      }
 	}
  

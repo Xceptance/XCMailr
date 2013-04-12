@@ -1,11 +1,16 @@
 package models;
+
+import org.hibernate.validator.constraints.NotEmpty;
+
 /**
  * Holds the Data for the Login Form
  * @author Patrick Thum 2012
  * released under Apache 2.0 License
  */
 public class Login {
+	
 	String mail;
+	
 	String pwd;
 	
 

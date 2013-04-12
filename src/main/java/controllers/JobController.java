@@ -1,10 +1,19 @@
 package controllers;
 
-import org.slf4j.Logger;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.joda.time.DateTime;
+
 import org.subethamail.smtp.server.SMTPServer;
 
+import models.MBox;
 import ninja.lifecycle.Dispose;
 import ninja.lifecycle.Start;
+import ninja.utils.NinjaProperties;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -21,28 +30,53 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class JobController {
-	
+	private final ScheduledExecutorService executorService = Executors
+            .newSingleThreadScheduledExecutor();
+	private SMTPServer smtpServer;
+
 	@Inject 
-	Logger logger;
+	NinjaProperties ninjaProp;
 	
 	@Start(order = 90)
 	public void startActions(){
-		logger.info("Start the Messaging-Service");
-		//TODO start the MsgHandlerFactory
+		
 		MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory() ;
-        SMTPServer smtpServer = new SMTPServer(mailrFactory);
-        smtpServer.setPort(25000);
+        smtpServer = new SMTPServer(mailrFactory);
+
+        int port = Integer.parseInt(ninjaProp.get("mbox.port"));
+        
+        smtpServer.setPort(port);
         smtpServer.start();
 		
-		//TODO start the job to expire the mailboxes
+    	int interval = Integer.parseInt(ninjaProp.get("mbox.interval"));
+    	
+        executorService.schedule(new Runnable() {
+		    public void run() {
+		    	
+		    	int size = Integer.parseInt(ninjaProp.get("mbox.size"));
+		    	List<MBox> mbList = MBox.getNextBoxes(size);
+		    	ListIterator<MBox> it = mbList.listIterator();
+		    	DateTime dt = new DateTime();
+		    	while(it.hasNext()){
+		    		MBox mb = it.next();
+		    		if(dt.isAfter( mb.getTS_Active() ) && !( mb.getTS_Active() == 0 ) ){
+		    		  //this element is expired
+		    			MBox.enable( mb.getId() );
+		    		  
+		    		}
+		    	}
+		    }
+        }, new Long(interval), TimeUnit.MINUTES);
 		
 	}
 	
 	
 	@Dispose(order = 90)
 	public void stopActions(){
-		//TODO stop the MsgHandlerFactory
-		//TODO stop the job to expire the mailboxes
+		//stop the forwarding-service
+		smtpServer.stop();
+		// stop the job to expire the mailboxes
+		executorService.shutdown();
 		
 	}
 	

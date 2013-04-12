@@ -65,7 +65,7 @@ public class Routes implements ApplicationRoutes {
         router.GET().route("/login").with(Application.class, "loginForm");
         router.POST().route("/login").with(Application.class, "loginProc");
         
-        router.GET().route("/pwresend").with(Application.class, "forgotPW");
+        router.GET().route("/pwresend").with(Application.class, "forgotPwForm");
         router.POST().route("/pwresend").with(Application.class,"pwResend");
         
         router.GET().route("/logout").with(Application.class,"logout");

@@ -2,7 +2,7 @@
 <@layout.myLayout "Home page">
 
 
-<form action="/login" method="post">
+<form action="/pwresend" method="post">
 	<table class="form">
 		<tr>
 			<th><label for="mail"> ${user_mail} </label></th>
@@ -10,17 +10,12 @@
 				name="mail" /></td>
 		</tr>
 
-		<tr>
-			<th><label for="user_pw"> ${user_pw} </label></th>
-			<td><input class="input_full" type="password" id="pw"
-				name="pw" /></td>
-		</tr>
 	</table>
 
 	<p>
-		<input type="submit" class="btn" value="${link_login}" /> <input type="reset" class="btn" 
+		<input type="submit" class="btn" value="${link_forgotpw}" /> <input type="reset" class="btn" 
 			value="Reset"> 
-			<br/> <a href="./">${link_forgotpw}</a>
+			<br/> 
 	</p>
 </form>
 

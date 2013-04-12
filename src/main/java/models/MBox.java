@@ -13,7 +13,6 @@ import javax.persistence.Version;
 
 import ninja.validation.Required;
 
-import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
 import com.avaje.ebean.*;
 
@@ -187,7 +186,7 @@ public class MBox {
 		List<MBox> list = Ebean.find(MBox.class).where().eq("usr_id", id.toString()).findList();
 		Map<String, List<MBox>> map = new HashMap<String, List<MBox>>();
 		map.put("mboxes", list);
-		//for (MBox mb : list) map.put("mboxes", mb);
+		
 		return map;
 	}
 	

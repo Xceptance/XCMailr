@@ -33,6 +33,7 @@ public class User {
 	
 	@Email
 	private String mail;
+	
 	@NotNull
 	//Password
 	private String passwd;
@@ -166,7 +167,9 @@ public class User {
 		setPasswd(BCrypt.hashpw(passwd, BCrypt.gensalt()));
 	}
 	/**
-	 * sets and bcrypts the given password
+	 * sets the given password
+	 * WARNING: don't use this method to set a new password!
+	 * always use  hashPasswd() for that!
 	 * @param passwd
 	 */
 	public void setPasswd(String passwd) {
