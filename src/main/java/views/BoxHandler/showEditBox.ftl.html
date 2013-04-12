@@ -4,11 +4,11 @@
 <!-- Example row of columns -->
 <div class="row">
 	<div class="span4">
-		<p>${mailbox_new}</p> 
+		<p>${mailbox_edit}</p> 
 
 		<p>
 
-<form action="/mail/add" method="post">
+<form action="/mail/edit/${mbFrmDat.boxId}" method="post">
 	<table class="form">
 		<tr>
 			<th><label for="address"> ${mailbox_address} </label></th>

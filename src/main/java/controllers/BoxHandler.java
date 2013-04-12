@@ -12,7 +12,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+
+
 import org.joda.time.DateTime;
 
 
@@ -25,6 +28,8 @@ import models.User;
 import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
+import ninja.validation.JSR303Validation;
+import ninja.validation.Validation;
 import ninja.Result;
 /**
  * Handles all actions for the Mailboxes 
@@ -54,13 +59,14 @@ public class BoxHandler {
 	 * POST of /mail/add
 	 * @return the Mailbox-Overviewpage
 	 */
-  public Result addBox(Context context, MbFrmDat mbdat ){
+  public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation ){
 
 	  Long id = new Long(context.getSessionCookie().get("id"));
-	  //List<String> lst = Arrays.asList( jmc.getDomainList() );
+
 		Result result = Results.html();
 		String s;
-	  if( false ) { //TODO filledform haserrors, prepopul8?
+		
+	  if( validation.hasViolations() ) { //TODO prepopulate
 		  	//not all fields were filled
 			s = msg.get("msg_formerr", context, result, "String");
 			context.getFlashCookie().error(s, (Object)null);
@@ -145,15 +151,16 @@ public class BoxHandler {
  * @param boxId
  * @return error/success-page
  */
-public Result editBox(Context context, @PathParam("id")Long boxId, MbFrmDat mbdat){
+public Result editBox(Context context, @PathParam("id")Long boxId, @JSR303Validation MbFrmDat mbdat, Validation validation){
 	Result result = Results.html();
 	String s;
 	  
-	  if(false) { //TODO filledForm haserrors, Param-bID, Prepopul8
+	  if(validation.hasViolations()) { 
 		  	//not all fields were filled
 			s = msg.get("msg_formerr", context, result, "String");
 			context.getFlashCookie().error(s, (Object)null);
-			return Results.redirect("/mail/edit");
+
+			return Results.redirect("/mail/edit/"+boxId.toString()).render(mbdat);
 		  } 
 	  else { //the form was filled correctly
 		  
@@ -232,12 +239,13 @@ public  Result showEditBox(Context context, @PathParam("id") Long boxId){
 	  Long uid = Long.parseLong(context.getSessionCookie().get("id"));
 	  
 	  if(mb.belongsTo(uid)){ //prevent the edit of a mbox that is not belonging to the user
+		  mbdat.setBoxId(boxId);
 		  mbdat.setAddress( mb.getAddress() );
 		  mbdat.setDomain(mb.getDomain());
 		  mbdat.setDuration( parseTime( mb.getTS_Active() ) );
-		  //List<String> lst=Arrays.asList(jmc.getDomainList());
+
 	  
-	  //TODO prepopul8!
+	 
 	  return Results.html().render(mbdat);
 	  }
 	  else{

@@ -1,16 +1,29 @@
 package models;
 
-import java.util.List;
+
+
+import org.hibernate.validator.constraints.NotEmpty;
 /**
  * Holds the Data for the Mailbox Forms
  * @author Patrick Thum 2012
  * released under Apache 2.0 License
  */
 public class MbFrmDat {
+	
+	private Long boxId;
+	@NotEmpty
 	private String address;
+	@NotEmpty
 	private String duration;
+	@NotEmpty
 	private String domain;
 	
+	public Long getBoxId() {
+		return boxId;
+	}
+	public void setBoxId(Long boxId) {
+		this.boxId = boxId;
+	}
 	public String getAddress() {
 		return address;
 	}

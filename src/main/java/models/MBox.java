@@ -11,6 +11,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
+import ninja.validation.Required;
+
+import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
 import com.avaje.ebean.*;
 
@@ -27,12 +30,12 @@ public class MBox {
 	private long id;
 	
 	//Mailaddress of the Box
-	//@Required
 	private String address;
 
 	//Timestamp for the end of the validity period
-	//@Version 
+	
 	//TODO @version annotation ?
+	
 	private long ts_Active;
 	
 	//Flag for the validity

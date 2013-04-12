@@ -84,7 +84,6 @@ public Result postRegisterForm( Context context, @JSR303Validation EditUsr frdat
 		s = msg.get("msg_formerr", context, result, "String");
 		context.getFlashCookie().error(s, null);
 
-		//return the postregisterform (same as registerform, but with prepopulated data)
 		return Results.html().render(frdat);
 	}	
 	else { //form was filled correctly, go on!
