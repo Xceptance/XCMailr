@@ -16,33 +16,26 @@
 
 package conf;
 
-
 import ninja.ebean.NinjaEbeanModule;
 
 import com.google.inject.AbstractModule;
 
 import controllers.JobController;
 
+public class Module extends AbstractModule
+{
 
-public class Module extends AbstractModule {
-
-    public Module() {
-        super();     
+    public Module()
+    {
+        super();
     }
 
-  
     @Override
-    protected void configure() {       
-        // /////////////////////////////////////////////////////////////////////
-        // Some guice bindings
-        // /////////////////////////////////////////////////////////////////////
-        // some additional bindings for the application:
-        //bind(GreetingService.class).to(GreetingServiceImpl.class);
-        // Bind the UDP ping controller so it starts up on server start
-        // bind(UdpPingController.class);
-         install(new NinjaEbeanModule());
-         bind(JobController.class);
-        
+    protected void configure()
+    {
+
+        install(new NinjaEbeanModule());
+        bind(JobController.class);
 
     }
 

@@ -19,115 +19,135 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-
 @Singleton
-public class MailrMessageHandlerFactory implements MessageHandlerFactory {
+public class MailrMessageHandlerFactory implements MessageHandlerFactory
+{
 
-	
-    public MessageHandler create(MessageContext ctx) {
+    public MessageHandler create(MessageContext ctx)
+    {
         return new Handler(ctx);
     }
 
-    class Handler implements MessageHandler {
+    class Handler implements MessageHandler
+    {
         MessageContext ctx;
+
         String sender;
+
         String empf;
+
         String content;
 
-        public Handler(MessageContext ctx) {
-                this.ctx = ctx;
-        }
-        
-        public void from(String from) throws RejectException {//no rejections!?
-                sender = from;
+        public Handler(MessageContext ctx)
+        {
+            this.ctx = ctx;
         }
 
-        public void recipient(String recipient) throws RejectException { //no rejections!?
-                empf = recipient;
+        public void from(String from) throws RejectException
+        {// no rejections!?
+            sender = from;
         }
 
-        public void data(InputStream data) throws IOException {
-                content = this.convertStreamToString(data);
-                }
+        public void recipient(String recipient) throws RejectException
+        { // no rejections!?
+            empf = recipient;
+        }
+
+        public void data(InputStream data) throws IOException
+        {
+            content = this.convertStreamToString(data);
+        }
 
         /**
          * 
          */
-        
-        public void done() {
-        	//do all the mail-fwd things here
-        	//TODO what will happen if there are more than one recipient?
-                String[] splitaddress = empf.split("@"); 
-                //TODO check if the address is malicious
-                if(MBox.mailExists(splitaddress[0], splitaddress[1])){
-                	//TODO implement check for the validity of a mbox
-                	//TODO change the host..
-                	
-                	
-		          	  String host;
-		    	      String fwdtarget = MBox.getFwdByName(splitaddress[0],splitaddress[1]);
-		    	      
-		    	      
-					try {
-						Record[] records = new Lookup(fwdtarget.split("@")[1], Type.MX).run();
-						//TODO try until the message could be sent
-	                	MXRecord mx = (MXRecord) records[0];
-	                	host = mx.getTarget().toString();
-			    	    Properties properties = System.getProperties();
-			    	      System.out.println(host);
-			    	    properties.setProperty("mail.smtp.host", host);
-			    	    Session session = Session.getDefaultInstance(properties);
-		    	    	  //add the header-informations
-	    		         MimeMessage message = new MimeMessage(session);
-	    		         message.setFrom(new InternetAddress(sender));
-	    		         message.addRecipient(Message.RecipientType.TO,
-	    		                                  new InternetAddress(fwdtarget));
-	    		         //TODO implement an i18n Subject-text
-	    		         message.setSubject("Weitergeleitete Nachricht");
-	    		         
-	    		      //add the message body
-	    		         message.setText(content);
-	    		         Transport.send(message);
-	    		         
-	    		         //TODO increase the mbox-fwd-counter
-	    	                System.out.println("Finished");
-	    	                System.out.println("The Message was:\n");
-	    	                System.out.println("From:" + sender);
-	    	                System.out.println("To:" + empf);
-	    	                System.out.println("Content:" + content);
-	    		         
-			    	      	
-					} catch (TextParseException e1) {
-						
-						e1.printStackTrace();
-					} catch (AddressException e) {
-						
-						e.printStackTrace();
-					} catch (MessagingException e) {
-						
-						e.printStackTrace();
-					}
 
-                }else{
-                	//just increase the suppressed-mails counter
-                	
+        public void done()
+        {
+            // do all the mail-fwd things here
+
+            String[] splitaddress = empf.split("@");
+            // TODO check if the address is malicious
+            if (MBox.mailExists(splitaddress[0], splitaddress[1]))
+            {
+                // TODO implement check for the validity of a mbox
+                // TODO change the host..?
+
+                String host;
+                String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
+
+                try
+                {
+                    Record[] records = new Lookup(fwdtarget.split("@")[1], Type.MX).run();
+                    // TODO try until the message could be sent
+                    MXRecord mx = (MXRecord) records[0];
+                    host = mx.getTarget().toString();
+                    Properties properties = System.getProperties();
+                    System.out.println(host);
+                    properties.setProperty("mail.smtp.host", host);
+                    Session session = Session.getDefaultInstance(properties);
+                    // add the header-informations
+                    MimeMessage message = new MimeMessage(session);
+                    message.setFrom(new InternetAddress(sender));
+                    message.addRecipient(Message.RecipientType.TO, new InternetAddress(fwdtarget));
+                    // TODO implement an i18n Subject-text
+                    message.setSubject("Weitergeleitete Nachricht");
+
+                    // add the message body
+                    message.setText(content);
+                    Transport.send(message);
+
+                    // TODO increase the mbox-fwd-counter
+                    System.out.println("Finished");
+                    System.out.println("The Message was:\n");
+                    System.out.println("From:" + sender);
+                    System.out.println("To:" + empf);
+                    System.out.println("Content:" + content);
+
                 }
-                
+                catch (TextParseException e1)
+                {
+
+                    e1.printStackTrace();
+                }
+                catch (AddressException e)
+                {
+
+                    e.printStackTrace();
+                }
+                catch (MessagingException e)
+                {
+
+                    e.printStackTrace();
+                }
+
+            }
+            else
+            {
+                // just increase the suppressed-mails counter
+
+            }
+
         }
 
-        public String convertStreamToString(InputStream is) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                StringBuilder sb = new StringBuilder();
-                
-                String line = null;
-                try {
-                        while ((line = reader.readLine()) != null) {
-                                sb.append(line + "\n");
-                        }
-                } catch (IOException e) {
-                        e.printStackTrace();
+        public String convertStreamToString(InputStream is)
+        {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+
+            String line = null;
+            try
+            {
+                while ((line = reader.readLine()) != null)
+                {
+                    sb.append(line + "\n");
                 }
-                return sb.toString();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            return sb.toString();
         }
 
     }

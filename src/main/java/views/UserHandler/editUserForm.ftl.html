@@ -1,5 +1,5 @@
-<#import "../layout/defaultLayout.ftl.html" as layout> 
-<@layout.myLayout "Home page">
+<#import "../layout/loginLayout.ftl.html" as layout> 
+<@layout.myLayout "${user_edit}">
 
 
 <form action="/user/edit" method="post">

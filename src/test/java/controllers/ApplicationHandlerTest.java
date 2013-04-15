@@ -3,40 +3,57 @@ package controllers;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashMap;
+
 import java.util.Map;
 
 import ninja.NinjaTest;
-import ninja.session.SessionCookie;
-
-import org.apache.http.HttpResponse;
 import org.apache.http.cookie.Cookie;
-import org.h2.constant.SysProperties;
+import org.junit.After;
+
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.subethamail.smtp.server.SMTPServer;
 
 import com.google.common.collect.Maps;
+import com.google.inject.Inject;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ApplicationHandlerTest extends NinjaTest {
 	
 	Map<String, String> headers = Maps.newHashMap();
 	Map<String, String> formParams = Maps.newHashMap();
 	String result;
+
+	//TODO java.net.bind exception (address already in use) for SubethaSMTP..
+	
+	@Before
+	public void startSrv(){
+			
+	}
+	@After
+	public void stopSrv(){
+
+
+	}
 	
 	@Test
 	public void testRegistrationPart(){
+		//Register a new user
 		formParams.clear();
 		formParams.put("forename", "John");
 		formParams.put("surName", "Doe");
 		formParams.put("mail", "admin@this.de");
 		formParams.put("pw", "1234");
 		formParams.put("pwn1", "1234");
-		
+
 		result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress()+"/register", headers, formParams);
 		
-		
-		//erfolgreich registriert
+		//check if the user was registered successfully
 		assertTrue(result.contains("class=\"success\">Reg"));
-
+		
 		
 	}
 	
@@ -45,7 +62,6 @@ public class ApplicationHandlerTest extends NinjaTest {
 		
 		
 		//register the user 
-		
 		formParams.clear();
 		formParams.put("forename", "John");
 		formParams.put("surName", "Doe");
@@ -97,13 +113,11 @@ public class ApplicationHandlerTest extends NinjaTest {
 		
 		//check the cookie
         assertEquals(1, ninjaTestBrowser.getCookies().size());
-        Cookie cookie = ninjaTestBrowser.getCookieWithName("CCMailr_SESSION");
+        Cookie cookie = ninjaTestBrowser.getCookieWithName("XCMailr_SESSION");
 
         assertTrue(cookie != null);
         assertTrue(cookie.getValue().contains("___TS"));		
-		
 
-		
 		
 	}
 	
