@@ -1,6 +1,7 @@
 package controllers;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import models.EditUsr;
 import models.User;
@@ -20,6 +21,7 @@ import filters.SecureFilter;
  * @author Patrick Thum 2012 released under Apache 2.0 License
  */
 @FilterWith(SecureFilter.class)
+@Singleton
 public class UserHandler
 {
 

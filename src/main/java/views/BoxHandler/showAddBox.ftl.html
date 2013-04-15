@@ -4,45 +4,48 @@
 <!-- Example row of columns -->
 <div class="row">
 	<div class="span4">
-		<p>${mailbox_new}</p> 
+		<p>${mailbox_new}</p>
 
 		<p>
+		<form action="/mail/add" method="post">
+			<table class="form">
+				<tr>
+					<th><label for="address"> ${mailbox_address} </label></th>
+					<td><input class="input_full" type="text" id="address"
+						name="address" value="${ (mbFrmDat.address)!}" /></td>
+				</tr>
+				<tr>
+					<th><label for="domain"> ${mailbox_domain} </label></th>
+					<td>
+					<select name="domain">
+					<#list domain as String>
+					
+					<option value="${ (mbFrmDat.domain)!}" > ${String}</option>
+					</#list>
+					
+					</select>
+					</td>
+				</tr>
 
-<form action="/mail/add" method="post">
-	<table class="form">
-		<tr>
-			<th><label for="address"> ${mailbox_address} </label></th>
-			<td><input class="input_full" type="text" id="address"
-				name="address" /></td>
-		</tr>
-		<tr>
-			<th><label for="domain"> ${mailbox_domain} </label></th>
-			<td><input class="input_full" type="text" id="domain"
-				name="domain" /></td>
-		</tr>
-
-		<tr>
-			<th><label for="duration"> ${mailbox_duration} </label></th>
-			<td><input class="input_full" type="text" id="duration"
-				name="duration" /></td>
+				<tr>
+					<th><label for="duration"> ${mailbox_duration} </label></th>
+					<td><input class="input_full" type="text" id="duration"
+						name="duration"	value="${ (mbFrmDat.duration)!}"/>
+						</td>
 		</tr>
 	</table>
 
 	<p>
-		<input type="submit" class="btn" value="${mailbox_new}" /> <input type="reset" class="btn" 
-			value="Reset"> 
-			
-	</p>
-</form>
-		
-		</p>
-		
-	</div>
-</div>
+		<input type="submit" class="btn" value="${mailbox_new}" /> <input type="reset"
+						class="btn" value="Reset">
 
-</@layout.myLayout>
+						</p>
+						</form>
 
-    <!--
+						</p>
+
+						</div>
+						</div> </@layout.myLayout> <!--
     	<#noparse>
       <h2>${mailbox_new}</h2>
     @msg   <br/>

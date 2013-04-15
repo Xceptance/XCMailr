@@ -1,42 +1,29 @@
 package controllers;
 
-import org.joda.time.DateTime;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.MXRecord;
 import org.xbill.DNS.Record;
-import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 
 import com.avaje.ebean.Ebean;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import etc.HelperUtils;
 import models.EditUsr;
-//import models.EditFrmDat;
 import models.Login;
 import ninja.Context;
 import models.User;
 import ninja.Result;
 import ninja.Results;
-import ninja.ebean.NinjaEbeanModule;
 import ninja.i18n.Lang;
 import ninja.i18n.Messages;
-import ninja.i18n.MessagesImpl;
-import ninja.params.Param;
 import ninja.utils.NinjaProperties;
-import ninja.validation.FieldViolation;
 import ninja.validation.JSR303Validation;
-import ninja.validation.Required;
 import ninja.validation.Validation;
-import ninja.validation.Validator;
-
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
@@ -61,9 +48,9 @@ public class Application
     NinjaProperties ninjaProp;
 
     public Result index(Context context)
-    {
+    {   
         if (context.getSessionCookie().isEmpty())
-        { 
+        {
             // show the default index page if there's no user
             return Results.ok().html();
         }
@@ -200,7 +187,7 @@ public class Application
               // set the cookie
                 context.getSessionCookie().put("id", String.valueOf(lgr.getId()));
                 context.getSessionCookie().put("usrname", lgr.getMail());
-                System.out.println(context.getSessionCookie());
+
                 if (lgr.isAdmin())
                 {
                     // also set an admin-flag if the account is an admin-account
@@ -300,7 +287,6 @@ public class Application
             MXRecord mx = (MXRecord) records[0];
             host = mx.getTarget().toString();
             host = host.substring(0, host.length() - 1); // otherwise the string will end with a dot
-            System.out.println(host);
 
             String to = mail;
             // TODO change the domain

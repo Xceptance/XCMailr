@@ -3,6 +3,7 @@ package controllers;
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Results;
+import etc.HelperUtils;
 import filters.SecureFilter;
 
 import java.util.Arrays;
@@ -17,6 +18,7 @@ import org.joda.time.DateTime;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import models.MBox;
 import models.MbFrmDat;
@@ -24,6 +26,7 @@ import models.User;
 import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
+import ninja.utils.NinjaProperties;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 import ninja.Result;
@@ -35,6 +38,7 @@ import ninja.Result;
  */
 
 @FilterWith(SecureFilter.class)
+@Singleton
 public class BoxHandler
 {
 
@@ -44,10 +48,13 @@ public class BoxHandler
     @Inject
     Messages msg;
 
+    @Inject
+    NinjaProperties ninjaProp;
+
     public Result showAddBox()
     {
 
-        return Results.html();
+        return Results.html().render(HelperUtils.getDomainsFromConfig(ninjaProp));
     }
 
     /**
@@ -64,11 +71,11 @@ public class BoxHandler
         String s;
 
         if (validation.hasViolations())
-        { // TODO prepopulate
-            // not all fields were filled
+        {
+            // not all fields were filled (correctly)
             s = msg.get("msg_formerr", context, result, "String");
             context.getFlashCookie().error(s, (Object) null);
-            return Results.redirect("/mail");
+            return Results.redirect("/mail/add").render(mbdat); //TODO add the addBox.ftl.html-form
         }
         else
         {
@@ -113,8 +120,6 @@ public class BoxHandler
                 mb.setUsr(User.getById(id));
 
                 String fwd = mb.getUsr().getMail();
-                // creates the Box on the MailServer and sets the FWD
-                // jmc.addUser(mb.getAdress(), mb.getDomain(), fwd);
                 // creates the Box in the DB
                 MBox.createMBox(mb);
 
@@ -208,7 +213,7 @@ public class BoxHandler
 
                 if (!newDName.equals(oldDName))
                 { // a new domainname was chosen
-                    // TODO check the existence of the new domainname
+                  // TODO check the existence of the new domainname
                     mb.setDomain(newDName);
                     changes = true;
                 }
