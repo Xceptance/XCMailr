@@ -1,5 +1,7 @@
 package controllers;
 
+import java.util.Arrays;
+
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Results;
@@ -92,10 +94,19 @@ public class BoxHandler
                 }
 
                 // set the data of the box
+
+                String[] dom = HelperUtils.getDomainsFromConfig(ninjaProp).get("domains");
+                
+                if(!Arrays.asList(dom).contains(mbdat.getDomain())){
+                    //the new domainname does not exist in the application.conf
+                    //stop the process and return to the mailbox-overview page
+                    return Results.redirect("/mail");
+                    
+                }
                 mb.setDomain(mbdat.getDomain());
                 mb.setAddress(mbName);
                 mb.setExpired(false);
-                // TODO check the existence of the new domainname
+
 
                 Long ts = HelperUtils.parseDuration(mbdat.getDuration());
 
@@ -190,7 +201,7 @@ public class BoxHandler
                      * error-page if there is a dot at the end -there should be another mail-exists-check after all
                      * deletions.. -> just a remark!, most of this may be unneccessary when using RegEx in mailaddr.
                      */
-                    // TODO check the existence of the new domainname (assume that the POST-Request was modified)
+
                     newLName = newLName.replaceAll("[^a-zA-Z0-9.]", "");
                     // deletes the dot if its placed at the end of the mailaddress
                     
@@ -201,6 +212,17 @@ public class BoxHandler
 
                     if (MBox.mailChanged(newLName, newDName, boxId))
                     { //this is only true when the address changed and the new address does not exist
+                        
+                        
+                        String[] dom = HelperUtils.getDomainsFromConfig(ninjaProp).get("domains");
+                        //assume that the POST-Request was modified and the domainname does not exist in our app
+                        if(!Arrays.asList(dom).contains(mbdat.getDomain())){
+                            
+                            //the new domainname does not exist in the application.conf
+                            //stop the process and return to the mailbox-overview page
+                            return Results.redirect("/mail");
+                            
+                        }
                         mb.setAddress(newLName);
                         mb.setDomain(newDName);
                         changes = true;
@@ -250,7 +272,7 @@ public class BoxHandler
      *            ID of the Box
      * @return the edit-form
      */
-    public Result showEditBox(Context context, @PathParam("id") Long boxId)
+    public Result showEditBox(Context context, @PathParam("id") Long boxId, MbFrmDat mbf)
     {
         MBox mb = MBox.getById(boxId);
         if (mb.equals(null))

@@ -77,7 +77,7 @@ public class UserHandler
 
                 }
                 User.updateUser(updU); // update the user
-                s = msg.get("msg_editok", context, result, "String");
+                s = msg.get("msg_chok", context, result, "String");
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/user/edit");
             }

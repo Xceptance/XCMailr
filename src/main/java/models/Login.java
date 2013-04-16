@@ -1,5 +1,7 @@
 package models;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 /**
  * Holds the Data for the Login Form
  * 
@@ -7,9 +9,9 @@ package models;
  */
 public class Login
 {
-
+    @NotEmpty
     String mail;
-
+    
     String pwd;
 
     public String getMail()

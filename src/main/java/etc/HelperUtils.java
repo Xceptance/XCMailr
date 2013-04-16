@@ -219,17 +219,17 @@ public class HelperUtils
     }
     /**
      *  Takes the unchanged incoming mail and forwards it
-     * @param from
-     * @param to
-     * @param content
+     * @param from - the unchanged From-Address
+     * @param to - the trash-mail target (the forward address will be automatically fetched from DB)
+     * @param content - the message body
      * @return
      */
     public static boolean forwardMail(String from, String to, String content){
         String[] splitaddress = to.split("@");
         String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
         // TODO implement an i18n Subject-text
-        sendMail(from, fwdtarget, content, "Weitergeleitete Nachricht");
-        return false;
+        return sendMail(from, fwdtarget, content, "Weitergeleitete Nachricht");
+        
     }
     
     /**
@@ -256,19 +256,22 @@ public class HelperUtils
             message.setSubject(subject);
             message.setText(content);
             Transport.send(message);
+            return true;
 
         }
         catch (AddressException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            return false;
         }
         catch (MessagingException e)
         {
             //TODO Auto-generated catch block
             e.printStackTrace();
+            return false;
         }
-        return false;
+        
     }
     
 }

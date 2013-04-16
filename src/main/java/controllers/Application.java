@@ -36,7 +36,7 @@ public class Application
     NinjaProperties ninjaProp;
 
     public Result index(Context context)
-    {   
+    {
         if (context.getSessionCookie().isEmpty())
         {
             // show the default index page if there's no user
@@ -161,9 +161,10 @@ public class Application
         // TODO return the filled form on errors due to the comfortability
         if (validation.hasViolations())
         {
+            l.setPwd("");
             s = msg.get("msg_formerr", context, result, "String");
             context.getFlashCookie().error(s, (Object) null);
-            return Results.redirect("/login");
+            return Results.html().template("views/Application/loginForm.ftl.html").render(l);
 
         }
         else
@@ -182,17 +183,18 @@ public class Application
                     context.getSessionCookie().put("adm", String.valueOf(true));
                 }
                 // TODO: ADM-Zugriff per DB, nicht per Cookie?
-
+               
                 s = msg.get("msg_login", context, result, "String");
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.html();
-                // return Results.redirect("/").template("/layout/loginLayout.ftl.html");
             }
-            // TODO maybe this should go into an else-path?
-            s = msg.get("msg_formerr", context, result, "String");
-            context.getFlashCookie().error(s, (Object) null);
-            return Results.redirect("/login");
-
+            else
+            { // the authentication was not correct
+                l.setPwd("");
+                s = msg.get("msg_formerr", context, result, "String");
+                context.getFlashCookie().error(s, (Object) null);
+                return Results.html().template("views/Application/loginForm.ftl.html").render(l);
+            }
         }
     }
 
@@ -230,18 +232,27 @@ public class Application
             if (usr != null)
             { // mailadress was correct
               // generate a new pw and send it to the given mailadress
-              // TODO [SEC]IMPORTANT! if sendMail() fails, we'll get an empty String (which will be set as PW)
                 String newPw = sendMail(usr.getMail(), usr.getMail(), context.getAcceptLanguage());
-                // set the new pw in the db
-                usr.hashPasswd(newPw);
-                Ebean.update(usr);
+                if (newPw.equals(null))
+                {
+                    s = msg.get("forgpw_succ", context, result, "String");
+                    context.getFlashCookie().success(s, (Object) null);
+                    return Results.redirect("/");
 
-                s = msg.get("forgpw_succ", context, result, "String");
-                context.getFlashCookie().success(s, (Object) null);
-                return Results.redirect("/");
+                }
+                else
+                {
+                    // set the new pw in the db
+                    usr.hashPasswd(newPw);
+                    Ebean.update(usr);
 
+                    s = msg.get("forgpw_succ", context, result, "String");
+                    context.getFlashCookie().success(s, (Object) null);
+                    return Results.redirect("/");
+
+                }
             }
-            // TODO missing else?
+
             s = msg.get("msg_formerr", context, result, "String");
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/pwresend");
@@ -267,10 +278,15 @@ public class Application
         // TODO create a better message-text
         // msg.get("forgpw.msg", lang, new String[]{forename, rueck});
         String content = "Dein passwort lautet: " + rueck;
-        HelperUtils.sendMail(from, mail, content, subject);
 
-        //TODO handle a failed mail-send
-        return rueck;
-
+        boolean wasSent = HelperUtils.sendMail(from, mail, content, subject);
+        if (wasSent)
+        { // if the message was successfully sent, return the new pwd
+            return rueck;
+        }
+        else
+        {
+            return null;
+        }
     }
 }
