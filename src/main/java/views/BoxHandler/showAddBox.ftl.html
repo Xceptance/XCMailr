@@ -20,8 +20,11 @@
 					<select name="domain">
 					<#list domain as String>
 						<#if (mbFrmDat.domain)??>
-							<#if (mbFrmDat.domain==String)>Test erfolgreich</#if>
+							<#if (mbFrmDat.domain==String)>
 							<option value="${String}"  selected="selected"> ${String}</option>
+							<#else>
+								<option value="${String}" > ${String}</option>
+							</#if>
 						<#else>
 							<option value="${String}" > ${String}</option>
 						</#if>
@@ -34,7 +37,7 @@
 				<tr>
 					<th><label for="duration"> ${mailbox_duration} </label></th>
 					<td><input class="input_full" type="text" id="duration"
-						name="duration"	value="${ (mbFrmDat.duration)!}" required="required"/>
+						name="duration"	value="${ (mbFrmDat.duration)!}"  required="required" />
 						</td>
 		</tr>
 	</table>

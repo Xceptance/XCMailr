@@ -17,8 +17,22 @@
 		</tr>
 		<tr>
 			<th><label for="domain"> ${mailbox_domain} </label></th>
-			<td><input class="input_full" type="text" id="domain"
-				name="domain" value="${ (mbFrmDat.domain)!}" required="required"/></td>
+					<td>
+					<select name="domain">
+					<#list domain as String>
+						<#if (mbFrmDat.domain)??>
+							<#if (mbFrmDat.domain==String)>
+							<option value="${String}"  selected="selected"> ${String}</option>
+							<#else>
+								<option value="${String}" > ${String}</option>
+							</#if>
+						<#else>
+							<option value="${String}" > ${String}</option>
+						</#if>
+					</#list>
+					
+					</select>
+					</td>
 		</tr>
 
 		<tr>

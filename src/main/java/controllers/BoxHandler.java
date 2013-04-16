@@ -1,6 +1,7 @@
 package controllers;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import ninja.Context;
 import ninja.FilterWith;
@@ -44,9 +45,9 @@ public class BoxHandler
     @Inject
     NinjaProperties ninjaProp;
 
-    public Result showAddBox()
+    public Result showAddBox(Context context)
     {
-        // TODO prepopulate the form...
+
         return Results.html().render(HelperUtils.getDomainsFromConfig(ninjaProp));
     }
 
@@ -68,8 +69,10 @@ public class BoxHandler
             // not all fields were filled (correctly)
             s = msg.get("msg_formerr", context, result, "String");
             context.getFlashCookie().error(s, (Object) null);
-            // TODO find a method to render the mbfrmdat and the domainlist..
-            return Results.html().render(HelperUtils.getDomainsFromConfig(ninjaProp));
+            Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
+            map.put("mbFrmDat", mbdat);
+
+            return Results.html().render(map);
         }
         else
         {
@@ -94,19 +97,17 @@ public class BoxHandler
                 }
 
                 // set the data of the box
-
-                String[] dom = HelperUtils.getDomainsFromConfig(ninjaProp).get("domains");
-                
-                if(!Arrays.asList(dom).contains(mbdat.getDomain())){
-                    //the new domainname does not exist in the application.conf
-                    //stop the process and return to the mailbox-overview page
+                String[] dom = (String[]) HelperUtils.getDomainsFromConfig(ninjaProp).get("domain");
+                if (!Arrays.asList(dom).contains(mbdat.getDomain()))
+                {
+                    // the new domainname does not exist in the application.conf
+                    // stop the process and return to the mailbox-overview page
                     return Results.redirect("/mail");
-                    
+
                 }
                 mb.setDomain(mbdat.getDomain());
                 mb.setAddress(mbName);
                 mb.setExpired(false);
-
 
                 Long ts = HelperUtils.parseDuration(mbdat.getDuration());
 
@@ -204,24 +205,24 @@ public class BoxHandler
 
                     newLName = newLName.replaceAll("[^a-zA-Z0-9.]", "");
                     // deletes the dot if its placed at the end of the mailaddress
-                    
+
                     if (newLName.endsWith("."))
                     {
                         newLName = newLName.substring(0, newLName.length() - 1);
                     }
 
                     if (MBox.mailChanged(newLName, newDName, boxId))
-                    { //this is only true when the address changed and the new address does not exist
-                        
-                        
-                        String[] dom = HelperUtils.getDomainsFromConfig(ninjaProp).get("domains");
-                        //assume that the POST-Request was modified and the domainname does not exist in our app
-                        if(!Arrays.asList(dom).contains(mbdat.getDomain())){
-                            
-                            //the new domainname does not exist in the application.conf
-                            //stop the process and return to the mailbox-overview page
+                    { // this is only true when the address changed and the new address does not exist
+
+                        String[] dom = (String[]) HelperUtils.getDomainsFromConfig(ninjaProp).get("domains");
+                        // assume that the POST-Request was modified and the domainname does not exist in our app
+                        if (!Arrays.asList(dom).contains(mbdat.getDomain()))
+                        {
+
+                            // the new domainname does not exist in the application.conf
+                            // stop the process and return to the mailbox-overview page
                             return Results.redirect("/mail");
-                            
+
                         }
                         mb.setAddress(newLName);
                         mb.setDomain(newDName);
@@ -272,7 +273,7 @@ public class BoxHandler
      *            ID of the Box
      * @return the edit-form
      */
-    public Result showEditBox(Context context, @PathParam("id") Long boxId, MbFrmDat mbf)
+    public Result showEditBox(Context context, @PathParam("id") Long boxId)
     {
         MBox mb = MBox.getById(boxId);
         if (mb.equals(null))
@@ -290,8 +291,9 @@ public class BoxHandler
                 mbdat.setAddress(mb.getAddress());
                 mbdat.setDomain(mb.getDomain());
                 mbdat.setDuration(HelperUtils.parseTime(mb.getTS_Active()));
-
-                return Results.html().render(mbdat);
+                Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
+                map.put("mbFrmDat", mbdat);
+                return Results.html().render(map);
             }
             else
             {

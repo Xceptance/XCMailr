@@ -37,6 +37,7 @@ public class Application
 
     public Result index(Context context)
     {
+
         if (context.getSessionCookie().isEmpty())
         {
             // show the default index page if there's no user
@@ -158,7 +159,6 @@ public class Application
         Result result = Results.html();
         String s;
 
-        // TODO return the filled form on errors due to the comfortability
         if (validation.hasViolations())
         {
             l.setPwd("");
@@ -183,7 +183,7 @@ public class Application
                     context.getSessionCookie().put("adm", String.valueOf(true));
                 }
                 // TODO: ADM-Zugriff per DB, nicht per Cookie?
-               
+
                 s = msg.get("msg_login", context, result, "String");
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.html();
@@ -273,12 +273,14 @@ public class Application
     private String sendMail(String mail, String forename, String lang)
     {
         String from = ninjaProp.get("mbox.adminaddr");
-        String subject = msg.get("forgpw.title", lang, (Object) null);
+        String subject = msg.get("forgpw_title", lang, (Object) null);
         String rueck = HelperUtils.getRndString();
-        // TODO create a better message-text
-        // msg.get("forgpw.msg", lang, new String[]{forename, rueck});
-        String content = "Dein passwort lautet: " + rueck;
+        Object[] param = new Object[]
+            {
+                forename, rueck
+            };
 
+        String content = msg.get("forgpw_msg", lang, param);
         boolean wasSent = HelperUtils.sendMail(from, mail, content, subject);
         if (wasSent)
         { // if the message was successfully sent, return the new pwd

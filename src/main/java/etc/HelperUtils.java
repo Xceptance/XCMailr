@@ -29,7 +29,7 @@ import com.google.inject.Singleton;
 public class HelperUtils
 {
 
-    public static Map<String, String[]> getDomainsFromConfig(NinjaProperties ninjaProp)
+    public static Map<String, Object> getDomainsFromConfig(NinjaProperties ninjaProp)
     {
 
         String dlist = ninjaProp.get("mbox.dlist");
@@ -39,7 +39,7 @@ public class HelperUtils
             String[] list = dlist.split(";");
             if (!list.equals(null))
             {
-                Map<String, String[]> map = new HashMap<String, String[]>();
+                Map<String, Object> map = new HashMap<String, Object>();
 
                 map.put("domain", list);
 
