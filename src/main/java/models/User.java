@@ -194,6 +194,11 @@ public class User
         return passwd;
     }
 
+    /**
+     * Hashes the password and sets it as the current pwd
+     * 
+     * @param passwd
+     */
     public void hashPasswd(String passwd)
     {
         setPasswd(BCrypt.hashpw(passwd, BCrypt.gensalt()));
@@ -258,40 +263,41 @@ public class User
     }
 
     /**
+     * Checks whether the mail of the user (identified by its id) has changed and if the new address can be used
+     * 
      * @param mail
      * @param uId
-     * @return
+     * @return true - Mail has changed and the new address does not exist <br/>
+     *         false - mail has not changed, user is unknown or address already exists
      */
-    // rewrote mailExists() for Editing MBoxes & Users
 
-    // TODO FIX this function
-    public static boolean mailExists(String mail, Long uId)
+    public static boolean mailChanged(String mail, Long uId)
     {
-
-        // get all users with the given mail
-        List<User> ul = Ebean.find(User.class).where().eq("mail", mail.toLowerCase()).findList();
-
-        if (!ul.isEmpty())
-        {
-            // there are some users with that mailadress
-
-            if ((ul.size() == 1) && (ul.get(0).getId() == uId))
-            {
-                // there's only one user and the given UID is equal to the UID in the db
+        User usr = User.getById(uId);
+        if (usr.equals(null))
+        { // theres no user with that id
+            return false;
+        }
+        else
+        { // theres a user with that id
+            if (usr.mail.equals(mail.toLowerCase()))
+            { // the users mail is equal to the given address -> mail not changed
                 return false;
             }
             else
-            {
-                // there's more than one user with that address and/or
-                // the UID belongs to another user
-                return true;
+            { // the addresses differ
+                if (User.mailExists(mail))
+                { // the given address already exists for another user
+                    return false;
+                }
+                else
+                { // the given address is not used
+                    return true;
+                }
+
             }
         }
-        else
-        {
-            // there's no user with that address
-            return false;
-        }
+
     }
 
     /**

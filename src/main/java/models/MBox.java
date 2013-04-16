@@ -179,6 +179,16 @@ public class MBox
     }
 
     /**
+     * @param bId
+     * @param uId
+     * @return
+     */
+    public static boolean boxToUser(long bId, long uId)
+    {
+        return (Ebean.find(MBox.class, bId).usr.getId() == uId);
+    }
+
+    /**
      * returns the Local Part of a Box
      * 
      * @param id
@@ -298,7 +308,8 @@ public class MBox
                    + min;
         }
     }
-
+    
+    //TODO check this method
     // rewrote mailExists() for Editing MBoxes
     public static boolean mailExists(String mail, String domain, Long mbId)
     {

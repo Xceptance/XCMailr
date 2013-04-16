@@ -8,8 +8,8 @@ import ninja.Results;
 
 public class SecureFilter implements Filter
 {
+    // TODO check the authencity?
 
-    // public final String usrname = "usrname";
     @Override
     public Result filter(FilterChain chain, Context context)
     {

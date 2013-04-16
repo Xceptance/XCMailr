@@ -6,36 +6,36 @@
 	<table class="form">
 		<tr>
 			<th><label for="forename"> ${user_forename} </label></th>
-			<td><input class="input_full" type="text" id="forename" name="forename" value="${(editUsr.forename)!}" />
+			<td><input class="input_full" type="text" id="forename" name="forename" value="${(editUsr.forename)!}" required="required"/>
 
 			</td>
 		</tr>
 		<tr>
 			<th><label for="surname"> ${user_surname} </label></th>
-			<td><input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}"/>
+			<td><input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required"/>
 
 			</td>
 		</tr>
 		<tr>
 			<th><label for="mail"> ${user_mail} </label></th>
 			<td><input class="input_full" type="email" id="mail"
-				name="mail" value="${(editUsr.mail)!}"/></td>
+				name="mail" value="${(editUsr.mail)!}" required="required"/></td>
 		</tr>
 
 		<tr>
 			<th><label for="pw"> ${user_pw} </label></th>
 			<td><input class="input_full" type="password" id="pw"
-				name="pw" value="${(editUsr.pw)!}"/></td>
+				name="pw" value="${(editUsr.pw)!}" required="required"/></td>
 		</tr>
 		<tr>
 			<th><label for="pwn1"> ${user_pw1} </label></th>
 			<td><input class="input_full" type="password" id="pwn1"
-				name="pwn1" value="${(editUsr.pwn1)!}"/></td>
+				name="pwn1" value="${(editUsr.pwn1)!}" required="required"/></td>
 		</tr>
 		<tr>
 			<th><label for="pwn2"> ${user_pw2} </label></th>
 			<td><input class="input_full" type="password" id="pwn2"
-				name="pwn2" value="${(editUsr.pwn2)!}"/></td>
+				name="pwn2" value="${(editUsr.pwn2)!}" required="required"/></td>
 		</tr>
 	</table>
 

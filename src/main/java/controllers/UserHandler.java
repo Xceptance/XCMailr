@@ -38,60 +38,60 @@ public class UserHandler
      */
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
-
         Long uId = new Long(context.getSessionCookie().get("id"));
         Result result = Results.html();
         String s;
 
         if (validation.hasViolations())
-        {
-            // the filled form has errors
+        { // the filled form has errors
+          // delete all pw-entries
+            //TODO i think the Form will have Violations, when no new pw was set...
+            edt.setPw("");
+            edt.setPwn1("");
+            edt.setPwn2("");
             s = msg.get("msg_formerr", context, result, "String");
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/user/edit").render(edt);
         }
         else
-        {
-            // the form is filled correctly
-            if (!User.mailExists(edt.getMail(), uId))
-            {
-                /*
-                 * TODO check if this works properly actually it should go here if there's no user or uid and mailadr.
-                 * belong together
-                 */
+        { // the form is filled correctly
 
-                String pw1 = edt.getPwn1();
-                String pw2 = edt.getPwn2();
-                User updU = User.authById(uId, edt.getPw());
-                // TODO check if the pw was set...
-                if (!updU.equals(null))
-                {
-                    // the user authorized himself
-                    // update the fore- and surname
-                    updU.setForename(edt.getForename());
-                    updU.setSurname(edt.getSurName());
-                }// TODO i think this brace should be set after the return
-                if (!(pw1.isEmpty() && pw2.isEmpty()) && pw1.equals(pw2))
-                {
-                    // new password was entered and the repetition is equally
-                    updU.setPasswd(pw2);
+            String pw1 = edt.getPwn1();
+            String pw2 = edt.getPwn2();
+            User updU = User.authById(uId, edt.getPw());
+
+            if (!updU.equals(null))
+            { // the user authorized himself
+
+                if (!User.mailChanged(edt.getMail(), uId))
+                { // the mailaddress changed
+                    updU.setMail(edt.getMail());
                 }
-                updU.setId(uId); // TODO check if this is unneccessary
+                // update the fore- and surname
+                updU.setForename(edt.getForename());
+                updU.setSurname(edt.getSurName());
+
+                if (!(pw2.isEmpty()) && pw1.equals(pw2))
+                { // new password was entered and the repetition is equally
+                    updU.hashPasswd(pw2);
+
+                }
                 User.updateUser(updU); // update the user
                 s = msg.get("msg_editok", context, result, "String");
-                context.getFlashCookie().error(s, (Object) null);
+                context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/user/edit");
-
             }
             else
-            {
-                s = msg.get("msg_mailex", context, result, "String");
+            { // the authorization-prozess failed
+              // reset all pw-entries
+                edt.setPw("");
+                edt.setPwn1("");
+                edt.setPwn2("");
+                s = msg.get("msg_formerr", context, result, "String");
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.redirect("/user/edit");
-
             }
         }
-
     }
 
     /**
@@ -101,13 +101,9 @@ public class UserHandler
      */
     public Result editUserForm(Context context)
     {
-
         Long id = new Long(context.getSessionCookie().get("id"));
-
         User usr = User.getById(id);
-
         return Results.html().render(EditUsr.prepopulate(usr));
-
     }
 
 }
