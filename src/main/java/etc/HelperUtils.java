@@ -2,13 +2,27 @@ package etc;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 
-import org.joda.time.DateTime;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
+import org.joda.time.DateTime;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.MXRecord;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.TextParseException;
+import org.xbill.DNS.Type;
+
+import models.MBox;
 import ninja.utils.NinjaProperties;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -40,7 +54,7 @@ public class HelperUtils
      * 
      * @return a random name
      */
-    private static String getRndName()
+    public static String getRndString()
     {
         // TODO modify this function, also use at least digits and uppercase-letters and a variable length
         Random rand = new Random();
@@ -183,4 +197,78 @@ public class HelperUtils
 
         return hours + "h," + days + "d";
     }
+    
+    public static String getMailTarget(String mailadr){
+        
+        
+        try
+        {
+            Record[] records = new Lookup(mailadr.split("@")[1], Type.MX).run();
+            MXRecord mx = (MXRecord) records[0];
+            return mx.getTarget().toString();
+            
+        }
+        catch (TextParseException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return null;
+        
+    }
+    /**
+     *  Takes the unchanged incoming mail and forwards it
+     * @param from
+     * @param to
+     * @param content
+     * @return
+     */
+    public static boolean forwardMail(String from, String to, String content){
+        String[] splitaddress = to.split("@");
+        String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
+        // TODO implement an i18n Subject-text
+        sendMail(from, fwdtarget, content, "Weitergeleitete Nachricht");
+        return false;
+    }
+    
+    /**
+     *  Takes the mail specified by the parameters and sends it to the given target
+     * @param from
+     * @param to
+     * @param content
+     * @param subject
+     * @return
+     */
+    
+    public static boolean sendMail(String from, String to, String content, String subject){
+        try
+        {
+            // TODO retry until the message could be sent(?)
+            Properties properties = System.getProperties();
+            properties.setProperty("mail.smtp.host", HelperUtils.getMailTarget(to));
+            Session session = Session.getDefaultInstance(properties);
+            
+            // create the message
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(from));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+            message.setSubject(subject);
+            message.setText(content);
+            Transport.send(message);
+
+        }
+        catch (AddressException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        catch (MessagingException e)
+        {
+            //TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
 }

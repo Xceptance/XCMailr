@@ -9,10 +9,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.Version;
-
-import ninja.validation.Required;
-
 import org.joda.time.DateTime;
 import com.avaje.ebean.*;
 
@@ -33,9 +29,6 @@ public class MBox
     private String address;
 
     // Timestamp for the end of the validity period
-
-    // TODO @version annotation ?
-
     private long ts_Active;
 
     // Flag for the validity
@@ -51,9 +44,6 @@ public class MBox
     @ManyToOne
     @JoinColumn(name = "usr_id", nullable = false)
     private User usr;
-
-    // Finder
-    // public static Finder<Long,MBox> find = new Finder(Long.class, MBox.class);
 
     // Getter und Setter
     public long getId()
@@ -136,7 +126,15 @@ public class MBox
         this.forwards = forwards;
     }
 
-    // EBean Functions
+    public void increaseForwards()
+    {
+        this.forwards++;
+    }
+
+    public void resetForwards()
+    {
+        this.forwards = 0;
+    }
 
     public int getSuppressions()
     {
@@ -146,6 +144,16 @@ public class MBox
     public void setSuppressions(int suppressions)
     {
         this.suppressions = suppressions;
+    }
+
+    public void increaseSuppressions()
+    {
+        this.suppressions++;
+    }
+
+    public void resetSuppressions()
+    {
+        this.suppressions = 0;
     }
 
     public long getTs_Active()
@@ -158,6 +166,7 @@ public class MBox
         this.ts_Active = ts_Active;
     }
 
+    // EBean Functions
     /**
      * deletes a box
      * 
@@ -176,6 +185,18 @@ public class MBox
     public static MBox getById(Long id)
     {
         return Ebean.find(MBox.class, id);
+    }
+
+    /**
+     * returns the Box by the given name
+     * 
+     * @param mail
+     * @param domain
+     * @return
+     */
+    public static MBox getByName(String mail, String domain)
+    {
+        return Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findUnique();
     }
 
     /**
@@ -308,8 +329,8 @@ public class MBox
                    + min;
         }
     }
-    
-    //TODO check this method
+
+    // TODO check this method
     // rewrote mailExists() for Editing MBoxes
     public static boolean mailExists(String mail, String domain, Long mbId)
     {

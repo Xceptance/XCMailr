@@ -3,21 +3,14 @@ package controllers;
 import models.MBox;
 
 import org.subethamail.smtp.*;
-import org.xbill.DNS.*;
-
 import com.google.inject.Singleton;
+
+import etc.HelperUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Properties;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 @Singleton
 public class MailrMessageHandlerFactory implements MessageHandlerFactory
@@ -63,68 +56,28 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
          */
 
         public void done()
-        {
-            // do all the mail-fwd things here
-
+        { // do all the mail-fwd things here
             String[] splitaddress = empf.split("@");
             // TODO check if the address is malicious
             if (MBox.mailExists(splitaddress[0], splitaddress[1]))
             {
-                // TODO implement check for the validity of a mbox
-                // TODO change the host..?
-
-                String host;
-                String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
-
-                try
+                MBox mb = MBox.getByName(splitaddress[0], splitaddress[1]);
+                if (mb.isActive())
                 {
-                    Record[] records = new Lookup(fwdtarget.split("@")[1], Type.MX).run();
-                    // TODO try until the message could be sent
-                    MXRecord mx = (MXRecord) records[0];
-                    host = mx.getTarget().toString();
-                    Properties properties = System.getProperties();
-                    System.out.println(host);
-                    properties.setProperty("mail.smtp.host", host);
-                    Session session = Session.getDefaultInstance(properties);
-                    // add the header-informations
-                    MimeMessage message = new MimeMessage(session);
-                    message.setFrom(new InternetAddress(sender));
-                    message.addRecipient(Message.RecipientType.TO, new InternetAddress(fwdtarget));
-                    // TODO implement an i18n Subject-text
-                    message.setSubject("Weitergeleitete Nachricht");
-
-                    // add the message body
-                    message.setText(content);
-                    Transport.send(message);
-
-                    // TODO increase the mbox-fwd-counter
-                    System.out.println("Finished");
-                    System.out.println("The Message was:\n");
-                    System.out.println("From:" + sender);
-                    System.out.println("To:" + empf);
-                    System.out.println("Content:" + content);
-
+                    HelperUtils.forwardMail(sender, empf, content);
+                    mb.increaseForwards();
+                    MBox.updateMBox(mb);
                 }
-                catch (TextParseException e1)
+                else
                 {
-
-                    e1.printStackTrace();
-                }
-                catch (AddressException e)
-                {
-
-                    e.printStackTrace();
-                }
-                catch (MessagingException e)
-                {
-
-                    e.printStackTrace();
+                    mb.increaseSuppressions();
+                    MBox.updateMBox(mb);
                 }
 
             }
             else
             {
-                // just increase the suppressed-mails counter
+                // TODO just increase the general suppressed-mails counter
 
             }
 

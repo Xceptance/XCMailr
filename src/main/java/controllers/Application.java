@@ -1,10 +1,5 @@
 package controllers;
 
-import org.xbill.DNS.Lookup;
-import org.xbill.DNS.MXRecord;
-import org.xbill.DNS.Record;
-import org.xbill.DNS.Type;
-
 import com.avaje.ebean.Ebean;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -21,13 +16,6 @@ import ninja.i18n.Messages;
 import ninja.utils.NinjaProperties;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
-import java.util.Properties;
-import java.util.Random;
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 /**
  * Handles all general application actions like login, logout, forgot password or index page
@@ -273,69 +261,16 @@ public class Application
 
     private String sendMail(String mail, String forename, String lang)
     {
+        String from = ninjaProp.get("mbox.adminaddr");
+        String subject = msg.get("forgpw.title", lang, (Object) null);
+        String rueck = HelperUtils.getRndString();
+        // TODO create a better message-text
+        // msg.get("forgpw.msg", lang, new String[]{forename, rueck});
+        String content = "Dein passwort lautet: " + rueck;
+        HelperUtils.sendMail(from, mail, content, subject);
 
-        // standard-host of this application
-        String host = ninjaProp.get("mbox.host");
-        Record[] records;
-        try
-        {
-            records = new Lookup(mail.split("@")[1], Type.MX).run();
+        //TODO handle a failed mail-send
+        return rueck;
 
-            // TODO try other records until the message could be sent
-            // TODO create a helperfunction for sending mails..
-
-            MXRecord mx = (MXRecord) records[0];
-            host = mx.getTarget().toString();
-            host = host.substring(0, host.length() - 1); // otherwise the string will end with a dot
-
-            String to = mail;
-            // TODO change the domain
-            String from = "admin@" + "xcmailr.xct";
-            Properties properties = System.getProperties();
-            properties.setProperty("mail.smtp.host", host);
-            Session session = Session.getDefaultInstance(properties);
-
-            // add the header-informations
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(from));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-
-            message.setSubject(msg.get("forgpw.title", lang, (Object) null));
-
-            // add the message body
-            String rueck = getRndPw();
-            // TODO create a better message-text
-            // msg.get("forgpw.msg", lang, new String[]{forename, rueck});
-            String tmp = "Dein passwort lautet: " + rueck;
-            message.setText(tmp);
-            Transport.send(message);
-            return rueck;
-
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            return null;
-        }
     }
-
-    /**
-     * generates a random password
-     * 
-     * @return a random password with 7 characters
-     */
-    // TODO modify this function, also use at least digits and uppercase-letters and a variable length
-    private String getRndPw()
-    {
-        Random rand = new Random();
-        StringBuffer strBuf = new StringBuffer();
-
-        for (int i = 0; i < 7; i++)
-        {
-            // generates a random char between a and z (an ascii a is 97, z is 122 in dec)
-            strBuf.append((char) ((Math.abs(rand.nextInt()) % 26) + 97));
-        }
-        return strBuf.toString();
-    }
-
 }

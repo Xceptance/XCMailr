@@ -1,7 +1,6 @@
 package models;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.persistence.*;
@@ -313,9 +312,12 @@ public class User
     }
 
     /**
+     * returns the user-object if the given mail and password combination matches
+     * 
      * @param mail
      * @param pw
-     * @return the user object if the given mail and password belong together
+     * @return the user object if the given mail and password belong together <br/>
+     *         null - else
      */
 
     public static User auth(String mail, String pw)
@@ -327,7 +329,7 @@ public class User
         {
             // there's a user with that address
 
-            // TODO next code is redundant, same like authById()
+            // next code is redundant, same like authById()
             if (BCrypt.checkpw(pw, usr.getPasswd()))
             {
 
@@ -337,7 +339,6 @@ public class User
             else
             {
                 // the password is wrong
-
                 return null;
             }
         }
@@ -357,7 +358,8 @@ public class User
 
     public static User authById(Long id, String pw)
     {
-        User usr = Ebean.find(User.class).where().eq("id", id).findUnique();
+        User usr = Ebean.find(User.class, id);
+
         if (BCrypt.checkpw(pw, usr.getPasswd()))
         {
             return usr;
