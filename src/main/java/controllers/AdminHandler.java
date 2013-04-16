@@ -11,6 +11,7 @@ import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
 import ninja.params.PathParam;
+import filters.AdminFilter;
 import filters.SecureFilter;
 
 import models.User;
@@ -20,7 +21,9 @@ import models.User;
  * 
  * @author Patrick Thum 2012 released under Apache 2.0 License
  */
-@FilterWith(SecureFilter.class)
+
+@FilterWith({SecureFilter.class,AdminFilter.class})
+
 @Singleton
 public class AdminHandler
 {
@@ -31,17 +34,12 @@ public class AdminHandler
     // Shows all Users - Admin-Section
     public Result showUsers(Context context)
     { // TODO Handle Account-Generation
-        String cok = context.getSessionCookie().get("adm");
-        if (!(cok == null))
-        {
+
+
             Map<String, List<User>> map = new HashMap<String, List<User>>();
             map.put("users", User.all());
             return Results.html().render(map);
-        }
-        else
-        {
-            return Results.forbidden();
-        }
+
 
         // if( ( session().containsKey("adm") ) ){
         // List<String> lst = Arrays.asList(jmc.getDomainList());
@@ -52,7 +50,7 @@ public class AdminHandler
     // promotes the User - Admin-Section
     public Result promoteUser(@PathParam("uid") Long id)
     {
-        // TODO check whether the user is authorized to do this!
+
         User.promote(id);
         return Results.redirect("/admin");
 

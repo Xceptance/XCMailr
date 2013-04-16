@@ -6,7 +6,7 @@ import ninja.FilterChain;
 import ninja.Result;
 import ninja.Results;
 
-public class SecureFilter implements Filter
+public class AdminFilter implements Filter
 {
     // TODO check the authencity of the cookie?
 
@@ -15,10 +15,10 @@ public class SecureFilter implements Filter
     {
         // if we got no cookies we break:
 
-        if (context.getSessionCookie() == null || context.getSessionCookie().get("usrname") == null)
+        if (context.getSessionCookie() == null || context.getSessionCookie().get("adm") == null)
         {
-
-            return Results.redirect("/login");
+            
+            return Results.redirect("/");
 
         }
         else
