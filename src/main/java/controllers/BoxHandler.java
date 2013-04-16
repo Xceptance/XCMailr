@@ -172,45 +172,36 @@ public class BoxHandler
         else
         { // the form was filled correctly
 
-            if (!MBox.mailExists(mbdat.getAddress(), mbdat.getDomain(), boxId))
-            { // the given mailbox exists
+            // we got the boxID with the POST-Request
+            MBox mb = MBox.getById(boxId);
+            if (!(mb == null))
+            { // the box with the given id exists
 
-                boolean changes = false;
-                // we get the boxID with the POST-Request
-
-                MBox mb = MBox.getById(boxId);
                 Long uid = Long.parseLong(context.getSessionCookie().get("id"));
 
                 if (mb.belongsTo(uid))
                 { // the current user is the owner of the mailbox
-
+                    boolean changes = false;
                     String newLName = mbdat.getAddress().toLowerCase();
                     String newDName = mbdat.getDomain().toLowerCase();
-                    String oldLName = mb.getAddress();
-                    String oldDName = mb.getDomain();
 
-                    if (!newLName.equals(oldLName))
-                    { // a new local-name was chosen
-
-                        /*
-                         * TODO -return an error-page if there are some special-chars in the address... -return an
-                         * error-page if there is a dot at the end -there should be another mail-exists-check after all
-                         * deletions.. -> just a remark!, most of this may be unneccessary when using RegEx in mailaddr.
-                         */
-
-                        newLName = newLName.replaceAll("[^a-zA-Z0-9.]", "");
-                        // deletes the dot if its placed at the end of the mailaddress
-                        if (newLName.endsWith("."))
-                        {
-                            newLName = newLName.substring(0, newLName.length() - 1);
-                        }
-                        mb.setAddress(newLName);
-                        changes = true;
+                    /*
+                     * TODO -return an error-page if there are some special-chars in the address... -return an
+                     * error-page if there is a dot at the end -there should be another mail-exists-check after all
+                     * deletions.. -> just a remark!, most of this may be unneccessary when using RegEx in mailaddr.
+                     */
+                    // TODO check the existence of the new domainname (assume that the POST-Request was modified)
+                    newLName = newLName.replaceAll("[^a-zA-Z0-9.]", "");
+                    // deletes the dot if its placed at the end of the mailaddress
+                    
+                    if (newLName.endsWith("."))
+                    {
+                        newLName = newLName.substring(0, newLName.length() - 1);
                     }
 
-                    if (!newDName.equals(oldDName))
-                    { // a new domainname was chosen
-                      // TODO check the existence of the new domainname
+                    if (MBox.mailChanged(newLName, newDName, boxId))
+                    { //this is only true when the address changed and the new address does not exist
+                        mb.setAddress(newLName);
                         mb.setDomain(newDName);
                         changes = true;
                     }
@@ -242,16 +233,13 @@ public class BoxHandler
                   // TODO what should be done in this case?
                     return Results.redirect("/mail");
                 }
-
-                return Results.redirect("/mail");
             }
             else
-            {
-                // mailexists-check was false
-                s = msg.get("msg_mailex", context, result, "String");
-                context.getFlashCookie().put(s, (Object) null);
-                return Results.redirect("/mail/edit");
+            { // the given id does not exist
+                return Results.redirect("/mail");
             }
+            return Results.redirect("/mail");
+
         }
     }
 

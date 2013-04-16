@@ -300,6 +300,36 @@ public class MBox
         }
     }
 
+    public static boolean mailChanged(String local, String domain, Long boxId)
+    {
+        MBox mb = MBox.getById(boxId);
+        if (mb.equals(null))
+        {
+            // there's no box with that id
+            return false;
+        }
+        else
+        { // there is a mbox with that id
+            if (mb.address.equals(local) && mb.address.equals(domain))
+            {
+                // mbox-mailaddr is equal to the given address -> nothing changed
+                return false;
+            }
+            else
+            { // the addresses differ
+                if (MBox.mailExists(local, domain))
+                { //the given address already exists for another mbox
+                    return false;
+                }
+                else
+                { //the given address is not used
+                    return true;
+                }
+            }
+
+        }
+    }
+
     /**
      * @return the timestamp in a Date format
      */
@@ -328,34 +358,6 @@ public class MBox
             return dt.getDayOfMonth() + "." + dt.getMonthOfYear() + "." + dt.getYear() + " " + dt.getHourOfDay() + ":"
                    + min;
         }
-    }
-
-    // TODO check this method
-    // rewrote mailExists() for Editing MBoxes
-    public static boolean mailExists(String mail, String domain, Long mbId)
-    {
-
-        List<MBox> ml = Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain)
-                             .findList();
-
-        if (!ml.isEmpty())
-        { // there's another address..
-            if ((ml.size() == 1) && (ml.get(0).getId() == mbId))
-            {
-                // Mailbox has the same Id
-                return false;
-            }
-            else
-            {
-                // more than 1 result or another Id
-                return true;
-            }
-        }
-        else
-        { // there's no other address
-            return false;
-        }
-
     }
 
     /**
