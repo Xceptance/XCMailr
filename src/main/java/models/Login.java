@@ -1,7 +1,5 @@
 package models;
 
-import org.hibernate.validator.constraints.NotEmpty;
-
 /**
  * Holds the Data for the Login Form
  * 
