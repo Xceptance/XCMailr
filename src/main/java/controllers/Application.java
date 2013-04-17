@@ -230,7 +230,7 @@ public class Application
 
             User usr = User.getUsrByMail(l.getMail());
             if (usr != null)
-            { // mailadress was correct
+            { // mailadress was correct (exists in the DB)
               // generate a new pw and send it to the given mailadress
                 String newPw = sendMail(usr.getMail(), usr.getMail(), context.getAcceptLanguage());
                 if (newPw.equals(null))
@@ -253,6 +253,26 @@ public class Application
                 }
             }
 
+            /*
+             * TODO what shall we do here?
+             * 
+             * ->Situation: we get here, when the mailaddress does not exist in the db
+             * 
+             * Ideas:
+             * 
+             * 1. as its now: show the "msg_formerr" and return to the pwresend-page -> its now possible to
+             * automatically send POST-Requests until a valid address has been found
+             * 
+             * 2. redirect to the index-page and show the error there (do this also when the form has errors) (or
+             * conversly, redirect the success-case to the pwresend-page and show the message there-> spammers now have
+             * to go deeper into the page, because they have then not just to check the redirect-target, as well as the
+             * returned error/success message in the html-body
+             * 
+             * 3. ???
+             * 
+             * TODO implement captchas!
+             */
+
             s = msg.get("msg_formerr", context, result, "String");
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/pwresend");
@@ -272,6 +292,7 @@ public class Application
 
     private String sendMail(String mail, String forename, String lang)
     {
+        //
         String from = ninjaProp.get("mbox.adminaddr");
         String subject = msg.get("forgpw_title", lang, (Object) null);
         String rueck = HelperUtils.getRndString();

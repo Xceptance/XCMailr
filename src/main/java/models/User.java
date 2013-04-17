@@ -16,6 +16,7 @@ import com.avaje.ebean.validation.NotNull;
  * @author Patrick Thum 2012 released under Apache 2.0 License
  */
 @Entity
+@Table(name="users")
 public class User
 {
     // UserId

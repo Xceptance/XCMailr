@@ -23,7 +23,6 @@ public class EditUsr
     @NotEmpty
     private String pw;
 
-    @NotEmpty
     private String pwn1;
 
     private String pwn2;

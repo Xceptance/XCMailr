@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package example;
+package conf;
 
-import static org.junit.Assert.assertTrue;
-import ninja.NinjaTest;
-import ninja.utils.NinjaTestBrowser;
+import ninja.ebean.NinjaEbeanModule;
 
-import org.junit.Test;
+import com.google.inject.AbstractModule;
 
+import controllers.JobController;
 
-public class ExampleApiTest extends NinjaTest {
+public class Module extends AbstractModule
+{
 
+    public Module()
+    {
+        super();
+    }
 
-	@Test
-	public void testThatStaticAssetsWork() {
+    @Override
+    protected void configure()
+    {
 
-		String apiCallResult = ninjaTestBrowser.makeJsonRequest(getServerAddress() + "/person");
-		
-		System.out.println("apicallresult: " +apiCallResult);
-		assertTrue(apiCallResult.startsWith("{\"name\":\"zeeess name -"));
-		
-	}
+        install(new NinjaEbeanModule());
+        bind(JobController.class);
 
-	
+    }
 
 }

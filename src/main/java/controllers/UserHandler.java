@@ -39,19 +39,21 @@ public class UserHandler
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
         Long uId = new Long(context.getSessionCookie().get("id"));
+
         Result result = Results.html();
         String s;
 
         if (validation.hasViolations())
         { // the filled form has errors
           // delete all pw-entries
-            //TODO i think the Form will have Violations, when no new pw was set...
+
             edt.setPw("");
             edt.setPwn1("");
             edt.setPwn2("");
             s = msg.get("msg_formerr", context, result, "String");
             context.getFlashCookie().error(s, (Object) null);
-            return Results.redirect("/user/edit").render(edt);
+            return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
+
         }
         else
         { // the form is filled correctly
@@ -60,7 +62,7 @@ public class UserHandler
             String pw2 = edt.getPwn2();
             User updU = User.authById(uId, edt.getPw());
 
-            if (!updU.equals(null))
+            if (!(updU == null))
             { // the user authorized himself
 
                 if (!User.mailChanged(edt.getMail(), uId))
@@ -70,11 +72,13 @@ public class UserHandler
                 // update the fore- and surname
                 updU.setForename(edt.getForename());
                 updU.setSurname(edt.getSurName());
+                if (!(pw1 == null) && !(pw2 == null))
+                {
+                    if (!(pw2.isEmpty()) && !(pw1.isEmpty()) && pw1.equals(pw2))
+                    { // new password was entered and the repetition is equally
+                        updU.hashPasswd(pw2);
 
-                if (!(pw2.isEmpty()) && pw1.equals(pw2))
-                { // new password was entered and the repetition is equally
-                    updU.hashPasswd(pw2);
-
+                    }
                 }
                 User.updateUser(updU); // update the user
                 s = msg.get("msg_chok", context, result, "String");
@@ -89,7 +93,7 @@ public class UserHandler
                 edt.setPwn2("");
                 s = msg.get("msg_formerr", context, result, "String");
                 context.getFlashCookie().error(s, (Object) null);
-                return Results.redirect("/user/edit");
+                return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
             }
         }
     }

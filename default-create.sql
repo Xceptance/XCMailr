@@ -10,21 +10,21 @@ create table mailboxes (
   constraint pk_mailboxes primary key (id))
 ;
 
-create table user (
+create table users (
   id                        bigint not null,
   forename                  varchar(255) not null,
   surname                   varchar(255) not null,
   mail                      varchar(255),
   passwd                    varchar(255) not null,
   admin                     boolean,
-  constraint pk_user primary key (id))
+  constraint pk_users primary key (id))
 ;
 
 create sequence mailboxes_seq;
 
-create sequence user_seq;
+create sequence users_seq;
 
-alter table mailboxes add constraint fk_mailboxes_usr_1 foreign key (usr_id) references user (id) on delete restrict on update restrict;
+alter table mailboxes add constraint fk_mailboxes_usr_1 foreign key (usr_id) references users (id) on delete restrict on update restrict;
 create index ix_mailboxes_usr_1 on mailboxes (usr_id);
 
 
