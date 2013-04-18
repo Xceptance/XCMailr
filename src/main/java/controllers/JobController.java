@@ -34,7 +34,6 @@ public class JobController
 
     public SMTPServer smtpServer;
 
-
     @Inject
     Logger log;
 
@@ -50,32 +49,37 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
-        
-//        log.debug("EBEAN DATASOURCE:" + ninjaProp.get("ebean.datasource.databaseUrl"));
-//        log.debug("Test:" + ninjaProp.isTest());
-//        log.debug("Dev:" + ninjaProp.isDev());
-//        log.debug("Prod:" + ninjaProp.isProd());
+
         MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory();
         smtpServer = new SMTPServer(mailrFactory);
-        //dynamic ports: 49152–65535
-        int port ;
-        //TODO think about another solution..
-        if(ninjaProp.getBoolean("test.serv")==true){
+        // dynamic ports: 49152–65535
+        int port;
+        // TODO think about another solution..
+
+        /*
+         * check if the test.serv option in application.conf was set to true
+         * 
+         * TODO maybe use the mode (e.g. check for ninjaProp.isDev() or ninjaProp.isTest() )
+         * or alternatively check if the port which was set in application.conf at mbox.port is used
+         */  
+        if (ninjaProp.getBoolean("test.serv") == true)
+        {
             port = findAvailablePort(49152, 65535);
-            log.debug("port gewaehlt: "+port);
-        }else{
+            log.debug("port gewaehlt: " + port);
+        }
+        else
+        {
             port = Integer.parseInt(ninjaProp.get("mbox.port"));
         }
         
- //       log.debug("----------------------------------------------STarte!!----------------------------");
+        //set the port and start it
         smtpServer.setPort(port);
-   
-
-                smtpServer.start();
-
+        smtpServer.start();
 
         int interval = Integer.parseInt(ninjaProp.get("mbox.interval"));
-
+        
+        //create the sheduler-service to check the mailboxes which were expired since the last run and disable them
+        //TODO maybe use the Shedule-Annotation instead, see: http://www.ninjaframework.org/documentation/scheduler.html
         executorService.schedule(new Runnable()
         {
             public void run()
@@ -102,24 +106,29 @@ public class JobController
     @Dispose(order = 90)
     public void stopActions()
     {
- //       log.debug("----------------------------------------------SToppe!!----------------------------");
+
         // stop the forwarding-service
         smtpServer.stop();
         // stop the job to expire the mailboxes
         executorService.shutdown();
     }
-    
-    //stolen from ninjatestserver-code
-    private static int findAvailablePort(int min, int max) {
-        for (int port = min; port < max; port++) {
-            try {
+
+    // stolen from NinjaTestServer-source
+    private static int findAvailablePort(int min, int max)
+    {
+        for (int port = min; port < max; port++)
+        {
+            try
+            {   //try to create a now port at "port" 
+                //if there's no exception, return it
                 new ServerSocket(port).close();
                 return port;
-            } catch (IOException e) {
+            }
+            catch (IOException e)
+            {
                 // Must already be taken
             }
         }
-        throw new IllegalStateException(
-                "Could not find available port in range " + min + " to " + max);
+        throw new IllegalStateException("Could not find available port in range " + min + " to " + max);
     }
 }

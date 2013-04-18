@@ -45,14 +45,10 @@ public class UserHandler
 
         if (validation.hasViolations())
         { // the filled form has errors
-          // delete all pw-entries
 
-            edt.setPw("");
-            edt.setPwn1("");
-            edt.setPwn2("");
             s = msg.get("msg_formerr", context, result, "String");
             context.getFlashCookie().error(s, (Object) null);
-            return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
+            return Results.redirect("/user/edit");
 
         }
         else
@@ -87,13 +83,10 @@ public class UserHandler
             }
             else
             { // the authorization-prozess failed
-              // reset all pw-entries
-                edt.setPw("");
-                edt.setPwn1("");
-                edt.setPwn2("");
+
                 s = msg.get("msg_formerr", context, result, "String");
                 context.getFlashCookie().error(s, (Object) null);
-                return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
+                return Results.redirect("/user/edit");
             }
         }
     }
