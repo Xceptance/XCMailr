@@ -49,7 +49,10 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
-
+        log.info("prod:"+ninjaProp.isProd()+" dev: "+ninjaProp.isDev()+" test: "+ninjaProp.isTest());
+        
+        //TODO check whether the domains contained in application.conf are correct (spelling)
+        
         MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory();
         smtpServer = new SMTPServer(mailrFactory);
         // dynamic ports: 49152–65535
@@ -65,7 +68,7 @@ public class JobController
         if (ninjaProp.getBoolean("test.serv") == true)
         {
             port = findAvailablePort(49152, 65535);
-            log.debug("port gewaehlt: " + port);
+            
         }
         else
         {

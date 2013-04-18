@@ -35,7 +35,7 @@ public class ApplicationHandlerTest extends NinjaTest
     {
         formParams.clear();
         headers.clear();
-        ninjaTestBrowser.getCookies().clear();
+
     }
 
     @After

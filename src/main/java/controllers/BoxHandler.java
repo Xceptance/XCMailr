@@ -102,6 +102,7 @@ public class BoxHandler
                 {
                     // the new domainname does not exist in the application.conf
                     // stop the process and return to the mailbox-overview page
+
                     return Results.redirect("/mail");
 
                 }
@@ -114,7 +115,7 @@ public class BoxHandler
                 if (ts == -1)
                 { // show an error-page if the timestamp is faulty
                     s = msg.get("msg_wrongf", context, result, "String");
-                    context.getFlashCookie().put(s, (Object) null);
+                    context.getFlashCookie().error(s, (Object) null);
                     return Results.redirect("/mail");
 
                 }
@@ -132,7 +133,7 @@ public class BoxHandler
             {
                 // the mailbox already exists
                 s = msg.get("msg_mailex", context, result, "String");
-                context.getFlashCookie().put(s, (Object) null);
+                context.getFlashCookie().error(s, (Object) null);
                 return Results.redirect("/mail");
             }
         }

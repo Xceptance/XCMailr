@@ -1,5 +1,6 @@
 package models;
 
+import javax.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -19,6 +20,7 @@ public class MbFrmDat
     private String duration;
 
     @NotEmpty
+    @Pattern(regexp="[A-Za-z-]+(\\.[\\w-]+)+")
     private String domain;
 
     public Long getBoxId()
