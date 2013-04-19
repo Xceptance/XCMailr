@@ -22,8 +22,10 @@ import models.User;
  * @author Patrick Thum 2012 released under Apache 2.0 License
  */
 
-@FilterWith({SecureFilter.class,AdminFilter.class})
-
+@FilterWith(
+    {
+        SecureFilter.class, AdminFilter.class
+    })
 @Singleton
 public class AdminHandler
 {
@@ -35,11 +37,10 @@ public class AdminHandler
     public Result showUsers(Context context)
     { // TODO Handle Account-Generation
 
+        Map<String, List<User>> map = new HashMap<String, List<User>>();
+        map.put("users", User.all());
 
-            Map<String, List<User>> map = new HashMap<String, List<User>>();
-            map.put("users", User.all());
-            return Results.html().render(map);
-
+        return Results.html().render(map);
 
         // if( ( session().containsKey("adm") ) ){
         // List<String> lst = Arrays.asList(jmc.getDomainList());
@@ -48,7 +49,7 @@ public class AdminHandler
     }
 
     // promotes the User - Admin-Section
-    public Result promoteUser(@PathParam("uid") Long id)
+    public Result promoteUser(@PathParam("id") Long id)
     {
 
         User.promote(id);
@@ -62,7 +63,7 @@ public class AdminHandler
      * @param id
      * @return
      */
-    public Result deleteUser(Long id)
+    public Result deleteUser(@PathParam("id") Long id)
     {
         // TODO check whether the user is authorized to do this!
         User.delete(id);

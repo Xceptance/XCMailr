@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.subethamail.smtp.server.SMTPServer;
 
 import models.MBox;
+import models.User;
 import ninja.lifecycle.Dispose;
 import ninja.lifecycle.Start;
 import ninja.utils.NinjaProperties;
@@ -53,6 +54,22 @@ public class JobController
 
         // TODO check whether the domains contained in application.conf are correct (spelling)
 
+        String pwd = ninjaProp.get("admin.pass");
+        if (!(pwd == null))
+        { // if a pw is set in application.conf..
+            log.info("the passwd is set in the db");
+            String mail = ninjaProp.getOrDie("mbox.adminaddr");
+            if (!User.mailExists(mail))
+            {// ...and the admin-acc doesn't exist
+             // create the adminaccount
+                log.info("Adminaccount is: " + mail + ":" + pwd);
+                User usr = new User("Site", "Admin", mail, pwd);
+                // set the status flag
+                usr.setAdmin(true);
+
+                User.createUser(usr);
+            }
+        }
         MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory();
         smtpServer = new SMTPServer(mailrFactory);
         // dynamic ports: 49152–65535

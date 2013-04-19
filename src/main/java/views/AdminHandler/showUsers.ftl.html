@@ -13,10 +13,14 @@
 		<#list users as user>
 		    <tr>
 		    <td>${user.forename}</td>
-		    <td>${user.surName}</td>
+		    <td>${user.surname}</td>
 		    <td>${user.id}</td>
 		    <td>${user.mail}</td>
-		    <td>${user.admin}</td>
+		    <#if (user.isAdmin())>
+		    <td>${msg_yes}</td>
+		    <#else>
+		    <td>${msg_no}</td>
+		    </#if>
 		    <td>
    			<form action="/admin/delete/${user.id}" method="post"> 
                    <input type="submit" class="btn" value="${mailbox_delete}"/>
@@ -24,7 +28,7 @@
             </td>
                 
 		    <td> 
-		    <form action="/admin/promote/${mBox.id}" method="get">
+		    <form action="/admin/promote/${user.id}" method="post">
 		          <input type="submit" class= "btn" value="${user_promote}"/>
 		    </form>
 		    </td>

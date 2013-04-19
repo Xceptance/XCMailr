@@ -16,7 +16,7 @@ create table users (
   surname                   varchar(255) not null,
   mail                      varchar(255),
   passwd                    varchar(255) not null,
-  admin                     boolean,
+  status                    integer,
   constraint pk_users primary key (id))
 ;
 

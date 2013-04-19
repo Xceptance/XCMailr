@@ -16,7 +16,7 @@ import com.avaje.ebean.validation.NotNull;
  * @author Patrick Thum 2012 released under Apache 2.0 License
  */
 @Entity
-@Table(name="users")
+@Table(name = "users")
 public class User
 {
     // UserId
@@ -41,15 +41,17 @@ public class User
     private String passwd;
 
     // Admin-Flag
-    private boolean admin;
+    // private boolean admin;
+
+    // status-flag, values (chmod-like):
+    // 1 - active account
+    // 2 - admin account
+    private int status;
 
     // Relation to the Mailboxes
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
     public List<MBox> boxes;
 
-    // //Finder
-    // public static Finder<Long,User> find = new Finder(Long.class, User.class);
-    //
     // ----------------------------- Getter and Setter ------------------------
     /**
      * Standard constructor, just initialize the variables
@@ -61,6 +63,8 @@ public class User
         surname = "";
         mail = "";
         passwd = "";
+        status = 0;
+        // admin = false;
         boxes = new ArrayList<MBox>();
     }
 
@@ -83,6 +87,7 @@ public class User
         setSurname(sName);
         setMail(eMail);
         hashPasswd(pw);
+        status = 0;
         setAdmin(false);
         boxes = new ArrayList<MBox>();
     }
@@ -219,7 +224,15 @@ public class User
      */
     public boolean isAdmin()
     {
-        return admin;
+        String stat = Integer.toBinaryString(status);
+        if (stat.charAt(0) == '0')
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 
     /**
@@ -230,7 +243,37 @@ public class User
      */
     public void setAdmin(boolean admin)
     {
-        this.admin = admin;
+        
+        String stat = Integer.toBinaryString(status);
+        System.out.println(stat+" "+admin);
+        if ((stat.charAt(0) == '0') && admin)
+        {
+            status += 2;
+        }
+        if ((stat.charAt(0) == '1') && !admin)
+        {
+            status -= 2;
+        }
+        System.out.println(Integer.toBinaryString(status));
+    }
+
+    /**
+     * get the Status, the value is set chmod- or binary-like<br/>
+     * 1 - account is active <br/>
+     * 2 - account is admin<br/>
+     * (means e.g. value of 3 for an active admin-account)
+     * 
+     * @return the actual status of the user
+     */
+
+    public int getStatus()
+    {
+        return status;
+    }
+
+    public void setStatus(int status)
+    {
+        this.status = status;
     }
 
     /**
@@ -239,7 +282,7 @@ public class User
     public static List<User> all()
     {
         return Ebean.find(User.class).findList();
-        // return find.all();
+
     }
 
     // ---------------------------- EBean/Finder-Functions----------------------
@@ -379,7 +422,7 @@ public class User
      */
     public static User getById(Long id)
     {
-        return Ebean.find(User.class).where().eq("id", id).findUnique();
+        return Ebean.find(User.class, id);
     }
 
     /**
@@ -413,9 +456,12 @@ public class User
      */
     public static void promote(Long id)
     {
-        User usr = Ebean.find(User.class).where().eq("id", id).findUnique();
+        User usr = Ebean.find(User.class, id);
         usr.setAdmin(!usr.isAdmin());
+        System.out.println(usr.getStatus());
         Ebean.update(usr);
+        User u2 = Ebean.find(User.class, id);
+        System.out.println(u2.getStatus());
     }
 
     public String toString()
