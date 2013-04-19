@@ -8,7 +8,7 @@ import ninja.Results;
 
 public class AdminFilter implements Filter
 {
-    // TODO check the authencity of the cookie?
+    // TODO check the authenticity of the cookie?
 
     @Override
     public Result filter(FilterChain chain, Context context)

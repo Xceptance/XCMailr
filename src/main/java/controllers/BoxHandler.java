@@ -47,8 +47,16 @@ public class BoxHandler
 
     public Result showAddBox(Context context)
     {
-
-        return Results.html().render(HelperUtils.getDomainsFromConfig(ninjaProp));
+        Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
+        MbFrmDat mbdat = new MbFrmDat();
+        //set the value of the random-name to 7
+        //use the lowercase, we handle the address as case-insensitive 
+        //TODO check whether the generated mailaddress already exists..
+        
+        String name = HelperUtils.getRndString(7).toLowerCase();
+        mbdat.setAddress(name);
+        map.put("mbFrmDat", mbdat);
+        return Results.html().render(map);
     }
 
     /**

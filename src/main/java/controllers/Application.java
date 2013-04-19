@@ -295,7 +295,10 @@ public class Application
         //
         String from = ninjaProp.get("mbox.adminaddr");
         String subject = msg.get("forgpw_title", lang, (Object) null);
-        String rueck = HelperUtils.getRndString();
+
+        // TODO use the ninjaProp.getOrDie method to prevent a NullPtEx here or alternatively sorround the
+        // integer.valueof with a try-catch and catch the numberformatEx to set a default length
+        String rueck = HelperUtils.getRndString(Integer.valueOf(ninjaProp.get("pw.length")));
         Object[] param = new Object[]
             {
                 forename, rueck

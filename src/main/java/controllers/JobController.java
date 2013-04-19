@@ -49,40 +49,40 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
-        log.info("prod:"+ninjaProp.isProd()+" dev: "+ninjaProp.isDev()+" test: "+ninjaProp.isTest());
-        
-        //TODO check whether the domains contained in application.conf are correct (spelling)
-        
+        log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
+
+        // TODO check whether the domains contained in application.conf are correct (spelling)
+
         MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory();
         smtpServer = new SMTPServer(mailrFactory);
         // dynamic ports: 49152–65535
         int port;
-        // TODO think about another solution..
 
         /*
          * check if the test.serv option in application.conf was set to true
          * 
-         * TODO maybe use the mode (e.g. check for ninjaProp.isDev() or ninjaProp.isTest() )
-         * or alternatively check if the port which was set in application.conf at mbox.port is used
-         */  
+         * TODO maybe use the mode (e.g. check for ninjaProp.isDev() or ninjaProp.isTest() ) or alternatively check if
+         * the port which was set in application.conf at mbox.port is used
+         */
         if (ninjaProp.getBoolean("test.serv") == true)
         {
             port = findAvailablePort(49152, 65535);
-            
+
         }
         else
         {
             port = Integer.parseInt(ninjaProp.get("mbox.port"));
         }
-        
-        //set the port and start it
+
+        // set the port and start it
         smtpServer.setPort(port);
         smtpServer.start();
 
         int interval = Integer.parseInt(ninjaProp.get("mbox.interval"));
-        
-        //create the sheduler-service to check the mailboxes which were expired since the last run and disable them
-        //TODO maybe use the Shedule-Annotation instead, see: http://www.ninjaframework.org/documentation/scheduler.html
+
+        // create the sheduler-service to check the mailboxes which were expired since the last run and disable them
+        // TODO maybe use the Shedule-Annotation instead, see:
+        // http://www.ninjaframework.org/documentation/scheduler.html
         executorService.schedule(new Runnable()
         {
             public void run()
@@ -122,8 +122,8 @@ public class JobController
         for (int port = min; port < max; port++)
         {
             try
-            {   //try to create a now port at "port" 
-                //if there's no exception, return it
+            { // try to create a now port at "port"
+              // if there's no exception, return it
                 new ServerSocket(port).close();
                 return port;
             }

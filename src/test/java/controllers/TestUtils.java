@@ -44,19 +44,20 @@ public class TestUtils
     /**
      * checks the equality of two longs in millisecs exactly to the minute
      * 
-     * @param expected - expected millisecs
-     * @param actual - returned millisecs
+     * @param expected
+     *            - expected millisecs
+     * @param actual
+     *            - returned millisecs
      */
     public static void testTimeEqualityNearMinutes(long expected, long actual)
     {
         DateTime dtexp = new DateTime(expected);
         DateTime dtact = new DateTime(actual);
-        assertTrue(dtexp.getYear()==dtact.getYear());
-        assertTrue(dtexp.getMonthOfYear()==dtact.getMonthOfYear());
-        assertTrue(dtexp.getDayOfMonth()==dtact.getDayOfMonth());
-        assertTrue(dtexp.getHourOfDay()==dtact.getHourOfDay());
-        assertTrue(dtexp.getMinuteOfHour()==dtact.getMinuteOfHour());
-        
+        assertTrue(dtexp.getYear() == dtact.getYear());
+        assertTrue(dtexp.getMonthOfYear() == dtact.getMonthOfYear());
+        assertTrue(dtexp.getDayOfMonth() == dtact.getDayOfMonth());
+        assertTrue(dtexp.getHourOfDay() == dtact.getHourOfDay());
+        assertTrue(dtexp.getMinuteOfHour() == dtact.getMinuteOfHour());
 
     }
 
