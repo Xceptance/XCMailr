@@ -128,7 +128,7 @@ public class MBox
 
     public void increaseForwards()
     {
-        this.forwards++;
+        this.setForwards(this.getForwards()+1);
     }
 
     public void resetForwards()
@@ -148,7 +148,7 @@ public class MBox
 
     public void increaseSuppressions()
     {
-        this.suppressions++;
+        this.setSuppressions(this.getSuppressions()+1);
     }
 
     public void resetSuppressions()
