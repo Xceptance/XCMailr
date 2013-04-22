@@ -4,13 +4,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
+import ninja.i18n.Messages;
 import ninja.params.PathParam;
+import ninja.utils.NinjaProperties;
+import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
 
@@ -29,36 +33,100 @@ import models.User;
 @Singleton
 public class AdminHandler
 {
+    @Inject
+    NinjaProperties ninjaProp;
+
+    @Inject
+    Messages msg;
 
     // ---------------------Functions for the Admin-Section ---------------------
-    // TODO: implement some useful adminfunctions :)
-
-    // Shows all Users - Admin-Section
+    /**
+     * Shows a list of all Users in the DB site/admin
+     * 
+     * @param context
+     * @return a list of all Users
+     */
     public Result showUsers(Context context)
-    { // TODO Handle Account-Generation
-
+    {
         Map<String, List<User>> map = new HashMap<String, List<User>>();
         map.put("users", User.all());
 
         return Results.html().render(map);
-
-        // if( ( session().containsKey("adm") ) ){
-        // List<String> lst = Arrays.asList(jmc.getDomainList());
-        // return ok( usrAdminF.render("", User.all(), lst, userAdm, domainFrm) );
-        // }else return badRequest( index.render("not authorized!") );
     }
 
-    // promotes the User - Admin-Section
-    public Result promoteUser(@PathParam("id") Long id)
+    /**
+     * activates or deactivates the User with the given id site/admin/activate/id
+     * 
+     * @param id
+     *            - id of a user
+     * @return the admin-page
+     */
+    public Result activate(@PathParam("id") Long id, Context context)
     {
+        // activate or deactivate the user
+        boolean active = User.activate(id);
 
+        // generate the (de-)activation-information mail and send it to the user
+        User usr = User.getById(id);
+        String from = ninjaProp.get("mbox.adminaddr");
+        String host = ninjaProp.get("mbox.host");
+        System.out.println(host);
+
+        if (active)
+        { // the account is now active
+          // generate the message title
+            Object[] param = new Object[]
+                {
+                    host
+                };
+            String subject = msg.get("i18nuser_activate_title", context.getAcceptLanguage(), param);
+            // generate the message body
+            param = new Object[]
+                {
+                    usr.getForename()
+                };
+            String content = msg.get("i18nuser_activate_message", context.getAcceptLanguage(), param);
+            // send the mail
+            HelperUtils.sendMail(from, usr.getMail(), content, subject);
+        }
+        else
+        {// the account is now inactive
+         // generate the message title
+            Object[] param = new Object[]
+                {
+                    host
+                };
+            String subject = msg.get("i18nuser_deactivate_title", context.getAcceptLanguage(), param);
+            // generate the message body
+            param = new Object[]
+                {
+                    usr.getForename()
+                };
+            String content = msg.get("i18nuser_deactivate_message", context.getAcceptLanguage(), param);
+            // send the mail
+            HelperUtils.sendMail(from, usr.getMail(), content, subject);
+        }
+
+        return Results.redirect("/admin");
+
+    }
+
+    /**
+     * pro- or demotes the User with the given id site/admin/promote/id
+     * 
+     * @param id
+     *            - id of a user
+     * @return the admin-page
+     */
+    public Result promote(@PathParam("id") Long id)
+    {
         User.promote(id);
         return Results.redirect("/admin");
 
     }
 
     /**
-     * Handles the user delete function
+     * Handles the user delete function site/admin/delete/id
      * 
      * @param id
      * @return
@@ -70,23 +138,4 @@ public class AdminHandler
         return Results.redirect("/admin");
     }
 
-    /**
-     * adds the given domain to the james-server
-     * 
-     * @return
-     */
-    public Result addDomain()
-    {
-        return Results.html(Result.SC_501_NOT_IMPLEMENTED);
-    }
-
-    /**
-     * deletes the selected domain
-     * 
-     * @return
-     */
-    public Result deleteDomain()
-    {
-        return Results.html(Result.SC_501_NOT_IMPLEMENTED);
-    }
 }

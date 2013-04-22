@@ -232,7 +232,7 @@ public class Application
             if (usr != null)
             { // mailadress was correct (exists in the DB)
               // generate a new pw and send it to the given mailadress
-                String newPw = sendMail(usr.getMail(), usr.getMail(), context.getAcceptLanguage());
+                String newPw = sendMail(usr.getMail(), usr.getForename(), context.getAcceptLanguage());
                 if (newPw.equals(null))
                 {
                     s = msg.get("forgpw_succ", context, result, "String");

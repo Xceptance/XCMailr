@@ -79,7 +79,8 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/mail/edit/{id}").with(BoxHandler.class, "showEditBox");
         router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBox");
 
-        router.POST().route("/admin/promote/{id}").with(AdminHandler.class, "promoteUser");
+        router.POST().route("/admin/promote/{id}").with(AdminHandler.class, "promote");
+        router.POST().route("/admin/activate/{id}").with(AdminHandler.class, "activate");
         router.POST().route("/admin/delete/{id}").with(AdminHandler.class, "deleteUser");
         router.GET().route("/admin").with(AdminHandler.class, "showUsers");
 

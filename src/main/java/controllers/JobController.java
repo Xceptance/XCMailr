@@ -41,12 +41,6 @@ public class JobController
     @Inject
     NinjaProperties ninjaProp;
 
-    /*
-     * Service order: 10 - Services that connect to resources and do not depend on other services, for example, database
-     * connections 20-80 - Services that depend on resources, but don’t actually start the app doing its core functions
-     * 90 - Services that start the app doing its core functions, for example, listen on queues, listen for HTTP, start
-     * scheduled services
-     */
     @Start(order = 90)
     public void startActions()
     {
@@ -66,6 +60,7 @@ public class JobController
                 User usr = new User("Site", "Admin", mail, pwd);
                 // set the status flag
                 usr.setAdmin(true);
+                usr.setActive(true);
 
                 User.createUser(usr);
             }
@@ -121,6 +116,8 @@ public class JobController
                 }
             }
         }, new Long(interval), TimeUnit.MINUTES);
+        
+        //TODO also create a scheduler to send mails in the queue to prevent a blocked application
     }
 
     @Dispose(order = 90)

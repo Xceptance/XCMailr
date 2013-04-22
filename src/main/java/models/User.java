@@ -40,13 +40,9 @@ public class User
     // Password
     private String passwd;
 
-    // Admin-Flag
-    // private boolean admin;
+    private boolean admin;
 
-    // status-flag, values (chmod-like):
-    // 1 - active account
-    // 2 - admin account
-    private int status;
+    private boolean active;
 
     // Relation to the Mailboxes
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
@@ -63,8 +59,6 @@ public class User
         surname = "";
         mail = "";
         passwd = "";
-        status = 0;
-        // admin = false;
         boxes = new ArrayList<MBox>();
     }
 
@@ -87,8 +81,6 @@ public class User
         setSurname(sName);
         setMail(eMail);
         hashPasswd(pw);
-        status = 0;
-        setAdmin(false);
         boxes = new ArrayList<MBox>();
     }
 
@@ -224,56 +216,36 @@ public class User
      */
     public boolean isAdmin()
     {
-        String stat = Integer.toBinaryString(status);
-        if (stat.charAt(0) == '0')
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        return admin;
     }
 
     /**
-     * enables or disables the admin-functions
+     * @return true if the account is active
+     */
+    public boolean isActive()
+    {
+        return active;
+    }
+
+    /**
+     * Sets the account as active or inactive
+     * 
+     * @param active
+     *            - boolean which indicates the new state of the account
+     */
+    public void setActive(boolean active)
+    {
+        this.active = active;
+    }
+
+    /**
+     * Sets the account as active or inactive
      * 
      * @param admin
-     *            : enables functions if true
      */
     public void setAdmin(boolean admin)
     {
-        
-        String stat = Integer.toBinaryString(status);
-        System.out.println(stat+" "+admin);
-        if ((stat.charAt(0) == '0') && admin)
-        {
-            status += 2;
-        }
-        if ((stat.charAt(0) == '1') && !admin)
-        {
-            status -= 2;
-        }
-        System.out.println(Integer.toBinaryString(status));
-    }
-
-    /**
-     * get the Status, the value is set chmod- or binary-like<br/>
-     * 1 - account is active <br/>
-     * 2 - account is admin<br/>
-     * (means e.g. value of 3 for an active admin-account)
-     * 
-     * @return the actual status of the user
-     */
-
-    public int getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(int status)
-    {
-        this.status = status;
+        this.admin = admin;
     }
 
     /**
@@ -389,21 +361,24 @@ public class User
         else
         {
             // there's no user with that address
-
             return null;
         }
     }
 
     /**
+     * This Method returns the user object if the given userId and password belong together otherwise it will return
+     * null
+     * 
      * @param id
+     *            - the id of a user
      * @param pw
+     *            - the pw of a user
      * @return the user object if the given userId and password belong together
      */
 
     public static User authById(Long id, String pw)
     {
         User usr = Ebean.find(User.class, id);
-
         if (BCrypt.checkpw(pw, usr.getPasswd()))
         {
             return usr;
@@ -416,6 +391,7 @@ public class User
     }
 
     /**
+     * returns the userobject which belongs to the given userid
      * @param id
      *            : a users id
      * @return the user-object
@@ -450,18 +426,34 @@ public class User
     }
 
     /**
-     * promotes the User and Updates the DB
+     * promotes or demotes the User and Updates the DB
+     * the method checks the actual state and sets the opposite
      * 
      * @param id
+     *            - id of the user
      */
+
     public static void promote(Long id)
     {
-        User usr = Ebean.find(User.class, id);
-        usr.setAdmin(!usr.isAdmin());
-        System.out.println(usr.getStatus());
+        User usr = User.getById(id);
+        usr.setAdmin(!usr.admin);
         Ebean.update(usr);
-        User u2 = Ebean.find(User.class, id);
-        System.out.println(u2.getStatus());
+    }
+
+    /**
+     * activates or deactivates the User and Updates the DB
+     * the method checks the actual state and sets the opposite
+     * 
+     * @param id
+     *            - id of the user
+     */
+    public static boolean activate(Long id)
+    {
+        User usr = User.getById(id);
+        usr.setActive(!usr.isActive());
+        Ebean.update(usr);
+        return usr.isActive();
+        
     }
 
     public String toString()
