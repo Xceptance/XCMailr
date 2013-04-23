@@ -21,6 +21,7 @@ create table users (
   active                    boolean,
   confirmation              varchar(255),
   ts_confirm                bigint,
+  bad_pw_count              integer,
   constraint pk_users primary key (id))
 ;
 

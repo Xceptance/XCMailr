@@ -140,12 +140,11 @@ public class Application
             if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
             { // the passed token is the right one
               // so activate the user
-                System.out.println(u.getTs_confirm());
-                System.out.println(DateTime.now().getMillis());
                 u.setActive(true);
                 User.updateUser(u);
                 context.getFlashCookie().success("Erfolgreich aktiviert!", (Object) null);
                 return Results.redirect("/");
+                //TODO create the i18n messages
             }
         }
         context.getFlashCookie().error("FEHLER BEI DER AKTIVIERUNG!", (Object) null);
@@ -198,27 +197,44 @@ public class Application
         }
         else
         {
-            User lgr = User.auth(l.getMail().toLowerCase(), l.getPwd());
-            // get the user if authentication was correct
-            if (lgr != null)
-            { // correct login
-              // set the cookie
-                context.getSessionCookie().put("id", String.valueOf(lgr.getId()));
-                context.getSessionCookie().put("usrname", lgr.getMail());
+            User lgr = User.getUsrByMail(l.getMail());
+            if (!(lgr == null))
+            {//the user exists
+                if (lgr.checkPasswd(l.getPwd()))
+                { // correct login
+                  // set the cookie
+                    context.getSessionCookie().put("id", String.valueOf(lgr.getId()));
+                    context.getSessionCookie().put("usrname", lgr.getMail());
 
-                if (lgr.isAdmin())
-                {
-                    // also set an admin-flag if the account is an admin-account
-                    context.getSessionCookie().put("adm", String.valueOf(true));
+                    if (lgr.isAdmin())
+                    {
+                        // also set an admin-flag if the account is an admin-account
+                        context.getSessionCookie().put("adm", String.valueOf(true));
+                    }
+                    // TODO: ADM-Zugriff per DB, nicht per Cookie?
+
+                    lgr.setBadPwCount(0);
+                    User.updateUser(lgr);
+                    s = msg.get("msg_login", context, result, (Object) null);
+                    context.getFlashCookie().success(s, (Object) null);
+                    return Results.html();
                 }
-                // TODO: ADM-Zugriff per DB, nicht per Cookie?
-
-                s = msg.get("msg_login", context, result, (Object) null);
-                context.getFlashCookie().success(s, (Object) null);
-                return Results.html();
+                else
+                { // the authentication was not correct
+                    lgr.setBadPwCount(lgr.getBadPwCount() + 1);
+                    if(lgr.getBadPwCount()>=6){
+                        lgr.setActive(false);
+                        //TODO show account-disabled-page
+                    }
+                    User.updateUser(lgr);
+                    l.setPwd("");
+                    s = msg.get("msg_formerr", context, result, (Object) null);
+                    context.getFlashCookie().error(s, (Object) null);
+                    return Results.html().template("views/Application/loginForm.ftl.html").render(l);
+                }
             }
             else
-            { // the authentication was not correct
+            {//the user does not exist
                 l.setPwd("");
                 s = msg.get("msg_formerr", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
@@ -256,7 +272,6 @@ public class Application
         }
         else
         {
-
             User usr = User.getUsrByMail(l.getMail());
             if (!(usr == null))
             { // mailadress was correct (exists in the DB)
@@ -291,6 +306,34 @@ public class Application
             return Results.redirect("/");
         }
 
+    }
+    
+    /**
+     * this method will handle the confirmation-mail-link
+     * @param id
+     * @param token
+     * @param context
+     * @return
+     */
+    public Result lostPw(@PathParam("id")Long id, @PathParam("token") String token, Context context){
+        
+        User u = User.getById(id);
+        if (!(u == null))
+        { // the user exists
+            if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
+            { // the passed token is the right one
+              // so activate the user, reset the badpwcount and force him to change the pwd
+                u.setActive(true);
+                u.setBadPwCount(0);
+                //TODO force him to change the pwd
+                User.updateUser(u);
+                context.getFlashCookie().success("Erfolgreich aktiviert!", (Object) null);
+                return Results.redirect("/");
+            }
+        }
+        context.getFlashCookie().error("FEHLER BEI DER AKTIVIERUNG!", (Object) null);
+        return Results.redirect("/");
+     
     }
 
     /**

@@ -50,6 +50,8 @@ public class User
     //timestamp for the  validity-period of the confirmation-token
     private Long ts_confirm;
     
+    private int badPwCount;
+    
 
     // Relation to the Mailboxes
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
@@ -207,6 +209,11 @@ public class User
     {
         setPasswd(BCrypt.hashpw(passwd, BCrypt.gensalt()));
     }
+    
+    public boolean checkPasswd(String pwd){
+        return BCrypt.checkpw(pwd, this.passwd);
+    }
+    
 
     /**
      * sets the given password WARNING: don't use this method to set a new password! always use hashPasswd() for that!
@@ -290,6 +297,16 @@ public class User
     public void setTs_confirm(Long ts_confirm)
     {
         this.ts_confirm = ts_confirm;
+    }
+
+    public int getBadPwCount()
+    {
+        return badPwCount;
+    }
+
+    public void setBadPwCount(int badPwCount)
+    {
+        this.badPwCount = badPwCount;
     }
 
     /**

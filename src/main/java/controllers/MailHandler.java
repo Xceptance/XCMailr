@@ -121,5 +121,19 @@ public class MailHandler
         sendMail(from, to, body, subj);
 
     }
+    public void sendPwForgotAddressMail(String to, String forename, String id, String token, String lang)
+    {
+        String from = ninjaProp.get("mbox.adminaddr");
+        String url = "http://"+ninjaProp.get("mbox.host")+"/lostpw/"+id+"/"+token;
+        Object[] object = new Object[] {
+                                        forename, url
+                                      
+        };
+        //TODO change this message
+        String body = msg.get("i18nuser_verify_message", lang, object);
+        
+        String subj = msg.get("i18nuser_verify_subject", lang, (Object)null);
+        sendMail(from, to, body, subj);
 
+    }
 }
