@@ -13,6 +13,7 @@ import javax.persistence.Version;
 
 import org.joda.time.DateTime;
 import com.avaje.ebean.*;
+import com.avaje.ebean.validation.NotEmpty;
 
 /**
  * Object for a Mailbox
@@ -26,16 +27,16 @@ public class MBox
     // Mailbox ID
     @Id
     private long id;
-
+    @NotEmpty
     // Mailaddress of the Box
     private String address;
-
+    @NotEmpty
     // Timestamp for the end of the validity period
     private long ts_Active;
 
     // Flag for the validity
     private boolean expired;
-
+    @NotEmpty
     private String domain;
 
     private int forwards;

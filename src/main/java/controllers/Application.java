@@ -1,5 +1,7 @@
 package controllers;
 
+import org.joda.time.DateTime;
+
 import com.avaje.ebean.Ebean;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -13,6 +15,7 @@ import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Lang;
 import ninja.i18n.Messages;
+import ninja.params.PathParam;
 import ninja.utils.NinjaProperties;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
@@ -34,13 +37,9 @@ public class Application
 
     @Inject
     NinjaProperties ninjaProp;
-    
-    MailHandler mh;
-    
+
     @Inject
-    public Application(MailHandler mailh){
-        this.mh = mailh;
-    }
+    MailHandler mailhndlr;
 
     public Result index(Context context)
     {
@@ -84,7 +83,7 @@ public class Application
 
         if (validation.hasViolations())
         {
-            s = msg.get("msg_formerr", context, result, "String");
+            s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.html().render(frdat);
         }
@@ -94,13 +93,21 @@ public class Application
             if (!User.mailExists(frdat.getMail()))
             {
                 // a new user, check if the passwords are matching
-
                 if (frdat.getPw().equals(frdat.getPwn1()))
                 {
                     // create the user
-                    User.createUser(frdat.getAsUser());
+                    User u = frdat.getAsUser();
 
-                    s = msg.get("msg_regok", context, result, "String");
+                    // generate the confirmation-token
+                    u.setConfirmation(HelperUtils.getRndSecureString(20));
+                    u.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
+                                            .getMillis());
+
+                    User.createUser(u);
+                    mailhndlr.sendConfirmAddressMail(u.getMail(), u.getForename(), String.valueOf(u.getId()),
+                                                     u.getConfirmation(), context.getAcceptLanguage().toString());
+
+                    s = msg.get("msg_regok", context, result, (Object) null);
                     context.getFlashCookie().success(s, (Object) null);
 
                     return Results.redirect("/");
@@ -110,7 +117,7 @@ public class Application
                 {
 
                     // password mismatch
-                    s = msg.get("msg_formerr", context, result, "String");
+                    s = msg.get("msg_formerr", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.redirect("/register");
 
@@ -118,15 +125,31 @@ public class Application
             }
             else
             { // mailadress already exists
-
-                // TODO should we really show this message? or rather an unspecified msg (msg_formerr)?
-                // [SEC] bruteforcing this form would expose existing mailadresses
-                s = msg.get("msg_mailex", context, result, "String");
+                s = msg.get("msg_mailex", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.redirect("/register");
             }
         }
+    }
 
+    public Result verifyActivation(@PathParam("id") Long id, @PathParam("token") String token, Context context)
+    {
+        User u = User.getById(id);
+        if (!(u == null))
+        { // the user exists
+            if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
+            { // the passed token is the right one
+              // so activate the user
+                System.out.println(u.getTs_confirm());
+                System.out.println(DateTime.now().getMillis());
+                u.setActive(true);
+                User.updateUser(u);
+                context.getFlashCookie().success("Erfolgreich aktiviert!", (Object) null);
+                return Results.redirect("/");
+            }
+        }
+        context.getFlashCookie().error("FEHLER BEI DER AKTIVIERUNG!", (Object) null);
+        return Results.redirect("/");
     }
 
     // -------------------- Login/-out Functions -----------------------------------
@@ -150,7 +173,7 @@ public class Application
     {
         context.getSessionCookie().clear();
         Result result = Results.html();
-        String s = msg.get("msg_logout", context, result, "String");
+        String s = msg.get("msg_logout", context, result, (Object) null);
         context.getFlashCookie().success(s, (Object) null);
         return Results.redirect("/");
     }
@@ -168,7 +191,7 @@ public class Application
         if (validation.hasViolations())
         {
             l.setPwd("");
-            s = msg.get("msg_formerr", context, result, "String");
+            s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.html().template("views/Application/loginForm.ftl.html").render(l);
 
@@ -190,14 +213,14 @@ public class Application
                 }
                 // TODO: ADM-Zugriff per DB, nicht per Cookie?
 
-                s = msg.get("msg_login", context, result, "String");
+                s = msg.get("msg_login", context, result, (Object) null);
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.html();
             }
             else
             { // the authentication was not correct
                 l.setPwd("");
-                s = msg.get("msg_formerr", context, result, "String");
+                s = msg.get("msg_formerr", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.html().template("views/Application/loginForm.ftl.html").render(l);
             }
@@ -227,7 +250,7 @@ public class Application
         if (validation.hasViolations())
         {
             // some fields weren't filled
-            s = msg.get("msg_formerr", context, result, "String");
+            s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/pwresend");
         }
@@ -235,13 +258,13 @@ public class Application
         {
 
             User usr = User.getUsrByMail(l.getMail());
-            if (usr != null)
+            if (!(usr == null))
             { // mailadress was correct (exists in the DB)
               // generate a new pw and send it to the given mailadress
                 String newPw = sendMail(usr.getMail(), usr.getForename(), context.getAcceptLanguage());
                 if (newPw.equals(null))
                 {
-                    s = msg.get("forgpw_succ", context, result, "String");
+                    s = msg.get("forgpw_succ", context, result, (Object) null);
                     context.getFlashCookie().success(s, (Object) null);
                     return Results.redirect("/");
 
@@ -252,7 +275,7 @@ public class Application
                     usr.hashPasswd(newPw);
                     Ebean.update(usr);
 
-                    s = msg.get("forgpw_succ", context, result, "String");
+                    s = msg.get("forgpw_succ", context, result, (Object) null);
                     context.getFlashCookie().success(s, (Object) null);
                     return Results.redirect("/");
 
@@ -260,28 +283,12 @@ public class Application
             }
 
             /*
-             * TODO what shall we do here?
-             * 
-             * ->Situation: we get here, when the mailaddress does not exist in the db
-             * 
-             * Ideas:
-             * 
-             * 1. as its now: show the "msg_formerr" and return to the pwresend-page -> its now possible to
-             * automatically send POST-Requests until a valid address has been found
-             * 
-             * 2. redirect to the index-page and show the error there (do this also when the form has errors) (or
-             * conversly, redirect the success-case to the pwresend-page and show the message there-> spammers now have
-             * to go deeper into the page, because they have then not just to check the redirect-target, as well as the
-             * returned error/success message in the html-body
-             * 
-             * 3. ???
-             * 
-             * TODO implement captchas!
+             * The user doesn't exist in the db, but we show him the success-msg anyway
              */
 
-            s = msg.get("msg_formerr", context, result, "String");
+            s = msg.get("forgpw_succ", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
-            return Results.redirect("/pwresend");
+            return Results.redirect("/");
         }
 
     }
@@ -302,16 +309,25 @@ public class Application
         String from = ninjaProp.get("mbox.adminaddr");
         String subject = msg.get("forgpw_title", lang, (Object) null);
 
-        // TODO use the ninjaProp.getOrDie method to prevent a NullPtEx here or alternatively sorround the
-        // integer.valueof with a try-catch and catch the numberformatEx to set a default length
-        String rueck = HelperUtils.getRndString(Integer.valueOf(ninjaProp.get("pw.length")));
+        // generate a random password
+        Integer pwlen;
+        try
+        {
+            pwlen = Integer.valueOf(ninjaProp.get("pw.length"));
+        }
+        catch (NumberFormatException e)
+        {
+            pwlen = 12;
+        }
+
+        String rueck = HelperUtils.getRndSecureString(pwlen);
         Object[] param = new Object[]
             {
                 forename, rueck
             };
 
         String content = msg.get("forgpw_msg", lang, param);
-        boolean wasSent = mh.sendMail(from, mail, content, subject);
+        boolean wasSent = mailhndlr.sendMail(from, mail, content, subject);
         if (wasSent)
         { // if the message was successfully sent, return the new pwd
             return rueck;

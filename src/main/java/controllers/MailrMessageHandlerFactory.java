@@ -85,8 +85,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                 MBox mb = MBox.getByName(splitaddress[0], splitaddress[1]);
                 if (mb.isActive())
                 {
-                    
-                    mailhndl.forwardMail(sender, empf, content);
+                    //TODO the language here
+                    mailhndl.forwardMail(sender, empf, content, "");
                     mb.increaseForwards();
                     MBox.updateMBox(mb);
                 }

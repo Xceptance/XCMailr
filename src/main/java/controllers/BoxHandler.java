@@ -49,10 +49,10 @@ public class BoxHandler
     {
         Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
         MbFrmDat mbdat = new MbFrmDat();
-        //set the value of the random-name to 7
-        //use the lowercase, we handle the address as case-insensitive 
-        //TODO check whether the generated mailaddress already exists..
-        
+        // set the value of the random-name to 7
+        // use the lowercase, we handle the address as case-insensitive
+        // TODO check whether the generated mailaddress already exists..
+
         String name = HelperUtils.getRndString(7).toLowerCase();
         mbdat.setAddress(name);
         map.put("mbFrmDat", mbdat);
@@ -75,7 +75,7 @@ public class BoxHandler
         if (validation.hasViolations())
         {
             // not all fields were filled (correctly)
-            s = msg.get("msg_formerr", context, result, "String");
+            s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
             map.put("mbFrmDat", mbdat);
@@ -122,7 +122,7 @@ public class BoxHandler
 
                 if (ts == -1)
                 { // show an error-page if the timestamp is faulty
-                    s = msg.get("msg_wrongf", context, result, "String");
+                    s = msg.get("msg_wrongf", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.redirect("/mail");
 
@@ -140,7 +140,7 @@ public class BoxHandler
             else
             {
                 // the mailbox already exists
-                s = msg.get("msg_mailex", context, result, "String");
+                s = msg.get("msg_mailex", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.redirect("/mail");
             }
@@ -185,7 +185,7 @@ public class BoxHandler
         if (validation.hasViolations())
         {
             // not all fields were filled
-            s = msg.get("msg_formerr", context, result, "String");
+            s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
 
             return Results.redirect("/mail/edit/" + boxId.toString()).render(mbdat);
@@ -241,9 +241,9 @@ public class BoxHandler
                     Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
-                        s = msg.get("msg_wrongf", context, result, "String");
+                        s = msg.get("msg_wrongf", context, result, (Object) null);
                         context.getFlashCookie().put(s, (Object) null);
-                        return Results.redirect("/mail/edit/"+boxId.toString());
+                        return Results.redirect("/mail/edit/" + boxId.toString());
                     }
 
                     if (!(mb.getTS_Active() == ts))

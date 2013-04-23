@@ -1,5 +1,6 @@
 package etc;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -29,6 +30,13 @@ import com.google.inject.Singleton;
 public class HelperUtils
 {
 
+    /**
+     * Extracts the List of Domains from the ninjaProperties and returns it as a nicely renderable Map
+     * 
+     * @param ninjaProp
+     *            - the properties of this application
+     * @return a Map with a "domain"-key which contains the list of domains
+     */
     public static Map<String, Object> getDomainsFromConfig(NinjaProperties ninjaProp)
     {
 
@@ -51,7 +59,8 @@ public class HelperUtils
     }
 
     /**
-     * Generates a random name, e.g. for the mailbox
+     * Generates a random name, generated with java.util.Random and an alphabet of 0-9,a-z,A-Z <br/>
+     * e.g. for the mailbox
      * 
      * @return a random name
      */
@@ -78,6 +87,32 @@ public class HelperUtils
     }
 
     /**
+     * All in all, the same like the getRndString(), but here's SecureRandom used
+     */
+    public static String getRndSecureString(int length)
+    {
+
+        SecureRandom srnd = new SecureRandom();
+        srnd.setSeed(srnd.generateSeed(23));
+        char[] values =
+            {
+                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7',
+                '8', '9'
+            };
+
+        StringBuffer strBuf = new StringBuffer();
+        for (int i = 0; i < length; i++)
+        {
+            // generates a random number and stores it in the stringbuffer
+            strBuf.append(values[Math.abs(srnd.nextInt()) % (values.length)]);
+
+        }
+        return strBuf.toString();
+    }
+
+    /**
      * checks if a given string is in the right format <br/>
      * there should be 1 or 2 time-values (d,h or h,d or h or d or 0)<br/>
      * uppercase-letters will be converted and spaces removed the highest time-interval is set to 30 days, everything
@@ -96,7 +131,8 @@ public class HelperUtils
         s = s.toLowerCase();
         // remove the spaces to cover cases like "2 h, 2 d"
         s = s.replace(" ", "");
-        if(s.equals("1")){
+        if (s.equals("1"))
+        {
             DateTime dt1 = new DateTime();
             return dt1.plusMinutes(1).getMillis();
         }

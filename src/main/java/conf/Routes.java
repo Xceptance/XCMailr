@@ -64,6 +64,9 @@ public class Routes implements ApplicationRoutes
 
         router.GET().route("/pwresend").with(Application.class, "forgotPwForm");
         router.POST().route("/pwresend").with(Application.class, "pwResend");
+        
+        router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
+        
 
         router.GET().route("/logout").with(Application.class, "logout");
 
@@ -71,7 +74,6 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/user/edit").with(UserHandler.class, "editUser");
 
         router.GET().route("/mail").with(BoxHandler.class, "showBoxes");
-
         router.GET().route("/mail/add").with(BoxHandler.class, "showAddBox");
         router.POST().route("/mail/add").with(BoxHandler.class, "addBox");
         router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBox");

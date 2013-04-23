@@ -8,7 +8,7 @@ import javax.persistence.*;
 import org.mindrot.jbcrypt.BCrypt;
 import com.avaje.ebean.*;
 import com.avaje.ebean.validation.Email;
-import com.avaje.ebean.validation.NotNull;
+import com.avaje.ebean.validation.NotEmpty;
 
 /**
  * User Object
@@ -23,11 +23,11 @@ public class User
     @Id
     private long id;
 
-    @NotNull
+    @NotEmpty
     // Forename of the User
     private String forename;
 
-    @NotNull
+    @NotEmpty
     // Surname of the User
     private String surname;
 
@@ -36,13 +36,20 @@ public class User
     @Email
     private String mail;
 
-    @NotNull
+    @NotEmpty
     // Password
     private String passwd;
 
     private boolean admin;
 
     private boolean active;
+    
+    // Random String which is used for Account activation and pwresend 
+    private String confirmation;
+    
+    //timestamp for the  validity-period of the confirmation-token
+    private Long ts_confirm;
+    
 
     // Relation to the Mailboxes
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
@@ -248,6 +255,43 @@ public class User
         this.admin = admin;
     }
 
+    
+    /**
+     * 
+     * @return the randomly-generated confirm-token
+     */
+    public String getConfirmation()
+    {
+        return confirmation;
+    }
+
+    /**
+     * sets the random-confirm-token
+     * @param confirmation
+     */
+    public void setConfirmation(String confirmation)
+    {
+        this.confirmation = confirmation;
+    }
+
+    /**
+     * 
+     * @return the validity-period of the string
+     */
+    public Long getTs_confirm()
+    {
+        return ts_confirm;
+    }
+
+    /**
+     * 
+     * @param ts_confirm
+     */
+    public void setTs_confirm(Long ts_confirm)
+    {
+        this.ts_confirm = ts_confirm;
+    }
+
     /**
      * @return the list of all users in the database
      */
@@ -256,6 +300,8 @@ public class User
         return Ebean.find(User.class).findList();
 
     }
+    
+    
 
     // ---------------------------- EBean/Finder-Functions----------------------
     /**

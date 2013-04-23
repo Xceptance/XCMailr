@@ -52,13 +52,9 @@ public class JobController
     @Inject
     NinjaProperties ninjaProp;
 
+    @Inject
     MailHandler mailhndl;
 
-    @Inject
-    public JobController(MailHandler mh)
-    {
-        this.mailhndl = mh;
-    }
 
     @Start(order = 90)
     public void startActions()

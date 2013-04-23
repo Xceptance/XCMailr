@@ -7,6 +7,10 @@ import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+
+import ninja.i18n.Messages;
+import ninja.utils.NinjaProperties;
+
 import org.slf4j.Logger;
 import models.MBox;
 import com.google.inject.Inject;
@@ -19,6 +23,12 @@ public class MailHandler
 
     @Inject
     private Logger log;
+
+    @Inject
+    Messages msg;
+
+    @Inject
+    NinjaProperties ninjaProp;
 
     private JobController jc;
 
@@ -39,12 +49,12 @@ public class MailHandler
      *            - the message body
      * @return
      */
-    public boolean forwardMail(String from, String to, String content)
+    public boolean forwardMail(String from, String to, String content, String lang)
     {
         String[] splitaddress = to.split("@");
         String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
-        // TODO implement an i18n Subject-text
-        return sendMail(from, fwdtarget, content, "Weitergeleitete Nachricht");
+        String s = msg.get("i18nmsg_fwdsubj", lang, (Object) null);
+        return sendMail(from, fwdtarget, content, s);
 
     }
 
@@ -78,7 +88,7 @@ public class MailHandler
             message.setSubject(subject);
             message.setText(content);
             jc.mailqueue.add(message);
-            // Transport.send(message);
+
             return true;
 
         }
@@ -94,6 +104,21 @@ public class MailHandler
             e.printStackTrace();
             return false;
         }
+
+    }
+
+    public void sendConfirmAddressMail(String to, String forename, String id, String token, String lang)
+    {
+        String from = ninjaProp.get("mbox.adminaddr");
+        String url = "http://"+ninjaProp.get("mbox.host")+"/verify/"+id+"/"+token;
+        Object[] object = new Object[] {
+                                        forename, url
+                                      
+        };
+        String body = msg.get("i18nuser_verify_message", lang, object);
+        
+        String subj = msg.get("i18nuser_verify_subject", lang, (Object)null);
+        sendMail(from, to, body, subj);
 
     }
 

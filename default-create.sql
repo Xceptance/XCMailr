@@ -13,12 +13,14 @@ create table mailboxes (
 
 create table users (
   id                        bigint not null,
-  forename                  varchar(255) not null,
-  surname                   varchar(255) not null,
+  forename                  varchar(255),
+  surname                   varchar(255),
   mail                      varchar(255),
-  passwd                    varchar(255) not null,
+  passwd                    varchar(255),
   admin                     boolean,
   active                    boolean,
+  confirmation              varchar(255),
+  ts_confirm                bigint,
   constraint pk_users primary key (id))
 ;
 
