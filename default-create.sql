@@ -7,6 +7,7 @@ create table mailboxes (
   forwards                  integer,
   suppressions              integer,
   usr_id                    bigint,
+  version                   bigint not null,
   constraint pk_mailboxes primary key (id))
 ;
 

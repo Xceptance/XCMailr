@@ -2,6 +2,8 @@ package controllers;
 
 import static org.junit.Assert.assertTrue;
 import java.util.Map;
+
+import models.User;
 import ninja.NinjaTest;
 import ninja.utils.NinjaProperties;
 import org.junit.After;
@@ -33,23 +35,21 @@ public class UserHandlerTest extends NinjaTest
         headers.clear();
         returnedData.clear();
         
-        formParams.clear();
-        formParams.put("forename", "John");
-        formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@this.de");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
-
+        User.createUser(new User("John", "Doe", "admin@this.de", "1234"));
+        User u = User.getUsrByMail("admin@this.de");
+        u.setActive(true);
+        User.updateUser(u);
+        
         userData.put("forename", "John");
         userData.put("surName", "Doe");
         userData.put("mail", "admin@this.de");
 
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
-                                                                    formParams);
+        
         formParams.clear();
         formParams.put("mail", "admin@this.de");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
+        formParams.clear();
 
     }
 
@@ -74,8 +74,11 @@ public class UserHandlerTest extends NinjaTest
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
+
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
+        System.out.println(returnedData);
+
         assertTrue(result.contains("class=\"error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata

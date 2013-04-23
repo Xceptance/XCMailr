@@ -243,7 +243,7 @@ public class BoxHandler
                     { // a faulty timestamp was given -> return an errorpage
                         s = msg.get("msg_wrongf", context, result, "String");
                         context.getFlashCookie().put(s, (Object) null);
-                        return Results.redirect("/mail/edit");
+                        return Results.redirect("/mail/edit/"+boxId.toString());
                     }
 
                     if (!(mb.getTS_Active() == ts))

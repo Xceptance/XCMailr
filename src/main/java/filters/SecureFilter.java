@@ -27,7 +27,6 @@ public class SecureFilter implements Filter
             Long id = Long.parseLong(context.getSessionCookie().get("id"));
             User u = User.getById(id);
 
-            // TODO possible error-point: the if-condition will only work while java uses short-circuiting
             if (!(u == null) && u.isActive())
             { // the user exists
                 return chain.next(context);

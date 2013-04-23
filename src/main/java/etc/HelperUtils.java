@@ -47,7 +47,7 @@ public class HelperUtils
             }
         }
         return null;
-        //TODO what will happen if this returned?
+        // TODO what will happen if this returned?
     }
 
     /**
@@ -65,7 +65,7 @@ public class HelperUtils
                 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7',
                 '8', '9'
             };
-        
+
         Random rand = new Random();
         StringBuffer strBuf = new StringBuffer();
         for (int i = 0; i < length; i++)
@@ -96,20 +96,25 @@ public class HelperUtils
         s = s.toLowerCase();
         // remove the spaces to cover cases like "2 h, 2 d"
         s = s.replace(" ", "");
-
+        if(s.equals("1")){
+            DateTime dt1 = new DateTime();
+            return dt1.plusMinutes(1).getMillis();
+        }
         if (hasCorrectFormat(s))
         {
 
+            if (s.equals("0"))
+            {
+                return 0;
+            }
+
             // if possible: split the given String
             String[] str = s.split(",");
-
             String helper = "";
 
-            // go through the array
-            for (int i = 0; i < str.length; i++)
+            // walk through the array
+            for (int i = 0, len = str.length; i < len; i++)
             {
-                str[i] = str[i].toLowerCase();
-
                 if (str[i].contains("d"))
                 { // our string has a value for the day
                   // try to get the number
@@ -127,11 +132,7 @@ public class HelperUtils
             {
                 return -1;
             }
-            s = s.trim();
-            if (s.equals("0"))
-            {
-                return 0;
-            }
+
         }
         else
         {

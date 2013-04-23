@@ -2,11 +2,18 @@ package controllers;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.mail.MessagingException;
+import javax.mail.Transport;
+import javax.mail.internet.MimeMessage;
 
 import org.joda.time.DateTime;
 
@@ -33,13 +40,25 @@ public class JobController
 {
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
+    private final ScheduledExecutorService executorService2 = Executors.newSingleThreadScheduledExecutor();
+
     public SMTPServer smtpServer;
+
+    public Queue<MimeMessage> mailqueue = new LinkedList<MimeMessage>();
 
     @Inject
     Logger log;
 
     @Inject
     NinjaProperties ninjaProp;
+
+    MailHandler mailhndl;
+
+    @Inject
+    public JobController(MailHandler mh)
+    {
+        this.mailhndl = mh;
+    }
 
     @Start(order = 90)
     public void startActions()
@@ -65,7 +84,7 @@ public class JobController
                 User.createUser(usr);
             }
         }
-        MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory();
+        MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory(mailhndl);
         smtpServer = new SMTPServer(mailrFactory);
         // dynamic ports: 49152–65535
         int port;
@@ -95,11 +114,12 @@ public class JobController
         // create the sheduler-service to check the mailboxes which were expired since the last run and disable them
         // TODO maybe use the Shedule-Annotation instead, see:
         // http://www.ninjaframework.org/documentation/scheduler.html
-        executorService.schedule(new Runnable()
+        executorService.scheduleAtFixedRate(new Runnable()
         {
+            @Override
             public void run()
             {
-
+                log.info("mbox-scheduler run");
                 int size = Integer.parseInt(ninjaProp.get("mbox.size"));
                 List<MBox> mbList = MBox.getNextBoxes(size);
                 ListIterator<MBox> it = mbList.listIterator();
@@ -115,9 +135,41 @@ public class JobController
                     }
                 }
             }
-        }, new Long(interval), TimeUnit.MINUTES);
-        
-        //TODO also create a scheduler to send mails in the queue to prevent a blocked application
+        }, new Long(1), new Long(interval), TimeUnit.MINUTES);
+
+        executorService2.scheduleAtFixedRate(new Runnable()
+        {
+            @Override
+            public void run() // Mailjob
+            {
+                log.info("mailjob run " + mailqueue.size());
+                MimeMessage message = mailqueue.poll();
+
+                while (!(message == null))
+                {
+                    log.info("Mailjob: Message found");
+                    try
+                    {
+                        Transport.send(message);
+                        message = mailqueue.poll();
+                    }
+                    catch (MessagingException e)
+                    {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }, new Long(2), new Long(30), TimeUnit.SECONDS);
+
+        // TODO also create a scheduler to send mails in the queue to prevent a blocked application
+    }
+
+    // TODO add tests for the activations..
+
+    public void addMessage(MimeMessage msg)
+    {
+        mailqueue.add(msg);
     }
 
     @Dispose(order = 90)
@@ -128,6 +180,7 @@ public class JobController
         smtpServer.stop();
         // stop the job to expire the mailboxes
         executorService.shutdown();
+        executorService2.shutdown();
     }
 
     // stolen from NinjaTestServer-source

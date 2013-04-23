@@ -33,6 +33,15 @@ public class HelperUtilsTest
          */
         Long returned = HelperUtils.parseDuration("0");
         assertEquals(new Long(0), returned);
+        
+        returned = HelperUtils.parseDuration("0 ");
+        assertEquals(new Long(0), returned);
+        
+        returned = HelperUtils.parseDuration(" 0");
+        assertEquals(new Long(0), returned);
+        
+        returned = HelperUtils.parseDuration(" 0 ");
+        assertEquals(new Long(0), returned);
 
         /*
          * TEST: check input with format like "2h"

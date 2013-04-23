@@ -9,6 +9,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
+
 import org.joda.time.DateTime;
 import com.avaje.ebean.*;
 
@@ -39,6 +41,9 @@ public class MBox
     private int forwards;
 
     private int suppressions;
+
+    @Version
+    private Long version;
 
     // Owner of the Box
     @ManyToOne
@@ -128,7 +133,7 @@ public class MBox
 
     public void increaseForwards()
     {
-        this.setForwards(this.getForwards()+1);
+        this.setForwards(this.getForwards() + 1);
     }
 
     public void resetForwards()
@@ -148,7 +153,7 @@ public class MBox
 
     public void increaseSuppressions()
     {
-        this.setSuppressions(this.getSuppressions()+1);
+        this.setSuppressions(this.getSuppressions() + 1);
     }
 
     public void resetSuppressions()
@@ -164,6 +169,16 @@ public class MBox
     public void setTs_Active(long ts_Active)
     {
         this.ts_Active = ts_Active;
+    }
+
+    public Long getVersion()
+    {
+        return version;
+    }
+
+    public void setVersion(Long version)
+    {
+        this.version = version;
     }
 
     // EBean Functions
@@ -318,11 +333,11 @@ public class MBox
             else
             { // the addresses differ
                 if (MBox.mailExists(local, domain))
-                { //the given address already exists for another mbox
+                { // the given address already exists for another mbox
                     return false;
                 }
                 else
-                { //the given address is not used
+                { // the given address is not used
                     return true;
                 }
             }

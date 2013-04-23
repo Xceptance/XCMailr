@@ -34,6 +34,13 @@ public class Application
 
     @Inject
     NinjaProperties ninjaProp;
+    
+    MailHandler mh;
+    
+    @Inject
+    public Application(MailHandler mailh){
+        this.mh = mailh;
+    }
 
     public Result index(Context context)
     {
@@ -79,7 +86,6 @@ public class Application
         {
             s = msg.get("msg_formerr", context, result, "String");
             context.getFlashCookie().error(s, (Object) null);
-
             return Results.html().render(frdat);
         }
         else
@@ -305,7 +311,7 @@ public class Application
             };
 
         String content = msg.get("forgpw_msg", lang, param);
-        boolean wasSent = HelperUtils.sendMail(from, mail, content, subject);
+        boolean wasSent = mh.sendMail(from, mail, content, subject);
         if (wasSent)
         { // if the message was successfully sent, return the new pwd
             return rueck;
