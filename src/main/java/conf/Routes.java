@@ -64,7 +64,8 @@ public class Routes implements ApplicationRoutes
 
         router.GET().route("/pwresend").with(Application.class, "forgotPwForm");
         router.POST().route("/pwresend").with(Application.class, "pwResend");
-        router.GET().route("/lostpw/{id}/{token}").with(Application.class, "lostPw");        
+        router.GET().route("/lostpw/{id}/{token}").with(Application.class, "lostPw");
+        router.POST().route("/lostpw/{id}/{token}").with(Application.class, "changePw"); 
         router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
         
 

@@ -1,14 +1,16 @@
 package controllers;
 
-import org.joda.time.DateTime;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.avaje.ebean.Ebean;
+import org.joda.time.DateTime;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import etc.HelperUtils;
 import models.EditUsr;
 import models.Login;
+import models.PwData;
 import ninja.Context;
 import models.User;
 import ninja.Result;
@@ -144,7 +146,7 @@ public class Application
                 User.updateUser(u);
                 context.getFlashCookie().success("Erfolgreich aktiviert!", (Object) null);
                 return Results.redirect("/");
-                //TODO create the i18n messages
+                // TODO create the i18n messages
             }
         }
         context.getFlashCookie().error("FEHLER BEI DER AKTIVIERUNG!", (Object) null);
@@ -199,10 +201,17 @@ public class Application
         {
             User lgr = User.getUsrByMail(l.getMail());
             if (!(lgr == null))
-            {//the user exists
+            {// the user exists
                 if (lgr.checkPasswd(l.getPwd()))
                 { // correct login
-                  // set the cookie
+                    if (!lgr.isActive())
+                    {
+                        s = msg.get("i18nuser_inactive", context, result, (Object) null);
+                        context.getFlashCookie().error(s, (Object) null);
+                        return Results.redirect("/");
+                    }
+
+                    // set the cookie
                     context.getSessionCookie().put("id", String.valueOf(lgr.getId()));
                     context.getSessionCookie().put("usrname", lgr.getMail());
 
@@ -222,11 +231,20 @@ public class Application
                 else
                 { // the authentication was not correct
                     lgr.setBadPwCount(lgr.getBadPwCount() + 1);
-                    if(lgr.getBadPwCount()>=6){
-                        lgr.setActive(false);
-                        //TODO show account-disabled-page
-                    }
+
                     User.updateUser(lgr);
+
+                    if (lgr.getBadPwCount() >= 6)
+                    { // the password was six times wrong
+                        lgr.setActive(false);
+                        User.updateUser(lgr);
+
+                        // show the disabled message and return to the forgot-pw-page
+                        s = msg.get("i18nuser_disabled", context, result, (Object) null);
+                        context.getFlashCookie().error(s, (Object) null);
+                        return Results.redirect("/pwresend");
+                    }
+
                     l.setPwd("");
                     s = msg.get("msg_formerr", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
@@ -234,7 +252,7 @@ public class Application
                 }
             }
             else
-            {//the user does not exist
+            {// the user does not exist
                 l.setPwd("");
                 s = msg.get("msg_formerr", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
@@ -276,108 +294,107 @@ public class Application
             if (!(usr == null))
             { // mailadress was correct (exists in the DB)
               // generate a new pw and send it to the given mailadress
-                String newPw = sendMail(usr.getMail(), usr.getForename(), context.getAcceptLanguage());
-                if (newPw.equals(null))
-                {
-                    s = msg.get("forgpw_succ", context, result, (Object) null);
-                    context.getFlashCookie().success(s, (Object) null);
-                    return Results.redirect("/");
 
-                }
-                else
-                {
-                    // set the new pw in the db
-                    usr.hashPasswd(newPw);
-                    Ebean.update(usr);
+                // generate the confirmation-token
+                usr.setConfirmation(HelperUtils.getRndSecureString(20));
+                usr.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
+                                          .getMillis());
 
-                    s = msg.get("forgpw_succ", context, result, (Object) null);
-                    context.getFlashCookie().success(s, (Object) null);
-                    return Results.redirect("/");
-
-                }
+                User.updateUser(usr);
+                mailhndlr.sendPwForgotAddressMail(usr.getMail(), usr.getForename(), String.valueOf(usr.getId()),
+                                                  usr.getConfirmation(), context.getAcceptLanguage().toString());
+                s = msg.get("i18nforgpw_succ", context, result, (Object) null);
+                context.getFlashCookie().error(s, (Object) null);
+                return Results.redirect("/");
             }
 
             /*
              * The user doesn't exist in the db, but we show him the success-msg anyway
              */
 
-            s = msg.get("forgpw_succ", context, result, (Object) null);
+            s = msg.get("i18nforgpw_succ", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/");
         }
 
     }
-    
+
     /**
      * this method will handle the confirmation-mail-link
+     * 
      * @param id
      * @param token
      * @param context
      * @return
      */
-    public Result lostPw(@PathParam("id")Long id, @PathParam("token") String token, Context context){
-        
+    public Result lostPw(@PathParam("id") Long id, @PathParam("token") String token, Context context)
+    {
+
         User u = User.getById(id);
         if (!(u == null))
         { // the user exists
             if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
-            { // the passed token is the right one
-              // so activate the user, reset the badpwcount and force him to change the pwd
-                u.setActive(true);
-                u.setBadPwCount(0);
-                //TODO force him to change the pwd
-                User.updateUser(u);
-                context.getFlashCookie().success("Erfolgreich aktiviert!", (Object) null);
-                return Results.redirect("/");
+            {
+                Map<String, String> map = new HashMap<String, String>();
+                map.put("id", id.toString());
+                map.put("token", token);
+
+                // show the form for the new password
+                return Results.html().render(map);
             }
         }
-        context.getFlashCookie().error("FEHLER BEI DER AKTIVIERUNG!", (Object) null);
+
         return Results.redirect("/");
-     
+
     }
 
-    /**
-     * sends the forgot-password mail to a user
-     * 
-     * @param mail
-     *            recipient address of a user
-     * @param forename
-     *            name of a user for the text
-     * @return the password to set it in the db
-     */
-
-    private String sendMail(String mail, String forename, String lang)
+    public Result changePw(@PathParam("id") Long id, @PathParam("token") String token, Context context,
+                           @JSR303Validation PwData pwd, Validation validation)
     {
-        //
-        String from = ninjaProp.get("mbox.adminaddr");
-        String subject = msg.get("forgpw_title", lang, (Object) null);
+        Result result = Results.html();
+        String s;
+        // check the PathParams again
+        User u = User.getById(id);
+        if (!(u == null))
+        { // the user exists
 
-        // generate a random password
-        Integer pwlen;
-        try
-        {
-            pwlen = Integer.valueOf(ninjaProp.get("pw.length"));
-        }
-        catch (NumberFormatException e)
-        {
-            pwlen = 12;
-        }
+            if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
+            { // the passed token is the right one
 
-        String rueck = HelperUtils.getRndSecureString(pwlen);
-        Object[] param = new Object[]
-            {
-                forename, rueck
-            };
+                if (!validation.hasViolations())
+                {
+                    if (pwd.getPw().equals(pwd.getPw2()))
+                    {
 
-        String content = msg.get("forgpw_msg", lang, param);
-        boolean wasSent = mailhndlr.sendMail(from, mail, content, subject);
-        if (wasSent)
-        { // if the message was successfully sent, return the new pwd
-            return rueck;
+                        // both pws match -> set the new pw
+                        u.hashPasswd(pwd.getPw());
+                        u.setActive(true);
+                        u.setBadPwCount(0);
+                        User.updateUser(u);
+                        // TODO maybe use another message
+                        s = msg.get("msg_chok", context, result, (Object) null);
+                        context.getFlashCookie().error(s, (Object) null);
+                        return Results.redirect("/");
+                    }
+                    else
+                    {
+
+                        s = msg.get("msg_formerr", context, result, (Object) null);
+                        context.getFlashCookie().error(s, (Object) null);
+                        return Results.redirect("/lostpw" + id + "/" + token);
+                    }
+                }
+                else
+                {
+
+                    s = msg.get("msg_formerr", context, result, (Object) null);
+                    context.getFlashCookie().error(s, (Object) null);
+                    return Results.redirect("/lostpw" + id + "/" + token);
+                }
+
+            }
         }
-        else
-        {
-            return null;
-        }
+        // if the link was wrong -> redirect without any message
+        return Results.redirect("/");
     }
 }

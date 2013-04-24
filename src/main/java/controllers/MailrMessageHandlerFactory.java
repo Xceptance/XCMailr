@@ -2,27 +2,16 @@ package controllers;
 
 import models.MBox;
 import models.MailTransaction;
-import controllers.JobController;
-
 import org.slf4j.Logger;
 import org.subethamail.smtp.*;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import etc.HelperUtils;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Properties;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 @Singleton
 public class MailrMessageHandlerFactory implements MessageHandlerFactory

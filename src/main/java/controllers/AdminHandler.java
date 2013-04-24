@@ -14,7 +14,6 @@ import ninja.Results;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
 import ninja.utils.NinjaProperties;
-import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
 
