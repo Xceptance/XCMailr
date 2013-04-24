@@ -143,8 +143,9 @@ public class AdminHandler
     }
     
     public Result showStats(){
-        Map<String, List<MailTransaction>> map = new HashMap<String, List<MailTransaction>>();
+        Map<String, List<?>> map = new HashMap<String, List<?>>();
         map.put("mtxs", MailTransaction.all());
+        map.put("stats",MailTransaction.getStatusMap());
         return Results.html().render(map);
     }
 

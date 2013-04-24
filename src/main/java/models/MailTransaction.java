@@ -1,6 +1,8 @@
 package models;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -9,6 +11,10 @@ import javax.persistence.Table;
 import org.joda.time.DateTime;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.Query;
+import com.avaje.ebean.RawSql;
+import com.avaje.ebean.RawSqlBuilder;
+import com.avaje.ebean.annotation.Sql;
 
 /**
  * This Class is used to save all Actions on the Mailserver
@@ -32,7 +38,7 @@ public class MailTransaction
 
     public MailTransaction()
     {
-        id = (long) 0;
+        id = 0L;
         ts = DateTime.now().getMillis();
         status = 0;
         targetaddr = "";
@@ -148,5 +154,18 @@ public class MailTransaction
     {
         return Ebean.find(MailTransaction.class).findList();
     }
+
+    public static List<Status> getStatusMap()
+    {
+
+        String sql = "SELECT mtx.status, COUNT(mtx.status) AS count  FROM mailtransactions mtx GROUP BY mtx.status";
+        RawSql rawSql = RawSqlBuilder.parse(sql).columnMapping("mtx.status", "statuscode").create();
+        Query<Status> query = Ebean.find(Status.class);
+        query.setRawSql(rawSql);
+        List<Status> list = query.findList();
+
+        return list;
+    }
+
 
 }
