@@ -12,6 +12,12 @@ import ninja.i18n.Messages;
 import ninja.utils.NinjaProperties;
 
 import org.slf4j.Logger;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.MXRecord;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.TextParseException;
+import org.xbill.DNS.Type;
+
 import models.MBox;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -69,7 +75,7 @@ public class MailHandler
      *            - the message body
      * @param subject
      *            - the message subject
-     * @return true if the mail-transmission was successful
+     * @return true whether the addition to the mailqueue was successful
      */
 
     public boolean sendMail(String from, String to, String content, String subject)
@@ -78,7 +84,13 @@ public class MailHandler
         {
             // TODO retry until the message could be sent(?)
             Properties properties = System.getProperties();
-            properties.setProperty("mail.smtp.host", HelperUtils.getMailTarget(to));
+            String targ = getMailTarget(to);
+            if (targ == null)
+            {
+                //if there's no mx-record, return false
+                return false;
+            }
+            properties.setProperty("mail.smtp.host", targ);
             Session session = Session.getDefaultInstance(properties);
 
             // create the message
@@ -110,30 +122,65 @@ public class MailHandler
     public void sendConfirmAddressMail(String to, String forename, String id, String token, String lang)
     {
         String from = ninjaProp.get("mbox.adminaddr");
-        String url = "http://"+ninjaProp.get("mbox.host")+"/verify/"+id+"/"+token;
-        Object[] object = new Object[] {
-                                        forename, url
-                                      
-        };
+        String url = "http://" + ninjaProp.get("mbox.host") + "/verify/" + id + "/" + token;
+        Object[] object = new Object[]
+            {
+                forename, url
+
+            };
         String body = msg.get("i18nuser_verify_message", lang, object);
-        
-        String subj = msg.get("i18nuser_verify_subject", lang, (Object)null);
+
+        String subj = msg.get("i18nuser_verify_subject", lang, (Object) null);
         sendMail(from, to, body, subj);
 
     }
+
     public void sendPwForgotAddressMail(String to, String forename, String id, String token, String lang)
     {
         String from = ninjaProp.get("mbox.adminaddr");
-        String url = "http://"+ninjaProp.get("mbox.host")+"/lostpw/"+id+"/"+token;
-        Object[] object = new Object[] {
-                                        forename, url
-                                      
-        };
-        //TODO change this message
+        String url = "http://" + ninjaProp.get("mbox.host") + "/lostpw/" + id + "/" + token;
+        Object[] object = new Object[]
+            {
+                forename, url
+
+            };
+        // TODO change this message
         String body = msg.get("i18nuser_verify_message", lang, object);
-        
-        String subj = msg.get("i18nuser_verify_subject", lang, (Object)null);
+
+        String subj = msg.get("i18nuser_verify_subject", lang, (Object) null);
         sendMail(from, to, body, subj);
 
+    }
+
+    /**
+     * searches the mx-host of a given mailaddress
+     * 
+     * @param mailadr
+     *            the mailaddress
+     * @return the mx-record for this address as string
+     */
+
+    public static String getMailTarget(String mailadr)
+    {
+
+        try
+        {
+            Record[] records = new Lookup(mailadr.split("@")[1], Type.MX).run();
+
+            MXRecord mx = (MXRecord) records[0];
+            return mx.getTarget().toString();
+
+        }
+        catch (TextParseException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        catch (NullPointerException e)
+        {
+            return null;
+        }
+        return null;
+        // TODO nullpointerex
     }
 }

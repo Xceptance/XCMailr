@@ -117,36 +117,7 @@ public class HelperUtilsTest
 
     }
 
-    @Test
-    public void testGetMailTarget()
-    {
-        String returned = HelperUtils.getMailTarget("mailaddress@gmail.com");
-        assertNotNull(returned);
-        /*
-         * TEST: domains which should definitively have some mx-records
-         */
-        returned = HelperUtils.getMailTarget("mailaddress@web.de");
-        assertNotNull(returned);
-        returned = HelperUtils.getMailTarget("mailaddress@yahoo.com");
-        assertNotNull(returned);
-        returned = HelperUtils.getMailTarget("mailaddress@xceptance.net");
-        assertNotNull(returned);
-
-        /*
-         * TEST: domains which should have no mx-record
-         */
-        returned = HelperUtils.getMailTarget("mailaddress@example.com");
-        assertNull(returned);
-
-        // TODO if you set up your own dns and enter a mx-record for localhost this test should fail
-        returned = HelperUtils.getMailTarget("mailaddress@localhost");
-        assertNull(returned);
-
-        // TODO maybe the returned records could be verified in another way? (check that the returned value is the right
-        // one)
-
-    }
-
+   
     @Test
     public void testGetRndString()
     {

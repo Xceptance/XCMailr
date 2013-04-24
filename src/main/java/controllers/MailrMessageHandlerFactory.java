@@ -1,6 +1,7 @@
 package controllers;
 
 import models.MBox;
+import models.MailTransaction;
 import controllers.JobController;
 
 import org.slf4j.Logger;
@@ -27,19 +28,17 @@ import javax.mail.internet.MimeMessage;
 public class MailrMessageHandlerFactory implements MessageHandlerFactory
 {
 
-    
     @Inject
     Logger log;
-    
+
     MailHandler mailhndl;
-    
+
     @Inject
-    public MailrMessageHandlerFactory(MailHandler mh){
+    public MailrMessageHandlerFactory(MailHandler mh)
+    {
         this.mailhndl = mh;
     }
-    
-    
-    
+
     public MessageHandler create(MessageContext ctx)
     {
         return new Handler(ctx);
@@ -48,8 +47,11 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     class Handler implements MessageHandler
     {
         MessageContext ctx;
+
         String sender;
-        String empf;
+
+        String rcpt;
+
         String content;
 
         public Handler(MessageContext ctx)
@@ -64,7 +66,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         public void recipient(String recipient) throws RejectException
         { // no rejections!?
-            empf = recipient;
+            rcpt = recipient;
         }
 
         public void data(InputStream data) throws IOException
@@ -78,28 +80,43 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         public void done()
         { // do all the mail-fwd things here
-            String[] splitaddress = empf.split("@");
+            String[] splitaddress = rcpt.split("@");
+            MailTransaction mtx;
             // TODO check if the address is malicious
             if (MBox.mailExists(splitaddress[0], splitaddress[1]))
             {
                 MBox mb = MBox.getByName(splitaddress[0], splitaddress[1]);
                 if (mb.isActive())
-                {
-                    //TODO the language here
-                    mailhndl.forwardMail(sender, empf, content, "");
-                    mb.increaseForwards();
-                    MBox.updateMBox(mb);
+                { // there's an existing and active mailaddress
+                  // TODO the language here
+                    if (!mailhndl.forwardMail(sender, rcpt, content, ""))
+                    { //the message can't be forwarded
+                        mtx = new MailTransaction(400,rcpt,sender);
+                        mtx.saveTx();
+                    }
+                    else
+                    { //message forward was successcul
+                        mtx = new MailTransaction(300, rcpt, sender);
+                        mtx.saveTx();
+                        mb.increaseForwards();
+                        MBox.updateMBox(mb);
+                    }
                 }
                 else
-                {
+                { // there's a mailaddress, but its inactive
+
                     mb.increaseSuppressions();
+                    mtx = new MailTransaction(200, rcpt, sender);
+                    mtx.saveTx();
                     MBox.updateMBox(mb);
                 }
 
             }
             else
             {
-                // TODO just increase the general suppressed-mails counter
+                // mailaddress does not exist
+                mtx = new MailTransaction(100, rcpt, sender);
+                mtx.saveTx();
 
             }
 

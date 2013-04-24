@@ -11,6 +11,15 @@ create table mailboxes (
   constraint pk_mailboxes primary key (id))
 ;
 
+create table mailtransactions (
+  id                        bigint not null,
+  ts                        bigint,
+  status                    integer,
+  sourceaddr                varchar(255),
+  targetaddr                varchar(255),
+  constraint pk_mailtransactions primary key (id))
+;
+
 create table users (
   id                        bigint not null,
   forename                  varchar(255),
@@ -26,6 +35,8 @@ create table users (
 ;
 
 create sequence mailboxes_seq;
+
+create sequence mailtransactions_seq;
 
 create sequence users_seq;
 

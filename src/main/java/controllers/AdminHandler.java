@@ -18,6 +18,7 @@ import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
 
+import models.MailTransaction;
 import models.User;
 
 /**
@@ -38,6 +39,9 @@ public class AdminHandler
 
     @Inject
     Messages msg;
+    
+    @Inject
+    MailHandler mailhndlr;
 
     // ---------------------Functions for the Admin-Section ---------------------
     /**
@@ -87,7 +91,7 @@ public class AdminHandler
                 };
             String content = msg.get("i18nuser_activate_message", context.getAcceptLanguage(), param);
             // send the mail
-            HelperUtils.sendMail(from, usr.getMail(), content, subject);
+            mailhndlr.sendMail(from, usr.getMail(), content, subject);
         }
         else
         {// the account is now inactive
@@ -104,7 +108,7 @@ public class AdminHandler
                 };
             String content = msg.get("i18nuser_deactivate_message", context.getAcceptLanguage(), param);
             // send the mail
-            HelperUtils.sendMail(from, usr.getMail(), content, subject);
+            mailhndlr.sendMail(from, usr.getMail(), content, subject);
         }
 
         return Results.redirect("/admin");
@@ -136,6 +140,12 @@ public class AdminHandler
         // TODO check whether the user is authorized to do this!
         User.delete(id);
         return Results.redirect("/admin");
+    }
+    
+    public Result showStats(){
+        Map<String, List<MailTransaction>> map = new HashMap<String, List<MailTransaction>>();
+        map.put("mtxs", MailTransaction.all());
+        return Results.html().render(map);
     }
 
 }
