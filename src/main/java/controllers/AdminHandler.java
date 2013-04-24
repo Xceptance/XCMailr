@@ -39,7 +39,7 @@ public class AdminHandler
 
     @Inject
     Messages msg;
-    
+
     @Inject
     MailHandler mailhndlr;
 
@@ -141,11 +141,14 @@ public class AdminHandler
         User.delete(id);
         return Results.redirect("/admin");
     }
-    
-    public Result showStats(){
+
+    public Result showStats()
+    {
+        // TODO implement a nice view (e.g. with pagination and/or time-filtered table)
         Map<String, List<?>> map = new HashMap<String, List<?>>();
-        map.put("mtxs", MailTransaction.all());
-        map.put("stats",MailTransaction.getStatusMap());
+        map.put("stats", MailTransaction.getStatusList());
+        List<?> mtxs = MailTransaction.all();
+        map.put("mtxs", mtxs);
         return Results.html().render(map);
     }
 

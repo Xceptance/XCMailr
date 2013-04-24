@@ -11,6 +11,7 @@ import javax.persistence.Table;
 import org.joda.time.DateTime;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.PagingList;
 import com.avaje.ebean.Query;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
@@ -154,8 +155,12 @@ public class MailTransaction
     {
         return Ebean.find(MailTransaction.class).findList();
     }
+    public static List<MailTransaction> allPaginated()
+    {
+        return Ebean.find(MailTransaction.class).findList();
+    }
 
-    public static List<Status> getStatusMap()
+    public static List<Status> getStatusList()
     {
 
         String sql = "SELECT mtx.status, COUNT(mtx.status) AS count  FROM mailtransactions mtx GROUP BY mtx.status";
