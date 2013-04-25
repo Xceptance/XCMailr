@@ -25,6 +25,41 @@ public class HelperUtilsTest
     String result;
 
     @Test
+    public void testDigitsOnly()
+    {
+        int returned = HelperUtils.digitsOnly("10");
+        assertEquals(10, returned);
+
+    }
+
+    @Test
+    public void testHasFormat()
+    {
+        boolean b = HelperUtils.hasCorrectFormat("10h,2d");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("1h,20d");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("1h,2d");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("20d,10h");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("2d,10h");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("20d,1h");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("20d,10h");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("2d");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("1h");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("10h");
+        assertTrue(b);
+        b = HelperUtils.hasCorrectFormat("20d");
+        assertTrue(b);
+    }
+
+    @Test
     public void testParseDuration()
     {
 
@@ -33,13 +68,13 @@ public class HelperUtilsTest
          */
         Long returned = HelperUtils.parseDuration("0");
         assertEquals(new Long(0), returned);
-        
+
         returned = HelperUtils.parseDuration("0 ");
         assertEquals(new Long(0), returned);
-        
+
         returned = HelperUtils.parseDuration(" 0");
         assertEquals(new Long(0), returned);
-        
+
         returned = HelperUtils.parseDuration(" 0 ");
         assertEquals(new Long(0), returned);
 
@@ -50,6 +85,15 @@ public class HelperUtilsTest
         returned = HelperUtils.parseDuration("2h");
         DateTime dt = new DateTime();
         TestUtils.testTimeEqualityNearMinutes(dt.plusHours(2).getMillis(), returned);
+
+        returned = HelperUtils.parseDuration("1h,20d");
+
+        dt = new DateTime();
+        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(20).plusHours(1).getMillis(), returned);
+        returned = HelperUtils.parseDuration("10h,2d");
+
+        dt = new DateTime();
+        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(2).plusHours(10).getMillis(), returned);
 
         /*
          * TEST: check input with format like "2d"
@@ -117,7 +161,6 @@ public class HelperUtilsTest
 
     }
 
-   
     @Test
     public void testGetRndString()
     {
@@ -127,7 +170,7 @@ public class HelperUtilsTest
          * they are contained in the returned string
          */
         String returned = HelperUtils.getRndString(1000);
-        
+
         assertNotNull(returned);
         assertTrue(returned.contains("a"));
         assertTrue(returned.contains("b"));

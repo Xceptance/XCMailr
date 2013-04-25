@@ -122,7 +122,7 @@ public class JobController
                 while (it.hasNext())
                 {
                     MBox mb = it.next();
-                    if (dt.isAfter(mb.getTS_Active()) && !(mb.getTS_Active() == 0))
+                    if (dt.isAfter(mb.getTs_Active()) && !(mb.getTs_Active() == 0))
                     {
                         // this element is expired
                         MBox.enable(mb.getId());

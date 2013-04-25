@@ -27,15 +27,17 @@ public class MBox
     // Mailbox ID
     @Id
     private long id;
+
     @NotEmpty
     // Mailaddress of the Box
     private String address;
-    @NotEmpty
+
     // Timestamp for the end of the validity period
     private long ts_Active;
 
     // Flag for the validity
     private boolean expired;
+
     @NotEmpty
     private String domain;
 
@@ -70,16 +72,6 @@ public class MBox
     public void setAddress(String address)
     {
         this.address = address;
-    }
-
-    public long getTS_Active()
-    {
-        return ts_Active;
-    }
-
-    public void setTS_Active(long tS_Active)
-    {
-        ts_Active = tS_Active;
     }
 
     public boolean isExpired()
@@ -182,7 +174,14 @@ public class MBox
         this.version = version;
     }
 
+    // ---------------------------------------------
     // EBean Functions
+    // ---------------------------------------------
+    public void update()
+    {
+        Ebean.update(this);
+    }
+
     /**
      * deletes a box
      * 
@@ -320,15 +319,13 @@ public class MBox
     {
         MBox mb = MBox.getById(boxId);
         if (mb.equals(null))
-        {
-            // there's no box with that id
+        { // there's no box with that id
             return false;
         }
         else
         { // there is a mbox with that id
             if (mb.address.equals(local) && mb.address.equals(domain))
-            {
-                // mbox-mailaddr is equal to the given address -> nothing changed
+            { // mbox-mailaddr is equal to the given address -> nothing changed
                 return false;
             }
             else
@@ -342,7 +339,6 @@ public class MBox
                     return true;
                 }
             }
-
         }
     }
 
@@ -351,16 +347,13 @@ public class MBox
      */
     public String getTSAsString()
     {
-
-        DateTime dt = new DateTime(this.ts_Active);
-
         if (this.ts_Active == 0)
         {
             return "unlimited";
         }
         else
         {
-
+            DateTime dt = new DateTime(this.ts_Active);
             String min = "";
             if (dt.getMinuteOfHour() < 10)
             {

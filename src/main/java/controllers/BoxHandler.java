@@ -10,6 +10,7 @@ import etc.HelperUtils;
 import filters.SecureFilter;
 
 import org.joda.time.DateTime;
+import org.mortbay.log.Log;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -51,9 +52,16 @@ public class BoxHandler
         MbFrmDat mbdat = new MbFrmDat();
         // set the value of the random-name to 7
         // use the lowercase, we handle the address as case-insensitive
-        // TODO check whether the generated mailaddress already exists..
 
         String name = HelperUtils.getRndString(7).toLowerCase();
+        String[] domains = (String[]) map.get("domain");
+        if (domains.length > 0)
+        {//prevent OutOfBoundException 
+            while (MBox.mailExists(name, domains[0]))
+            {
+                name = HelperUtils.getRndString(7).toLowerCase();
+            }
+        }
         mbdat.setAddress(name);
         map.put("mbFrmDat", mbdat);
         return Results.html().render(map);
@@ -128,7 +136,7 @@ public class BoxHandler
 
                 }
                 // sets the activity-time of the mailbox
-                mb.setTS_Active(ts);
+                mb.setTs_Active(ts);
                 mb.setUsr(User.getById(id));
 
                 // creates the Box in the DB
@@ -223,15 +231,13 @@ public class BoxHandler
                     if (MBox.mailChanged(newLName, newDName, boxId))
                     { // this is only true when the address changed and the new address does not exist
 
-                        String[] dom = (String[]) HelperUtils.getDomainsFromConfig(ninjaProp).get("domains");
+                        String[] dom = (String[]) HelperUtils.getDomainsFromConfig(ninjaProp).get("domain");
                         // assume that the POST-Request was modified and the domainname does not exist in our app
                         if (!Arrays.asList(dom).contains(mbdat.getDomain()))
                         {
-
                             // the new domainname does not exist in the application.conf
                             // stop the process and return to the mailbox-overview page
                             return Results.redirect("/mail");
-
                         }
                         mb.setAddress(newLName);
                         mb.setDomain(newDName);
@@ -242,14 +248,13 @@ public class BoxHandler
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
                         s = msg.get("msg_wrongf", context, result, (Object) null);
-                        context.getFlashCookie().put(s, (Object) null);
+                        context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/mail/edit/" + boxId.toString());
                     }
 
-                    if (!(mb.getTS_Active() == ts))
-                    {
-                        // check if the MBox-TS is unequal to the given TS in the form
-                        mb.setTS_Active(ts);
+                    if (!(mb.getTs_Active() == ts))
+                    { // check if the MBox-TS is unequal to the given TS in the form
+                        mb.setTs_Active(ts);
                         changes = true;
                     }
 
@@ -257,12 +262,12 @@ public class BoxHandler
                     if (changes)
                     {
                         mb.setExpired(false);
-                        MBox.updateMBox(mb);
+                        // MBox.updateMBox(mb);
+                        mb.update();
                     }
                 }
                 else
                 { // the current user is not the owner of the mailbox
-                  // TODO what should be done in this case?
                     return Results.redirect("/mail");
                 }
             }
@@ -299,7 +304,7 @@ public class BoxHandler
                 mbdat.setBoxId(boxId);
                 mbdat.setAddress(mb.getAddress());
                 mbdat.setDomain(mb.getDomain());
-                mbdat.setDuration(HelperUtils.parseTime(mb.getTS_Active()));
+                mbdat.setDuration(HelperUtils.parseTime(mb.getTs_Active()));
                 Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
                 map.put("mbFrmDat", mbdat);
                 return Results.html().render(map);
@@ -341,7 +346,7 @@ public class BoxHandler
         {// check if the mailbox belongs to the current user
 
             DateTime dt = new DateTime();
-            if (!(mb.getTS_Active() == 0) && (mb.getTS_Active() < dt.getMillis()))
+            if (!(mb.getTs_Active() == 0) && (mb.getTs_Active() < dt.getMillis()))
             {
                 // if the validity period is over return the Edit page
                 return Results.redirect("/mail/edit/" + id);

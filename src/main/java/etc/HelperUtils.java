@@ -39,7 +39,7 @@ public class HelperUtils
      */
     public static Map<String, Object> getDomainsFromConfig(NinjaProperties ninjaProp)
     {
-
+        Map<String, Object> map = new HashMap<String, Object>();
         String dlist = ninjaProp.get("mbox.dlist");
 
         if (!dlist.equals(null))
@@ -47,14 +47,15 @@ public class HelperUtils
             String[] list = dlist.split(";");
             if (!list.equals(null))
             {
-                Map<String, Object> map = new HashMap<String, Object>();
-
                 map.put("domain", list);
-
                 return map;
             }
         }
-        return null;
+
+        // the property does not exist or has no value
+        // prevent a NullPointerException by returning an empty Stringarray
+        map.put("domain", new String[] {});
+        return map;
         // TODO what will happen if this returned?
     }
 
@@ -131,19 +132,21 @@ public class HelperUtils
         s = s.toLowerCase();
         // remove the spaces to cover cases like "2 h, 2 d"
         s = s.replace(" ", "");
+
+        // TODO this is just for testing-purposes, remove it
         if (s.equals("1"))
         {
             DateTime dt1 = new DateTime();
             return dt1.plusMinutes(1).getMillis();
         }
+
+        if (s.equals("0"))
+        {
+            return 0;
+        }
+
         if (hasCorrectFormat(s))
         {
-
-            if (s.equals("0"))
-            {
-                return 0;
-            }
-
             // if possible: split the given String
             String[] str = s.split(",");
             String helper = "";
@@ -168,11 +171,9 @@ public class HelperUtils
             {
                 return -1;
             }
-
         }
         else
         {
-            //
             return -1;
         }
 
@@ -200,7 +201,7 @@ public class HelperUtils
      *            string to check
      * @return the integer value of the string or -1 if the string does not match
      */
-    private static int digitsOnly(String helper)
+    public static int digitsOnly(String helper)
     {
         helper = helper.trim();
         if (helper.matches("[0-9]+"))
@@ -222,10 +223,10 @@ public class HelperUtils
      *            the Inputstring to check
      * @return 0 for a match, -1 for a mismatch
      */
-    private static boolean hasCorrectFormat(String helper)
+    public static boolean hasCorrectFormat(String helper)
     {
         helper = helper.trim();
-        if (helper.matches("[\\d+][d|h][,][\\d][d|h]") || helper.matches("[\\d+][d|h]") || helper.matches("[0]"))
+        if (helper.matches("(\\d+)[d|h][,](\\d+)[d|h]") || helper.matches("(\\d+)[d|h]"))
         {
             return true;
 
@@ -237,99 +238,34 @@ public class HelperUtils
     }
 
     /**
+     * gets a timestamp in millis and parses the time-interval to that in a readable way
+     * 
      * @param milis
      * @return
      */
-    public static String parseTime(Long milis)
+    public static String parseTime(Long millis)
     {
-        DateTime dt = new DateTime();
-        float times = (milis - dt.getMillis()) / 3600000.0f; // in hours
-        if (milis == 0)
-        {
-            // the box is "unlimited"
+        if (millis == 0)
+        { // the box is "unlimited"
             return "0";
         }
+        
+        //calculate the time from now to the given timestamp in hours
+        float times = (millis - DateTime.now().getMillis()) / 3600000.0f; // in hours
+        
         if (times < 0)
-        {
-            // the box is expired
+        { // the box is expired, return a default value
             return "1h,1d";
         }
-
+        //round the hours to a full hour
         int hours = Math.round(times);
+        
+        //get the days
         int days = hours / 24;
+        //calculate the hours of a day
         hours = hours % 24;
 
         return hours + "h," + days + "d";
     }
-
-
-
-//    /**
-//     * Takes the unchanged incoming mail and forwards it
-//     * 
-//     * @param from
-//     *            - the unchanged From-Address
-//     * @param to
-//     *            - the trash-mail target (the forward address will be automatically fetched from DB)
-//     * @param content
-//     *            - the message body
-//     * @return
-//     */
-//    public static boolean forwardMail(String from, String to, String content)
-//    {
-//        String[] splitaddress = to.split("@");
-//        String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
-//        // TODO implement an i18n Subject-text
-//        return sendMail(from, fwdtarget, content, "Weitergeleitete Nachricht");
-//
-//    }
-
-//    /**
-//     * Takes the mail specified by the parameters and sends it to the given target
-//     * 
-//     * @param from
-//     *            - the mail-author
-//     * @param to
-//     *            - the recipients-address
-//     * @param content
-//     *            - the message body
-//     * @param subject
-//     *            - the message subject
-//     * @return true if the mail-transmission was successful
-//     */
-//
-//    public static boolean sendMail(String from, String to, String content, String subject)
-//    {
-//        try
-//        {
-//            // TODO retry until the message could be sent(?)
-//            Properties properties = System.getProperties();
-//            properties.setProperty("mail.smtp.host", HelperUtils.getMailTarget(to));
-//            Session session = Session.getDefaultInstance(properties);
-//
-//            // create the message
-//            MimeMessage message = new MimeMessage(session);
-//            message.setFrom(new InternetAddress(from));
-//            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-//            message.setSubject(subject);
-//            message.setText(content);
-//            Transport.send(message);
-//            return true;
-//
-//        }
-//        catch (AddressException e)
-//        {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//            return false;
-//        }
-//        catch (MessagingException e)
-//        {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//            return false;
-//        }
-//
-//    }
 
 }
