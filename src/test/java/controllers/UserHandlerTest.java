@@ -17,15 +17,10 @@ public class UserHandlerTest extends NinjaTest
 
     @Inject
     NinjaProperties ninjaProp;
-
     Map<String, String> headers = Maps.newHashMap();
-
     Map<String, String> formParams = Maps.newHashMap();
-
     Map<String, String> returnedData = Maps.newHashMap();
-
     Map<String, String> userData = Maps.newHashMap();
-
     String result;
 
     @Before
@@ -35,22 +30,20 @@ public class UserHandlerTest extends NinjaTest
         headers.clear();
         returnedData.clear();
         
-        User.createUser(new User("John", "Doe", "admin@this.de", "1234"));
-        User u = User.getUsrByMail("admin@this.de");
+        User.createUser(new User("John", "Doe", "admin@ccmailr.test", "1234"));
+        User u = User.getUsrByMail("admin@ccmailr.test");
         u.setActive(true);
         User.updateUser(u);
         
         userData.put("forename", "John");
         userData.put("surName", "Doe");
-        userData.put("mail", "admin@this.de");
+        userData.put("mail", "admin@ccmailr.test");
 
-        
         formParams.clear();
-        formParams.put("mail", "admin@this.de");
+        formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
         formParams.clear();
-
     }
 
     @After
@@ -69,16 +62,17 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@this.de");
+        formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pw", "1234");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
+        
 
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
         System.out.println(returnedData);
-
+        System.out.println(userData);
         assertTrue(result.contains("class=\"error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -90,7 +84,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "");
-        formParams.put("mail", "admin@this.de");
+        formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pw", "1234");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -144,7 +138,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "Johnny");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@this.de");
+        formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pw", "");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -162,7 +156,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "Johnny");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@this.de");
+        formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pw", "4321");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -180,7 +174,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "Johnny");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@this.de");
+        formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pw", "abcdef");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -199,7 +193,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "Johnny");
         formParams.put("surName", "Doey");
-        formParams.put("mail", "admin@this.de");
+        formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pw", "1234");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,

@@ -48,8 +48,7 @@ public class UserHandler
 
             s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
-            return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
-            // return Results.redirect("/user/edit");
+            return Results.redirect("/user/edit");
 
         }
         else
@@ -70,7 +69,7 @@ public class UserHandler
                 if (!(pw1 == null) && !(pw2 == null))
                 {
                     if (!(pw2.isEmpty()) && !(pw1.isEmpty()) && pw1.equals(pw2))
-                    { // new password was entered and the repetition is equally
+                    { // new password was entered and the repetition is equal to the entered new pw
                         updU.hashPasswd(pw2);
                     }
                     else
@@ -90,7 +89,7 @@ public class UserHandler
             { // the authorization-prozess failed
                 s = msg.get("msg_formerr", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
-                return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
+                return Results.redirect("/user/edit");
             }
         }
     }

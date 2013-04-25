@@ -38,8 +38,8 @@ public class BoxHandlerTest extends NinjaTest
     public void setUp()
     {
         // create the user (in test mode a volatile in-memory db is used)
-        User.createUser(new User("John", "Doe", "admin@this.de", "1234"));
-        User u = User.getUsrByMail("admin@this.de");
+        User.createUser(new User("John", "Doe", "admin@ccmailr.test", "1234"));
+        User u = User.getUsrByMail("admin@ccmailr.test");
         u.setActive(true);
         User.updateUser(u);
         formParams.clear();
@@ -48,7 +48,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.clear();
 
         // login
-        formParams.put("mail", "admin@this.de");
+        formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
@@ -92,7 +92,7 @@ public class BoxHandlerTest extends NinjaTest
 
         // log-in with the new user
         formParams.clear();
-        formParams.put("mail", "admin@this.de");
+        formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
         formParams.clear();
