@@ -54,7 +54,6 @@ public class JobController
     @Inject
     MailHandler mailhndl;
 
-    private final int size = Integer.parseInt(ninjaProp.get("mbox.size"));
 
     @Start(order = 90)
     public void startActions()
@@ -111,7 +110,7 @@ public class JobController
             public void run()
             {
                 log.info("mbox-scheduler run");
-                
+                int size = Integer.parseInt(ninjaProp.get("mbox.size"));
                 List<MBox> mbList = MBox.getNextBoxes(size);
                 ListIterator<MBox> it = mbList.listIterator();
                 DateTime dt = new DateTime();
