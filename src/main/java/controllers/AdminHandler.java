@@ -51,10 +51,14 @@ public class AdminHandler
      */
     public Result showUsers(Context context)
     {
-        Map<String, List<User>> map = new HashMap<String, List<User>>();
+        //Map<String, List<?>> map = new HashMap<String, List<?>>();
+        Map<String, Object> map = new HashMap<String, Object>();
         map.put("users", User.all());
-
-        return Results.html().render(map);
+        map.put("stats", MailTransaction.getStatusList());
+        List<?> mtxs = MailTransaction.all();
+        map.put("mtxs", mtxs);
+        map.put("uid", Long.parseLong(context.getSessionCookie().get("id")));
+        return Results.html().template("views/AdminHandler/showAdmin.ftl.html").render(map);
     }
 
     /**
