@@ -51,9 +51,6 @@ public class AdminHandler
      */
     public Result showAdmin(Context context)
     {
-        
-        // TODO implement a nice view (e.g. with pagination and/or time-filtered table)
-        //Map<String, List<?>> map = new HashMap<String, List<?>>();
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("users", User.all());
         map.put("stats", MailTransaction.getStatusList());
@@ -64,7 +61,8 @@ public class AdminHandler
     }
 
     /**
-     * activates or deactivates the User with the given id site/admin/activate/id
+     * activates or deactivates the User with the given id <br/>
+     * POST /admin/activate/{id}
      * 
      * @param id
      *            - id of a user
@@ -121,7 +119,8 @@ public class AdminHandler
     }
 
     /**
-     * pro- or demotes the User with the given id site/admin/promote/id
+     * Pro- or demotes the User with the given id <br/> 
+     * POST /admin/promote/{id}
      * 
      * @param id
      *            - id of a user
@@ -135,14 +134,14 @@ public class AdminHandler
     }
 
     /**
-     * Handles the user delete function site/admin/delete/id
+     * Handles the user delete function <br/> 
+     * POST /admin/delete/{id}
      * 
      * @param id
      * @return
      */
     public Result deleteUser(@PathParam("id") Long id)
     {
-        // TODO check whether the user is authorized to do this!
         User.delete(id);
         return Results.redirect("/admin");
     }

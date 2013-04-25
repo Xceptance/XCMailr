@@ -54,14 +54,12 @@ public class JobController
     @Inject
     MailHandler mailhndl;
 
+    private final int size = Integer.parseInt(ninjaProp.get("mbox.size"));
 
     @Start(order = 90)
     public void startActions()
     {
         log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
-
-        // TODO check whether the domains contained in application.conf are correct (spelling)
-
         String pwd = ninjaProp.get("admin.pass");
         if (!(pwd == null))
         { // if a pw is set in application.conf..
@@ -72,10 +70,10 @@ public class JobController
              // create the adminaccount
                 log.info("Adminaccount is: " + mail + ":" + pwd);
                 User usr = new User("Site", "Admin", mail, pwd);
-                // set the status flag
+                
+                // set the status and admin flags
                 usr.setAdmin(true);
                 usr.setActive(true);
-
                 User.createUser(usr);
             }
         }
@@ -107,15 +105,13 @@ public class JobController
         int interval = Integer.parseInt(ninjaProp.get("mbox.interval"));
 
         // create the sheduler-service to check the mailboxes which were expired since the last run and disable them
-        // TODO maybe use the Shedule-Annotation instead, see:
-        // http://www.ninjaframework.org/documentation/scheduler.html
         executorService.scheduleAtFixedRate(new Runnable()
         {
             @Override
             public void run()
             {
                 log.info("mbox-scheduler run");
-                int size = Integer.parseInt(ninjaProp.get("mbox.size"));
+                
                 List<MBox> mbList = MBox.getNextBoxes(size);
                 ListIterator<MBox> it = mbList.listIterator();
                 DateTime dt = new DateTime();
@@ -123,10 +119,8 @@ public class JobController
                 {
                     MBox mb = it.next();
                     if (dt.isAfter(mb.getTs_Active()) && !(mb.getTs_Active() == 0))
-                    {
-                        // this element is expired
+                    { // this element is expired
                         MBox.enable(mb.getId());
-
                     }
                 }
             }
@@ -139,7 +133,6 @@ public class JobController
             {
                 log.info("mailjob run " + mailqueue.size());
                 MimeMessage message = mailqueue.poll();
-
                 while (!(message == null))
                 {
                     log.info("Mailjob: Message found");
@@ -156,11 +149,9 @@ public class JobController
                 }
             }
         }, new Long(2), new Long(30), TimeUnit.SECONDS);
-
-        // TODO also create a scheduler to send mails in the queue to prevent a blocked application
     }
 
-    // TODO add tests for the activations..
+
 
     public void addMessage(MimeMessage msg)
     {

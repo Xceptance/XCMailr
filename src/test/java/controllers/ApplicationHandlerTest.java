@@ -406,5 +406,6 @@ public class ApplicationHandlerTest extends NinjaTest
 
     }
     // TODO test the pwresend-method
+    // TODO add tests for the activations..
 
 }

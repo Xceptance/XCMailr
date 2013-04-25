@@ -76,7 +76,7 @@ public class UserHandler
                     else
                     {
                         // the passwords are not equal (or empty)
-                        s = msg.get("msg_formerr", context, result, (Object) null);
+                        s = msg.get("i18nmsg_wrongpw", context, result, (Object) null);
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
                     }

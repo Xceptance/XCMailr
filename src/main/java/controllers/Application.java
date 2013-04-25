@@ -127,7 +127,7 @@ public class Application
                     frdat.setPw("");
                     frdat.setPwn1("");
                     frdat.setPwn2("");
-                    s = msg.get("msg_formerr", context, result, (Object) null);
+                    s = msg.get("i18nmsg_wrongpw", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
                 }
@@ -161,12 +161,14 @@ public class Application
             { // the passed token is the right one -> activate the user
                 u.setActive(true);
                 User.updateUser(u);
-                context.getFlashCookie().success("Erfolgreich aktiviert!", (Object) null);
+
+                Result result = Results.html();
+                String s = msg.get("i18nuser_verify_success", context, result, (Object) null);
+                context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/");
-                // TODO create the i18n messages
             }
         }
-        context.getFlashCookie().error("FEHLER BEI DER AKTIVIERUNG!", (Object) null);
+        // show no message when the process failed
         return Results.redirect("/");
     }
 
@@ -240,6 +242,7 @@ public class Application
                         // also set an admin-flag if the account is an admin-account
                         context.getSessionCookie().put("adm", String.valueOf(true));
                     }
+                    
                     // TODO: ADM-Zugriff per DB, nicht per Cookie?
 
                     lgr.setBadPwCount(0);
@@ -396,31 +399,30 @@ public class Application
             if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
             { // the passed token is the right one
                 if (!validation.hasViolations())
-                { //the form was filled correctly
+                { // the form was filled correctly
                     if (pwd.getPw().equals(pwd.getPw2()))
                     { // the entered PWs are equal -> set the new pw
                         u.hashPasswd(pwd.getPw());
                         u.setActive(true);
                         u.setBadPwCount(0);
-                        
-                        //set the confirm-ts to now to prevent the reuse of the link
+
+                        // set the confirm-ts to now to prevent the reuse of the link
                         u.setTs_confirm(DateTime.now().getMillis());
-                        
+
                         User.updateUser(u);
-                        // TODO maybe use another message
                         s = msg.get("msg_chok", context, result, (Object) null);
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/");
                     }
                     else
-                    { //the passwords are not equal
-                        s = msg.get("msg_formerr", context, result, (Object) null);
+                    { // the passwords are not equal
+                        s = msg.get("i18nmsg_wrongpw", context, result, (Object) null);
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/lostpw" + id + "/" + token);
                     }
                 }
                 else
-                { //the form has errors
+                { // the form has errors
                     s = msg.get("msg_formerr", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.redirect("/lostpw" + id + "/" + token);

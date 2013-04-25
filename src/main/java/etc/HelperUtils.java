@@ -3,25 +3,9 @@ package etc;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Random;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
 import org.joda.time.DateTime;
-import org.xbill.DNS.Lookup;
-import org.xbill.DNS.MXRecord;
-import org.xbill.DNS.Record;
-import org.xbill.DNS.TextParseException;
-import org.xbill.DNS.Type;
-
-import models.MBox;
 import ninja.utils.NinjaProperties;
 
 import com.google.inject.Singleton;
@@ -56,14 +40,15 @@ public class HelperUtils
         // prevent a NullPointerException by returning an empty Stringarray
         map.put("domain", new String[] {});
         return map;
-        // TODO what will happen if this returned?
     }
 
     /**
      * Generates a random name, generated with java.util.Random and an alphabet of 0-9,a-z,A-Z <br/>
      * e.g. for the mailbox
      * 
-     * @return a random name
+     * @param length
+     *            - length of the returned string
+     * @return a randomly generated String consisting of a-z,A-Z and 0-9
      */
 
     public static String getRndString(int length)
@@ -89,10 +74,13 @@ public class HelperUtils
 
     /**
      * All in all, the same like the getRndString(), but here's SecureRandom used
+     * 
+     * @param length
+     *            - length of the returned string
+     * @return a secure-randomly generated String consisting of a-z,A-Z and 0-9
      */
     public static String getRndSecureString(int length)
     {
-
         SecureRandom srnd = new SecureRandom();
         srnd.setSeed(srnd.generateSeed(23));
         char[] values =
@@ -108,19 +96,18 @@ public class HelperUtils
         {
             // generates a random number and stores it in the stringbuffer
             strBuf.append(values[Math.abs(srnd.nextInt()) % (values.length)]);
-
         }
         return strBuf.toString();
     }
 
     /**
-     * checks if a given string is in the right format <br/>
+     * Checks if a given string is in the right format <br/>
      * there should be 1 or 2 time-values (d,h or h,d or h or d or 0)<br/>
      * uppercase-letters will be converted and spaces removed the highest time-interval is set to 30 days, everything
      * above will be set to 0 (unlimited)
      * 
      * @param s
-     *            the String to parse
+     *            - the String to parse
      * @return the Duration which was given by the String
      */
     public static long parseDuration(String s)
@@ -195,10 +182,10 @@ public class HelperUtils
     }
 
     /**
-     * helper function for parseDuration() checks if a string consists only of digits
+     * Helper function for parseDuration() checks if a string consists only of digits
      * 
      * @param helper
-     *            string to check
+     *            - String to check
      * @return the integer value of the string or -1 if the string does not match
      */
     public static int digitsOnly(String helper)
@@ -238,7 +225,7 @@ public class HelperUtils
     }
 
     /**
-     * gets a timestamp in millis and parses the time-interval to that in a readable way
+     * Gets a Timestamp in millis and parses the time-interval to that in a readable way
      * 
      * @param milis
      * @return
@@ -249,20 +236,20 @@ public class HelperUtils
         { // the box is "unlimited"
             return "0";
         }
-        
-        //calculate the time from now to the given timestamp in hours
+
+        // calculate the time from now to the given timestamp in hours
         float times = (millis - DateTime.now().getMillis()) / 3600000.0f; // in hours
-        
+
         if (times < 0)
         { // the box is expired, return a default value
             return "1h,1d";
         }
-        //round the hours to a full hour
+        // round the hours to a full hour
         int hours = Math.round(times);
-        
-        //get the days
+
+        // get the days
         int days = hours / 24;
-        //calculate the hours of a day
+        // calculate the hours of a day
         hours = hours % 24;
 
         return hours + "h," + days + "d";

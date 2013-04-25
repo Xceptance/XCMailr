@@ -87,14 +87,6 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/admin/delete/{id}").with(AdminHandler.class, "deleteUser");
         router.GET().route("/admin").with(AdminHandler.class, "showAdmin");
 
-
-        //
-        // //this is a route that should only be accessible when NOT in production
-        // // this is tested in RoutesTest
-        // if (!ninjaProperties.isProd()) {
-        // router.GET().route("/_test/testPage").with(ApplicationController.class, "testPage");
-        // }
-        //
         router.GET().route("/assets/.*").with(AssetsController.class, "serve");
 
     }

@@ -98,13 +98,11 @@ public class MailHandler
         }
         catch (AddressException e)
         {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return false;
         }
         catch (MessagingException e)
         {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return false;
         }
@@ -162,21 +160,17 @@ public class MailHandler
         Object[] object = new Object[]
             {
                 forename, url
-
             };
-        // TODO change this message
-        String body = msg.get("i18nuser_verify_message", lang, object);
-
-        String subj = msg.get("i18nuser_verify_subject", lang, (Object) null);
+        String body = msg.get("i18nuser_pwresend_message", lang, object);
+        String subj = msg.get("i18nuser_pwresend_subject", lang, (Object) null);
         sendMail(from, to, body, subj);
-
     }
 
     /**
      * Searches the MX-Host of a given Mailaddress
      * 
-     * @param mailadr - 
-     *            the mailaddress
+     * @param mailadr
+     *            - the mailaddress
      * @return the mx-record for this address as string
      */
     public static String getMailTarget(String mailadr)
@@ -189,14 +183,11 @@ public class MailHandler
         }
         catch (TextParseException e)
         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            return null;
         }
         catch (NullPointerException e)
         {
             return null;
         }
-        return null;
-        // TODO nullpointerex
     }
 }
