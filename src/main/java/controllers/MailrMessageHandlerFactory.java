@@ -36,11 +36,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     class Handler implements MessageHandler
     {
         MessageContext ctx;
-
         String sender;
-
         String rcpt;
-
         String content;
 
         public Handler(MessageContext ctx)

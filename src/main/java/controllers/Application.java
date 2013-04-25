@@ -15,7 +15,6 @@ import ninja.Context;
 import models.User;
 import ninja.Result;
 import ninja.Results;
-import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
 import ninja.utils.NinjaProperties;
@@ -30,10 +29,6 @@ import ninja.validation.Validation;
 @Singleton
 public class Application
 {
-
-    @Inject
-    Lang lang;
-
     @Inject
     Messages msg;
 
@@ -43,6 +38,13 @@ public class Application
     @Inject
     MailHandler mailhndlr;
 
+    /**
+     * Shows the index-page <br/>
+     * GET /
+     * 
+     * @param context
+     * @return the index page
+     */
     public Result index(Context context)
     {
 
@@ -61,9 +63,10 @@ public class Application
 
     // -------------------- Registration -----------------------------------
     /**
-     * shows the registration form
+     * shows the registration form <br/>
+     * GET /register
      * 
-     * @return
+     * @return the registration form
      */
 
     public Result registerForm()
@@ -73,7 +76,8 @@ public class Application
     }
 
     /**
-     * Creates the User (POST for register)
+     * Creates the User <br/>
+     * POST /register
      * 
      * @return
      */
@@ -85,9 +89,12 @@ public class Application
 
         if (validation.hasViolations())
         {
+            frdat.setPw("");
+            frdat.setPwn1("");
+            frdat.setPwn2("");
             s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
-            return Results.html().render(frdat);
+            return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
         }
         else
         { // form was filled correctly, go on!
@@ -116,32 +123,42 @@ public class Application
 
                 }
                 else
-                {
-
-                    // password mismatch
+                { // password mismatch
+                    frdat.setPw("");
+                    frdat.setPwn1("");
+                    frdat.setPwn2("");
                     s = msg.get("msg_formerr", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
-                    return Results.redirect("/register");
-
+                    return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
                 }
             }
             else
             { // mailadress already exists
                 s = msg.get("msg_mailex", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
-                return Results.redirect("/register");
+                return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
             }
         }
     }
 
+    /**
+     * Handles the Verification for the Activation-Process <br/>
+     * GET /verify/{id}/{token}
+     * 
+     * @param id
+     *            - the userid
+     * @param token
+     *            - the verification-token
+     * @param context
+     * @return to the index-page
+     */
     public Result verifyActivation(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
         User u = User.getById(id);
         if (!(u == null))
         { // the user exists
             if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
-            { // the passed token is the right one
-              // so activate the user
+            { // the passed token is the right one -> activate the user
                 u.setActive(true);
                 User.updateUser(u);
                 context.getFlashCookie().success("Erfolgreich aktiviert!", (Object) null);
@@ -156,7 +173,8 @@ public class Application
     // -------------------- Login/-out Functions -----------------------------------
 
     /**
-     * shows the login form
+     * Shows the login form<br/>
+     * GET /login
      * 
      * @return the rendered login form
      */
@@ -166,7 +184,8 @@ public class Application
     }
 
     /**
-     * Handles the logout process
+     * Handles the logout process<br/>
+     * GET /logout
      * 
      * @return the index page
      */
@@ -180,7 +199,8 @@ public class Application
     }
 
     /**
-     * Handles the login-process POST for /register
+     * Handles the login-process <br/>
+     * POST for /register
      * 
      * @return the login form or the index page
      */
@@ -262,7 +282,8 @@ public class Application
     }
 
     /**
-     * shows the forgot pw page
+     * Shows the "forgot password" page <br/>
+     * GET /resendpw
      * 
      * @return forgot-pw-form
      */
@@ -272,7 +293,8 @@ public class Application
     }
 
     /**
-     * generates a new password and sends it to the user
+     * Generates a new Token and sends it to the user<br/>
+     * POST /resendpw
      * 
      * @return index page
      */
@@ -297,6 +319,7 @@ public class Application
 
                 // generate the confirmation-token
                 usr.setConfirmation(HelperUtils.getRndSecureString(20));
+                // set the new validity-time
                 usr.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
                                           .getMillis());
 
@@ -308,10 +331,7 @@ public class Application
                 return Results.redirect("/");
             }
 
-            /*
-             * The user doesn't exist in the db, but we show him the success-msg anyway
-             */
-
+            // The user doesn't exist in the db, but we show him the success-msg anyway
             s = msg.get("i18nforgpw_succ", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/");
@@ -320,12 +340,15 @@ public class Application
     }
 
     /**
-     * this method will handle the confirmation-mail-link
+     * This method handles the confirmation-mail-link<br/>
+     * GET /lostpw/{id}/{token}
      * 
      * @param id
+     *            - the Userid
      * @param token
+     *            - the Token for the User
      * @param context
-     * @return
+     * @return the reset-pw-form or (on error) to the index-page
      */
     public Result lostPw(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
@@ -334,20 +357,33 @@ public class Application
         if (!(u == null))
         { // the user exists
             if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
-            {
+            { // the token is right and the request is in time
                 Map<String, String> map = new HashMap<String, String>();
                 map.put("id", id.toString());
                 map.put("token", token);
-
                 // show the form for the new password
                 return Results.html().render(map);
             }
         }
-
+        // something was wrong, so redirect without any comment to the index-page
         return Results.redirect("/");
 
     }
 
+    /**
+     * Sets a new PW for the user <br/>
+     * POST /lostpw/{id}/{token}
+     * 
+     * @param id
+     *            - the UserID
+     * @param token
+     *            - the Token for the User
+     * @param context
+     * @param pwd
+     *            - the PwData (the form-entrys)
+     * @param validation
+     * @return
+     */
     public Result changePw(@PathParam("id") Long id, @PathParam("token") String token, Context context,
                            @JSR303Validation PwData pwd, Validation validation)
     {
@@ -357,19 +393,19 @@ public class Application
         User u = User.getById(id);
         if (!(u == null))
         { // the user exists
-
             if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
             { // the passed token is the right one
-
                 if (!validation.hasViolations())
-                {
+                { //the form was filled correctly
                     if (pwd.getPw().equals(pwd.getPw2()))
-                    {
-
-                        // both pws match -> set the new pw
+                    { // the entered PWs are equal -> set the new pw
                         u.hashPasswd(pwd.getPw());
                         u.setActive(true);
                         u.setBadPwCount(0);
+                        
+                        //set the confirm-ts to now to prevent the reuse of the link
+                        u.setTs_confirm(DateTime.now().getMillis());
+                        
                         User.updateUser(u);
                         // TODO maybe use another message
                         s = msg.get("msg_chok", context, result, (Object) null);
@@ -377,21 +413,18 @@ public class Application
                         return Results.redirect("/");
                     }
                     else
-                    {
-
+                    { //the passwords are not equal
                         s = msg.get("msg_formerr", context, result, (Object) null);
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/lostpw" + id + "/" + token);
                     }
                 }
                 else
-                {
-
+                { //the form has errors
                     s = msg.get("msg_formerr", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.redirect("/lostpw" + id + "/" + token);
                 }
-
             }
         }
         // if the link was wrong -> redirect without any message

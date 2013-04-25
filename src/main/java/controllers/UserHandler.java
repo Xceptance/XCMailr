@@ -24,7 +24,6 @@ import filters.SecureFilter;
 @Singleton
 public class UserHandler
 {
-
     @Inject
     Lang lang;
 
@@ -32,9 +31,10 @@ public class UserHandler
     Messages msg;
 
     /**
-     * edits the user-data
+     * Edits the user-data <br/>
+     * POST /user/edit
      * 
-     * @return the result-page
+     * @return the edit-page again
      */
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
@@ -48,19 +48,18 @@ public class UserHandler
 
             s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
-            return Results.redirect("/user/edit");
+            return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
+            // return Results.redirect("/user/edit");
 
         }
         else
         { // the form is filled correctly
-
             String pw1 = edt.getPwn1();
             String pw2 = edt.getPwn2();
             User updU = User.authById(uId, edt.getPw());
 
             if (!(updU == null))
             { // the user authorized himself
-
                 if (!User.mailChanged(edt.getMail(), uId))
                 { // the mailaddress changed
                     updU.setMail(edt.getMail());
@@ -73,7 +72,13 @@ public class UserHandler
                     if (!(pw2.isEmpty()) && !(pw1.isEmpty()) && pw1.equals(pw2))
                     { // new password was entered and the repetition is equally
                         updU.hashPasswd(pw2);
-
+                    }
+                    else
+                    {
+                        // the passwords are not equal (or empty)
+                        s = msg.get("msg_formerr", context, result, (Object) null);
+                        context.getFlashCookie().error(s, (Object) null);
+                        return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
                     }
                 }
                 User.updateUser(updU); // update the user
@@ -83,16 +88,16 @@ public class UserHandler
             }
             else
             { // the authorization-prozess failed
-
                 s = msg.get("msg_formerr", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
-                return Results.redirect("/user/edit");
+                return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
             }
         }
     }
 
     /**
-     * prepopulate the editform and show it
+     * Prepopulates the EditForm and Show it <br/>
+     * GET /user/edit
      * 
      * @return the user-edit-form
      */

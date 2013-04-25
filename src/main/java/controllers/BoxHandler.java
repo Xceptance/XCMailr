@@ -10,15 +10,12 @@ import etc.HelperUtils;
 import filters.SecureFilter;
 
 import org.joda.time.DateTime;
-import org.mortbay.log.Log;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import models.MBox;
 import models.MbFrmDat;
 import models.User;
-import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
 import ninja.utils.NinjaProperties;
@@ -38,9 +35,6 @@ public class BoxHandler
 {
 
     @Inject
-    Lang lang;
-
-    @Inject
     Messages msg;
 
     @Inject
@@ -56,7 +50,7 @@ public class BoxHandler
         String name = HelperUtils.getRndString(7).toLowerCase();
         String[] domains = (String[]) map.get("domain");
         if (domains.length > 0)
-        {//prevent OutOfBoundException 
+        {// prevent OutOfBoundException
             while (MBox.mailExists(name, domains[0]))
             {
                 name = HelperUtils.getRndString(7).toLowerCase();
@@ -81,60 +75,53 @@ public class BoxHandler
         String s;
 
         if (validation.hasViolations())
-        {
-            // not all fields were filled (correctly)
+        { // not all fields were filled (correctly)
             s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
             map.put("mbFrmDat", mbdat);
 
-            return Results.html().render(map);
+            return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
         }
         else
         {
             // checks whether the Box already exists
             if (!MBox.mailExists(mbdat.getAddress(), mbdat.getDomain()))
             {
-                MBox mb = new MBox();
                 String mbName = mbdat.getAddress().toLowerCase();
                 // deletes all special characters
                 mbName = mbName.replaceAll("[^a-zA-Z0-9.]", "");
-
                 /*
                  * TODO -return an error-page if there are some special-chars in the address... -return an error-page if
                  * there is a dot at the end -there should be another mail-exists-check after all deletions.. -> just a
                  * remark!, most of this may be unneccessary when using RegEx in mailaddr.
                  */
-
                 // deletes a the dot if its placed at the end of the mailaddress
                 if (mbName.endsWith("."))
                 {
                     mbName = mbName.substring(0, mbName.length() - 1);
                 }
-
                 // set the data of the box
                 String[] dom = (String[]) HelperUtils.getDomainsFromConfig(ninjaProp).get("domain");
                 if (!Arrays.asList(dom).contains(mbdat.getDomain()))
                 {
                     // the new domainname does not exist in the application.conf
                     // stop the process and return to the mailbox-overview page
-
                     return Results.redirect("/mail");
-
                 }
-                mb.setDomain(mbdat.getDomain());
-                mb.setAddress(mbName);
-                mb.setExpired(false);
-
                 Long ts = HelperUtils.parseDuration(mbdat.getDuration());
-
                 if (ts == -1)
                 { // show an error-page if the timestamp is faulty
                     s = msg.get("msg_wrongf", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
-                    return Results.redirect("/mail");
+                    return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(mbdat);
 
                 }
+                // create the MBox
+                MBox mb = new MBox();
+                mb.setDomain(mbdat.getDomain());
+                mb.setAddress(mbName);
+                mb.setExpired(false);
                 // sets the activity-time of the mailbox
                 mb.setTs_Active(ts);
                 mb.setUsr(User.getById(id));
@@ -150,7 +137,7 @@ public class BoxHandler
                 // the mailbox already exists
                 s = msg.get("msg_mailex", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
-                return Results.redirect("/mail");
+                return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(mbdat);
             }
         }
     }
@@ -164,10 +151,6 @@ public class BoxHandler
      */
     public Result deleteBox(@PathParam("id") Long boxid, Context context)
     {
-
-        // TODO is it more efficient to use MBox.boxToUser instead of creating an mbox-object and use their
-        // belongsTo()-method?
-
         Long uid = Long.parseLong(context.getSessionCookie().get("id"));
         if (MBox.boxToUser(boxid, uid))
         {
@@ -179,9 +162,10 @@ public class BoxHandler
     }
 
     /**
-     * Edits a Mailbox POST /mail/edit/{id}
+     * Edits a Mailbox <br/>
+     * POST /mail/edit/{id}
      * 
-     * @param boxId
+     * @param boxId 
      * @return error/success-page
      */
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
@@ -191,8 +175,7 @@ public class BoxHandler
         String s;
 
         if (validation.hasViolations())
-        {
-            // not all fields were filled
+        { // not all fields were filled
             s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
 
@@ -243,7 +226,6 @@ public class BoxHandler
                         mb.setDomain(newDName);
                         changes = true;
                     }
-
                     Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
@@ -262,7 +244,6 @@ public class BoxHandler
                     if (changes)
                     {
                         mb.setExpired(false);
-                        // MBox.updateMBox(mb);
                         mb.update();
                     }
                 }
@@ -325,7 +306,6 @@ public class BoxHandler
 
     public Result showBoxes(Context context)
     {
-
         Long id = new Long(context.getSessionCookie().get("id"));
         return Results.html().render(MBox.allUserMap(id));
     }

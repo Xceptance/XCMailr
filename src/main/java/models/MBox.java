@@ -215,9 +215,10 @@ public class MBox
     }
 
     /**
-     * @param bId
-     * @param uId
-     * @return
+     * Checks the relation between a user and a box
+     * @param bId - the Boxid
+     * @param uId - the UserId
+     * @return true if the given BoxId belongs to the given UserId
      */
     public static boolean boxToUser(long bId, long uId)
     {

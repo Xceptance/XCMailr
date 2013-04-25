@@ -11,7 +11,6 @@ import javax.mail.internet.MimeMessage;
 import ninja.i18n.Messages;
 import ninja.utils.NinjaProperties;
 
-import org.slf4j.Logger;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.MXRecord;
 import org.xbill.DNS.Record;
@@ -25,10 +24,6 @@ import com.google.inject.Singleton;
 @Singleton
 public class MailHandler
 {
-
-    @Inject
-    private Logger log;
-
     @Inject
     Messages msg;
 
@@ -60,7 +55,6 @@ public class MailHandler
         String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
         String s = msg.get("i18nmsg_fwdsubj", lang, (Object) null);
         return sendMail(from, fwdtarget, content, s);
-
     }
 
     /**
@@ -76,7 +70,6 @@ public class MailHandler
      *            - the message subject
      * @return true whether the addition to the mailqueue was successful
      */
-
     public boolean sendMail(String from, String to, String content, String subject)
     {
         try
@@ -86,7 +79,7 @@ public class MailHandler
             String targ = getMailTarget(to);
             if (targ == null)
             {
-                //if there's no mx-record, return false
+                // if there's no mx-record, return false
                 return false;
             }
             properties.setProperty("mail.smtp.host", targ);
@@ -118,6 +111,20 @@ public class MailHandler
 
     }
 
+    /**
+     * Generates the Confirmation-Mail after Registration
+     * 
+     * @param to
+     *            - Recipients-Address
+     * @param forename
+     *            - Forename of the Recipient
+     * @param id
+     *            - UserID of the Recipient
+     * @param token
+     *            - the generated Confirmation-Token of the User
+     * @param lang
+     *            - The Language for the Mail
+     */
     public void sendConfirmAddressMail(String to, String forename, String id, String token, String lang)
     {
         String from = ninjaProp.get("mbox.adminaddr");
@@ -134,6 +141,20 @@ public class MailHandler
 
     }
 
+    /**
+     * Generates the Confirmation-Mail for a forgotten Password
+     * 
+     * @param to
+     *            - Recipients-Address
+     * @param forename
+     *            - Forename of the Recipient
+     * @param id
+     *            - UserID of the Recipient
+     * @param token
+     *            - the generated Confirmation-Token of the User
+     * @param lang
+     *            - The Language for the Mail
+     */
     public void sendPwForgotAddressMail(String to, String forename, String id, String token, String lang)
     {
         String from = ninjaProp.get("mbox.adminaddr");
@@ -152,23 +173,19 @@ public class MailHandler
     }
 
     /**
-     * searches the mx-host of a given mailaddress
+     * Searches the MX-Host of a given Mailaddress
      * 
-     * @param mailadr
+     * @param mailadr - 
      *            the mailaddress
      * @return the mx-record for this address as string
      */
-
     public static String getMailTarget(String mailadr)
     {
-
         try
         {
             Record[] records = new Lookup(mailadr.split("@")[1], Type.MX).run();
-
             MXRecord mx = (MXRecord) records[0];
             return mx.getTarget().toString();
-
         }
         catch (TextParseException e)
         {
