@@ -49,8 +49,10 @@ public class AdminHandler
      * @param context
      * @return a list of all Users
      */
-    public Result showUsers(Context context)
+    public Result showAdmin(Context context)
     {
+        
+        // TODO implement a nice view (e.g. with pagination and/or time-filtered table)
         //Map<String, List<?>> map = new HashMap<String, List<?>>();
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("users", User.all());
@@ -58,7 +60,7 @@ public class AdminHandler
         List<?> mtxs = MailTransaction.all();
         map.put("mtxs", mtxs);
         map.put("uid", Long.parseLong(context.getSessionCookie().get("id")));
-        return Results.html().template("views/AdminHandler/showAdmin.ftl.html").render(map);
+        return Results.html().render(map);
     }
 
     /**
@@ -145,14 +147,5 @@ public class AdminHandler
         return Results.redirect("/admin");
     }
 
-    public Result showStats()
-    {
-        // TODO implement a nice view (e.g. with pagination and/or time-filtered table)
-        Map<String, List<?>> map = new HashMap<String, List<?>>();
-        map.put("stats", MailTransaction.getStatusList());
-        List<?> mtxs = MailTransaction.all();
-        map.put("mtxs", mtxs);
-        return Results.html().render(map);
-    }
 
 }
