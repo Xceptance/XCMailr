@@ -31,7 +31,7 @@ public class UserTest extends NinjaTest
          * TEST: create, persist and find a user-object
          */
         User u = new User("forename","surname", "test@localhost.com", "1234");
-        User.createUser(u);
+        u.save();
         User u2 = User.getById(u.getId());
         assertNotNull(u);
         assertNotNull(u2);
@@ -49,7 +49,7 @@ public class UserTest extends NinjaTest
          * TEST: Get the Userlist
          */
         User u3 = new User("forename","surname", "test@localhost.com", "1234");
-        User.createUser(u3);
+        u3.save();
         List<User> list = User.all();
         
         //Remark: we've 3 accounts now, because there is an adminaccount, too

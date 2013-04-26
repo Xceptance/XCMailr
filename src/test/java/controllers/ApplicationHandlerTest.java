@@ -262,7 +262,7 @@ public class ApplicationHandlerTest extends NinjaTest
     {
         User u = new User("John", "Doe", "admin@ccmailr.test", "1234");
         u.setActive(true);
-        User.createUser(u);
+        u.save();
 
         /*
          * TEST: try to login with data which is not registered
@@ -327,7 +327,7 @@ public class ApplicationHandlerTest extends NinjaTest
     {
         User u = new User("John", "Doe", "admin@ccmailr.test", "1234");
         u.setActive(true);
-        User.createUser(u);
+        u.save();
 
         // login
         formParams.clear();
@@ -376,7 +376,7 @@ public class ApplicationHandlerTest extends NinjaTest
      // register the user
      User u = new User("John", "Doe", "admin@ccmailr.test", "1234");
      u.setActive(true);
-     User.createUser(u);
+     u.save();
     
      // login
      formParams.clear();

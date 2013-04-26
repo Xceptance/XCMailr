@@ -85,7 +85,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                         mtx = new MailTransaction(300, rcpt, sender);
                         mtx.saveTx();
                         mb.increaseForwards();
-                        MBox.updateMBox(mb);
+                        mb.update();
                     }
                 }
                 else
@@ -94,7 +94,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                     mb.increaseSuppressions();
                     mtx = new MailTransaction(200, rcpt, sender);
                     mtx.saveTx();
-                    MBox.updateMBox(mb);
+                    mb.update();
+                    
                 }
 
             }

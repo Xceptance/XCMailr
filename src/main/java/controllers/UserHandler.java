@@ -80,7 +80,9 @@ public class UserHandler
                         return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
                     }
                 }
-                User.updateUser(updU); // update the user
+                // update the user
+                updU.update();
+
                 s = msg.get("i18nmsg_chok", context, result, (Object) null);
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/user/edit");

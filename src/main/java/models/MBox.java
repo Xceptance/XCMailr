@@ -292,10 +292,9 @@ public class MBox
      * 
      * @param mb
      */
-    public static void createMBox(MBox mb)
-    {
-        Ebean.save(mb);
-
+ 
+    public void save(){
+        Ebean.save(this);
     }
 
     /**
@@ -384,11 +383,6 @@ public class MBox
 
         return Ebean.find(MBox.class).where().eq("expired", false).lt("ts_Active", dt.getMillis()).ne("ts_Active", 0)
                     .findList();
-    }
-
-    public static void updateMBox(MBox mb)
-    {
-        Ebean.update(mb);
     }
 
     /**

@@ -38,10 +38,10 @@ public class BoxHandlerTest extends NinjaTest
     public void setUp()
     {
         // create the user (in test mode a volatile in-memory db is used)
-        User.createUser(new User("John", "Doe", "admin@ccmailr.test", "1234"));
-        User u = User.getUsrByMail("admin@ccmailr.test");
+        User u =new User("John", "Doe", "admin@ccmailr.test", "1234");
         u.setActive(true);
-        User.updateUser(u);
+        u.save();
+
         formParams.clear();
         headers.clear();
         returnedData.clear();

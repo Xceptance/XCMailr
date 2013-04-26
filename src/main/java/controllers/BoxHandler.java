@@ -129,10 +129,8 @@ public class BoxHandler
                 // sets the activity-time of the mailbox
                 mb.setTs_Active(ts);
                 mb.setUsr(User.getById(id));
-
                 // creates the Box in the DB
-                MBox.createMBox(mb);
-
+                mb.save();
                 return Results.redirect("/mail");
 
             }

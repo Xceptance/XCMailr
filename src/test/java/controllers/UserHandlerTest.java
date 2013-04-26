@@ -30,10 +30,10 @@ public class UserHandlerTest extends NinjaTest
         headers.clear();
         returnedData.clear();
         
-        User.createUser(new User("John", "Doe", "admin@ccmailr.test", "1234"));
-        User u = User.getUsrByMail("admin@ccmailr.test");
+        User u = new User("John", "Doe", "admin@ccmailr.test", "1234");
         u.setActive(true);
-        User.updateUser(u);
+        u.save();
+
         
         userData.put("forename", "John");
         userData.put("surName", "Doe");

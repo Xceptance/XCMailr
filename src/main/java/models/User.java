@@ -43,15 +43,14 @@ public class User
     private boolean admin;
 
     private boolean active;
-    
-    // Random String which is used for Account activation and pwresend 
+
+    // Random String which is used for Account activation and pwresend
     private String confirmation;
-    
-    //timestamp for the  validity-period of the confirmation-token
+
+    // timestamp for the validity-period of the confirmation-token
     private Long ts_confirm;
-    
+
     private int badPwCount;
-    
 
     // Relation to the Mailboxes
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
@@ -109,12 +108,10 @@ public class User
      * @param u
      *            the user
      */
-    public static void createUser(User u)
-    {
-        u.setMail(u.getMail().toLowerCase());
-        Ebean.save(u);
-
+    public void save(){
+        Ebean.save(this);
     }
+    
 
     /**
      * @return the Id of a user
@@ -209,11 +206,11 @@ public class User
     {
         setPasswd(BCrypt.hashpw(passwd, BCrypt.gensalt()));
     }
-    
-    public boolean checkPasswd(String pwd){
+
+    public boolean checkPasswd(String pwd)
+    {
         return BCrypt.checkpw(pwd, this.passwd);
     }
-    
 
     /**
      * sets the given password WARNING: don't use this method to set a new password! always use hashPasswd() for that!
@@ -262,9 +259,7 @@ public class User
         this.admin = admin;
     }
 
-    
     /**
-     * 
      * @return the randomly-generated confirm-token
      */
     public String getConfirmation()
@@ -274,6 +269,7 @@ public class User
 
     /**
      * sets the random-confirm-token
+     * 
      * @param confirmation
      */
     public void setConfirmation(String confirmation)
@@ -282,7 +278,6 @@ public class User
     }
 
     /**
-     * 
      * @return the validity-period of the string
      */
     public Long getTs_confirm()
@@ -291,7 +286,6 @@ public class User
     }
 
     /**
-     * 
      * @param ts_confirm
      */
     public void setTs_confirm(Long ts_confirm)
@@ -309,6 +303,8 @@ public class User
         this.badPwCount = badPwCount;
     }
 
+    // ---------------------------- EBean-Functions----------------------
+
     /**
      * @return the list of all users in the database
      */
@@ -317,10 +313,18 @@ public class User
         return Ebean.find(User.class).findList();
 
     }
-    
-    
 
-    // ---------------------------- EBean/Finder-Functions----------------------
+    /**
+     * updates the data of a user
+     * 
+     * @param usr
+     *            : the edited user-object
+     */
+    public void update()
+    {
+        Ebean.update(this);
+    }
+
     /**
      * checks if a mailadress exists in the database
      * 
@@ -455,6 +459,7 @@ public class User
 
     /**
      * returns the userobject which belongs to the given userid
+     * 
      * @param id
      *            : a users id
      * @return the user-object
@@ -462,18 +467,6 @@ public class User
     public static User getById(Long id)
     {
         return Ebean.find(User.class, id);
-    }
-
-    /**
-     * updates the data of a user
-     * 
-     * @param usr
-     *            : the edited user-object
-     */
-
-    public static void updateUser(User usr)
-    {
-        Ebean.update(usr);
     }
 
     /**
@@ -489,8 +482,7 @@ public class User
     }
 
     /**
-     * promotes or demotes the User and Updates the DB
-     * the method checks the actual state and sets the opposite
+     * promotes or demotes the User and Updates the DB the method checks the actual state and sets the opposite
      * 
      * @param id
      *            - id of the user
@@ -504,8 +496,7 @@ public class User
     }
 
     /**
-     * activates or deactivates the User and Updates the DB
-     * the method checks the actual state and sets the opposite
+     * activates or deactivates the User and Updates the DB the method checks the actual state and sets the opposite
      * 
      * @param id
      *            - id of the user
@@ -516,7 +507,7 @@ public class User
         usr.setActive(!usr.isActive());
         Ebean.update(usr);
         return usr.isActive();
-        
+
     }
 
     public String toString()

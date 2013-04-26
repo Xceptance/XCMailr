@@ -73,7 +73,8 @@ public class JobController
                 // set the status and admin flags
                 usr.setAdmin(true);
                 usr.setActive(true);
-                User.createUser(usr);
+                usr.save();
+
             }
         }
         MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory(mailhndl);

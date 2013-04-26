@@ -47,7 +47,6 @@ public class Application
      */
     public Result index(Context context)
     {
-
         if (context.getSessionCookie().isEmpty())
         {
             // show the default index page if there's no user
@@ -58,7 +57,6 @@ public class Application
             // show the logged-in-index page if the user's logged in
             return Results.html().template("/views/Application/indexLogin.ftl.html");
         }
-
     }
 
     // -------------------- Registration -----------------------------------
@@ -86,7 +84,6 @@ public class Application
     {
         Result result = Results.html();
         String s;
-
         if (validation.hasViolations())
         {
             frdat.setPw("");
@@ -98,7 +95,6 @@ public class Application
         }
         else
         { // form was filled correctly, go on!
-
             if (!User.mailExists(frdat.getMail()))
             {
                 // a new user, check if the passwords are matching
@@ -112,7 +108,7 @@ public class Application
                     u.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
                                             .getMillis());
 
-                    User.createUser(u);
+                    u.save();
                     mailhndlr.sendConfirmAddressMail(u.getMail(), u.getForename(), String.valueOf(u.getId()),
                                                      u.getConfirmation(), context.getAcceptLanguage().toString());
 
@@ -120,7 +116,6 @@ public class Application
                     context.getFlashCookie().success(s, (Object) null);
 
                     return Results.redirect("/");
-
                 }
                 else
                 { // password mismatch
@@ -160,7 +155,7 @@ public class Application
             if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
             { // the passed token is the right one -> activate the user
                 u.setActive(true);
-                User.updateUser(u);
+                u.update();
 
                 Result result = Results.html();
                 String s = msg.get("i18nuser_verify_success", context, result, (Object) null);
@@ -202,7 +197,7 @@ public class Application
 
     /**
      * Handles the login-process <br/>
-     * POST for /register
+     * POST for /login
      * 
      * @return the login form or the index page
      */
@@ -217,7 +212,6 @@ public class Application
             s = msg.get("i18nmsg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.html().template("views/Application/loginForm.ftl.html").render(l);
-
         }
         else
         {
@@ -230,7 +224,7 @@ public class Application
                     {
                         s = msg.get("i18nuser_inactive", context, result, (Object) null);
                         context.getFlashCookie().error(s, (Object) null);
-                        return Results.redirect("/");
+                        return Results.html().template("views/Application/index.ftl.html");
                     }
 
                     // set the cookie
@@ -244,23 +238,21 @@ public class Application
                     }
                     
                     // TODO: ADM-Zugriff per DB, nicht per Cookie?
-
                     lgr.setBadPwCount(0);
-                    User.updateUser(lgr);
+                    lgr.update();
                     s = msg.get("i18nmsg_login", context, result, (Object) null);
                     context.getFlashCookie().success(s, (Object) null);
-                    return Results.html();
+                    return Results.html().template("views/Application/indexLogin.ftl.html");
                 }
                 else
                 { // the authentication was not correct
                     lgr.setBadPwCount(lgr.getBadPwCount() + 1);
-
-                    User.updateUser(lgr);
+                    lgr.update();
 
                     if (lgr.getBadPwCount() >= 6)
                     { // the password was six times wrong
                         lgr.setActive(false);
-                        User.updateUser(lgr);
+                        lgr.update();
 
                         // show the disabled message and return to the forgot-pw-page
                         s = msg.get("i18nuser_disabled", context, result, (Object) null);
@@ -326,7 +318,7 @@ public class Application
                 usr.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
                                           .getMillis());
 
-                User.updateUser(usr);
+                usr.update();
                 mailhndlr.sendPwForgotAddressMail(usr.getMail(), usr.getForename(), String.valueOf(usr.getId()),
                                                   usr.getConfirmation(), context.getAcceptLanguage().toString());
                 s = msg.get("i18nforgpw_succ", context, result, (Object) null);
@@ -408,8 +400,7 @@ public class Application
 
                         // set the confirm-ts to now to prevent the reuse of the link
                         u.setTs_confirm(DateTime.now().getMillis());
-
-                        User.updateUser(u);
+                        u.update();
                         s = msg.get("i18nmsg_chok", context, result, (Object) null);
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/");
