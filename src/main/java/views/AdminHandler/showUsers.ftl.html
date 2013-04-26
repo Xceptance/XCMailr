@@ -1,13 +1,13 @@
 <div class="span7">
 	<table class="table table-hover">
 	    <tr>
-	    	<th>${user_forename}</th>
-	    	<th>${user_surname}</th>
+	    	<th>${i18nuser_forename}</th>
+	    	<th>${i18nuser_surname}</th>
 	    	<th>ID</th>
-	    	<th>${user_mail}</th>
+	    	<th>${i18nuser_mail}</th>
 	    	<th>Admin</th>
 	    	<th>${i18nuser_active}</th>
-	    	<th>${mailbox_delete}</th>
+	    	<th>${i18nmailbox_delete}</th>
 	    	<th>${i18nuser_promote}</th>
 	    	<th>${i18nuser_activate}</th>
 	    </tr>
@@ -19,16 +19,16 @@
 		    <td>${user.mail}</td>
 		    <td>
 			    <#if (user.isAdmin())>
-			    ${msg_yes}
+			    ${i18nmsg_yes}
 			    <#else>
-			    ${msg_no}
+			    ${i18nmsg_no}
 			    </#if>
 			</td>
 		    <td>
 			    <#if (user.isActive())>
-			    ${msg_yes}
+			    ${i18nmsg_yes}
 			    <#else>
-			    ${msg_no}
+			    ${i18nmsg_no}
 			    </#if>
 		    </td>
 		<#if uid = user.id>	
@@ -36,7 +36,7 @@
 		 <#else>
 			<td>
 	   			<form action="/admin/delete/${user.id}" method="post"> 
-	                   <input type="submit" class="btn" value="${mailbox_delete}"/>
+	                   <input type="submit" class="btn" value="${i18nmailbox_delete}"/>
 	        	</form>
 	        </td>
      

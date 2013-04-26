@@ -4,18 +4,18 @@
 <!-- Example row of columns -->
 <div class="row">
 	<div class="span4">
-		<p>${mailbox_new}</p>
+		<p>${i18nmailbox_new}</p>
 
 		<p>
 		<form action="/mail/add" method="post">
 			<table class="form">
 				<tr>
-					<th><label for="address"> ${mailbox_address} </label></th>
+					<th><label for="address"> ${i18nmailbox_address} </label></th>
 					<td><input class="input_full" type="text" id="address"
 						name="address" value="${ (mbFrmDat.address)!}" required="required"/></td>
 				</tr>
 				<tr>
-					<th><label for="domain"> ${mailbox_domain} </label></th>
+					<th><label for="domain"> ${i18nmailbox_domain} </label></th>
 					<td>
 					<select name="domain">
 					<#list domain as String>
@@ -35,7 +35,7 @@
 				</tr>
 
 				<tr>
-					<th><label for="duration"> ${mailbox_duration} </label></th>
+					<th><label for="duration"> ${i18nmailbox_duration} </label></th>
 					<td><input class="input_full" type="text" id="duration"
 						name="duration"	value="${ (mbFrmDat.duration)!}"  required="required" />
 						</td>
@@ -43,7 +43,7 @@
 	</table>
 
 	<p>
-		<input type="submit" class="btn" value="${mailbox_new}" /> <input type="reset"
+		<input type="submit" class="btn" value="${i18nmailbox_new}" /> <input type="reset"
 						class="btn" value="Reset">
 
 						</p>

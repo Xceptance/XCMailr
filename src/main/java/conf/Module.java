@@ -19,7 +19,8 @@ package conf;
 
 import ninja.ebean.NinjaEbeanModule;
 import com.google.inject.AbstractModule;
-import com.sun.mail.util.logging.MailHandler;
+//import com.sun.mail.util.logging.MailHandler;
+import controllers.MailHandler;
 
 import controllers.JobController;
 

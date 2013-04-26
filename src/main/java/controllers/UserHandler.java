@@ -46,7 +46,7 @@ public class UserHandler
         if (validation.hasViolations())
         { // the filled form has errors
 
-            s = msg.get("msg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/user/edit");
 
@@ -81,13 +81,13 @@ public class UserHandler
                     }
                 }
                 User.updateUser(updU); // update the user
-                s = msg.get("msg_chok", context, result, (Object) null);
+                s = msg.get("i18nmsg_chok", context, result, (Object) null);
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/user/edit");
             }
             else
             { // the authorization-prozess failed
-                s = msg.get("msg_formerr", context, result, (Object) null);
+                s = msg.get("i18nmsg_formerr", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.redirect("/user/edit");
             }

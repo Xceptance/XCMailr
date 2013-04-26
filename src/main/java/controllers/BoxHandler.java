@@ -50,6 +50,8 @@ public class BoxHandler
         mbdat.setAddress(name);
         //set a default value
         mbdat.setDuration("1h,1d");
+        
+        //check that the generated mailname-proposal does not exist
         String[] domains = (String[]) map.get("domain");
         if (domains.length > 0)
         {// prevent OutOfBoundException
@@ -79,7 +81,7 @@ public class BoxHandler
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
-            s = msg.get("msg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             map.put("mbFrmDat", mbdat);
             return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
@@ -113,7 +115,7 @@ public class BoxHandler
                 Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                 if (ts == -1)
                 { // show an error-page if the timestamp is faulty
-                    s = msg.get("msg_wrongf", context, result, (Object) null);
+                    s = msg.get("i18nmsg_wrongf", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
                     map.put("mbFrmDat", mbdat);
                     return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
@@ -137,7 +139,7 @@ public class BoxHandler
             else
             {
                 // the mailbox already exists
-                s = msg.get("msg_mailex", context, result, (Object) null);
+                s = msg.get("i18nmsg_mailex", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
                 map.put("mbFrmDat", mbdat);
                 return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
@@ -179,7 +181,7 @@ public class BoxHandler
 
         if (validation.hasViolations())
         { // not all fields were filled
-            s = msg.get("msg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
 
             return Results.redirect("/mail/edit/" + boxId.toString()).render(mbdat);
@@ -232,7 +234,7 @@ public class BoxHandler
                     Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
-                        s = msg.get("msg_wrongf", context, result, (Object) null);
+                        s = msg.get("i18nmsg_wrongf", context, result, (Object) null);
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/mail/edit/" + boxId.toString());
                     }

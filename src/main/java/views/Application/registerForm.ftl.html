@@ -5,37 +5,37 @@
 <form action="/register" method="post">
 	<table class="form">
 		<tr>
-			<th><label for="forename"> ${user_forename} </label></th>
+			<th><label for="forename"> ${i18nuser_forename} </label></th>
 			<td>
 			<input class="input_full" type="text" id="forename" name="forename" value="${(editUsr.forename)!}" required="required"> </input>
 			</td>
 		</tr>
 		<tr>
-			<th><label for="surname"> ${user_surname} </label></th>
+			<th><label for="surname"> ${i18nuser_surname} </label></th>
 			<td><input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required"/>
 
 			</td>
 		</tr>
 		<tr>
-			<th><label for="mail"> ${user_mail} </label></th>
+			<th><label for="mail"> ${i18nuser_mail} </label></th>
 			<td><input class="input_full" type="email" id="mail"
 				name="mail" value="${(editUsr.mail)!}" required="required"/></td>
 		</tr>
 
 		<tr>
-			<th><label for="user_pw"> ${user_pw} </label></th>
+			<th><label for="user_pw"> ${i18nuser_pw} </label></th>
 			<td><input class="input_full" type="password" id="pw"
 				name="pw" required="required"/></td>
 		</tr>
 		<tr>
-			<th><label for="user_pwagain"> ${user_pwagain} </label></th>
+			<th><label for="user_pwagain"> ${i18nuser_pwagain} </label></th>
 			<td><input class="input_full" type="password" id="pwn1"
 				name="pwn1" required="required"/></td>
 		</tr>
 	</table>
 
 	<p>
-		<input type="submit"  class="btn" value="${user_create}" /> <input type="reset"  class="btn"
+		<input type="submit"  class="btn" value="${i18nuser_create}" /> <input type="reset"  class="btn"
 			value="Reset">
 	</p>
 </form>

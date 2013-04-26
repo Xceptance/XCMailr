@@ -3,13 +3,20 @@
 
 <div class="row">
 	<div class="span4">
-		<p>${mailbox_title}</p> 
+		<p>${i18nmailbox_title}</p> 
 	<!--mailboxoverview-->
 		<p>
 		<table class="table table-hover">
-    <tr><th>${mailbox_address}</th>
-    <th>${mailbox_duration}</th><th>${mailbox_forwards}</th><th>${mailbox_suppressions}</th><th>${mailbox_valid}</th>
-    <th>${mailbox_renew}</th><th>${mailbox_delete}</td><th>${mailbox_edit}</th></tr>
+		    <tr>
+		    	<th>${i18nmailbox_address}</th>
+		    	<th>${i18nmailbox_duration}</th>
+		    	<th>${i18nmailbox_forwards}</th>
+		    	<th>${i18nmailbox_suppressions}</th>
+		    	<th>${i18nmailbox_valid}</th>
+			    <th>${i18nmailbox_renew}</th>
+			    <th>${i18nmailbox_delete}</th>
+			    <th>${i18nmailbox_edit}</th>
+		    </tr>
 		<#list mboxes as mBox>
 		    <#if (mBox.isExpired())>
 				<tr class="error">     
@@ -24,29 +31,29 @@
 				<td>${mBox.suppressions}</td>
 				
 				<#if (mBox.isActive())>
-    				<td>${msg_yes}</td>
+    				<td>${i18nmsg_yes}</td>
 	    			 <td><form action="/mail/expire/${mBox.id}" method="post">
-	                    <input type="submit" class= "btn" value="${mailbox_deactivate}"/>
+	                    <input type="submit" class= "btn" value="${i18nmailbox_deactivate}"/>
 	                    </form>
 	                </td>
 		    	<#else>
-	    			<td>${msg_no}</td>
+	    			<td>${i18nmsg_no}</td>
 	    	    	<td>
 		    	    	<form action="/mail/expire/${mBox.id}" method="post">
-		                    <input type="submit" class= "btn" value="${mailbox_activate}"/>
+		                    <input type="submit" class= "btn" value="${i18nmailbox_activate}"/>
 		                </form>
 	                </td>
 		    	</#if>
 		    	
     			<td>
     			<form action="/mail/delete/${mBox.id}" method="post"> 
-                    <input type="submit" class= "btn" value="${mailbox_delete}"/>
+                    <input type="submit" class= "btn" value="${i18nmailbox_delete}"/>
                 </form>
                 </td>
                 
 		        <td> 
 		        <form action="/mail/edit/${mBox.id}" method="get">
-		             <input type="submit" class= "btn" value="${mailbox_edit}"/>
+		             <input type="submit" class= "btn" value="${i18nmailbox_edit}"/>
 		         </form>
 		        </td>
 			</tr>

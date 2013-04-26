@@ -92,7 +92,7 @@ public class Application
             frdat.setPw("");
             frdat.setPwn1("");
             frdat.setPwn2("");
-            s = msg.get("msg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
         }
@@ -116,7 +116,7 @@ public class Application
                     mailhndlr.sendConfirmAddressMail(u.getMail(), u.getForename(), String.valueOf(u.getId()),
                                                      u.getConfirmation(), context.getAcceptLanguage().toString());
 
-                    s = msg.get("msg_regok", context, result, (Object) null);
+                    s = msg.get("i18nmsg_regok", context, result, (Object) null);
                     context.getFlashCookie().success(s, (Object) null);
 
                     return Results.redirect("/");
@@ -134,7 +134,7 @@ public class Application
             }
             else
             { // mailadress already exists
-                s = msg.get("msg_mailex", context, result, (Object) null);
+                s = msg.get("i18nmsg_mailex", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
             }
@@ -195,7 +195,7 @@ public class Application
     {
         context.getSessionCookie().clear();
         Result result = Results.html();
-        String s = msg.get("msg_logout", context, result, (Object) null);
+        String s = msg.get("i18nmsg_logout", context, result, (Object) null);
         context.getFlashCookie().success(s, (Object) null);
         return Results.redirect("/");
     }
@@ -214,7 +214,7 @@ public class Application
         if (validation.hasViolations())
         {
             l.setPwd("");
-            s = msg.get("msg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.html().template("views/Application/loginForm.ftl.html").render(l);
 
@@ -247,7 +247,7 @@ public class Application
 
                     lgr.setBadPwCount(0);
                     User.updateUser(lgr);
-                    s = msg.get("msg_login", context, result, (Object) null);
+                    s = msg.get("i18nmsg_login", context, result, (Object) null);
                     context.getFlashCookie().success(s, (Object) null);
                     return Results.html();
                 }
@@ -269,7 +269,7 @@ public class Application
                     }
 
                     l.setPwd("");
-                    s = msg.get("msg_formerr", context, result, (Object) null);
+                    s = msg.get("i18nmsg_formerr", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.html().template("views/Application/loginForm.ftl.html").render(l);
                 }
@@ -277,7 +277,7 @@ public class Application
             else
             {// the user does not exist
                 l.setPwd("");
-                s = msg.get("msg_formerr", context, result, (Object) null);
+                s = msg.get("i18nmsg_formerr", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.html().template("views/Application/loginForm.ftl.html").render(l);
             }
@@ -309,7 +309,7 @@ public class Application
         if (validation.hasViolations())
         {
             // some fields weren't filled
-            s = msg.get("msg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/pwresend");
         }
@@ -410,7 +410,7 @@ public class Application
                         u.setTs_confirm(DateTime.now().getMillis());
 
                         User.updateUser(u);
-                        s = msg.get("msg_chok", context, result, (Object) null);
+                        s = msg.get("i18nmsg_chok", context, result, (Object) null);
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/");
                     }
@@ -423,7 +423,7 @@ public class Application
                 }
                 else
                 { // the form has errors
-                    s = msg.get("msg_formerr", context, result, (Object) null);
+                    s = msg.get("i18nmsg_formerr", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.redirect("/lostpw" + id + "/" + token);
                 }
