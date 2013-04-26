@@ -46,8 +46,10 @@ public class BoxHandler
         MbFrmDat mbdat = new MbFrmDat();
         // set the value of the random-name to 7
         // use the lowercase, we handle the address as case-insensitive
-
         String name = HelperUtils.getRndString(7).toLowerCase();
+        mbdat.setAddress(name);
+        //set a default value
+        mbdat.setDuration("1h,1d");
         String[] domains = (String[]) map.get("domain");
         if (domains.length > 0)
         {// prevent OutOfBoundException
@@ -56,7 +58,7 @@ public class BoxHandler
                 name = HelperUtils.getRndString(7).toLowerCase();
             }
         }
-        mbdat.setAddress(name);
+
         map.put("mbFrmDat", mbdat);
         return Results.html().render(map);
     }
@@ -70,7 +72,8 @@ public class BoxHandler
     {
 
         Long id = new Long(context.getSessionCookie().get("id"));
-
+        Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
+        map = HelperUtils.getDomainsFromConfig(ninjaProp);
         Result result = Results.html();
         String s;
 
@@ -78,9 +81,7 @@ public class BoxHandler
         { // not all fields were filled (correctly)
             s = msg.get("msg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
-            Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
             map.put("mbFrmDat", mbdat);
-
             return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
         }
         else
@@ -114,7 +115,8 @@ public class BoxHandler
                 { // show an error-page if the timestamp is faulty
                     s = msg.get("msg_wrongf", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
-                    return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(mbdat);
+                    map.put("mbFrmDat", mbdat);
+                    return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
 
                 }
                 // create the MBox
@@ -137,7 +139,8 @@ public class BoxHandler
                 // the mailbox already exists
                 s = msg.get("msg_mailex", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
-                return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(mbdat);
+                map.put("mbFrmDat", mbdat);
+                return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
             }
         }
     }
