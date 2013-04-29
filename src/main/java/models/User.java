@@ -383,6 +383,24 @@ public class User
     }
 
     /**
+     * @return the number of active admin-accounts
+     */
+    public static int getActiveAdminCount()
+    {
+        return Ebean.find(User.class).where().eq("admin", true).eq("active", true).findRowCount();
+    }
+
+    /**
+     * @param id
+     *            - userid
+     * @return true if the user is an admin
+     */
+    public static boolean isUserAdmin(long id)
+    {
+        return Ebean.find(User.class, id).isAdmin();
+    }
+
+    /**
      * returns the user-object that belongs to the given mailadress
      * 
      * @param mail

@@ -70,56 +70,62 @@ public class AdminHandler
      */
     public Result activate(@PathParam("id") Long id, Context context)
     {
-        // activate or deactivate the user
-        boolean active = User.activate(id);
+        if ((User.getActiveAdminCount() == 1) ^ (User.isUserAdmin(id)))
+        {
 
-        // generate the (de-)activation-information mail and send it to the user
-        User usr = User.getById(id);
-        String from = ninjaProp.get("mbox.adminaddr");
-        String host = ninjaProp.get("mbox.host");
-        System.out.println(host);
+            // activate or deactivate the user
+            boolean active = User.activate(id);
 
-        if (active)
-        { // the account is now active
-          // generate the message title
-            Object[] param = new Object[]
-                {
-                    host
-                };
-            String subject = msg.get("i18nuser_activate_title", context.getAcceptLanguage(), param);
-            // generate the message body
-            param = new Object[]
-                {
-                    usr.getForename()
-                };
-            String content = msg.get("i18nuser_activate_message", context.getAcceptLanguage(), param);
-            // send the mail
-            mailhndlr.sendMail(from, usr.getMail(), content, subject);
+            // generate the (de-)activation-information mail and send it to the user
+            User usr = User.getById(id);
+            String from = ninjaProp.get("mbox.adminaddr");
+            String host = ninjaProp.get("mbox.host");
+
+            if (active)
+            { // the account is now active
+              // generate the message title
+                Object[] param = new Object[]
+                    {
+                        host
+                    };
+                String subject = msg.get("i18nuser_activate_title", context.getAcceptLanguage(), param);
+                // generate the message body
+                param = new Object[]
+                    {
+                        usr.getForename()
+                    };
+                String content = msg.get("i18nuser_activate_message", context.getAcceptLanguage(), param);
+                // send the mail
+                mailhndlr.sendMail(from, usr.getMail(), content, subject);
+            }
+            else
+            {// the account is now inactive
+             // generate the message title
+                Object[] param = new Object[]
+                    {
+                        host
+                    };
+                String subject = msg.get("i18nuser_deactivate_title", context.getAcceptLanguage(), param);
+                // generate the message body
+                param = new Object[]
+                    {
+                        usr.getForename()
+                    };
+                String content = msg.get("i18nuser_deactivate_message", context.getAcceptLanguage(), param);
+                // send the mail
+                mailhndlr.sendMail(from, usr.getMail(), content, subject);
+            }
+
+            return Results.redirect("/admin");
         }
         else
-        {// the account is now inactive
-         // generate the message title
-            Object[] param = new Object[]
-                {
-                    host
-                };
-            String subject = msg.get("i18nuser_deactivate_title", context.getAcceptLanguage(), param);
-            // generate the message body
-            param = new Object[]
-                {
-                    usr.getForename()
-                };
-            String content = msg.get("i18nuser_deactivate_message", context.getAcceptLanguage(), param);
-            // send the mail
-            mailhndlr.sendMail(from, usr.getMail(), content, subject);
+        {
+            return Results.redirect("/admin");
         }
-
-        return Results.redirect("/admin");
-
     }
 
     /**
-     * Pro- or demotes the User with the given id <br/> 
+     * Pro- or demotes the User with the given id <br/>
      * POST /admin/promote/{id}
      * 
      * @param id
@@ -128,13 +134,16 @@ public class AdminHandler
      */
     public Result promote(@PathParam("id") Long id)
     {
-        User.promote(id);
+        if ((User.getActiveAdminCount() == 1) ^ (User.isUserAdmin(id)))
+        { // don't demote the account when there is just one adminaccount and the given userid belongs to a user
+            User.promote(id);
+        }
         return Results.redirect("/admin");
 
     }
 
     /**
-     * Handles the user delete function <br/> 
+     * Handles the user delete function <br/>
      * POST /admin/delete/{id}
      * 
      * @param id
@@ -142,9 +151,12 @@ public class AdminHandler
      */
     public Result deleteUser(@PathParam("id") Long id)
     {
-        User.delete(id);
+        if ((User.getActiveAdminCount() == 1) ^ (User.isUserAdmin(id)))
+        { // don't remove the account when there is just one adminaccount and the given userid belongs to a user
+            User.delete(id);
+        }
+
         return Results.redirect("/admin");
     }
-
 
 }

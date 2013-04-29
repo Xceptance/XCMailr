@@ -7,28 +7,17 @@ import java.util.Map;
 
 import models.User;
 import ninja.NinjaTest;
-import ninja.utils.NinjaProperties;
-
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
 public class ApplicationHandlerTest extends NinjaTest
 {
-
-    @Inject
-    NinjaProperties ninjaProp;
-
     Map<String, String> headers = Maps.newHashMap();
-
     Map<String, String> formParams = Maps.newHashMap();
-
     String result;
 
     @Before
