@@ -108,10 +108,10 @@ public class User
      * @param u
      *            the user
      */
-    public void save(){
+    public void save()
+    {
         Ebean.save(this);
     }
-    
 
     /**
      * @return the Id of a user

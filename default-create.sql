@@ -3,6 +3,7 @@ create table mailboxes (
   address                   varchar(255),
   ts_active                 bigint,
   expired                   boolean,
+  pattern                   boolean,
   domain                    varchar(255),
   forwards                  integer,
   suppressions              integer,

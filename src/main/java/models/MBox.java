@@ -53,7 +53,49 @@ public class MBox
     @JoinColumn(name = "usr_id", nullable = false)
     private User usr;
 
+    /**
+     * default constructor
+     */
+    public MBox()
+    {
+        this.address = "";
+        this.ts_Active = 0L;
+        this.expired = false;
+        this.domain = "";
+        this.forwards = 0;
+        this.suppressions = 0;
+    }
+
+    /**
+     * overloaded Constructor
+     * 
+     * @param local
+     *            - local part
+     * @param domain
+     *            - domain part
+     * @param ts
+     *            - timestamp for expiration
+     * @param expired
+     *            - indicates the status of the mail
+     * @param pattern
+     *            - indicates whether this object is a pattern
+     */
+
+    public MBox(String local, String domain, long ts, boolean expired, boolean pattern, User usr)
+    {
+        this.address = local;
+        this.ts_Active = ts;
+        this.expired = expired;
+        this.domain = domain;
+        this.forwards = 0;
+        this.suppressions = 0;
+        this.usr = usr;
+    }
+
+    // -------------------------------------
     // Getter und Setter
+    // -------------------------------------
+
     public long getId()
     {
         return id;
@@ -177,13 +219,26 @@ public class MBox
     // ---------------------------------------------
     // EBean Functions
     // ---------------------------------------------
+
+    /**
+     * Stores the Mailbox in the database
+     */
+
+    public void save()
+    {
+        Ebean.save(this);
+    }
+
+    /**
+     * Updates the MailFWD in the DB
+     */
     public void update()
     {
         Ebean.update(this);
     }
 
     /**
-     * deletes a box
+     * Removes a box from the DB
      * 
      * @param id
      */
@@ -216,8 +271,11 @@ public class MBox
 
     /**
      * Checks the relation between a user and a box
-     * @param bId - the Boxid
-     * @param uId - the UserId
+     * 
+     * @param bId
+     *            - the Boxid
+     * @param uId
+     *            - the UserId
      * @return true if the given BoxId belongs to the given UserId
      */
     public static boolean boxToUser(long bId, long uId)
@@ -269,8 +327,10 @@ public class MBox
     }
 
     /**
+     * Finds all Addresses which belong to a specific user given by the userid
+     * 
      * @param id
-     *            ID of a User
+     *            - ID of a User
      * @return returns all Boxes of a specific user
      */
     public static List<MBox> allUser(Long id)
@@ -287,15 +347,6 @@ public class MBox
         return map;
     }
 
-    /**
-     * stores the Mailbox in the database
-     * 
-     * @param mb
-     */
- 
-    public void save(){
-        Ebean.save(this);
-    }
 
     /**
      * checks if a given address exists
@@ -314,6 +365,8 @@ public class MBox
             return false;
         }
     }
+
+
 
     public static boolean mailChanged(String local, String domain, Long boxId)
     {
@@ -392,12 +445,12 @@ public class MBox
      *            Id of the box
      * @return value of true means that its now enabled (== not expired)
      */
-    public static boolean enable(Long mId)
+
+    public boolean enable()
     {
-        MBox mb = Ebean.find(MBox.class, mId);
-        mb.setExpired(!mb.isExpired());
-        Ebean.update(mb);
-        return (!mb.isExpired());
+        this.setExpired(!expired);
+        Ebean.update(this);
+        return !this.isExpired();
     }
 
 }

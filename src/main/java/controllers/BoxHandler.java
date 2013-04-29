@@ -1,6 +1,7 @@
 package controllers;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import ninja.Context;
@@ -40,6 +41,13 @@ public class BoxHandler
     @Inject
     NinjaProperties ninjaProp;
 
+    /**
+     * Shows the "New Mailforward"-Page <br/>
+     * GET /mail/add
+     * 
+     * @param context
+     * @return
+     */
     public Result showAddBox(Context context)
     {
         Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
@@ -48,10 +56,10 @@ public class BoxHandler
         // use the lowercase, we handle the address as case-insensitive
         String name = HelperUtils.getRndString(7).toLowerCase();
         mbdat.setAddress(name);
-        //set a default value
+        // set a default value
         mbdat.setDuration("1h,1d");
-        
-        //check that the generated mailname-proposal does not exist
+
+        // check that the generated mailname-proposal does not exist
         String[] domains = (String[]) map.get("domain");
         if (domains.length > 0)
         {// prevent OutOfBoundException
@@ -60,15 +68,19 @@ public class BoxHandler
                 name = HelperUtils.getRndString(7).toLowerCase();
             }
         }
-
         map.put("mbFrmDat", mbdat);
+
         return Results.html().render(map);
     }
 
     /**
-     * Adds a Mailbox to the Useraccount POST of /mail/add
+     * Adds a Mailbox to the Useraccount <br/>
+     * POST of /mail/add
      * 
-     * @return the Mailbox-Overviewpage
+     * @param context
+     * @param mbdat
+     * @param validation
+     * @return
      */
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
@@ -84,6 +96,7 @@ public class BoxHandler
             s = msg.get("i18nmsg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             map.put("mbFrmDat", mbdat);
+
             return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
         }
         else
@@ -92,24 +105,12 @@ public class BoxHandler
             if (!MBox.mailExists(mbdat.getAddress(), mbdat.getDomain()))
             {
                 String mbName = mbdat.getAddress().toLowerCase();
-                // deletes all special characters
-                mbName = mbName.replaceAll("[^a-zA-Z0-9.]", "");
-                /*
-                 * TODO -return an error-page if there are some special-chars in the address... -return an error-page if
-                 * there is a dot at the end -there should be another mail-exists-check after all deletions.. -> just a
-                 * remark!, most of this may be unneccessary when using RegEx in mailaddr.
-                 */
-                // deletes a the dot if its placed at the end of the mailaddress
-                if (mbName.endsWith("."))
-                {
-                    mbName = mbName.substring(0, mbName.length() - 1);
-                }
+                
                 // set the data of the box
                 String[] dom = (String[]) HelperUtils.getDomainsFromConfig(ninjaProp).get("domain");
                 if (!Arrays.asList(dom).contains(mbdat.getDomain()))
-                {
-                    // the new domainname does not exist in the application.conf
-                    // stop the process and return to the mailbox-overview page
+                { // the new domainname does not exist in the application.conf
+                  // stop the process and return to the mailbox-overview page
                     return Results.redirect("/mail");
                 }
                 Long ts = HelperUtils.parseDuration(mbdat.getDuration());
@@ -118,21 +119,16 @@ public class BoxHandler
                     s = msg.get("i18nmsg_wrongf", context, result, (Object) null);
                     context.getFlashCookie().error(s, (Object) null);
                     map.put("mbFrmDat", mbdat);
-                    return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
 
+                    return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
                 // create the MBox
-                MBox mb = new MBox();
-                mb.setDomain(mbdat.getDomain());
-                mb.setAddress(mbName);
-                mb.setExpired(false);
-                // sets the activity-time of the mailbox
-                mb.setTs_Active(ts);
-                mb.setUsr(User.getById(id));
+                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, false, User.getById(id));
+
                 // creates the Box in the DB
                 mb.save();
-                return Results.redirect("/mail");
 
+                return Results.redirect("/mail");
             }
             else
             {
@@ -140,6 +136,7 @@ public class BoxHandler
                 s = msg.get("i18nmsg_mailex", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);
                 map.put("mbFrmDat", mbdat);
+
                 return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
             }
         }
@@ -168,7 +165,7 @@ public class BoxHandler
      * Edits a Mailbox <br/>
      * POST /mail/edit/{id}
      * 
-     * @param boxId 
+     * @param boxId
      * @return error/success-page
      */
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
@@ -200,20 +197,6 @@ public class BoxHandler
                     String newLName = mbdat.getAddress().toLowerCase();
                     String newDName = mbdat.getDomain().toLowerCase();
 
-                    /*
-                     * TODO -return an error-page if there are some special-chars in the address... -return an
-                     * error-page if there is a dot at the end -there should be another mail-exists-check after all
-                     * deletions.. -> just a remark!, most of this may be unneccessary when using RegEx in mailaddr.
-                     */
-
-                    newLName = newLName.replaceAll("[^a-zA-Z0-9.]", "");
-                    // deletes the dot if its placed at the end of the mailaddress
-
-                    if (newLName.endsWith("."))
-                    {
-                        newLName = newLName.substring(0, newLName.length() - 1);
-                    }
-
                     if (MBox.mailChanged(newLName, newDName, boxId))
                     { // this is only true when the address changed and the new address does not exist
 
@@ -234,6 +217,7 @@ public class BoxHandler
                     { // a faulty timestamp was given -> return an errorpage
                         s = msg.get("i18nmsg_wrongf", context, result, (Object) null);
                         context.getFlashCookie().error(s, (Object) null);
+
                         return Results.redirect("/mail/edit/" + boxId.toString());
                     }
 
@@ -291,6 +275,7 @@ public class BoxHandler
                 mbdat.setDuration(HelperUtils.parseTime(mb.getTs_Active()));
                 Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
                 map.put("mbFrmDat", mbdat);
+
                 return Results.html().render(map);
             }
             else
@@ -327,7 +312,6 @@ public class BoxHandler
         Long uid = Long.parseLong(context.getSessionCookie().get("id"));
         if (mb.belongsTo(uid))
         {// check if the mailbox belongs to the current user
-
             DateTime dt = new DateTime();
             if (!(mb.getTs_Active() == 0) && (mb.getTs_Active() < dt.getMillis()))
             {
@@ -337,7 +321,7 @@ public class BoxHandler
             else
             {
                 // otherwise just set the new status
-                MBox.enable(id);
+                mb.enable();
             }
         }
         return Results.redirect("/mail");

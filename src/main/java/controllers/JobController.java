@@ -54,7 +54,6 @@ public class JobController
     @Inject
     MailHandler mailhndl;
 
-
     @Start(order = 90)
     public void startActions()
     {
@@ -69,7 +68,7 @@ public class JobController
              // create the adminaccount
                 log.info("Adminaccount is: " + mail + ":" + pwd);
                 User usr = new User("Site", "Admin", mail, pwd);
-                
+
                 // set the status and admin flags
                 usr.setAdmin(true);
                 usr.setActive(true);
@@ -120,7 +119,7 @@ public class JobController
                     MBox mb = it.next();
                     if (dt.isAfter(mb.getTs_Active()) && !(mb.getTs_Active() == 0))
                     { // this element is expired
-                        MBox.enable(mb.getId());
+                        mb.enable();
                     }
                 }
             }
@@ -150,8 +149,6 @@ public class JobController
             }
         }, new Long(2), new Long(30), TimeUnit.SECONDS);
     }
-
-
 
     public void addMessage(MimeMessage msg)
     {
