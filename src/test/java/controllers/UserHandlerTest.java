@@ -6,6 +6,8 @@ import java.util.Map;
 import models.User;
 import ninja.NinjaTest;
 import ninja.utils.NinjaProperties;
+import ninja.utils.NinjaTestServer;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

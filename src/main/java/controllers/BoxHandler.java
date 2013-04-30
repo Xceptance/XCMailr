@@ -34,6 +34,8 @@ import ninja.Result;
 @Singleton
 public class BoxHandler
 {
+    @Inject
+    MemCachedSessionHandler mcsh;
 
     @Inject
     Messages msg;
@@ -85,7 +87,7 @@ public class BoxHandler
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
 
-        Long id = new Long(context.getSessionCookie().get("id"));
+        // Long id = new Long(context.getSessionCookie().get("id"));
         Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
         map = HelperUtils.getDomainsFromConfig(ninjaProp);
         Result result = Results.html();
@@ -105,7 +107,7 @@ public class BoxHandler
             if (!MBox.mailExists(mbdat.getAddress(), mbdat.getDomain()))
             {
                 String mbName = mbdat.getAddress().toLowerCase();
-                
+
                 // set the data of the box
                 String[] dom = (String[]) HelperUtils.getDomainsFromConfig(ninjaProp).get("domain");
                 if (!Arrays.asList(dom).contains(mbdat.getDomain()))
@@ -123,7 +125,8 @@ public class BoxHandler
                     return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
                 // create the MBox
-                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, false, User.getById(id));
+                User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, false, usr);
 
                 // creates the Box in the DB
                 mb.save();
@@ -151,8 +154,9 @@ public class BoxHandler
      */
     public Result deleteBox(@PathParam("id") Long boxid, Context context)
     {
-        Long uid = Long.parseLong(context.getSessionCookie().get("id"));
-        if (MBox.boxToUser(boxid, uid))
+        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        
+        if (MBox.boxToUser(boxid, usr.getId()))
         {
             // deletes the box from DB
             MBox.delete(boxid);
@@ -188,10 +192,10 @@ public class BoxHandler
             MBox mb = MBox.getById(boxId);
             if (!(mb == null))
             { // the box with the given id exists
+                User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+                
 
-                Long uid = Long.parseLong(context.getSessionCookie().get("id"));
-
-                if (mb.belongsTo(uid))
+                if (mb.belongsTo(usr.getId()))
                 { // the current user is the owner of the mailbox
                     boolean changes = false;
                     String newLName = mbdat.getAddress().toLowerCase();
@@ -264,9 +268,8 @@ public class BoxHandler
         }
         else
         { // the box exists, go on!
-            Long uid = Long.parseLong(context.getSessionCookie().get("id"));
-
-            if (mb.belongsTo(uid))
+            User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+            if (mb.belongsTo(usr.getId()))
             { // prevent the edit of a mbox that is not belonging to the user
                 MbFrmDat mbdat = new MbFrmDat();
                 mbdat.setBoxId(boxId);
@@ -294,8 +297,9 @@ public class BoxHandler
 
     public Result showBoxes(Context context)
     {
-        Long id = new Long(context.getSessionCookie().get("id"));
-        return Results.html().render(MBox.allUserMap(id));
+        
+        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        return Results.html().render(MBox.allUserMap(usr.getId()));
     }
 
     /**
@@ -309,8 +313,8 @@ public class BoxHandler
     public Result expireBox(@PathParam("id") Long id, Context context)
     {
         MBox mb = MBox.getById(id);
-        Long uid = Long.parseLong(context.getSessionCookie().get("id"));
-        if (mb.belongsTo(uid))
+        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        if (mb.belongsTo(usr.getId()))
         {// check if the mailbox belongs to the current user
             DateTime dt = new DateTime();
             if (!(mb.getTs_Active() == 0) && (mb.getTs_Active() < dt.getMillis()))

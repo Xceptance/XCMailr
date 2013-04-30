@@ -38,6 +38,9 @@ public class Application
     @Inject
     MailHandler mailhndlr;
 
+    @Inject
+    MemCachedSessionHandler mcsh;
+
     /**
      * Shows the index-page <br/>
      * GET /
@@ -47,7 +50,8 @@ public class Application
      */
     public Result index(Context context)
     {
-        if (context.getSessionCookie().isEmpty())
+        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        if (usr == null)
         {
             // show the default index page if there's no user
             return Results.ok().html();
@@ -175,7 +179,7 @@ public class Application
      * 
      * @return the rendered login form
      */
-    public Result loginForm()
+    public Result loginForm(Context context)
     {
         return Results.html();
     }
@@ -189,6 +193,8 @@ public class Application
     public Result logout(Context context)
     {
         context.getSessionCookie().clear();
+        String sessionKey = context.getHttpServletRequest().getSession().getId();
+        mcsh.delete(sessionKey);
         Result result = Results.html();
         String s = msg.get("i18nmsg_logout", context, result, (Object) null);
         context.getFlashCookie().success(s, (Object) null);
@@ -203,6 +209,7 @@ public class Application
      */
     public Result loggedInForm(Context context, @JSR303Validation Login l, Validation validation)
     {
+
         Result result = Results.html();
         String s;
 
@@ -226,17 +233,20 @@ public class Application
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.html().template("views/Application/index.ftl.html");
                     }
-
-                    // set the cookie
-                    context.getSessionCookie().put("id", String.valueOf(lgr.getId()));
-                    context.getSessionCookie().put("usrname", lgr.getMail());
-
-                    if (lgr.isAdmin())
-                    {
-                        // also set an admin-flag if the account is an admin-account
-                        context.getSessionCookie().put("adm", String.valueOf(true));
-                    }
                     
+                    String sessionKey = context.getHttpServletRequest().getSession().getId();
+                    System.out.println("\n\ncook: "+context.getSessionCookie().getData()+" req: "+sessionKey+"\n");
+                    mcsh.set(sessionKey, 3600, lgr);
+                    // // set the cookie
+                    context.getSessionCookie().put("id", String.valueOf(lgr.getId()));
+                    // context.getSessionCookie().put("usrname", lgr.getMail());
+                    //
+                    // if (lgr.isAdmin())
+                    // {
+                    // // also set an admin-flag if the account is an admin-account
+                    // context.getSessionCookie().put("adm", String.valueOf(true));
+                    // }
+
                     // TODO: ADM-Zugriff per DB, nicht per Cookie?
                     lgr.setBadPwCount(0);
                     lgr.update();

@@ -300,6 +300,8 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
         // make sure that the success-page is displayed
+        
+        System.out.println("\n\n\n"+result+"\n\n");
         assertTrue(result.contains("class=\"success\">"));
 
         // check the cookie

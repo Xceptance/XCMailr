@@ -21,6 +21,7 @@ import ninja.ebean.NinjaEbeanModule;
 import com.google.inject.AbstractModule;
 //import com.sun.mail.util.logging.MailHandler;
 import controllers.MailHandler;
+import controllers.MemCachedSessionHandler;
 
 import controllers.JobController;
 
@@ -37,9 +38,9 @@ public class Module extends AbstractModule
     {
 
         install(new NinjaEbeanModule());
-
         bind(JobController.class);
         bind(MailHandler.class);
+        bind(MemCachedSessionHandler.class);
 
     }
 

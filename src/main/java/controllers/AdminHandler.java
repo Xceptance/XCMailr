@@ -70,8 +70,8 @@ public class AdminHandler
      */
     public Result activate(@PathParam("id") Long id, Context context)
     {
-        if ((User.getActiveAdminCount() == 1) ^ (User.isUserAdmin(id)))
-        {
+        if (!(context.getSessionCookie().get("id").equals(String.valueOf(id))))
+        { //the user to (de-)activate is not the user who performs this action
 
             // activate or deactivate the user
             boolean active = User.activate(id);
@@ -132,10 +132,10 @@ public class AdminHandler
      *            - id of a user
      * @return the admin-page
      */
-    public Result promote(@PathParam("id") Long id)
+    public Result promote(@PathParam("id") Long id, Context context)
     {
-        if ((User.getActiveAdminCount() == 1) ^ (User.isUserAdmin(id)))
-        { // don't demote the account when there is just one adminaccount and the given userid belongs to a user
+        if (!(context.getSessionCookie().get("id").equals(String.valueOf(id))))
+        { //the user to pro-/demote is not the user who performs this action
             User.promote(id);
         }
         return Results.redirect("/admin");
@@ -149,10 +149,10 @@ public class AdminHandler
      * @param id
      * @return
      */
-    public Result deleteUser(@PathParam("id") Long id)
+    public Result deleteUser(@PathParam("id") Long id, Context context)
     {
-        if ((User.getActiveAdminCount() == 1) ^ (User.isUserAdmin(id)))
-        { // don't remove the account when there is just one adminaccount and the given userid belongs to a user
+        if (!(context.getSessionCookie().get("id").equals(String.valueOf(id))))
+        { //the user to delete is not the user who performs this action
             User.delete(id);
         }
 

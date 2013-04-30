@@ -1,5 +1,8 @@
 package filters;
 
+import com.google.inject.Inject;
+
+import controllers.MemCachedSessionHandler;
 import models.User;
 import ninja.Context;
 import ninja.Filter;
@@ -11,38 +14,22 @@ public class SecureFilter implements Filter
 {
     // TODO check the authencity of the cookie?
 
+    @Inject
+    MemCachedSessionHandler mcsh;
+
     @Override
     public Result filter(FilterChain chain, Context context)
     {
-        // if we got no cookies we break:
-
-        if (context.getSessionCookie() == null || context.getSessionCookie().get("usrname") == null)
+        System.out.println("\n\n\n"+context.getHttpServletRequest().getSession().getId());
+        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        if (!(usr == null) && usr.isActive())
         {
-
-            return Results.redirect("/login");
+            return chain.next(context);
 
         }
         else
         {
-            Long id = Long.parseLong(context.getSessionCookie().get("id"));
-            User u = User.getById(id);
-
-            if (!(u == null) && u.isActive())
-            { // the user exists
-                return chain.next(context);
-            }
-            else
-            {
-                // the user does not exist
-                // this check is necessary, when a user was deleted and the client has nevertheless a cookie which is
-                // not expired until "now"
-
-                // we redirect to the login-page, because redirecting to the register-page would expose which accounts
-                // exists (assuming that theres a possibility to fake the cookie)
-                return Results.redirect("/login");
-
-            }
-
+            return Results.redirect("/login");
         }
     }
 }

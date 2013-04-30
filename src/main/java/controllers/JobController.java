@@ -2,6 +2,7 @@ package controllers;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -44,6 +45,8 @@ public class JobController
     public SMTPServer smtpServer;
 
     public Queue<MimeMessage> mailqueue = new LinkedList<MimeMessage>();
+    
+    public MemCachedSessionHandler mcsh;
 
     @Inject
     Logger log;
@@ -57,6 +60,7 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
+        mcsh = new MemCachedSessionHandler();
         log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
         String pwd = ninjaProp.get("admin.pass");
         if (!(pwd == null))
@@ -138,13 +142,14 @@ public class JobController
                     try
                     {
                         Transport.send(message);
-                        message = mailqueue.poll();
+
                     }
                     catch (MessagingException e)
                     {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
+                    message = mailqueue.poll();
                 }
             }
         }, new Long(2), new Long(30), TimeUnit.SECONDS);

@@ -1,5 +1,9 @@
 package filters;
 
+import com.google.inject.Inject;
+
+import controllers.MemCachedSessionHandler;
+import models.User;
 import ninja.Context;
 import ninja.Filter;
 import ninja.FilterChain;
@@ -9,21 +13,22 @@ import ninja.Results;
 public class AdminFilter implements Filter
 {
     // TODO check the authenticity of the cookie?
+    @Inject
+    MemCachedSessionHandler mcsh;
 
     @Override
     public Result filter(FilterChain chain, Context context)
     {
-        // if we got no cookies we break:
-
-        if (context.getSessionCookie() == null || context.getSessionCookie().get("adm") == null)
+        
+        User test = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        if (!(test == null) && test.isActive())
         {
-            
-            return Results.redirect("/");
+            return chain.next(context);
 
         }
         else
         {
-            return chain.next(context);
+            return Results.redirect("/");
         }
     }
 }

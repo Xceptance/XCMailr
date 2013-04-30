@@ -33,7 +33,7 @@ public class BoxHandlerTest extends NinjaTest
     public void setUp()
     {
         // create the user (in test mode a volatile in-memory db is used)
-        User u =new User("John", "Doe", "admin@ccmailr.test", "1234");
+        User u = new User("John", "Doe", "admin@ccmailr.test", "1234");
         u.setActive(true);
         u.save();
 
@@ -46,7 +46,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
-
+        
     }
 
     @After
@@ -198,6 +198,5 @@ public class BoxHandlerTest extends NinjaTest
         assertNull(MBox.getByName("abox", "xcmailr.test"));
 
     }
-    
 
 }

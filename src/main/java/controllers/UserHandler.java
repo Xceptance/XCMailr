@@ -25,6 +25,9 @@ import filters.SecureFilter;
 public class UserHandler
 {
     @Inject
+    MemCachedSessionHandler mcsh;
+
+    @Inject
     Lang lang;
 
     @Inject
@@ -38,39 +41,36 @@ public class UserHandler
      */
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
-        Long uId = new Long(context.getSessionCookie().get("id"));
-
+        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
         Result result = Results.html();
         String s;
 
         if (validation.hasViolations())
         { // the filled form has errors
-
             s = msg.get("i18nmsg_formerr", context, result, (Object) null);
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/user/edit");
-
         }
         else
         { // the form is filled correctly
             String pw1 = edt.getPwn1();
             String pw2 = edt.getPwn2();
-            User updU = User.authById(uId, edt.getPw());
+            //User updU = User.authById(uId, edt.getPw());
 
-            if (!(updU == null))
+            if (usr.checkPasswd(edt.getPw()))
             { // the user authorized himself
-                if (!User.mailChanged(edt.getMail(), uId))
+                if (!User.mailChanged(edt.getMail(), usr.getId()))
                 { // the mailaddress changed
-                    updU.setMail(edt.getMail());
+                    usr.setMail(edt.getMail());
                 }
                 // update the fore- and surname
-                updU.setForename(edt.getForename());
-                updU.setSurname(edt.getSurName());
+                usr.setForename(edt.getForename());
+                usr.setSurname(edt.getSurName());
                 if (!(pw1 == null) && !(pw2 == null))
                 {
                     if (!(pw2.isEmpty()) && !(pw1.isEmpty()) && pw1.equals(pw2))
                     { // new password was entered and the repetition is equal to the entered new pw
-                        updU.hashPasswd(pw2);
+                        usr.hashPasswd(pw2);
                     }
                     else
                     {
@@ -81,7 +81,7 @@ public class UserHandler
                     }
                 }
                 // update the user
-                updU.update();
+                usr.update();
 
                 s = msg.get("i18nmsg_chok", context, result, (Object) null);
                 context.getFlashCookie().success(s, (Object) null);
@@ -104,8 +104,7 @@ public class UserHandler
      */
     public Result editUserForm(Context context)
     {
-        Long id = new Long(context.getSessionCookie().get("id"));
-        User usr = User.getById(id);
+        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
         return Results.html().render(EditUsr.prepopulate(usr));
     }
 

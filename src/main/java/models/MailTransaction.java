@@ -1,9 +1,6 @@
 package models;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -11,11 +8,9 @@ import javax.persistence.Table;
 import org.joda.time.DateTime;
 
 import com.avaje.ebean.Ebean;
-import com.avaje.ebean.PagingList;
 import com.avaje.ebean.Query;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
-import com.avaje.ebean.annotation.Sql;
 
 /**
  * This Class is used to save all Actions on the Mailserver

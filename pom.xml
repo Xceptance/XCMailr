@@ -22,7 +22,7 @@
 	<artifactId>ccmailr-ninja</artifactId>
 	<groupId>org.xceptance</groupId>	
 	<packaging>war</packaging>
-	<name>Ninja implementation of the CCMailr</name>
+	<name>Ninja implementation of the XCMailr</name>
 	<version>1.0-SNAPSHOT</version>
 
 	<parent>
@@ -75,7 +75,17 @@
 		</resources>
 
 	</build>
-
+	<repositories>
+	    <repository>
+	      <id>spy</id>
+	      <name>Spy Repository</name>
+	      <layout>default</layout>
+	      <url>http://files.couchbase.com/maven2/</url>
+	      <snapshots>
+	        <enabled>false</enabled>
+	      </snapshots>
+	    </repository>
+	</repositories>
 	<dependencies>
 
 		<dependency>
@@ -122,6 +132,11 @@
 			<artifactId>dnsjava</artifactId>
 			<version>2.1.1</version>
 		</dependency>
+		<dependency>
+		        <groupId>spy</groupId>
+		        <artifactId>spymemcached</artifactId>
+		        <version>2.8.4</version>
+	    	</dependency>
 
 	</dependencies>
 
