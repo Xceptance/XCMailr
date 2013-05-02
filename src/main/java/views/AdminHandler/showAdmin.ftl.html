@@ -4,21 +4,23 @@
 <div class="row">
 	<div >
 		<p>User Administration</p> 
+	<p>${(active)!}</p>
+		<div class="tabbable">
 		<ul class="nav nav-tabs">
-			<li><a href="#users" data-toggle="pill">Users</a></li>
-  			<li><a href="#statistics" data-toggle="pill">Statistics</a></li>
+			<li class="active"><a href="#users" data-toggle="tab">Users</a></li>
+  			<li><a href="#statistics" data-toggle="tab">Statistics</a></li>
   		</ul>
 		<p>
-		<div class="tab-content">
-			<div class="tab-pane active" id="users">
-				<#include "showUsers.ftl.html"/>
+			<div class="tab-content">
+				<div class="tab-pane active" id="users">
+					<#include "showUsers.ftl.html"/>
+				</div>
+				<div class="tab-pane" id="statistics">
+					<#include "showStats.ftl.html"/>
+				</div>
 			</div>
-			<div class="tab-pane" id="statistics">
-				<#include "showStats.ftl.html"/>
-			</div>
-		</div>
 		</p>
-		
+		</div>		
 	</div>
 </div>
 

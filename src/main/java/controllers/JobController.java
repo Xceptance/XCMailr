@@ -14,12 +14,15 @@ import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.SimpleEmail;
 import org.joda.time.DateTime;
 
 import org.slf4j.Logger;
 import org.subethamail.smtp.server.SMTPServer;
 
 import models.MBox;
+import models.MailTransaction;
 import models.User;
 import ninja.lifecycle.Dispose;
 import ninja.lifecycle.Start;
@@ -42,8 +45,9 @@ public class JobController
     private final ScheduledExecutorService executorService2 = Executors.newSingleThreadScheduledExecutor();
 
     public SMTPServer smtpServer;
+    
 
-    public Queue<MimeMessage> mailqueue = new LinkedList<MimeMessage>();
+    public Queue<SimpleEmail> emailqueue = new LinkedList<SimpleEmail>();
     
     public MemCachedSessionHandler mcsh;
 
@@ -59,6 +63,7 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
+                
         mcsh = new MemCachedSessionHandler();
         log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
         String pwd = ninjaProp.get("admin.pass");
@@ -127,36 +132,39 @@ public class JobController
                 }
             }
         }, new Long(1), new Long(interval), TimeUnit.MINUTES);
-
+        
+        int mailinterval = Integer.parseInt(ninjaProp.getWithDefault("mbox.mailinterval", "1"));
         executorService2.scheduleAtFixedRate(new Runnable()
         {
             @Override
             public void run() // Mailjob
             {
-                log.info("mailjob run " + mailqueue.size());
-                MimeMessage message = mailqueue.poll();
+                log.info("mailjob run " + emailqueue.size());
+                SimpleEmail message = emailqueue.poll();
                 while (!(message == null))
                 {
                     log.info("Mailjob: Message found");
                     try
                     {
-                        Transport.send(message);
+                        message.send();
 
                     }
-                    catch (MessagingException e)
+                    catch (EmailException e)
                     {
                         // TODO Auto-generated catch block
+                        //something went wrong
+                        //maybe we should handle the message again?
                         e.printStackTrace();
                     }
-                    message = mailqueue.poll();
+                    message = emailqueue.poll();
                 }
             }
-        }, new Long(2), new Long(30), TimeUnit.SECONDS);
+        }, new Long(2), new Long(mailinterval), TimeUnit.MINUTES); 
     }
 
-    public void addMessage(MimeMessage msg)
+    public void addMessage(SimpleEmail msg)
     {
-        mailqueue.add(msg);
+        emailqueue.add(msg);
     }
 
     @Dispose(order = 90)

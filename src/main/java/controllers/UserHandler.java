@@ -11,7 +11,6 @@ import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
-import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
@@ -28,9 +27,6 @@ public class UserHandler
 {
     @Inject
     MemCachedSessionHandler mcsh;
-
-    @Inject
-    Lang lang;
 
     @Inject
     Messages msg;
@@ -57,7 +53,6 @@ public class UserHandler
         { // the form is filled correctly
             String pw1 = edt.getPwn1();
             String pw2 = edt.getPwn2();
-            //User updU = User.authById(uId, edt.getPw());
 
             if (usr.checkPasswd(edt.getPw()))
             { // the user authorized himself
@@ -70,21 +65,22 @@ public class UserHandler
                 usr.setSurname(edt.getSurName());
                 if (!(pw1 == null) && !(pw2 == null))
                 {
-                    if (!(pw2.isEmpty()) && !(pw1.isEmpty()) && pw1.equals(pw2))
-                    { // new password was entered and the repetition is equal to the entered new pw
-                        usr.hashPasswd(pw2);
-                    }
-                    else
-                    {
-                        // the passwords are not equal (or empty)
-                        s = msg.get("i18nmsg_wrongpw", context, result, (Object) null);
-                        context.getFlashCookie().error(s, (Object) null);
-                        return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
+                    if (!(pw2.isEmpty()) && !(pw1.isEmpty()))
+                    { // new password has been entered
+                        if (pw1.equals(pw2))
+                        { // the repetition is equal to the new pw
+                            usr.hashPasswd(pw2);
+                        }
+                        else
+                        { // the passwords are not equal
+                            s = msg.get("i18nmsg_wrongpw", context, result, (Object) null);
+                            context.getFlashCookie().error(s, (Object) null);
+                            return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
+                        }
                     }
                 }
                 // update the user
                 usr.update();
-
                 s = msg.get("i18nmsg_chok", context, result, (Object) null);
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/user/edit");

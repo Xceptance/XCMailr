@@ -38,11 +38,11 @@
         
         <#include "headerLoggedIn.ftl.html"/>
 			<#if flash_error??>
-			        <p class="error">${flash_error}</p>
+			        <p class="error"><span class="label label-important">${flash_error}</span></p>
 			</#if>
 			
 			<#if flash_success??>
-			        <p class="success">${flash_success}</p>
+			        <p class="success"><span class="label label-success">${flash_success}</span></p>
 			</#if>
 			
 

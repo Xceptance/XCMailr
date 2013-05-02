@@ -36,8 +36,11 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     class Handler implements MessageHandler
     {
         MessageContext ctx;
+
         String sender;
+
         String rcpt;
+
         String content;
 
         public Handler(MessageContext ctx)
@@ -76,12 +79,12 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                 { // there's an existing and active mailaddress
                   // TODO the language here
                     if (!mailhndl.forwardMail(sender, rcpt, content, ""))
-                    { //the message can't be forwarded
-                        mtx = new MailTransaction(400,rcpt,sender);
+                    { // the message can't be forwarded
+                        mtx = new MailTransaction(400, rcpt, sender);
                         mtx.saveTx();
                     }
                     else
-                    { //message forward was successcul
+                    { // message forward was successcul
                         mtx = new MailTransaction(300, rcpt, sender);
                         mtx.saveTx();
                         mb.increaseForwards();
@@ -95,7 +98,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                     mtx = new MailTransaction(200, rcpt, sender);
                     mtx.saveTx();
                     mb.update();
-                    
+
                 }
 
             }

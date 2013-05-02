@@ -12,15 +12,12 @@ import ninja.Results;
 
 public class SecureFilter implements Filter
 {
-    // TODO check the authencity of the cookie?
-
     @Inject
     MemCachedSessionHandler mcsh;
 
     @Override
     public Result filter(FilterChain chain, Context context)
     {
-        System.out.println("\n\n\n"+context.getHttpServletRequest().getSession().getId());
         User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
         if (!(usr == null) && usr.isActive())
         {

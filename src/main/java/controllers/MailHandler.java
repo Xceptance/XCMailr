@@ -11,6 +11,8 @@ import javax.mail.internet.MimeMessage;
 import ninja.i18n.Messages;
 import ninja.utils.NinjaProperties;
 
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.SimpleEmail;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.MXRecord;
 import org.xbill.DNS.Record;
@@ -72,40 +74,32 @@ public class MailHandler
      */
     public boolean sendMail(String from, String to, String content, String subject)
     {
+
+        // TODO retry until the message could be sent(?)
+        String targ = getMailTarget(to);
+        if (targ == null)
+        {
+            // if there's no mx-record, return false
+            return false;
+        }
+        SimpleEmail email = new SimpleEmail();
         try
         {
-            // TODO retry until the message could be sent(?)
-            Properties properties = System.getProperties();
-            String targ = getMailTarget(to);
-            if (targ == null)
-            {
-                // if there's no mx-record, return false
-                return false;
-            }
-            properties.setProperty("mail.smtp.host", targ);
-            Session session = Session.getDefaultInstance(properties);
-
-            // create the message
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(from));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            message.setSubject(subject);
-            message.setText(content);
-            jc.mailqueue.add(message);
-
-            return true;
-
+            email.setHostName(targ);
+            email.setFrom(from);
+            email.addTo(to);
+            email.setSubject(subject);
+            email.setMsg(content);
+            jc.emailqueue.add(email);
         }
-        catch (AddressException e)
+        catch (EmailException e)
         {
+            // TODO Auto-generated catch block
             e.printStackTrace();
             return false;
         }
-        catch (MessagingException e)
-        {
-            e.printStackTrace();
-            return false;
-        }
+
+        return true;
 
     }
 

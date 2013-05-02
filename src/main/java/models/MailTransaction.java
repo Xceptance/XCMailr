@@ -1,11 +1,15 @@
 package models;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Period;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Query;
@@ -46,7 +50,7 @@ public class MailTransaction
      * <b>Statuscodes:</b> <br/>
      * 100 - targetmail does not exist<br/>
      * 200 - targetmail exists but is inactive <br/>
-     * 300 - mail has been successfully
+     * 300 - mail has been successfully <br/>
      * 
      * @param stat
      *            -statuscode of the transaction
@@ -102,8 +106,9 @@ public class MailTransaction
 
     /**
      * <b>Statuscodes:</b> <br/>
-     * 100 - targetmail does not exist 200 - targetmail exists but is inactive 300 - mail has been successfully
-     * forwarded
+     * 100 - targetmail does not exist <br/>
+     * 200 - targetmail exists but is inactive <br/>
+     * 300 - mail has been successfully forwarded <br/>
      * 
      * @return a statuscode
      */
@@ -150,9 +155,15 @@ public class MailTransaction
     {
         return Ebean.find(MailTransaction.class).findList();
     }
-    public static List<MailTransaction> allPaginated()
+
+    /**
+     * Gets all mailtransactions in the last "period"
+     * @param period - Joda-Time Period
+     * @return a list of mailtransactions
+     */
+    public static List<MailTransaction> allInPeriod(Period period)
     {
-        return Ebean.find(MailTransaction.class).findList();
+        return Ebean.find(MailTransaction.class).where().gt("ts", DateTime.now().minus(period).getMillis()).findList();
     }
 
     public static List<Status> getStatusList()
@@ -166,6 +177,5 @@ public class MailTransaction
 
         return list;
     }
-
 
 }

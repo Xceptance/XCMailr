@@ -12,7 +12,6 @@ import ninja.Results;
 
 public class AdminFilter implements Filter
 {
-    // TODO check the authenticity of the cookie?
     @Inject
     MemCachedSessionHandler mcsh;
 

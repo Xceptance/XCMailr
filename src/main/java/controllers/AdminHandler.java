@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.joda.time.Period;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -42,6 +46,9 @@ public class AdminHandler
     @Inject
     MailHandler mailhndlr;
 
+    @Inject
+    MemCachedSessionHandler mcsh;
+
     // ---------------------Functions for the Admin-Section ---------------------
     /**
      * Shows a list of all Users in the DB site/admin
@@ -49,14 +56,16 @@ public class AdminHandler
      * @param context
      * @return a list of all Users
      */
-    public Result showAdmin(Context context)
+    public Result showAdmin(Context context, HttpServletRequest req, String no)
     {
+        User usr = (User) mcsh.get(req.getSession().getId());
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("users", User.all());
         map.put("stats", MailTransaction.getStatusList());
-        List<?> mtxs = MailTransaction.all();
+        List<?> mtxs = MailTransaction.all();//MailTransaction.allInPeriod(new Period(0, 0, 0, 3, 20, 0, 0, 0));
         map.put("mtxs", mtxs);
-        map.put("uid", Long.parseLong(context.getSessionCookie().get("id")));
+        map.put("uid", usr.getId());
+
         return Results.html().render(map);
     }
 
@@ -68,16 +77,17 @@ public class AdminHandler
      *            - id of a user
      * @return the admin-page
      */
-    public Result activate(@PathParam("id") Long id, Context context)
+    public Result activate(@PathParam("id") Long id, Context context, HttpServletRequest req)
     {
-        if (!(context.getSessionCookie().get("id").equals(String.valueOf(id))))
-        { //the user to (de-)activate is not the user who performs this action
+        User usr = (User) mcsh.get(req.getSession().getId());
+        if (!(usr.getId() == id))
+        { // the user to (de-)activate is not the user who performs this action
 
             // activate or deactivate the user
             boolean active = User.activate(id);
 
             // generate the (de-)activation-information mail and send it to the user
-            User usr = User.getById(id);
+            User actusr = User.getById(id);
             String from = ninjaProp.get("mbox.adminaddr");
             String host = ninjaProp.get("mbox.host");
 
@@ -92,11 +102,11 @@ public class AdminHandler
                 // generate the message body
                 param = new Object[]
                     {
-                        usr.getForename()
+                        actusr.getForename()
                     };
                 String content = msg.get("i18nuser_activate_message", context.getAcceptLanguage(), param);
                 // send the mail
-                mailhndlr.sendMail(from, usr.getMail(), content, subject);
+                mailhndlr.sendMail(from, actusr.getMail(), content, subject);
             }
             else
             {// the account is now inactive
@@ -109,11 +119,11 @@ public class AdminHandler
                 // generate the message body
                 param = new Object[]
                     {
-                        usr.getForename()
+                        actusr.getForename()
                     };
                 String content = msg.get("i18nuser_deactivate_message", context.getAcceptLanguage(), param);
                 // send the mail
-                mailhndlr.sendMail(from, usr.getMail(), content, subject);
+                mailhndlr.sendMail(from, actusr.getMail(), content, subject);
             }
 
             return Results.redirect("/admin");
@@ -132,10 +142,11 @@ public class AdminHandler
      *            - id of a user
      * @return the admin-page
      */
-    public Result promote(@PathParam("id") Long id, Context context)
+    public Result promote(@PathParam("id") Long id, Context context, HttpServletRequest req)
     {
-        if (!(context.getSessionCookie().get("id").equals(String.valueOf(id))))
-        { //the user to pro-/demote is not the user who performs this action
+        User usr = (User) mcsh.get(req.getSession().getId());
+        if (!(usr.getId() == id))
+        { // the user to pro-/demote is not the user who performs this action
             User.promote(id);
         }
         return Results.redirect("/admin");
@@ -149,10 +160,11 @@ public class AdminHandler
      * @param id
      * @return
      */
-    public Result deleteUser(@PathParam("id") Long id, Context context)
+    public Result deleteUser(@PathParam("id") Long id, Context context, HttpServletRequest req)
     {
-        if (!(context.getSessionCookie().get("id").equals(String.valueOf(id))))
-        { //the user to delete is not the user who performs this action
+        User usr = (User) mcsh.get(req.getSession().getId());
+        if (!(usr.getId() == id))
+        { // the user to delete is not the user who performs this action
             User.delete(id);
         }
 

@@ -13,9 +13,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-
-import org.mortbay.*;
 
 public class ApplicationHandlerTest extends NinjaTest
 {
@@ -23,10 +20,6 @@ public class ApplicationHandlerTest extends NinjaTest
     Map<String, String> formParams = Maps.newHashMap();
     String result;
     
-    @Inject
-    org.mortbay.jetty.webapp.WebAppContext webapp;
-    
-
     @Before
     public void setUp()
     {
@@ -57,6 +50,7 @@ public class ApplicationHandlerTest extends NinjaTest
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
                                                                     formParams);
+        
         System.out.println(result);
         // check if the user was registered successfully
         assertTrue(result.contains("class=\"success\">Reg"));
