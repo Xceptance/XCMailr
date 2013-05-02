@@ -1,8 +1,9 @@
 package controllers;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 import ninja.Context;
 import ninja.FilterWith;
@@ -84,7 +85,7 @@ public class BoxHandler
      * @param validation
      * @return
      */
-    public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
+    public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation, HttpServletRequest req)
     {
 
         // Long id = new Long(context.getSessionCookie().get("id"));
@@ -125,7 +126,7 @@ public class BoxHandler
                     return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
                 // create the MBox
-                User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+                User usr = (User) mcsh.get(req.getSession().getId());
                 MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, false, usr);
 
                 // creates the Box in the DB
@@ -152,9 +153,9 @@ public class BoxHandler
      *            the ID of the Mailbox
      * @return the Mailbox-Overviewpage
      */
-    public Result deleteBox(@PathParam("id") Long boxid, Context context)
+    public Result deleteBox(@PathParam("id") Long boxid, Context context, HttpServletRequest req)
     {
-        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        User usr = (User) mcsh.get(req.getSession().getId());
         
         if (MBox.boxToUser(boxid, usr.getId()))
         {
@@ -173,7 +174,7 @@ public class BoxHandler
      * @return error/success-page
      */
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
-                          Validation validation)
+                          Validation validation, HttpServletRequest req)
     {
         Result result = Results.html();
         String s;
@@ -192,7 +193,7 @@ public class BoxHandler
             MBox mb = MBox.getById(boxId);
             if (!(mb == null))
             { // the box with the given id exists
-                User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+                User usr = (User) mcsh.get(req.getSession().getId());
                 
 
                 if (mb.belongsTo(usr.getId()))
@@ -259,7 +260,7 @@ public class BoxHandler
      *            ID of the Box
      * @return the edit-form
      */
-    public Result showEditBox(Context context, @PathParam("id") Long boxId)
+    public Result showEditBox(Context context, @PathParam("id") Long boxId, HttpServletRequest req)
     {
         MBox mb = MBox.getById(boxId);
         if (mb.equals(null))
@@ -268,7 +269,7 @@ public class BoxHandler
         }
         else
         { // the box exists, go on!
-            User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+            User usr = (User) mcsh.get(req.getSession().getId());
             if (mb.belongsTo(usr.getId()))
             { // prevent the edit of a mbox that is not belonging to the user
                 MbFrmDat mbdat = new MbFrmDat();
@@ -295,10 +296,10 @@ public class BoxHandler
      * @return the mailbox-overview-page
      */
 
-    public Result showBoxes(Context context)
+    public Result showBoxes(Context context, HttpServletRequest req)
     {
         
-        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        User usr = (User) mcsh.get(req.getSession().getId());
         return Results.html().render(MBox.allUserMap(usr.getId()));
     }
 
@@ -310,10 +311,10 @@ public class BoxHandler
      * @return the rendered mailbox-overview-page
      */
 
-    public Result expireBox(@PathParam("id") Long id, Context context)
+    public Result expireBox(@PathParam("id") Long id, Context context, HttpServletRequest req)
     {
         MBox mb = MBox.getById(id);
-        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        User usr = (User) mcsh.get(req.getSession().getId());
         if (mb.belongsTo(usr.getId()))
         {// check if the mailbox belongs to the current user
             DateTime dt = new DateTime();

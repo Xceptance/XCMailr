@@ -1,5 +1,7 @@
 package controllers;
 
+import javax.servlet.http.HttpServletRequest;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -39,9 +41,9 @@ public class UserHandler
      * 
      * @return the edit-page again
      */
-    public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
+    public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation, HttpServletRequest req)
     {
-        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        User usr = (User) mcsh.get(req.getSession().getId());
         Result result = Results.html();
         String s;
 
@@ -102,9 +104,9 @@ public class UserHandler
      * 
      * @return the user-edit-form
      */
-    public Result editUserForm(Context context)
+    public Result editUserForm(Context context, HttpServletRequest req)
     {
-        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        User usr = (User) mcsh.get(req.getSession().getId());
         return Results.html().render(EditUsr.prepopulate(usr));
     }
 

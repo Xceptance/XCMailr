@@ -3,6 +3,8 @@ package controllers;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.joda.time.DateTime;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -48,9 +50,9 @@ public class Application
      * @param context
      * @return the index page
      */
-    public Result index(Context context)
+    public Result index(Context context, HttpServletRequest req)
     {
-        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+        User usr = (User) mcsh.get(req.getSession().getId());
         if (usr == null)
         {
             // show the default index page if there's no user
@@ -190,10 +192,10 @@ public class Application
      * 
      * @return the index page
      */
-    public Result logout(Context context)
+    public Result logout(Context context, HttpServletRequest req)
     {
         context.getSessionCookie().clear();
-        String sessionKey = context.getHttpServletRequest().getSession().getId();
+        String sessionKey = req.getSession().getId();
         mcsh.delete(sessionKey);
         Result result = Results.html();
         String s = msg.get("i18nmsg_logout", context, result, (Object) null);
@@ -207,7 +209,7 @@ public class Application
      * 
      * @return the login form or the index page
      */
-    public Result loggedInForm(Context context, @JSR303Validation Login l, Validation validation)
+    public Result loggedInForm(Context context, @JSR303Validation Login l, Validation validation, HttpServletRequest req)
     {
 
         Result result = Results.html();
@@ -234,20 +236,9 @@ public class Application
                         return Results.html().template("views/Application/index.ftl.html");
                     }
                     
-                    String sessionKey = context.getHttpServletRequest().getSession().getId();
-                    System.out.println("\n\ncook: "+context.getSessionCookie().getData()+" req: "+sessionKey+"\n");
+                    String sessionKey = req.getSession().getId();//context.getHttpServletRequest().getSession().getId();
+                    
                     mcsh.set(sessionKey, 3600, lgr);
-                    // // set the cookie
-                    context.getSessionCookie().put("id", String.valueOf(lgr.getId()));
-                    // context.getSessionCookie().put("usrname", lgr.getMail());
-                    //
-                    // if (lgr.isAdmin())
-                    // {
-                    // // also set an admin-flag if the account is an admin-account
-                    // context.getSessionCookie().put("adm", String.valueOf(true));
-                    // }
-
-                    // TODO: ADM-Zugriff per DB, nicht per Cookie?
                     lgr.setBadPwCount(0);
                     lgr.update();
                     s = msg.get("i18nmsg_login", context, result, (Object) null);

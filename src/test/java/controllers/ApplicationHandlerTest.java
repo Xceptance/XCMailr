@@ -13,12 +13,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+
+import org.mortbay.*;
 
 public class ApplicationHandlerTest extends NinjaTest
 {
     Map<String, String> headers = Maps.newHashMap();
     Map<String, String> formParams = Maps.newHashMap();
     String result;
+    
+    @Inject
+    org.mortbay.jetty.webapp.WebAppContext webapp;
+    
 
     @Before
     public void setUp()
@@ -298,7 +305,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("mail", "admin@ccmailr.test");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
-
+        
         // make sure that the success-page is displayed
         
         System.out.println("\n\n\n"+result+"\n\n");
