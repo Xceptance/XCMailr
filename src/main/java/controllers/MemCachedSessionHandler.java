@@ -23,8 +23,7 @@ public class MemCachedSessionHandler
     {
         try
         {
-             client = new MemcachedClient(new BinaryConnectionFactory(),
-                                                         AddrUtil.getAddresses("127.0.0.1:11211"));
+            client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses("127.0.0.1:11211"));
             // mclients[0]=client;
             // TODO make namespace variable, make address variable and the no of clients too
         }
@@ -37,11 +36,8 @@ public class MemCachedSessionHandler
     public void set(String key, int ttl, final Object o)
     {
         client.set(NAMESPACE + key, ttl, o);
-//        MemcachedClient mcl = getCache();
-        // mcl.set(NAMESPACE + key, ttl, o);
 
     }
-    
 
     public Object get(String key)
     {

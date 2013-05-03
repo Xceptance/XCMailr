@@ -106,8 +106,6 @@ public class User implements Serializable
     /**
      * persists a user in the DB
      * 
-     * @param u
-     *            the user
      */
     public void save()
     {
@@ -188,9 +186,7 @@ public class User implements Serializable
     }
 
     /**
-     * returns the hashvalue of the bcrypted password
-     * 
-     * @return
+     * @return the hashed value of the bcrypted password 
      */
     public String getPasswd()
     {
@@ -318,8 +314,6 @@ public class User implements Serializable
     /**
      * updates the data of a user
      * 
-     * @param usr
-     *            : the edited user-object
      */
     public void update()
     {
@@ -330,7 +324,7 @@ public class User implements Serializable
      * checks if a mailadress exists in the database
      * 
      * @param mail
-     *            : mailadress of a user
+     *            - mailadress of a user
      * @return true if the given adress exists
      */
     public static boolean mailExists(String mail)

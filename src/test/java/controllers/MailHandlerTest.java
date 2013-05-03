@@ -31,21 +31,21 @@ public class MailHandlerTest extends NinjaTest
         /*
          * TEST: domains which should definitively have some mx-records
          */
-        returned = MailHandler.getMailTarget("mailaddress@web.de");
+        returned = mh.getMailTarget("mailaddress@web.de");
         assertNotNull(returned);
-        returned = MailHandler.getMailTarget("mailaddress@yahoo.com");
+        returned = mh.getMailTarget("mailaddress@yahoo.com");
         assertNotNull(returned);
-        returned = MailHandler.getMailTarget("mailaddress@xceptance.net");
+        returned = mh.getMailTarget("mailaddress@xceptance.net");
         assertNotNull(returned);
 
         /*
          * TEST: domains which should have no mx-record
          */
-        returned = MailHandler.getMailTarget("mailaddress@example.com");
+        returned = mh.getMailTarget("mailaddress@example.com");
         assertNull(returned);
 
         // TODO if you set up your own dns and enter a mx-record for localhost this test should fail
-        returned = MailHandler.getMailTarget("mailaddress@localhost");
+        returned = mh.getMailTarget("mailaddress@localhost");
         assertNull(returned);
 
         // TODO maybe the returned records could be verified in another way? (check that the returned value is the right

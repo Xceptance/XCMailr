@@ -2,17 +2,15 @@ package controllers;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import javax.mail.MessagingException;
-import javax.mail.Transport;
-import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
@@ -22,7 +20,6 @@ import org.slf4j.Logger;
 import org.subethamail.smtp.server.SMTPServer;
 
 import models.MBox;
-import models.MailTransaction;
 import models.User;
 import ninja.lifecycle.Dispose;
 import ninja.lifecycle.Start;
@@ -45,10 +42,9 @@ public class JobController
     private final ScheduledExecutorService executorService2 = Executors.newSingleThreadScheduledExecutor();
 
     public SMTPServer smtpServer;
-    
 
     public Queue<SimpleEmail> emailqueue = new LinkedList<SimpleEmail>();
-    
+
     public MemCachedSessionHandler mcsh;
 
     @Inject
@@ -63,7 +59,7 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
-                
+
         mcsh = new MemCachedSessionHandler();
         log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
         String pwd = ninjaProp.get("admin.pass");
@@ -132,7 +128,7 @@ public class JobController
                 }
             }
         }, new Long(1), new Long(interval), TimeUnit.MINUTES);
-        
+
         int mailinterval = Integer.parseInt(ninjaProp.getWithDefault("mbox.mailinterval", "1"));
         executorService2.scheduleAtFixedRate(new Runnable()
         {
@@ -141,25 +137,45 @@ public class JobController
             {
                 log.info("mailjob run " + emailqueue.size());
                 SimpleEmail message = emailqueue.poll();
+
                 while (!(message == null))
                 {
                     log.info("Mailjob: Message found");
                     try
                     {
                         message.send();
-
+                        String domainPart = message.getToAddresses().get(0).getAddress().split("@")[1];
+                        Map<String, Integer> domainMap = (Map<String, Integer>) mcsh.get(domainPart);
+                        domainMap.remove(message.getHostName());
+                        domainMap.put(message.getHostName(), 2);
+                        mcsh.set(domainPart, 3600, domainMap);
+                        log.info("Message sent");
                     }
                     catch (EmailException e)
                     {
-                        // TODO Auto-generated catch block
-                        //something went wrong
-                        //maybe we should handle the message again?
                         e.printStackTrace();
+
+                        String domainPart = message.getToAddresses().get(0).getAddress().split("@")[1];
+                        Map<String, Integer> domainMap = (Map<String, Integer>) mcsh.get(domainPart);
+                        domainMap.remove(message.getHostName());
+                        domainMap.put(message.getHostName(), 1); //host not reachable
+                        mcsh.set(domainPart, 3600, domainMap);
+                        try
+                        {
+                            mailhndl.sendMailAgain(message);
+                        }
+                        catch (UnknownHostException e1)
+                        { //if we get this, then the message could not be sent
+                            //there are no valid mx-records anymore 
+                            // TODO Auto-generated catch block
+                            e1.printStackTrace();
+                        }
+                        
                     }
                     message = emailqueue.poll();
                 }
             }
-        }, new Long(2), new Long(mailinterval), TimeUnit.MINUTES); 
+        }, new Long(1), new Long(mailinterval), TimeUnit.MINUTES);
     }
 
     public void addMessage(SimpleEmail msg)

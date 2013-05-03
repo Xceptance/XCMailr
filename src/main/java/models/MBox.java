@@ -262,7 +262,7 @@ public class MBox
      * 
      * @param mail
      * @param domain
-     * @return
+     * @return the MBox-Object to this address
      */
     public static MBox getByName(String mail, String domain)
     {
@@ -347,12 +347,11 @@ public class MBox
         return map;
     }
 
-
     /**
      * checks if a given address exists
      * 
      * @param mail
-     * @return
+     * @return true if the mail exists
      */
     public static boolean mailExists(String mail, String domain)
     {
@@ -366,7 +365,15 @@ public class MBox
         }
     }
 
-
+    /**
+     * @param local
+     *            - the new local-part of the box
+     * @param domain
+     *            - the new domainname of the box
+     * @param boxId
+     *            - the Id of the box to check
+     * @return true if the address is not used
+     */
 
     public static boolean mailChanged(String local, String domain, Long boxId)
     {
@@ -441,8 +448,6 @@ public class MBox
     /**
      * sets the valid box as invalid and vice versa
      * 
-     * @param mId
-     *            Id of the box
      * @return value of true means that its now enabled (== not expired)
      */
 

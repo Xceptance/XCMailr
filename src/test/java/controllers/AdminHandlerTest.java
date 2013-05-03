@@ -8,7 +8,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Map;
 
 import org.apache.http.cookie.Cookie;
-import org.h2.constant.SysProperties;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

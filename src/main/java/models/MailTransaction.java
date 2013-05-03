@@ -1,14 +1,11 @@
 package models;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.joda.time.Period;
 
 import com.avaje.ebean.Ebean;

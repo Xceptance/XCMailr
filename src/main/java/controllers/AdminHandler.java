@@ -1,12 +1,11 @@
 package controllers;
 
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-
-import org.joda.time.Period;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -106,7 +105,15 @@ public class AdminHandler
                     };
                 String content = msg.get("i18nuser_activate_message", context.getAcceptLanguage(), param);
                 // send the mail
-                mailhndlr.sendMail(from, actusr.getMail(), content, subject);
+                try
+                {
+                    mailhndlr.sendMail(from, actusr.getMail(), content, subject);
+                }
+                catch (UnknownHostException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
             else
             {// the account is now inactive
@@ -123,7 +130,15 @@ public class AdminHandler
                     };
                 String content = msg.get("i18nuser_deactivate_message", context.getAcceptLanguage(), param);
                 // send the mail
-                mailhndlr.sendMail(from, actusr.getMail(), content, subject);
+                try
+                {
+                    mailhndlr.sendMail(from, actusr.getMail(), content, subject);
+                }
+                catch (UnknownHostException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
 
             return Results.redirect("/admin");
@@ -158,7 +173,7 @@ public class AdminHandler
      * POST /admin/delete/{id}
      * 
      * @param id
-     * @return
+     * @return the admin-overview page ( /admin )
      */
     public Result deleteUser(@PathParam("id") Long id, Context context, HttpServletRequest req)
     {

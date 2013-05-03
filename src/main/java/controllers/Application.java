@@ -83,7 +83,7 @@ public class Application
      * Creates the User <br/>
      * POST /register
      * 
-     * @return
+     * @return the registration form and an error, or - if successful - the index-page
      */
 
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
@@ -150,7 +150,7 @@ public class Application
      *            - the userid
      * @param token
      *            - the verification-token
-     * @param context
+     * @param context 
      * @return to the index-page
      */
     public Result verifyActivation(@PathParam("id") Long id, @PathParam("token") String token, Context context)
@@ -378,7 +378,7 @@ public class Application
      * @param pwd
      *            - the PwData (the form-entrys)
      * @param validation
-     * @return
+     * @return the "change your pw"-site on error or the index-page 
      */
     public Result changePw(@PathParam("id") Long id, @PathParam("token") String token, Context context,
                            @JSR303Validation PwData pwd, Validation validation)

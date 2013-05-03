@@ -225,10 +225,10 @@ public class HelperUtils
     }
 
     /**
-     * Gets a Timestamp in millis and parses the time-interval to that in a readable way
+     * Gets a Timestamp in milliseconds and parses the time-interval to that in a readable way
      * 
-     * @param milis
-     * @return
+     * @param millis - Timestamp in milliseconds
+     * @return the duration to this date (in the pattern 1h, 1d) or a default value (given timestamp was in the past)
      */
     public static String parseTime(Long millis)
     {

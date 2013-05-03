@@ -49,7 +49,7 @@ public class BoxHandler
      * GET /mail/add
      * 
      * @param context
-     * @return
+     * @return a prepopulated "add-box"-form
      */
     public Result showAddBox(Context context)
     {
@@ -83,7 +83,7 @@ public class BoxHandler
      * @param context
      * @param mbdat
      * @param validation
-     * @return
+     * @return the addbox-form on error or the box-overview
      */
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation, HttpServletRequest req)
     {
