@@ -3,7 +3,6 @@ package controllers;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -87,17 +86,28 @@ public class MailHandler
      */
     public boolean sendMail(String from, String to, String content, String subject) throws UnknownHostException
     {
-        String domainTo = to.split("@")[1];
 
+        String[] splits = to.split("@");
+        if (!(splits.length == 1))
+        { // the mailaddress does not have the expected pattern -> do nothing
+            return false;
+        }
+        
+        String domainTo = splits[1];
+
+        // try to find some entrys in the memcache
         Map<String, Integer> domainTargets = (Map<String, Integer>) mcsh.get(domainTo);
+
         if (domainTargets == null)
         { // there was no entry for this domain until now
             domainTargets = prepareMailTarget(to);
         }
+
         if (domainTargets == null)
-        {
+        { // there are no mx-hosts, the request returned null
             throw new UnknownHostException();
         }
+        // walk through the Map, we want to find a host
         Set<Entry<String, Integer>> eSet = domainTargets.entrySet();
         Iterator<Entry<String, Integer>> it = eSet.iterator();
         Entry<String, Integer> entry = it.next();
@@ -105,12 +115,14 @@ public class MailHandler
         { // get the next set until the list ended or the name is available or unchecked
             entry = it.next();
         }
+
         if (entry == null || entry.getValue() == 1)
         { // there were no items or all entrys are unavailable
             throw new UnknownHostException();
         }
 
         String targ = entry.getKey();
+        // create the mail
         SimpleEmail email = new SimpleEmail();
         try
         {
@@ -133,7 +145,7 @@ public class MailHandler
     }
 
     /**
-     * Takes the mail again and specifies a new host 
+     * Takes the mail again and specifies a new host
      * 
      * @param from
      *            - the mail-author
@@ -157,9 +169,11 @@ public class MailHandler
             domainTargets = prepareMailTarget(mailTo);
         }
         if (domainTargets == null)
-        {
+        { // there are no mx-hosts, the request returned null
             throw new UnknownHostException();
         }
+
+        // walk through the Map, we want to find a host
         Set<Entry<String, Integer>> eSet = domainTargets.entrySet();
         Iterator<Entry<String, Integer>> it = eSet.iterator();
         Entry<String, Integer> entry = it.next();
@@ -258,7 +272,7 @@ public class MailHandler
      * @param mailadr
      *            - the mailaddress
      * @return the mx-record for this address as string
-     * @deprecated 
+     * @deprecated
      */
     public String getMailTarget(String mailadr)
     {

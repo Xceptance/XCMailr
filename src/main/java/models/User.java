@@ -59,7 +59,7 @@ public class User implements Serializable
 
     // ----------------------------- Getter and Setter ------------------------
     /**
-     * Standard constructor, just initialize the variables
+     * Default constructor, just initialize the variables
      */
     public User()
     {
@@ -93,11 +93,18 @@ public class User implements Serializable
         boxes = new ArrayList<MBox>();
     }
 
+    /**
+     * @return all boxes that belong to this user
+     */
     public List<MBox> getBoxes()
     {
         return boxes;
     }
 
+    /**
+     * @param boxes
+     *            - all boxes that belong to this user
+     */
     public void setBoxes(List<MBox> boxes)
     {
         this.boxes = boxes;
@@ -105,7 +112,6 @@ public class User implements Serializable
 
     /**
      * persists a user in the DB
-     * 
      */
     public void save()
     {
@@ -186,7 +192,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return the hashed value of the bcrypted password 
+     * @return the hashed value of the bcrypted password
      */
     public String getPasswd()
     {
@@ -204,6 +210,11 @@ public class User implements Serializable
         setPasswd(BCrypt.hashpw(passwd, BCrypt.gensalt()));
     }
 
+    /**
+     * @param pwd
+     *            - the plaintext password to check
+     * @return true if the passwords are matching
+     */
     public boolean checkPasswd(String pwd)
     {
         return BCrypt.checkpw(pwd, this.passwd);
@@ -284,17 +295,25 @@ public class User implements Serializable
 
     /**
      * @param ts_confirm
+     *            - the timestamp for the end of the confirmation-period
      */
     public void setTs_confirm(Long ts_confirm)
     {
         this.ts_confirm = ts_confirm;
     }
 
+    /**
+     * @return the number of a wrong entered password
+     */
     public int getBadPwCount()
     {
         return badPwCount;
     }
 
+    /**
+     * @param badPwCount
+     *            - the number of wrong entered passwords
+     */
     public void setBadPwCount(int badPwCount)
     {
         this.badPwCount = badPwCount;
@@ -312,8 +331,7 @@ public class User implements Serializable
     }
 
     /**
-     * updates the data of a user
-     * 
+     * Updates the Data of a User
      */
     public void update()
     {
@@ -321,11 +339,11 @@ public class User implements Serializable
     }
 
     /**
-     * checks if a mailadress exists in the database
+     * Checks if a Mailaddress exists in the Database
      * 
      * @param mail
-     *            - mailadress of a user
-     * @return true if the given adress exists
+     *            - Mailaddress of a User
+     * @return true if the given Address exists
      */
     public static boolean mailExists(String mail)
     {
@@ -342,10 +360,10 @@ public class User implements Serializable
     /**
      * Checks whether the mail of the user (identified by its id) has changed and if the new address can be used
      * 
-     * @param mail
-     * @param uId
+     * @param mail - the new Mailaddress of the User
+     * @param uId - the User-ID
      * @return true - Mail has changed and the new address does not exist <br/>
-     *         false - mail has not changed, user is unknown or address already exists
+     *         false - Mail has not changed, User is unknown or Address already exists
      */
 
     public static boolean mailChanged(String mail, Long uId)
@@ -471,7 +489,7 @@ public class User implements Serializable
     }
 
     /**
-     * returns the userobject which belongs to the given userid
+     * Returns the User-Object which belongs to the given User-ID
      * 
      * @param id
      *            : a users id
@@ -483,7 +501,7 @@ public class User implements Serializable
     }
 
     /**
-     * deletes the user with the given id
+     * Deletes the User with the given ID
      * 
      * @param id
      *            : the id of the user that has to be deleted
@@ -495,7 +513,7 @@ public class User implements Serializable
     }
 
     /**
-     * promotes or demotes the User and Updates the DB the method checks the actual state and sets the opposite
+     * Promotes or Demotes the User and Updates the DB the Method checks the actual state and sets the opposite
      * 
      * @param id
      *            - id of the user
@@ -509,7 +527,7 @@ public class User implements Serializable
     }
 
     /**
-     * activates or deactivates the User and Updates the DB the method checks the actual state and sets the opposite
+     * Activates or Deactivates the User and Updates the DB the Method checks the actual state and sets the opposite
      * 
      * @param id
      *            - id of the user
@@ -523,6 +541,13 @@ public class User implements Serializable
 
     }
 
+    /**
+     *  Converts the Userobject to a String which contains in one line:<br/>
+     *  UserID, Forename, Surname, Mail and (the crypted) Password<br/>
+     *  The fields are separated by a whitespace 
+     *  
+     */
+    @Override
     public String toString()
     {
         return id + " " + forename + " " + " " + surname + " " + mail + " " + passwd;

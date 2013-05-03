@@ -95,122 +95,213 @@ public class MBox
     // -------------------------------------
     // Getter und Setter
     // -------------------------------------
-
+    /**
+     * @return the Id of this MBox (primary key in the DB)
+     */
     public long getId()
     {
         return id;
     }
 
+    /**
+     * @param id
+     *            - the Id of this MBox to set
+     */
     public void setId(long id)
     {
         this.id = id;
     }
 
+    /**
+     * @return the Local-Part of this MBox
+     */
     public String getAddress()
     {
         return address;
     }
 
+    /**
+     * @param address
+     *            - the Local-Part of the Address to set
+     */
     public void setAddress(String address)
     {
         this.address = address;
     }
 
+    /**
+     * indicates whether the box is expired <br/>
+     * this means, that the box is inactive (this flag is some kind of independent from the timestamp)
+     * 
+     * @return true if the box is expired/inactive
+     */
     public boolean isExpired()
     {
         return expired;
     }
 
+    /**
+     * indicates whether the box is active (uses the expired-flag)
+     * 
+     * @return true if the box is active
+     */
     public boolean isActive()
     {
         return !expired;
     }
 
+    /**
+     * if true, the box will be expired/inactive
+     * 
+     * @param expired
+     *            - the expiration-status to set
+     */
     public void setExpired(boolean expired)
     {
         this.expired = expired;
     }
 
+    /**
+     * @return the user which owns the box
+     */
     public User getUsr()
     {
         return usr;
     }
 
+    /**
+     * @param usr
+     *            - the user which owns the box
+     */
     public void setUsr(User usr)
     {
         this.usr = usr;
     }
 
+    /**
+     * @return the domain-part of this mailaddress
+     */
     public String getDomain()
     {
         return domain;
     }
 
+    /**
+     * @param domain
+     *            - the domain-part of this mailaddress to set
+     */
     public void setDomain(String domain)
     {
         this.domain = domain;
     }
 
+    /**
+     * @param uid
+     *            - the Users ID
+     * @return true if the User with that id owns this mailbox
+     */
     public boolean belongsTo(Long uid)
     {
         return (this.usr.getId() == uid);
     }
 
+    /**
+     * @return the number of successful forwards on this address
+     */
     public int getForwards()
     {
         return forwards;
     }
 
+    /**
+     * @param forwards
+     *            sets the number of forwards on this address
+     */
     public void setForwards(int forwards)
     {
         this.forwards = forwards;
     }
 
+    /**
+     * increases the number of forwards by one
+     */
     public void increaseForwards()
     {
         this.setForwards(this.getForwards() + 1);
     }
 
+    /**
+     * sets the number of forwards to 0
+     */
     public void resetForwards()
     {
         this.forwards = 0;
     }
 
+    /**
+     * @return the number of suppressed mails on this address <br/>
+     *         (while the address was inactive)
+     */
     public int getSuppressions()
     {
         return suppressions;
     }
 
+    /**
+     * @param suppressions
+     *            - sets the number of suppressed mails on this address<br/>
+     *            (while the address was inactive)
+     */
     public void setSuppressions(int suppressions)
     {
         this.suppressions = suppressions;
     }
 
+    /**
+     * increases the number of suppressions by one
+     */
     public void increaseSuppressions()
     {
         this.setSuppressions(this.getSuppressions() + 1);
     }
 
+    /**
+     * sets the number of suppressions on this address to 0
+     */
     public void resetSuppressions()
     {
         this.suppressions = 0;
     }
 
+    /**
+     * @return the Timestamp to which time this address will be active
+     */
     public long getTs_Active()
     {
         return ts_Active;
     }
 
+    /**
+     * @param ts_Active
+     *            - sets the time until that the address will be active
+     */
     public void setTs_Active(long ts_Active)
     {
         this.ts_Active = ts_Active;
     }
 
+    /**
+     * @return the version of the box (just for optimistic lock-things)
+     */
     public Long getVersion()
     {
         return version;
     }
 
+    /**
+     * @param version
+     *            the version to set (just a field for optimistic lock support)
+     */
     public void setVersion(Long version)
     {
         this.version = version;
@@ -338,6 +429,10 @@ public class MBox
         return Ebean.find(MBox.class).where().eq("usr_id", id.toString()).findList();
     }
 
+    /**
+     * @param id
+     * @return
+     */
     public static Map<String, List<MBox>> allUserMap(Long id)
     {
         List<MBox> list = Ebean.find(MBox.class).where().eq("usr_id", id.toString()).findList();

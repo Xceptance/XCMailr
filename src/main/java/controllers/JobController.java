@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.mail.internet.MimeMessage;
+
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
 import org.joda.time.DateTime;
@@ -44,6 +46,8 @@ public class JobController
     public SMTPServer smtpServer;
 
     public Queue<SimpleEmail> emailqueue = new LinkedList<SimpleEmail>();
+    
+    public Queue<MimeMessage> mailqueue = new LinkedList<MimeMessage>();
 
     public MemCachedSessionHandler mcsh;
 

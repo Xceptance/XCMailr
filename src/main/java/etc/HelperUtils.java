@@ -120,13 +120,6 @@ public class HelperUtils
         // remove the spaces to cover cases like "2 h, 2 d"
         s = s.replace(" ", "");
 
-        // TODO this is just for testing-purposes, remove it
-        if (s.equals("1"))
-        {
-            DateTime dt1 = new DateTime();
-            return dt1.plusMinutes(1).getMillis();
-        }
-
         if (s.equals("0"))
         {
             return 0;

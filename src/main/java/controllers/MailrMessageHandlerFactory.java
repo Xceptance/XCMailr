@@ -2,6 +2,8 @@ package controllers;
 
 import models.MBox;
 import models.MailTransaction;
+import ninja.i18n.Lang;
+
 import org.slf4j.Logger;
 import org.subethamail.smtp.*;
 
@@ -12,6 +14,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import javax.mail.internet.MimeMessage;
 
 @Singleton
 public class MailrMessageHandlerFactory implements MessageHandlerFactory
@@ -42,6 +46,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
         String rcpt;
 
         String content;
+        
+        MimeMessage mail;
 
         public Handler(MessageContext ctx)
         {
@@ -60,20 +66,28 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         public void data(InputStream data) throws IOException
         {
-            content = this.convertStreamToString(data);
+            //content = this.convertStreamToString(data);
         }
 
         /**
-         * 
+         * this will handle the message 
          */
 
         public void done()
-        { // do all the mail-fwd things here
+        { 
             String[] splitaddress = rcpt.split("@");
             MailTransaction mtx;
-            // TODO check if the address is malicious
+
+            if (!(splitaddress.length == 2))
+            { // the mailaddress does not have the expected pattern -> do nothing&log it
+                mtx = new MailTransaction(0, rcpt, sender);
+                mtx.saveTx();
+                return;
+            }
+
             if (MBox.mailExists(splitaddress[0], splitaddress[1]))
-            {
+            { // the given mailaddress exists in the db
+
                 MBox mb = MBox.getByName(splitaddress[0], splitaddress[1]);
                 if (mb.isActive())
                 { // there's an existing and active mailaddress
@@ -93,43 +107,18 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                 }
                 else
                 { // there's a mailaddress, but its inactive
-
                     mb.increaseSuppressions();
                     mtx = new MailTransaction(200, rcpt, sender);
                     mtx.saveTx();
                     mb.update();
-
                 }
-
             }
             else
-            {
-                // mailaddress does not exist
+            { // mailaddress does not exist
                 mtx = new MailTransaction(100, rcpt, sender);
                 mtx.saveTx();
-
             }
 
-        }
-
-        public String convertStreamToString(InputStream is)
-        {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            StringBuilder sb = new StringBuilder();
-
-            String line = null;
-            try
-            {
-                while ((line = reader.readLine()) != null)
-                {
-                    sb.append(line + "\n");
-                }
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-            return sb.toString();
         }
     }
 }

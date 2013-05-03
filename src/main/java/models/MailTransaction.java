@@ -33,6 +33,9 @@ public class MailTransaction
 
     private String targetaddr;
 
+    /**
+     * the Default-Constructor which initialises all fields with Default-values
+     */
     public MailTransaction()
     {
         id = 0L;
@@ -62,21 +65,34 @@ public class MailTransaction
         this.sourceaddr = source;
     }
 
+    /**
+     * @return the id of this transaction (primary key in the DB)
+     */
     public Long getId()
     {
         return id;
     }
 
+    /**
+     * @param id
+     *            - the id to set
+     */
     public void setId(Long id)
     {
         this.id = id;
     }
 
+    /**
+     * @return the timestamp of this transaction
+     */
     public Long getTs()
     {
         return ts;
     }
 
+    /**
+     * @return the Timestamp in a displayable form as String
+     */
     public String getTsAsString()
     {
         DateTime dt = new DateTime(this.ts);
@@ -96,6 +112,10 @@ public class MailTransaction
 
     }
 
+    /**
+     * @param ts
+     *            sets the timestamp in milliseconds
+     */
     public void setTs(Long ts)
     {
         this.ts = ts;
@@ -114,26 +134,49 @@ public class MailTransaction
         return status;
     }
 
+    /**
+     * <b>Statuscodes:</b> <br/>
+     * 100 - targetmail does not exist <br/>
+     * 200 - targetmail exists but is inactive <br/>
+     * 300 - mail has been successfully forwarded <br/>
+     * 
+     * @param status
+     *            - the status to set
+     */
     public void setStatus(int status)
     {
         this.status = status;
     }
 
+    /**
+     * @return the targetaddress of this transaction
+     */
     public String getTargetaddr()
     {
         return targetaddr;
     }
 
+    /**
+     * @param targetaddr
+     *            - the targetaddress to set
+     */
     public void setTargetaddr(String targetaddr)
     {
         this.targetaddr = targetaddr;
     }
 
+    /**
+     * @return the sourceaddress of this transaction
+     */
     public String getSourceaddr()
     {
         return sourceaddr;
     }
 
+    /**
+     * @param sourceaddr
+     *            - the sourceaddress to set
+     */
     public void setSourceaddr(String sourceaddr)
     {
         this.sourceaddr = sourceaddr;
@@ -142,27 +185,40 @@ public class MailTransaction
     // -------------------------------------------------------
     // E-Bean Functions
     // -------------------------------------------------------
-
+    /**
+     * Saves the Transaction in the Database
+     */
     public void saveTx()
     {
         Ebean.save(this);
     }
 
+    /**
+     * @return all Transactions which were stored in the database
+     */
     public static List<MailTransaction> all()
     {
         return Ebean.find(MailTransaction.class).findList();
     }
 
     /**
-     * Gets all mailtransactions in the last "period"
-     * @param period - Joda-Time Period
-     * @return a list of mailtransactions
+     * Gets all mailtransactions in the last "Period"
+     * 
+     * @param period
+     *            - Joda-Time Period
+     * @return a List of Mailtransactions
      */
     public static List<MailTransaction> allInPeriod(Period period)
     {
         return Ebean.find(MailTransaction.class).where().gt("ts", DateTime.now().minus(period).getMillis()).findList();
     }
 
+    /**
+     * Generates a List of Statusnumbers and the number of ther occurences
+     * 
+     * @return a List of Status-Elements (as an aggregate of Transactions)
+     * @see Status
+     */
     public static List<Status> getStatusList()
     {
 

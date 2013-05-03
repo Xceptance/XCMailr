@@ -11,24 +11,36 @@ public class Login
 {
     @NotEmpty
     String mail;
-    
+
     String pwd;
 
+    /**
+     * @return the mailaddress
+     */
     public String getMail()
     {
         return mail;
     }
 
+    /**
+     * @param mail - the mail to set
+     */
     public void setMail(String mail)
     {
         this.mail = mail;
     }
 
+    /**
+     * @return the password 
+     */
     public String getPwd()
     {
         return pwd;
     }
 
+    /**
+     * @param pwd the password to set
+     */
     public void setPwd(String pwd)
     {
         this.pwd = pwd;
