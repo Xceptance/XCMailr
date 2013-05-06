@@ -37,8 +37,8 @@ public class Application
     @Inject
     NinjaProperties ninjaProp;
 
-    @Inject
-    MailHandler mailhndlr;
+    @Inject 
+    MailrMessageHandlerFactory mmhf;
 
     @Inject
     MemCachedSessionHandler mcsh;
@@ -115,7 +115,7 @@ public class Application
                                             .getMillis());
 
                     u.save();
-                    mailhndlr.sendConfirmAddressMail(u.getMail(), u.getForename(), String.valueOf(u.getId()),
+                    mmhf.sendConfirmAddressMail(u.getMail(), u.getForename(), String.valueOf(u.getId()),
                                                      u.getConfirmation(), context.getAcceptLanguage().toString());
 
                     s = msg.get("i18nmsg_regok", context, result, (Object) null);
@@ -320,7 +320,7 @@ public class Application
                                           .getMillis());
 
                 usr.update();
-                mailhndlr.sendPwForgotAddressMail(usr.getMail(), usr.getForename(), String.valueOf(usr.getId()),
+                mmhf.sendPwForgotAddressMail(usr.getMail(), usr.getForename(), String.valueOf(usr.getId()),
                                                   usr.getConfirmation(), context.getAcceptLanguage().toString());
                 s = msg.get("i18nforgpw_succ", context, result, (Object) null);
                 context.getFlashCookie().error(s, (Object) null);

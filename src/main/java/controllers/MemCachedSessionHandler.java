@@ -21,7 +21,8 @@ public class MemCachedSessionHandler
     @Inject
     public NinjaProperties ninjaProp;
 
-    private final String NAMESPACE = ninjaProp.getWithDefault("application.name", "XCMAILR");
+    //private final String NAMESPACE = ninjaProp.getWithDefault("application.name", "XCMAILR");
+    private String NAMESPACE = "XCMAILR";
 
     public MemcachedClient client;
 
@@ -30,9 +31,10 @@ public class MemCachedSessionHandler
     {
         try
         {
-            String memHost = ninjaProp.getWithDefault("memcached.host", "127.0.0.1");
-            String memPort = ninjaProp.getWithDefault("memcached.port", "11211");
-            client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
+//            String memHost = ninjaProp.getWithDefault("memcached.host", "127.0.0.1");
+//            String memPort = ninjaProp.getWithDefault("memcached.port", "11211");
+            //client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
+            client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses("127.0.0.1:11211"));
             // TODO no. of clients
         }
         catch (Exception e)

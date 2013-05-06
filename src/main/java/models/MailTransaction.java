@@ -48,9 +48,11 @@ public class MailTransaction
     /**
      * Creates an MailTransaction-Object, with parameters<br/>
      * <b>Statuscodes:</b> <br/>
-     * 100 - targetmail does not exist<br/>
-     * 200 - targetmail exists but is inactive <br/>
-     * 300 - mail has been successfully <br/>
+     *   0 - Mail has a wrong pattern
+     * 100 - Mail does not exist<br/>
+     * 200 - Mail exists but is inactive <br/>
+     * 300 - Mail has been successfully <br/>
+     * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 
      * @param stat
      *            -statuscode of the transaction

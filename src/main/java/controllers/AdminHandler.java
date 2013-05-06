@@ -43,7 +43,7 @@ public class AdminHandler
     Messages msg;
 
     @Inject
-    MailHandler mailhndlr;
+    MailrMessageHandlerFactory mmhf;
 
     @Inject
     MemCachedSessionHandler mcsh;
@@ -61,7 +61,7 @@ public class AdminHandler
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("users", User.all());
         map.put("stats", MailTransaction.getStatusList());
-        List<?> mtxs = MailTransaction.all();//MailTransaction.allInPeriod(new Period(0, 0, 0, 3, 20, 0, 0, 0));
+        List<?> mtxs = MailTransaction.all();// MailTransaction.allInPeriod(new Period(0, 0, 0, 3, 20, 0, 0, 0));
         map.put("mtxs", mtxs);
         map.put("uid", usr.getId());
 
@@ -105,15 +105,7 @@ public class AdminHandler
                     };
                 String content = msg.get("i18nuser_activate_message", context.getAcceptLanguage(), param);
                 // send the mail
-                try
-                {
-                    mailhndlr.sendMail(from, actusr.getMail(), content, subject);
-                }
-                catch (UnknownHostException e)
-                {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                mmhf.sendMail(from, actusr.getMail(), content, subject);
             }
             else
             {// the account is now inactive
@@ -130,15 +122,8 @@ public class AdminHandler
                     };
                 String content = msg.get("i18nuser_deactivate_message", context.getAcceptLanguage(), param);
                 // send the mail
-                try
-                {
-                    mailhndlr.sendMail(from, actusr.getMail(), content, subject);
-                }
-                catch (UnknownHostException e)
-                {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                mmhf.sendMail(from, actusr.getMail(), content, subject);
+
             }
 
             return Results.redirect("/admin");

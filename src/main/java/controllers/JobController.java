@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.mail.MessagingException;
+import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.mail.EmailException;
@@ -44,10 +46,8 @@ public class JobController
     private final ScheduledExecutorService executorService2 = Executors.newSingleThreadScheduledExecutor();
 
     public SMTPServer smtpServer;
-
-    public Queue<SimpleEmail> emailqueue = new LinkedList<SimpleEmail>();
     
-    public Queue<MimeMessage> mailqueue = new LinkedList<MimeMessage>();
+    public Queue<MimeMessage> mailQueue = new LinkedList<MimeMessage>();
 
     public MemCachedSessionHandler mcsh;
 
@@ -57,8 +57,6 @@ public class JobController
     @Inject
     NinjaProperties ninjaProp;
 
-    @Inject
-    MailHandler mailhndl;
 
     @Start(order = 90)
     public void startActions()
@@ -84,7 +82,7 @@ public class JobController
 
             }
         }
-        MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory(mailhndl);
+        MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory();
         smtpServer = new SMTPServer(mailrFactory);
         // dynamic ports: 49152–65535
         int port;
@@ -98,7 +96,6 @@ public class JobController
         if (ninjaProp.getBoolean("test.serv") == true)
         {
             port = findAvailablePort(49152, 65535);
-
         }
         else
         {
@@ -108,9 +105,7 @@ public class JobController
         // set the port and start it
         smtpServer.setPort(port);
         smtpServer.start();
-
         int interval = Integer.parseInt(ninjaProp.get("mbox.interval"));
-
         // create the sheduler-service to check the mailboxes which were expired since the last run and disable them
         executorService.scheduleAtFixedRate(new Runnable()
         {
@@ -139,60 +134,39 @@ public class JobController
             @Override
             public void run() // Mailjob
             {
-                log.info("mailjob run " + emailqueue.size());
-                SimpleEmail message = emailqueue.poll();
+                log.info("mailjob run " + mailQueue.size());
+                MimeMessage message = mailQueue.poll();
 
                 while (!(message == null))
                 {
                     log.info("Mailjob: Message found");
                     try
                     {
-                        message.send();
-                        String domainPart = message.getToAddresses().get(0).getAddress().split("@")[1];
-                        Map<String, Integer> domainMap = (Map<String, Integer>) mcsh.get(domainPart);
-                        domainMap.remove(message.getHostName());
-                        domainMap.put(message.getHostName(), 2);
-                        mcsh.set(domainPart, 3600, domainMap);
+                        Transport.send(message);
                         log.info("Message sent");
                     }
-                    catch (EmailException e)
+                    catch (MessagingException e)
                     {
+                        // TODO Auto-generated catch block
                         e.printStackTrace();
-
-                        String domainPart = message.getToAddresses().get(0).getAddress().split("@")[1];
-                        Map<String, Integer> domainMap = (Map<String, Integer>) mcsh.get(domainPart);
-                        domainMap.remove(message.getHostName());
-                        domainMap.put(message.getHostName(), 1); //host not reachable
-                        mcsh.set(domainPart, 3600, domainMap);
-                        try
-                        {
-                            mailhndl.sendMailAgain(message);
-                        }
-                        catch (UnknownHostException e1)
-                        { //if we get this, then the message could not be sent
-                            //there are no valid mx-records anymore 
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        }
-                        
                     }
-                    message = emailqueue.poll();
+                    message = mailQueue.poll();
                 }
             }
         }, new Long(1), new Long(mailinterval), TimeUnit.MINUTES);
     }
 
-    public void addMessage(SimpleEmail msg)
+    public void addMessage(MimeMessage msg)
     {
-        emailqueue.add(msg);
+        mailQueue.add(msg);
     }
 
     @Dispose(order = 90)
     public void stopActions()
     {
-
         // stop the forwarding-service
         smtpServer.stop();
+        
         // stop the job to expire the mailboxes
         executorService.shutdown();
         executorService2.shutdown();
