@@ -129,7 +129,7 @@ public class BoxHandler
                     return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
                 // create the MBox
-                User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
+                User usr = (User) mcsh.get(context.getSessionCookie().getId());
                 MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, usr);
 
                 // creates the Box in the DB
@@ -156,9 +156,9 @@ public class BoxHandler
      *            the ID of the Mailbox
      * @return the Mailbox-Overviewpage
      */
-    public Result deleteBox(@PathParam("id") Long boxid, Context context, HttpServletRequest req)
+    public Result deleteBox(@PathParam("id") Long boxid, Context context)
     {
-        User usr = (User) mcsh.get(req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
 
         if (MBox.boxToUser(boxid, usr.getId()))
         {
@@ -197,7 +197,7 @@ public class BoxHandler
             MBox mb = MBox.getById(boxId);
             if (!(mb == null))
             { // the box with the given id exists
-                User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
+                User usr = (User) mcsh.get(context.getSessionCookie().getId());
 
                 if (mb.belongsTo(usr.getId()))
                 { // the current user is the owner of the mailbox
@@ -263,7 +263,7 @@ public class BoxHandler
      *            ID of the Box
      * @return the edit-form
      */
-    public Result showEditBox(Context context, @PathParam("id") Long boxId, HttpServletRequest req)
+    public Result showEditBox(Context context, @PathParam("id") Long boxId)
     {
         MBox mb = MBox.getById(boxId);
         if (mb.equals(null))
@@ -272,7 +272,7 @@ public class BoxHandler
         }
         else
         { // the box exists, go on!
-            User usr = (User) mcsh.get(req.getSession().getId());
+            User usr = (User) mcsh.get(context.getSessionCookie().getId());
             if (mb.belongsTo(usr.getId()))
             { // prevent the edit of a mbox that is not belonging to the user
                 MbFrmDat mbdat = new MbFrmDat();
@@ -299,10 +299,10 @@ public class BoxHandler
      * @return the mailbox-overview-page
      */
 
-    public Result showBoxes(Context context, HttpServletRequest req)
+    public Result showBoxes(Context context)
     {
 
-        User usr = (User) mcsh.get(req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
         return Results.html().render(MBox.allUserMap(usr.getId()));
     }
 
@@ -314,10 +314,10 @@ public class BoxHandler
      * @return the rendered mailbox-overview-page
      */
 
-    public Result expireBox(@PathParam("id") Long id, Context context, HttpServletRequest req)
+    public Result expireBox(@PathParam("id") Long id, Context context)
     {
         MBox mb = MBox.getById(id);
-        User usr = (User) mcsh.get(req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
         if (mb.belongsTo(usr.getId()))
         {// check if the mailbox belongs to the current user
             DateTime dt = new DateTime();

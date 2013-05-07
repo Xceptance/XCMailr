@@ -1,7 +1,5 @@
 package controllers;
 
-import javax.servlet.http.HttpServletRequest;
-
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -40,7 +38,8 @@ public class UserHandler
      */
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
+
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
         Result result = Results.html();
         Optional<Result> opt = Optional.of(result);
         String s;
@@ -83,6 +82,7 @@ public class UserHandler
                 }
                 // update the user
                 usr.update();
+                mcsh.set(context.getSessionCookie().getId(), 3600, usr);
                 s = msg.get("i18nmsg_chok", context, opt, (Object) null).get();
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/user/edit");
@@ -102,9 +102,9 @@ public class UserHandler
      * 
      * @return the user-edit-form
      */
-    public Result editUserForm(Context context, HttpServletRequest req)
+    public Result editUserForm(Context context)
     {
-        User usr = (User) mcsh.get(req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
         return Results.html().render(EditUsr.prepopulate(usr));
     }
 

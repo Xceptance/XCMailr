@@ -68,9 +68,9 @@ public class AdminHandler
      * @param context
      * @return a list of all Users
      */
-    public Result showUsers(Context context,  String no)
+    public Result showUsers(Context context, String no)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("users", User.all());
         map.put("uid", usr.getId());
@@ -83,7 +83,7 @@ public class AdminHandler
      * @param context
      * @return a list of all Users
      */
-    public Result showSumTx(Context context,  String no)
+    public Result showSumTx(Context context, String no)
     {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("stats", MailTransaction.getStatusList());
@@ -96,7 +96,7 @@ public class AdminHandler
      * @param context
      * @return a list of all Users
      */
-    public Result showMTX(Context context,  @PathParam("no") String no)
+    public Result showMTX(Context context, @PathParam("no") String no)
     {
 
         Map<String, Object> map = new HashMap<String, Object>();
@@ -137,7 +137,7 @@ public class AdminHandler
      */
     public Result activate(@PathParam("id") Long id, Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
         if (!(usr.getId() == id))
         { // the user to (de-)activate is not the user who performs this action
 
@@ -203,7 +203,7 @@ public class AdminHandler
      */
     public Result promote(@PathParam("id") Long id, Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
         if (!(usr.getId() == id))
         { // the user to pro-/demote is not the user who performs this action
             User.promote(id);
@@ -221,7 +221,7 @@ public class AdminHandler
      */
     public Result deleteUser(@PathParam("id") Long id, Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
         if (!(usr.getId() == id))
         { // the user to delete is not the user who performs this action
             User.delete(id);

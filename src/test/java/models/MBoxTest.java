@@ -40,8 +40,6 @@ public class MBoxTest extends NinjaTest
          * TEST: create, persist and find a user-object
          */
         User u2 = new User("forename2", "surname2", "test2@localhost.com", "1234");
-
-        u.save();
         u2.save();
 
         MBox mb2 = MBox.getById(mb.getId());
@@ -107,7 +105,7 @@ public class MBoxTest extends NinjaTest
     @Test
     public void boxToUserTest()
     {
-        User u2 = new User("fname", "sName", "eMail@localhost", "pw");
+        User u2 = new User("fname", "sName", "eMail@localhost.com", "pw");
         u2.save();
 
         assertTrue(mb.belongsTo(u.getId()));

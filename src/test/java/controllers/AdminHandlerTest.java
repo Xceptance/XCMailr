@@ -56,7 +56,7 @@ public class AdminHandlerTest extends NinjaTest
 
         assertTrue(cookie != null);
         assertTrue(cookie.getValue().contains("___TS"));
-        assertTrue(cookie.getValue().contains("id"));
+        assertTrue(cookie.getValue().contains("username"));
 
         formParams.clear();
 

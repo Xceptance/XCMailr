@@ -18,16 +18,15 @@ public class AdminFilter implements Filter
     @Override
     public Result filter(FilterChain chain, Context context)
     {
-        return chain.next(context);
-//        User test = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
-//        if (!(test == null) && test.isActive())
-//        {
-//            return chain.next(context);
-//
-//        }
-//        else
-//        {
-//            return Results.redirect("/");
-//        }
+        User test = (User) mcsh.get(context.getSessionCookie().getId());
+        if (!(test == null) && test.isActive())
+        {
+            return chain.next(context);
+
+        }
+        else
+        {
+            return Results.redirect("/");
+        }
     }
 }

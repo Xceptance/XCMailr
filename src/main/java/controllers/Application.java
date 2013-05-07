@@ -12,11 +12,14 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import etc.HelperUtils;
+import filters.AdminFilter;
+import filters.SecureFilter;
 import models.EditUsr;
 import models.Login;
 import models.PwData;
 import ninja.Context;
 import models.User;
+import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Messages;
@@ -30,6 +33,7 @@ import ninja.validation.Validation;
  * 
  * @author Patrick Thum 2012 released under Apache 2.0 License
  */
+
 @Singleton
 public class Application
 {
@@ -52,9 +56,10 @@ public class Application
      * @param context
      * @return the index page
      */
-    public Result index(Context context, HttpServletRequest req)
+    public Result index(Context context)
     {
-        User usr = (User) mcsh.get(req.getSession().getId());
+        String uuid = context.getSessionCookie().getId();        
+        User usr = (User) mcsh.get(uuid);
         if (usr == null)
         {
             // show the default index page if there's no user
@@ -77,7 +82,6 @@ public class Application
 
     public Result registerForm()
     {
-
         return Results.html();
     }
 
@@ -198,10 +202,10 @@ public class Application
      * 
      * @return the index page
      */
-    public Result logout(Context context, HttpServletRequest req)
+    public Result logout(Context context)
     {
+        String sessionKey = context.getSessionCookie().getId();
         context.getSessionCookie().clear();
-        String sessionKey = req.getSession().getId();
         mcsh.delete(sessionKey);
         Result result = Results.html();
         Optional<Result> opt = Optional.of(result);
@@ -218,7 +222,7 @@ public class Application
      */
     public Result loggedInForm(Context context, @JSR303Validation Login l, Validation validation)
     {
-         
+
         Result result = Results.html();
         Optional<Result> opt = Optional.of(result);
         String s;
@@ -244,9 +248,11 @@ public class Application
                         return Results.html().template("views/Application/index.ftl.html");
                     }
 
-                    String sessionKey = context.getSessionCookie().getId();//req.getSession().getId();
-
+                    // we put the username into the cookie, but use the id of the cookie for authentication
+                    context.setAttribute("uname", lgr.getMail());
+                    String sessionKey = context.getSessionCookie().getId();
                     mcsh.set(sessionKey, 3600, lgr);
+                    context.getSessionCookie().put("username", lgr.getMail());
                     lgr.setBadPwCount(0);
                     lgr.update();
 
