@@ -7,6 +7,9 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.h2.constant.SysProperties;
+import org.joda.time.Period;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -57,14 +60,70 @@ public class AdminHandler
      */
     public Result showAdmin(Context context, HttpServletRequest req, String no)
     {
+        return Results.html();
+    }
+
+    /**
+     * Shows a list of all Users in the DB site/admin
+     * 
+     * @param context
+     * @return a list of all Users
+     */
+    public Result showUsers(Context context, HttpServletRequest req, String no)
+    {
         User usr = (User) mcsh.get(req.getSession().getId());
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("users", User.all());
-        map.put("stats", MailTransaction.getStatusList());
-        List<?> mtxs = MailTransaction.all();// MailTransaction.allInPeriod(new Period(0, 0, 0, 3, 20, 0, 0, 0));
-        map.put("mtxs", mtxs);
         map.put("uid", usr.getId());
+        return Results.html().render(map);
+    }
 
+    /**
+     * Shows a list of all Users in the DB site/admin
+     * 
+     * @param context
+     * @return a list of all Users
+     */
+    public Result showSumTx(Context context, HttpServletRequest req, String no)
+    {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("stats", MailTransaction.getStatusList());
+        return Results.html().render(map);
+    }
+
+    /**
+     * Shows a list of all Users in the DB site/admin
+     * 
+     * @param context
+     * @return a list of all Users
+     */
+    public Result showMTX(Context context, HttpServletRequest req, @PathParam("no") String no)
+    {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        List<MailTransaction> mtxs ;
+        int value = Integer.parseInt(no);
+        switch(value){
+            case(1): //1hour
+                //years, months, weeks, days, hours, minutes, secs, millis
+                mtxs = MailTransaction.allInPeriod(new Period(0, 0, 0, 0, 1, 0, 0, 0));
+                break;
+            case(2)://1day
+                mtxs = MailTransaction.allInPeriod(new Period(0, 0, 0, 1, 0, 0, 0, 0));
+                break;
+            case(3)://1week
+                mtxs = MailTransaction.allInPeriod(new Period(0, 0, 1, 0, 0, 0, 0, 0));
+                break;
+            case(4)://1week
+                mtxs = MailTransaction.allInPeriod(new Period(0, 1, 0, 0, 0, 0, 0, 0));
+                break;
+            default://all
+                mtxs = MailTransaction.all();        
+                break;
+        }
+        
+        // 
+        map.put("mtxs", mtxs);
         return Results.html().render(map);
     }
 

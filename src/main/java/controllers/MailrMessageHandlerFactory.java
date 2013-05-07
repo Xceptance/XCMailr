@@ -2,38 +2,17 @@ package controllers;
 
 import models.MBox;
 import models.MailTransaction;
-import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.utils.NinjaProperties;
 
-import org.apache.commons.mail.EmailException;
-import org.apache.commons.mail.SimpleEmail;
-import org.apache.commons.mail.util.MimeMessageParser;
-import org.apache.commons.mail.util.MimeMessageUtils;
 import org.slf4j.Logger;
 import org.subethamail.smtp.*;
-import org.xbill.DNS.Lookup;
-import org.xbill.DNS.MXRecord;
-import org.xbill.DNS.Record;
-import org.xbill.DNS.TextParseException;
-import org.xbill.DNS.Type;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-import java.util.Map.Entry;
-
-import javax.activation.DataSource;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
@@ -41,13 +20,10 @@ import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
 
 @Singleton
 public class MailrMessageHandlerFactory implements MessageHandlerFactory
 {
-
     @Inject
     Logger log;
 
@@ -60,9 +36,11 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     @Inject
     JobController jc;
 
+    private Session sess;
 
     public MessageHandler create(MessageContext ctx)
     {
+
         return new Handler(ctx);
     }
 
@@ -74,15 +52,15 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         String rcpt;
 
-        String content;
-
         InputStream data;
 
         MimeMessage mail;
 
         public Handler(MessageContext ctx)
         {
+
             this.ctx = ctx;
+
         }
 
         public void from(String from) throws RejectException
@@ -97,7 +75,18 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         public void data(InputStream data) throws IOException
         {
-
+            //create the session, read the entrys from the config file
+            Session session = MailrMessageHandlerFactory.this.getSession();
+            session.setDebug(true);
+            try
+            {
+                mail = new MimeMessage(session, data);
+            }
+            catch (MessagingException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
         /**
@@ -124,14 +113,9 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                 { // there's an existing and active mailaddress
                   // TODO the language here
                   // prepare the message
-
                     String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
-
                     try
                     {
-                        Session session = MailrMessageHandlerFactory.this.getSession();
-                        session.setDebug(true);
-                        mail = new MimeMessage(session, data);
                         mail.setFrom(new InternetAddress(sender));
                         mail.addRecipient(Message.RecipientType.TO, new InternetAddress(fwdtarget));
                         jc.addMessage(mail);
@@ -165,30 +149,37 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         }
     }
-
+/**
+ * Reads the Configuration-File and creates the session for the Mailtransport
+ * @return the Session-Object 
+ */
     public Session getSession()
     {
-        String host = ninjaProp.get("mail.smtp.host");
-        String port = ninjaProp.get("mail.smtp.port");
-        final String user = ninjaProp.get("mail.smtp.user");
-        final String pwd = ninjaProp.get("mail.smtp.pass");
-        boolean auth = ninjaProp.getBoolean("mail.smtp.auth");
-
-        Properties prop = System.getProperties();
-        prop.put("mail.smtp.host", host);
-        prop.put("mail.smtp.port", port);
-        prop.put("mail.smtp.debug", true);
-        prop.put("mail.smtp.auth", auth);
-        prop.put("mail.smtp.starttls.enable", "true");
-
-        return Session.getInstance(prop, new javax.mail.Authenticator()
+        if (sess == null)
         {
-            protected PasswordAuthentication getPasswordAuthentication()
+            //get the data from application.conf
+            final String host = ninjaProp.get("mail.smtp.host");
+            final String port = ninjaProp.get("mail.smtp.port");
+            final String user = ninjaProp.get("mail.smtp.user");
+            final String pwd = ninjaProp.get("mail.smtp.pass");
+            boolean auth = ninjaProp.getBoolean("mail.smtp.auth");
+            boolean tls = ninjaProp.getBoolean("mail.smtp.tls");
+            //set the data
+            Properties prop = System.getProperties();
+            prop.put("mail.smtp.host", host);
+            prop.put("mail.smtp.port", port);
+            prop.put("mail.smtp.debug", true);
+            prop.put("mail.smtp.auth", auth);
+            prop.put("mail.smtp.starttls.enable", tls);
+            sess = Session.getInstance(prop, new javax.mail.Authenticator()
             {
-                return new PasswordAuthentication(user, pwd);
-            }
-        });
-
+                protected PasswordAuthentication getPasswordAuthentication()
+                {
+                    return new PasswordAuthentication(user, pwd);
+                }
+            });
+        }
+        return sess;
     }
 
     /**
@@ -205,7 +196,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * @return true if the addition to the mailqueue was successful
      * @throws UnknownHostException
      */
-    public boolean sendMail(String from, String to, String content, String subject) 
+    public boolean sendMail(String from, String to, String content, String subject)
     {
         Session session = getSession();
         session.setDebug(true);

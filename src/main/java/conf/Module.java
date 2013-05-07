@@ -38,6 +38,7 @@ public class Module extends AbstractModule
         install(new NinjaEbeanModule());
         
         bind(JobController.class);
+        
         bind(MemCachedSessionHandler.class);
 
     }

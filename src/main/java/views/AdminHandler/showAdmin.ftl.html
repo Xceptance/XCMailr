@@ -5,22 +5,14 @@
 	<div >
 		<p>User Administration</p> 
 	<p>${(active)!}</p>
-		<div class="tabbable">
-		<ul class="nav nav-tabs">
-			<li class="active"><a href="#users" data-toggle="tab">Users</a></li>
-  			<li><a href="#statistics" data-toggle="tab">Statistics</a></li>
-  		</ul>
-		<p>
-			<div class="tab-content">
-				<div class="tab-pane active" id="users">
-					<#include "showUsers.ftl.html"/>
-				</div>
-				<div class="tab-pane" id="statistics">
-					<#include "showStats.ftl.html"/>
-				</div>
-			</div>
-		</p>
-		</div>		
+		<div>
+			<ul>
+			<li><a href="/admin/users">Users</a></li>
+			<li><a href="/admin/summedtx">Summed Statistics</a></li>
+			<li><a href="/admin/mtx">Transactions</a></li>
+			<li><a href=""></a></li>
+			</ul>
+		</div>
 	</div>
 </div>
 

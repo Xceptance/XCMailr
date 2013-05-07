@@ -2,11 +2,9 @@ package controllers;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -16,8 +14,6 @@ import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.commons.mail.EmailException;
-import org.apache.commons.mail.SimpleEmail;
 import org.joda.time.DateTime;
 
 import org.slf4j.Logger;
@@ -48,23 +44,32 @@ public class JobController
     public SMTPServer smtpServer;
     
     public Queue<MimeMessage> mailQueue = new LinkedList<MimeMessage>();
-
-    public MemCachedSessionHandler mcsh;
-
+    
     @Inject
     Logger log;
 
     @Inject
     NinjaProperties ninjaProp;
 
+    @Inject
+    MemCachedSessionHandler mcsh;
+    
+    @Inject
+    MailrMessageHandlerFactory mailrFactory;
 
     @Start(order = 90)
     public void startActions()
     {
-
-        mcsh = new MemCachedSessionHandler();
-        log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
         String pwd = ninjaProp.get("admin.pass");
+        //interval to check for expired mailboxes
+        int interval = Integer.parseInt(ninjaProp.get("mbox.interval"));
+        //interval to check for new mails to send
+        int mailinterval = Integer.parseInt(ninjaProp.getWithDefault("mbox.mailinterval", "1"));
+        
+        mcsh.create();
+        
+        log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
+
         if (!(pwd == null))
         { // if a pw is set in application.conf..
             log.info("the passwd is set in the db");
@@ -74,16 +79,16 @@ public class JobController
              // create the adminaccount
                 log.info("Adminaccount is: " + mail + ":" + pwd);
                 User usr = new User("Site", "Admin", mail, pwd);
-
                 // set the status and admin flags
                 usr.setAdmin(true);
                 usr.setActive(true);
                 usr.save();
-
             }
         }
-        MailrMessageHandlerFactory mailrFactory = new MailrMessageHandlerFactory();
+        //create the server for incoming mails
         smtpServer = new SMTPServer(mailrFactory);
+        
+        
         // dynamic ports: 49152–65535
         int port;
 
@@ -93,7 +98,7 @@ public class JobController
          * TODO maybe use the mode (e.g. check for ninjaProp.isDev() or ninjaProp.isTest() ) or alternatively check if
          * the port which was set in application.conf at mbox.port is used
          */
-        if (ninjaProp.getBoolean("test.serv") == true)
+        if (ninjaProp.isDev()||ninjaProp.isTest())
         {
             port = findAvailablePort(49152, 65535);
         }
@@ -105,7 +110,7 @@ public class JobController
         // set the port and start it
         smtpServer.setPort(port);
         smtpServer.start();
-        int interval = Integer.parseInt(ninjaProp.get("mbox.interval"));
+
         // create the sheduler-service to check the mailboxes which were expired since the last run and disable them
         executorService.scheduleAtFixedRate(new Runnable()
         {
@@ -128,7 +133,7 @@ public class JobController
             }
         }, new Long(1), new Long(interval), TimeUnit.MINUTES);
 
-        int mailinterval = Integer.parseInt(ninjaProp.getWithDefault("mbox.mailinterval", "1"));
+
         executorService2.scheduleAtFixedRate(new Runnable()
         {
             @Override

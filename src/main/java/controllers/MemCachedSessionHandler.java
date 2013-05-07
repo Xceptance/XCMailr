@@ -19,21 +19,30 @@ import com.google.inject.Singleton;
 public class MemCachedSessionHandler
 {
     @Inject
-    public NinjaProperties ninjaProp;
+    NinjaProperties ninjaProp;
 
-    //private final String NAMESPACE = ninjaProp.getWithDefault("application.name", "XCMAILR");
+    private String memHost;
+
+    private String memPort;
+
     private String NAMESPACE = "XCMAILR";
+
+    private boolean instantiated;
 
     public MemcachedClient client;
 
-    @Inject
-    public MemCachedSessionHandler()
+
+    /**
+     * Call this Method to initialise all Data from application.conf
+     * (if this wasn't called before, it will be invoked by all other operations in this class) 
+     */
+    public void create()
     {
         try
         {
-//            String memHost = ninjaProp.getWithDefault("memcached.host", "127.0.0.1");
-//            String memPort = ninjaProp.getWithDefault("memcached.port", "11211");
-            //client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
+            memHost = ninjaProp.getWithDefault("memcached.host", "127.0.0.1");
+            memPort = ninjaProp.getWithDefault("memcached.port", "11211");
+            client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
             client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses("127.0.0.1:11211"));
             // TODO no. of clients
         }
@@ -41,6 +50,8 @@ public class MemCachedSessionHandler
         {
             e.printStackTrace();
         }
+
+        instantiated = true;
     }
 
     /**
@@ -55,7 +66,7 @@ public class MemCachedSessionHandler
      */
     public void set(String key, int ttl, final Object o)
     {
-        client.set(NAMESPACE + key, ttl, o);
+        getCache().set(NAMESPACE + key, ttl, o);
 
     }
 
@@ -88,6 +99,10 @@ public class MemCachedSessionHandler
      */
     public MemcachedClient getCache()
     {
+        if (!instantiated)
+        {
+            create();
+        }
         return client;
     }
 }
