@@ -9,7 +9,9 @@ import ninja.utils.NinjaProperties;
 import ninja.utils.NinjaTestServer;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
@@ -19,11 +21,30 @@ public class UserHandlerTest extends NinjaTest
 
     @Inject
     NinjaProperties ninjaProp;
+
     Map<String, String> headers = Maps.newHashMap();
+
     Map<String, String> formParams = Maps.newHashMap();
+
     Map<String, String> returnedData = Maps.newHashMap();
+
     Map<String, String> userData = Maps.newHashMap();
+
     String result;
+    
+    private static NinjaTestServer ninjaTestServer;
+    
+    @BeforeClass
+    public static void beforeClass(){
+        ninjaTestServer = new NinjaTestServer(); 
+        
+    }
+    
+    @AfterClass
+    public static void afterClass(){
+        ninjaTestServer.shutdown();
+    }
+    
 
     @Before
     public void setUp()
@@ -31,12 +52,11 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         headers.clear();
         returnedData.clear();
-        
+
         User u = new User("John", "Doe", "admin@ccmailr.test", "1234");
         u.setActive(true);
         u.save();
 
-        
         userData.put("forename", "John");
         userData.put("surName", "Doe");
         userData.put("mail", "admin@ccmailr.test");
@@ -69,7 +89,6 @@ public class UserHandlerTest extends NinjaTest
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
-        
 
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed

@@ -1,0 +1,76 @@
+<#import "../layout/loginLayout.ftl.html" as layout> <@layout.myLayout
+"User Administration">
+
+	<div class="btn-group">
+	  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+	    Vorgabezeit
+	    <span class="caret"></span>
+	  </a>
+	  
+	  <ul class="dropdown-menu">
+	    	<li>Alles</li>
+	    	<li><a tabindex="1" href="#1">1h</a></li>
+	    	<li><a tabindex="2" href="#2">1d</a></li>
+	    	<li><a tabindex="3" href="#3">1w</a></li>
+	  </ul>
+	</div>
+	
+	<table class="table table-hover">
+	<thead>
+    <tr>
+	    <th>${i18nadmin_mtxts}</th>
+	    <th>${i18nadmin_mtxstatus}</th>
+	    <th>${i18nadmin_mtxtarget}</th>
+	    <th>${i18nadmin_mtxsource}</th>
+    </tr>
+    </thead>
+    <tbody>
+		<#list mtxs as mtx>
+		
+		<#switch mtx.status>
+	    		<#case  100>
+	    			<tr class="error">
+	    		<#break>
+	    		<#case 200>
+	    			<tr class="warning">
+	    		<#break>
+	    		<#case  300>
+	    			<tr class="success">
+	    		<#break>
+	    		<#case  400>
+	    			<tr class="error">
+	    		<#break>
+	    		<#default>
+	    			<tr>
+		 </#switch>
+			
+		    
+		    <td>${mtx.getTsAsString()}</td>
+		    
+		    <td>
+		    	<#switch mtx.status>
+		    		<#case  100>
+		    			${i18nadmin_mtxstat100}
+		    		<#break>
+		    		<#case 200>
+		    			${i18nadmin_mtxstat200}
+		    		<#break>
+		    		<#case  300>
+		    			${i18nadmin_mtxstat300}
+		    		<#break>
+		    		<#case  400>
+		    			${i18nadmin_mtxstat400}
+		    		<#break>
+		    		<#default>
+		    			${i18nadmin_mtxunknown}
+		    	</#switch>
+		    </td>
+		    <td>${mtx.sourceaddr}</td>
+		    <td>${mtx.targetaddr}</td>
+		    </tr>
+		</#list>
+		</tbody>
+    </table>
+</p>
+	
+</@layout.myLayout>	

@@ -77,11 +77,9 @@ public class MBox
      *            - timestamp for expiration
      * @param expired
      *            - indicates the status of the mail
-     * @param pattern
-     *            - indicates whether this object is a pattern
      */
 
-    public MBox(String local, String domain, long ts, boolean expired, boolean pattern, User usr)
+    public MBox(String local, String domain, long ts, boolean expired, User usr)
     {
         this.address = local;
         this.ts_Active = ts;
@@ -509,18 +507,36 @@ public class MBox
         else
         {
             DateTime dt = new DateTime(this.ts_Active);
+            String day = "";
+            String mon = "";
+            String hou = "";
             String min = "";
+
+            if (dt.getDayOfMonth() < 10)
+            {
+                day += "0";
+            }
+            day += String.valueOf(dt.getDayOfMonth());
+
+            if (dt.getMonthOfYear() < 10)
+            {
+                mon += "0";
+            }
+            mon += String.valueOf(dt.getMonthOfYear());
+
+            if (dt.getHourOfDay() < 10)
+            {
+                hou += "0";
+            }
+            hou += String.valueOf(dt.getHourOfDay());
+            
             if (dt.getMinuteOfHour() < 10)
             {
-                min = "0" + String.valueOf(dt.getMinuteOfHour());
+                min += "0";
             }
-            else
-            {
-                min = String.valueOf(dt.getMinuteOfHour());
-            }
+            min += String.valueOf(dt.getMinuteOfHour());
 
-            return dt.getDayOfMonth() + "." + dt.getMonthOfYear() + "." + dt.getYear() + " " + dt.getHourOfDay() + ":"
-                   + min;
+            return day + "." + mon + "." + dt.getYear() + " " + hou + ":" + min;
         }
     }
 

@@ -98,19 +98,36 @@ public class MailTransaction
     public String getTsAsString()
     {
         DateTime dt = new DateTime(this.ts);
-
+        String day = "";
+        String mon = "";
+        String hou = "";
         String min = "";
+
+        if (dt.getDayOfMonth() < 10)
+        {
+            day += "0";
+        }
+        day += String.valueOf(dt.getDayOfMonth());
+
+        if (dt.getMonthOfYear() < 10)
+        {
+            mon += "0";
+        }
+        mon += String.valueOf(dt.getMonthOfYear());
+
+        if (dt.getHourOfDay() < 10)
+        {
+            hou += "0";
+        }
+        hou += String.valueOf(dt.getHourOfDay());
+        
         if (dt.getMinuteOfHour() < 10)
         {
-            min = "0" + String.valueOf(dt.getMinuteOfHour());
+            min += "0";
         }
-        else
-        {
-            min = String.valueOf(dt.getMinuteOfHour());
-        }
+        min += String.valueOf(dt.getMinuteOfHour());
 
-        return dt.getDayOfMonth() + "." + dt.getMonthOfYear() + "." + dt.getYear() + " " + dt.getHourOfDay() + ":"
-               + min;
+        return day + "." + mon + "." + dt.getYear() + " " + hou + ":" + min;
 
     }
 

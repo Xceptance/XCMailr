@@ -18,15 +18,16 @@ public class SecureFilter implements Filter
     @Override
     public Result filter(FilterChain chain, Context context)
     {
-        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
-        if (!(usr == null) && usr.isActive())
-        {
-            return chain.next(context);
-
-        }
-        else
-        {
-            return Results.redirect("/login");
-        }
+        return chain.next(context);
+//        User usr = (User) mcsh.get(context.getHttpServletRequest().getSession().getId());
+//        if (!(usr == null) && usr.isActive())
+//        {
+//            return chain.next(context);
+//
+//        }
+//        else
+//        {
+//            return Results.redirect("/login");
+//        }
     }
 }

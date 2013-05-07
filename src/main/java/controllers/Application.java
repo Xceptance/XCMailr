@@ -6,6 +6,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.joda.time.DateTime;
+
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -37,7 +39,7 @@ public class Application
     @Inject
     NinjaProperties ninjaProp;
 
-    @Inject 
+    @Inject
     MailrMessageHandlerFactory mmhf;
 
     @Inject
@@ -89,13 +91,15 @@ public class Application
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
     {
         Result result = Results.html();
+        Optional<Result> opt = Optional.of(result);
         String s;
         if (validation.hasViolations())
         {
             frdat.setPw("");
             frdat.setPwn1("");
             frdat.setPwn2("");
-            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+
+            s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
         }
@@ -115,10 +119,11 @@ public class Application
                                             .getMillis());
 
                     u.save();
+                    Optional<String> lang = Optional.of(context.getAcceptLanguage());
                     mmhf.sendConfirmAddressMail(u.getMail(), u.getForename(), String.valueOf(u.getId()),
-                                                     u.getConfirmation(), context.getAcceptLanguage().toString());
+                                                u.getConfirmation(), lang);
 
-                    s = msg.get("i18nmsg_regok", context, result, (Object) null);
+                    s = msg.get("i18nmsg_regok", context, opt, (Object) null).get();
                     context.getFlashCookie().success(s, (Object) null);
 
                     return Results.redirect("/");
@@ -128,14 +133,14 @@ public class Application
                     frdat.setPw("");
                     frdat.setPwn1("");
                     frdat.setPwn2("");
-                    s = msg.get("i18nmsg_wrongpw", context, result, (Object) null);
+                    s = msg.get("i18nmsg_wrongpw", context, opt, (Object) null).get();
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
                 }
             }
             else
             { // mailadress already exists
-                s = msg.get("i18nmsg_mailex", context, result, (Object) null);
+                s = msg.get("i18nmsg_mailex", context, opt, (Object) null).get();
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
             }
@@ -150,7 +155,7 @@ public class Application
      *            - the userid
      * @param token
      *            - the verification-token
-     * @param context 
+     * @param context
      * @return to the index-page
      */
     public Result verifyActivation(@PathParam("id") Long id, @PathParam("token") String token, Context context)
@@ -164,7 +169,8 @@ public class Application
                 u.update();
 
                 Result result = Results.html();
-                String s = msg.get("i18nuser_verify_success", context, result, (Object) null);
+                Optional<Result> opt = Optional.of(result);
+                String s = msg.get("i18nuser_verify_success", context, opt, (Object) null).get();
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/");
             }
@@ -198,7 +204,8 @@ public class Application
         String sessionKey = req.getSession().getId();
         mcsh.delete(sessionKey);
         Result result = Results.html();
-        String s = msg.get("i18nmsg_logout", context, result, (Object) null);
+        Optional<Result> opt = Optional.of(result);
+        String s = msg.get("i18nmsg_logout", context, opt, (Object) null).get();
         context.getFlashCookie().success(s, (Object) null);
         return Results.redirect("/");
     }
@@ -209,16 +216,17 @@ public class Application
      * 
      * @return the login form or the index page
      */
-    public Result loggedInForm(Context context, @JSR303Validation Login l, Validation validation, HttpServletRequest req)
+    public Result loggedInForm(Context context, @JSR303Validation Login l, Validation validation)
     {
-
+         
         Result result = Results.html();
+        Optional<Result> opt = Optional.of(result);
         String s;
 
         if (validation.hasViolations())
         {
             l.setPwd("");
-            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             return Results.html().template("views/Application/loginForm.ftl.html").render(l);
         }
@@ -231,17 +239,18 @@ public class Application
                 { // correct login
                     if (!lgr.isActive())
                     {
-                        s = msg.get("i18nuser_inactive", context, result, (Object) null);
+                        s = msg.get("i18nuser_inactive", context, opt, (Object) null).get();
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.html().template("views/Application/index.ftl.html");
                     }
-                    
-                    String sessionKey = req.getSession().getId();//context.getHttpServletRequest().getSession().getId();
-                    
+
+                    String sessionKey = context.getSessionCookie().getId();//req.getSession().getId();
+
                     mcsh.set(sessionKey, 3600, lgr);
                     lgr.setBadPwCount(0);
                     lgr.update();
-                    s = msg.get("i18nmsg_login", context, result, (Object) null);
+
+                    s = msg.get("i18nmsg_login", context, opt, (Object) null).get();
                     context.getFlashCookie().success(s, (Object) null);
                     return Results.html().template("views/Application/indexLogin.ftl.html");
                 }
@@ -256,13 +265,13 @@ public class Application
                         lgr.update();
 
                         // show the disabled message and return to the forgot-pw-page
-                        s = msg.get("i18nuser_disabled", context, result, (Object) null);
+                        s = msg.get("i18nuser_disabled", context, opt, (Object) null).get();
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/pwresend");
                     }
 
                     l.setPwd("");
-                    s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+                    s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.html().template("views/Application/loginForm.ftl.html").render(l);
                 }
@@ -270,7 +279,7 @@ public class Application
             else
             {// the user does not exist
                 l.setPwd("");
-                s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+                s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.html().template("views/Application/loginForm.ftl.html").render(l);
             }
@@ -297,12 +306,13 @@ public class Application
     public Result pwResend(Context context, @JSR303Validation Login l, Validation validation)
     {
         Result result = Results.html();
+        Optional<Result> opt = Optional.of(result);
         String s;
 
         if (validation.hasViolations())
         {
             // some fields weren't filled
-            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/pwresend");
         }
@@ -320,15 +330,16 @@ public class Application
                                           .getMillis());
 
                 usr.update();
+                Optional<String> lang = Optional.of(context.getAcceptLanguage());
                 mmhf.sendPwForgotAddressMail(usr.getMail(), usr.getForename(), String.valueOf(usr.getId()),
-                                                  usr.getConfirmation(), context.getAcceptLanguage().toString());
-                s = msg.get("i18nforgpw_succ", context, result, (Object) null);
+                                             usr.getConfirmation(), lang);
+                s = msg.get("i18nforgpw_succ", context, opt, (Object) null).get();
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.redirect("/");
             }
 
             // The user doesn't exist in the db, but we show him the success-msg anyway
-            s = msg.get("i18nforgpw_succ", context, result, (Object) null);
+            s = msg.get("i18nforgpw_succ", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/");
         }
@@ -378,12 +389,13 @@ public class Application
      * @param pwd
      *            - the PwData (the form-entrys)
      * @param validation
-     * @return the "change your pw"-site on error or the index-page 
+     * @return the "change your pw"-site on error or the index-page
      */
     public Result changePw(@PathParam("id") Long id, @PathParam("token") String token, Context context,
                            @JSR303Validation PwData pwd, Validation validation)
     {
         Result result = Results.html();
+        Optional<Result> opt = Optional.of(result);
         String s;
         // check the PathParams again
         User u = User.getById(id);
@@ -402,20 +414,20 @@ public class Application
                         // set the confirm-ts to now to prevent the reuse of the link
                         u.setTs_confirm(DateTime.now().getMillis());
                         u.update();
-                        s = msg.get("i18nmsg_chok", context, result, (Object) null);
+                        s = msg.get("i18nmsg_chok", context, opt, (Object) null).get();
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/");
                     }
                     else
                     { // the passwords are not equal
-                        s = msg.get("i18nmsg_wrongpw", context, result, (Object) null);
+                        s = msg.get("i18nmsg_wrongpw", context, opt, (Object) null).get();
                         context.getFlashCookie().error(s, (Object) null);
                         return Results.redirect("/lostpw" + id + "/" + token);
                     }
                 }
                 else
                 { // the form has errors
-                    s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+                    s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
                     context.getFlashCookie().error(s, (Object) null);
                     return Results.redirect("/lostpw" + id + "/" + token);
                 }

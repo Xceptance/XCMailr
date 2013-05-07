@@ -7,6 +7,8 @@ import ninja.utils.NinjaProperties;
 
 import org.slf4j.Logger;
 import org.subethamail.smtp.*;
+
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
@@ -240,7 +242,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * @param lang
      *            - The Language for the Mail
      */
-    public void sendConfirmAddressMail(String to, String forename, String id, String token, String lang)
+    public void sendConfirmAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {
         String from = ninjaProp.get("mbox.adminaddr");
         String url = "http://" + ninjaProp.get("mbox.host") + "/verify/" + id + "/" + token;
@@ -249,9 +251,9 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                 forename, url
 
             };
-        String body = msg.get("i18nuser_verify_message", lang, object);
+        String body = msg.get("i18nuser_verify_message", lang, object).get();
 
-        String subj = msg.get("i18nuser_verify_subject", lang, (Object) null);
+        String subj = msg.get("i18nuser_verify_subject", lang, (Object) null).get();
 
         sendMail(from, to, body, subj);
 
@@ -271,7 +273,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * @param lang
      *            - The Language for the Mail
      */
-    public void sendPwForgotAddressMail(String to, String forename, String id, String token, String lang)
+    public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {
         String from = ninjaProp.get("mbox.adminaddr");
         String url = "http://" + ninjaProp.get("mbox.host") + "/lostpw/" + id + "/" + token;
@@ -279,8 +281,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
             {
                 forename, url
             };
-        String body = msg.get("i18nuser_pwresend_message", lang, object);
-        String subj = msg.get("i18nuser_pwresend_subject", lang, (Object) null);
+        String body = msg.get("i18nuser_pwresend_message", lang, object).get();
+        String subj = msg.get("i18nuser_pwresend_subject", lang, (Object) null).get();
         sendMail(from, to, body, subj);
     }
 }

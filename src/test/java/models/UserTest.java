@@ -26,7 +26,7 @@ public class UserTest extends NinjaTest
     }
 
     @Test
-    public void someTest()
+    public void UsersTest()
     {
 
         /*
@@ -50,7 +50,7 @@ public class UserTest extends NinjaTest
         /*
          * TEST: Get the Userlist
          */
-        User u3 = new User("forename", "surname", "test@localhost.com", "1234");
+        User u3 = new User("forename", "surname", "test2@localhost.com", "1234");
         u3.save();
         List<User> list = User.all();
 
@@ -58,10 +58,16 @@ public class UserTest extends NinjaTest
         assertTrue(list.size() == 3);
 
         /*
-         * TEST:
+         * TEST: change the users values
          */
-        // TODO prevent multiple mails!
-        // assertNotNull(User.getUsrByMail("test@localhost.com"));
+        u3.setActive(true);
+        u3.setForename("foo");
+        u3.update();
+        User u4 = User.getById(u3.getId());
+        assertTrue(u3.getForename().equals(u4.getForename()));
+        assertTrue(u3.isActive() == u4.isActive());
+        assertTrue(u3.getId() == u4.getId());
+        assertTrue(u3.getMail().equals(u4.getMail()));
 
         /*
          * TEST: Delete a persisted User

@@ -1,15 +1,14 @@
 package controllers;
 
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.h2.constant.SysProperties;
 import org.joda.time.Period;
 
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -58,7 +57,7 @@ public class AdminHandler
      * @param context
      * @return a list of all Users
      */
-    public Result showAdmin(Context context, HttpServletRequest req, String no)
+    public Result showAdmin(Context context, String no)
     {
         return Results.html();
     }
@@ -69,9 +68,9 @@ public class AdminHandler
      * @param context
      * @return a list of all Users
      */
-    public Result showUsers(Context context, HttpServletRequest req, String no)
+    public Result showUsers(Context context,  String no)
     {
-        User usr = (User) mcsh.get(req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("users", User.all());
         map.put("uid", usr.getId());
@@ -84,7 +83,7 @@ public class AdminHandler
      * @param context
      * @return a list of all Users
      */
-    public Result showSumTx(Context context, HttpServletRequest req, String no)
+    public Result showSumTx(Context context,  String no)
     {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("stats", MailTransaction.getStatusList());
@@ -97,32 +96,33 @@ public class AdminHandler
      * @param context
      * @return a list of all Users
      */
-    public Result showMTX(Context context, HttpServletRequest req, @PathParam("no") String no)
+    public Result showMTX(Context context,  @PathParam("no") String no)
     {
 
         Map<String, Object> map = new HashMap<String, Object>();
-        List<MailTransaction> mtxs ;
+        List<MailTransaction> mtxs;
         int value = Integer.parseInt(no);
-        switch(value){
-            case(1): //1hour
-                //years, months, weeks, days, hours, minutes, secs, millis
+        switch (value)
+        {
+            case (1): // 1hour
+                // years, months, weeks, days, hours, minutes, secs, millis
                 mtxs = MailTransaction.allInPeriod(new Period(0, 0, 0, 0, 1, 0, 0, 0));
                 break;
-            case(2)://1day
+            case (2):// 1day
                 mtxs = MailTransaction.allInPeriod(new Period(0, 0, 0, 1, 0, 0, 0, 0));
                 break;
-            case(3)://1week
+            case (3):// 1week
                 mtxs = MailTransaction.allInPeriod(new Period(0, 0, 1, 0, 0, 0, 0, 0));
                 break;
-            case(4)://1week
+            case (4):// 1week
                 mtxs = MailTransaction.allInPeriod(new Period(0, 1, 0, 0, 0, 0, 0, 0));
                 break;
-            default://all
-                mtxs = MailTransaction.all();        
+            default:// all
+                mtxs = MailTransaction.all();
                 break;
         }
-        
-        // 
+
+        //
         map.put("mtxs", mtxs);
         return Results.html().render(map);
     }
@@ -135,9 +135,9 @@ public class AdminHandler
      *            - id of a user
      * @return the admin-page
      */
-    public Result activate(@PathParam("id") Long id, Context context, HttpServletRequest req)
+    public Result activate(@PathParam("id") Long id, Context context)
     {
-        User usr = (User) mcsh.get(req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
         if (!(usr.getId() == id))
         { // the user to (de-)activate is not the user who performs this action
 
@@ -148,7 +148,7 @@ public class AdminHandler
             User actusr = User.getById(id);
             String from = ninjaProp.get("mbox.adminaddr");
             String host = ninjaProp.get("mbox.host");
-
+            Optional<String> opt = Optional.of(context.getAcceptLanguage());
             if (active)
             { // the account is now active
               // generate the message title
@@ -156,13 +156,13 @@ public class AdminHandler
                     {
                         host
                     };
-                String subject = msg.get("i18nuser_activate_title", context.getAcceptLanguage(), param);
+                String subject = msg.get("i18nuser_activate_title", opt, param).get();
                 // generate the message body
                 param = new Object[]
                     {
                         actusr.getForename()
                     };
-                String content = msg.get("i18nuser_activate_message", context.getAcceptLanguage(), param);
+                String content = msg.get("i18nuser_activate_message", opt, param).get();
                 // send the mail
                 mmhf.sendMail(from, actusr.getMail(), content, subject);
             }
@@ -173,13 +173,13 @@ public class AdminHandler
                     {
                         host
                     };
-                String subject = msg.get("i18nuser_deactivate_title", context.getAcceptLanguage(), param);
+                String subject = msg.get("i18nuser_deactivate_title", opt, param).get();
                 // generate the message body
                 param = new Object[]
                     {
                         actusr.getForename()
                     };
-                String content = msg.get("i18nuser_deactivate_message", context.getAcceptLanguage(), param);
+                String content = msg.get("i18nuser_deactivate_message", opt, param).get();
                 // send the mail
                 mmhf.sendMail(from, actusr.getMail(), content, subject);
 
@@ -201,9 +201,9 @@ public class AdminHandler
      *            - id of a user
      * @return the admin-page
      */
-    public Result promote(@PathParam("id") Long id, Context context, HttpServletRequest req)
+    public Result promote(@PathParam("id") Long id, Context context)
     {
-        User usr = (User) mcsh.get(req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
         if (!(usr.getId() == id))
         { // the user to pro-/demote is not the user who performs this action
             User.promote(id);
@@ -219,9 +219,9 @@ public class AdminHandler
      * @param id
      * @return the admin-overview page ( /admin )
      */
-    public Result deleteUser(@PathParam("id") Long id, Context context, HttpServletRequest req)
+    public Result deleteUser(@PathParam("id") Long id, Context context)
     {
-        User usr = (User) mcsh.get(req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
         if (!(usr.getId() == id))
         { // the user to delete is not the user who performs this action
             User.delete(id);

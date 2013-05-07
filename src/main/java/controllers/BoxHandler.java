@@ -12,6 +12,8 @@ import etc.HelperUtils;
 import filters.SecureFilter;
 
 import org.joda.time.DateTime;
+
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -85,18 +87,19 @@ public class BoxHandler
      * @param validation
      * @return the addbox-form on error or the box-overview
      */
-    public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation, HttpServletRequest req)
+    public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
 
         // Long id = new Long(context.getSessionCookie().get("id"));
         Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
         map = HelperUtils.getDomainsFromConfig(ninjaProp);
         Result result = Results.html();
+        Optional<Result> opt = Optional.of(result);
         String s;
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
-            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             map.put("mbFrmDat", mbdat);
 
@@ -119,15 +122,15 @@ public class BoxHandler
                 Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                 if (ts == -1)
                 { // show an error-page if the timestamp is faulty
-                    s = msg.get("i18nmsg_wrongf", context, result, (Object) null);
+                    s = msg.get("i18nmsg_wrongf", context, opt, (Object) null).get();
                     context.getFlashCookie().error(s, (Object) null);
                     map.put("mbFrmDat", mbdat);
 
                     return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
                 // create the MBox
-                User usr = (User) mcsh.get(req.getSession().getId());
-                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, false, usr);
+                User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
+                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, usr);
 
                 // creates the Box in the DB
                 mb.save();
@@ -137,7 +140,7 @@ public class BoxHandler
             else
             {
                 // the mailbox already exists
-                s = msg.get("i18nmsg_mailex", context, result, (Object) null);
+                s = msg.get("i18nmsg_mailex", context, opt, (Object) null).get();
                 context.getFlashCookie().error(s, (Object) null);
                 map.put("mbFrmDat", mbdat);
 
@@ -156,7 +159,7 @@ public class BoxHandler
     public Result deleteBox(@PathParam("id") Long boxid, Context context, HttpServletRequest req)
     {
         User usr = (User) mcsh.get(req.getSession().getId());
-        
+
         if (MBox.boxToUser(boxid, usr.getId()))
         {
             // deletes the box from DB
@@ -174,14 +177,15 @@ public class BoxHandler
      * @return error/success-page
      */
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
-                          Validation validation, HttpServletRequest req)
+                          Validation validation)
     {
         Result result = Results.html();
+        Optional<Result> opt = Optional.of(result);
         String s;
 
         if (validation.hasViolations())
         { // not all fields were filled
-            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
 
             return Results.redirect("/mail/edit/" + boxId.toString()).render(mbdat);
@@ -193,8 +197,7 @@ public class BoxHandler
             MBox mb = MBox.getById(boxId);
             if (!(mb == null))
             { // the box with the given id exists
-                User usr = (User) mcsh.get(req.getSession().getId());
-                
+                User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
 
                 if (mb.belongsTo(usr.getId()))
                 { // the current user is the owner of the mailbox
@@ -220,7 +223,7 @@ public class BoxHandler
                     Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
-                        s = msg.get("i18nmsg_wrongf", context, result, (Object) null);
+                        s = msg.get("i18nmsg_wrongf", context, opt, (Object) null).get();
                         context.getFlashCookie().error(s, (Object) null);
 
                         return Results.redirect("/mail/edit/" + boxId.toString());
@@ -298,7 +301,7 @@ public class BoxHandler
 
     public Result showBoxes(Context context, HttpServletRequest req)
     {
-        
+
         User usr = (User) mcsh.get(req.getSession().getId());
         return Results.html().render(MBox.allUserMap(usr.getId()));
     }

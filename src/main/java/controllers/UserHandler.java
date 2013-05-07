@@ -2,6 +2,7 @@ package controllers;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -37,15 +38,16 @@ public class UserHandler
      * 
      * @return the edit-page again
      */
-    public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation, HttpServletRequest req)
+    public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
-        User usr = (User) mcsh.get(req.getSession().getId());
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());//req.getSession().getId());
         Result result = Results.html();
+        Optional<Result> opt = Optional.of(result);
         String s;
 
         if (validation.hasViolations())
         { // the filled form has errors
-            s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+            s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/user/edit");
         }
@@ -73,7 +75,7 @@ public class UserHandler
                         }
                         else
                         { // the passwords are not equal
-                            s = msg.get("i18nmsg_wrongpw", context, result, (Object) null);
+                            s = msg.get("i18nmsg_wrongpw", context, opt, (Object) null).get();
                             context.getFlashCookie().error(s, (Object) null);
                             return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
                         }
@@ -81,13 +83,13 @@ public class UserHandler
                 }
                 // update the user
                 usr.update();
-                s = msg.get("i18nmsg_chok", context, result, (Object) null);
+                s = msg.get("i18nmsg_chok", context, opt, (Object) null).get();
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/user/edit");
             }
             else
             { // the authorization-prozess failed
-                s = msg.get("i18nmsg_formerr", context, result, (Object) null);
+                s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.redirect("/user/edit");
             }
