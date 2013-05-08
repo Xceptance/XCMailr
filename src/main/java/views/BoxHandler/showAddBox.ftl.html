@@ -1,27 +1,23 @@
 <#import "../layout/loginLayout.ftl.html" as layout> <@layout.myLayout
 "Home Page">
+<form action="/mail/add" method="post" class="form-horizontal well">
+<fieldset>
+<legend>${i18nmailbox_create}</legend>  
 
-<!-- Example row of columns -->
-<div class="row">
-	<div class="span4">
-		<p>${i18nmailbox_new}</p>
-
-		<p>
-		<form action="/mail/add" method="post">
-			<table class="form">
-				<tr>
-					<th><label for="address"> ${i18nmailbox_address} </label></th>
-					<td><input class="input_full" type="text" id="address"
-						name="address" value="${ (mbFrmDat.address)!}" required="required"/></td>
-				</tr>
-				<tr>
-					<th><label for="domain"> ${i18nmailbox_domain} </label></th>
-					<td>
-					<select name="domain">
+        <div class="control-group"> 
+			<label class="control-label" for="address"> ${i18nmailbox_address} </label>
+			<div class="controls">  
+				<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required"/>
+			</div>
+		</div>
+		<div class="control-group"> 	
+			<label class="control-label" for="domain"> ${i18nmailbox_domain} </label>
+			<div class="controls">
+				<select name="domain">
 					<#list domain as String>
 						<#if (mbFrmDat.domain)??>
 							<#if (mbFrmDat.domain==String)>
-							<option value="${String}"  selected="selected"> ${String}</option>
+								<option value="${String}"  selected="selected"> ${String}</option>
 							<#else>
 								<option value="${String}" > ${String}</option>
 							</#if>
@@ -29,29 +25,22 @@
 							<option value="${String}" > ${String}</option>
 						</#if>
 					</#list>
-					
-					</select>
-					</td>
-				</tr>
+				</select>
+			</div>
+		</div>
+		<div class="control-group"> 	
+			<label class="control-label" for="duration"> ${i18nmailbox_duration} </label>
+			<div class="controls"> 	
+				<input class="input_full" type="text" id="duration" name="duration"	value="${ (mbFrmDat.duration)!}"  required="required" />
+			</div>
+		</div>
+		<div class="form-actions"> 
+					<input type="submit" class="btn" value="${i18nmailbox_new}" /> 
+					<input type="reset"	class="btn" value="Reset">
+		</div>
+</fieldset>	
+</form>
 
-				<tr>
-					<th><label for="duration"> ${i18nmailbox_duration} </label></th>
-					<td><input class="input_full" type="text" id="duration"
-						name="duration"	value="${ (mbFrmDat.duration)!}"  required="required" />
-						</td>
-		</tr>
-	</table>
 
-	<p>
-		<input type="submit" class="btn" value="${i18nmailbox_new}" /> <input type="reset"
-						class="btn" value="Reset">
-
-						</p>
-						</form>
-
-						</p>
-
-						</div>
-						</div> 
 						
 </@layout.myLayout> 

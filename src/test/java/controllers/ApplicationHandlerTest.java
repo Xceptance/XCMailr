@@ -7,8 +7,6 @@ import java.util.Map;
 
 import models.User;
 import ninja.NinjaTest;
-import ninja.utils.NinjaTestBrowser;
-
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
 

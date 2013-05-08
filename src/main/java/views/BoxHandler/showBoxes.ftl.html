@@ -8,14 +8,10 @@
 		<p>
 		<table class="table table-hover">
 		    <tr>
-		    	<th>${i18nmailbox_address}</th>
-		    	<th>${i18nmailbox_duration}</th>
-		    	<th>${i18nmailbox_forwards}</th>
-		    	<th>${i18nmailbox_suppressions}</th>
-		    	<th>${i18nmailbox_valid}</th>
-			    <th>${i18nmailbox_renew}</th>
-			    <th>${i18nmailbox_delete}</th>
-			    <th>${i18nmailbox_edit}</th>
+		    	<th>${i18nmailbox_address}</th>		<th>${i18nmailbox_duration}</th>
+		    	<th>${i18nmailbox_forwards}</th>	<th>${i18nmailbox_suppressions}</th>
+		    	<th>${i18nmailbox_valid}</th>		<th>${i18nmailbox_renew}</th>
+			    <th>${i18nmailbox_delete}</th>  	<th>${i18nmailbox_edit}</th>
 		    </tr>
 		<#list mboxes as mBox>
 		    <#if (mBox.isExpired())>
@@ -24,9 +20,7 @@
 		    <tr class="success">
 		    </#if>   
 				<td>${mBox.address}&#064;${mBox.domain}</td>
-				
-				<td>${mBox.getTSAsString()}</td>
-				
+				<td>${mBox.getTSAsString()}</td>			
 				<td>${mBox.forwards}</td>
 				<td>${mBox.suppressions}</td>
 				

@@ -30,29 +30,25 @@
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/assets/ico/apple-touch-icon-72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="/assets/ico/apple-touch-icon-57-precomposed.png">
   </head>
-
-
   <body>
-
     <div class="container">
-        
-        <#include "headerLoggedIn.ftl.html"/>
-			<#if flash_error??>
-			        <p class="error"><span class="label label-important">${flash_error}</span></p>
-			</#if>
-			
-			<#if flash_success??>
-			        <p class="success"><span class="label label-success">${flash_success}</span></p>
-			</#if>
-			
-
-
-        <#nested/>
-
+    	<div class="container-fluid">
+	    	<div class="row-fluid">
+	        <#include "headerLoggedIn.ftl.html"/>
+				<#if flash_error??>
+				        <p class="error"><span class="label label-important">${flash_error}</span></p>
+				</#if>
+				<#if flash_success??>
+				        <p class="success"><span class="label label-success">${flash_success}</span></p>
+				</#if>
+				</div>
+				<div class="row-fluid">
+	        <#nested/>
+	        </div>
+        </div>
         <#include "footer.ftl.html"/>
-        
     </div> <!-- /container -->
-        <script src="/assets/js/jquery.js"></script>
+     <script src="/assets/js/jquery.js"></script>
     <script src="/assets/js/bootstrap.js"></script>
 </body>
 </html>
