@@ -1,13 +1,19 @@
 <#import "../layout/loginLayout.ftl.html" as layout> <@layout.myLayout
 "Home Page">
 <div class="row">
-	<div class="span4">
-		
-			<form action="/mail/edit/${mbFrmDat.boxId}" method="post">
+	<div class="span7">
+	<form action="/mail/edit/${mbFrmDat.boxId}" class="form-horizontal" method="post">
+	<fieldset>
 			<legend>${i18nmailbox_edit}</legend>
-<label for="address"> ${i18nmailbox_address} </label>
-<input class="input_full" type="text" id="address"	name="address" value="${ (mbFrmDat.address)!}" required="required"/>
-<label for="domain"> ${i18nmailbox_domain} </label>
+			<div class="control-group"> 
+				<label class="control-label" for="address"> ${i18nmailbox_address} </label>
+					<div class="controls">  
+						<input class="input_full" type="text" id="address"	name="address" value="${ (mbFrmDat.address)!}" required="required"/>
+					</div>
+			</div>
+			<div class="control-group"> 
+			<label class="control-label" for="domain"> ${i18nmailbox_domain} </label>
+						<div class="controls">  
 							<select name="domain">
 								<#list domain as String>
 									<#if (mbFrmDat.domain)??>
@@ -21,13 +27,19 @@
 									</#if>
 								</#list>
 							</select>
-<label for="duration"> ${i18nmailbox_duration} </label>
-<input class="input_full" type="text" id="duration" name="duration"  value="${ (mbFrmDat.duration)!}" required="required"/>
-				<p>
-					<input type="submit" class="btn" value="${i18nmailbox_edit}" /> <input type="reset" class="btn" 
-						value="Reset"> 
-				</p>
-			</form>
+						</div>
+				</div>
+			<div class="control-group"> 
+			<label class="control-label" for="duration"> ${i18nmailbox_duration} </label>
+						<div class="controls">  
+							<input class="input_full" type="text" id="duration" name="duration"  value="${ (mbFrmDat.duration)!}" required="required"/>
+						</div>
+			</div>
+			<div class="form-actions">
+				<input type="submit" class="btn" value="${i18nmailbox_edit}" /> <input type="reset" class="btn" value="Reset"> 
+			</div>
+			</fieldset>
+		</form>
 		</p>
 	</div>
 </div>

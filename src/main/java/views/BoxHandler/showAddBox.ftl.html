@@ -1,6 +1,7 @@
 <#import "../layout/loginLayout.ftl.html" as layout> <@layout.myLayout
 "Home Page">
-<form action="/mail/add" method="post" class="form-horizontal well">
+<div class="span7">
+<form action="/mail/add" method="post" class="form-horizontal">
 <fieldset>
 <legend>${i18nmailbox_create}</legend>  
 
@@ -40,7 +41,7 @@
 		</div>
 </fieldset>	
 </form>
-
+</div>
 
 						
 </@layout.myLayout> 

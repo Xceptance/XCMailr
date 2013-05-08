@@ -1,22 +1,20 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> 
 <@layout.myLayout "Home page">
 
-
-<form action="/pwresend" method="post">
-	<table class="form">
-		<tr>
-			<th><label for="mail"> ${i18nuser_mail} </label></th>
-			<td><input class="input_full" type="email" id="mail"
-				name="mail" required="required"/></td>
-		</tr>
-
-	</table>
-
-	<p>
-		<input type="submit" class="btn" value="${i18nlink_forgotpw}" /> <input type="reset" class="btn" 
-			value="Reset"> 
-			<br/> 
-	</p>
+<div class="span7">
+<form action="/pwresend" method="post" class="form-horizontal">
+<fieldset>
+<legend>${i18nlink_forgotpw}</legend>
+       <div class="control-group"> 
+		<label class="control-label"  for="mail"> ${i18nuser_mail} </label>
+		<div class="controls">  
+			<input class="input_full" type="email" id="mail" name="mail" required="required"/>
+		</div>
+	</div>
+	<div class="form-actions"> 
+		<input type="submit" class="btn" value="${i18nlink_forgotpw}" /> <input type="reset" class="btn" value="Reset"> 
+	</div>
+</fieldset>
 </form>
-
+</div>
 </@layout.myLayout>

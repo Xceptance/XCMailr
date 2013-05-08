@@ -1,27 +1,28 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> 
 <@layout.myLayout "Home page">
 
-
-<form action="/lostpw/${id}/${token}" method="post">
-	<table class="form">
-		<tr>
-			<th><label for="pw"> ${i18nuser_pw1} </label></th>
-			<td><input class="input_full" type="password" id="pw"
-				name="pw" value="${(pwd.pw)!}" required="required"/></td>
-		</tr>
-		<tr>
-			<th><label for="pw2"> ${i18nuser_pw2} </label></th>
-			<td><input class="input_full" type="password" id="pw2"
-				name="pw2" value="${(pwd.pw2)!}" required="required"/></td>
-		</tr>
-
-	</table>
-
-	<p>
-		<input type="submit" class="btn" value="${i18nlink_forgotpw}" /> <input type="reset" class="btn" 
-			value="Reset"> 
-			<br/> 
-	</p>
+<div class="span7">
+<form action="/lostpw/${id}/${token}" method="post" class="form-horizontal">
+<fieldset>
+<legend></legend>
+        <div class="control-group"> 
+			<label class="control-label" for="pw"> ${i18nuser_pw1} </label>
+			<div class="controls">  
+				<input class="input_full" type="password" id="pw" name="pw" value="${(pwd.pw)!}" required="required"/>
+			</div>
+		</div>
+		<div class="control-group"> 
+			<label class="control-label"  for="pw2"> ${i18nuser_pw2} </label>
+				<div class="controls">  
+				<input class="input_full" type="password" id="pw2" name="pw2" value="${(pwd.pw2)!}" required="required"/>
+				</div>
+		</div>
+		<div class="form-actions"> 
+		<input type="submit" class="btn" value="${i18nlink_forgotpw}" /> 
+		<input type="reset" class="btn" value="Reset"> 
+		</div>	
+</fieldset>
 </form>
+</div>
 
 </@layout.myLayout>

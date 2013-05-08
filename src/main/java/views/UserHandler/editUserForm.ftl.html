@@ -2,10 +2,9 @@
 <@layout.myLayout "${i18nuser_edit}">
 
 <div class="span7">
-<form action="/user/edit" method="post" class="form-horizontal well">
+<form action="/user/edit" method="post" class="form-horizontal">
 <fieldset>
 <legend>${i18nuser_edit}</legend>  
-
         <div class="control-group"> 
 			<label class="control-label" for="forename"> ${i18nuser_forename} </label>
 			<div class="controls">  
@@ -23,22 +22,19 @@
 			<div class="controls">  
 				<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required"/>
 			</div>
-		</div>
-		
+		</div>	
 		<div class="control-group"> 
 			<label class="control-label" for="pw"> ${i18nuser_pw} </label>
 			<div class="controls">  
 				<input class="input_full" type="password" id="pw"name="pw" value="${(editUsr.pw)!}" required="required"/>
 			</div>
-		</div>
-		
+		</div>		
 		<div class="control-group"> 
 			<label class="control-label" for="pwn1"> ${i18nuser_pw1} </label>
 			<div class="controls">  
 				<input class="input_full" type="password" id="pwn1"name="pwn1" value="${(editUsr.pwn1)!}"/>
 			</div>
-		</div>
-		
+		</div>		
 		<div class="control-group"> 
 			<label class="control-label" for="pwn2"> ${i18nuser_pw2} </label>
 			<div class="controls">  
