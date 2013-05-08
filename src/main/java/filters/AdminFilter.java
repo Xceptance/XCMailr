@@ -18,8 +18,8 @@ public class AdminFilter implements Filter
     @Override
     public Result filter(FilterChain chain, Context context)
     {
-        User test = (User) mcsh.get(context.getSessionCookie().getId());
-        if (!(test == null) && test.isActive())
+        User user = (User) mcsh.get(context.getSessionCookie().getId());
+        if (!(user == null) && user.isActive() && user.isAdmin())
         {
             return chain.next(context);
 

@@ -23,6 +23,7 @@ import filters.AdminFilter;
 import filters.SecureFilter;
 
 import models.MailTransaction;
+import models.PageList;
 import models.User;
 
 /**
@@ -52,7 +53,8 @@ public class AdminHandler
 
     // ---------------------Functions for the Admin-Section ---------------------
     /**
-     * Shows a list of all Users in the DB site/admin
+     * Shows a the administration-index-page<br/>
+     * site/admin
      * 
      * @param context
      * @return a list of all Users
@@ -63,7 +65,8 @@ public class AdminHandler
     }
 
     /**
-     * Shows a list of all Users in the DB site/admin
+     * Shows a list of all Users in the DB <br/>
+     * site/admin/users
      * 
      * @param context
      * @return a list of all Users
@@ -72,13 +75,16 @@ public class AdminHandler
     {
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
         Map<String, Object> map = new HashMap<String, Object>();
-        map.put("users", User.all());
+        PageList<User> plist = new PageList<User>(User.all(),5);
+        map.put("users", plist);
         map.put("uid", usr.getId());
+
         return Results.html().render(map);
     }
 
     /**
-     * Shows a list of all Users in the DB site/admin
+     * Shows a list of all Users in the DB <br/>
+     * GET site/admin/summedtx
      * 
      * @param context
      * @return a list of all Users
@@ -91,16 +97,20 @@ public class AdminHandler
     }
 
     /**
-     * Shows a list of all Users in the DB site/admin
+     * Shows a list of all Users in the DB <br/>
+     * GET site/admin/mtx/{no}
      * 
      * @param context
      * @return a list of all Users
      */
     public Result showMTX(Context context, @PathParam("no") String no)
     {
-
         Map<String, Object> map = new HashMap<String, Object>();
         List<MailTransaction> mtxs;
+        if (no == null)
+        {
+            no = "0";
+        }
         int value = Integer.parseInt(no);
         switch (value)
         {
@@ -122,8 +132,14 @@ public class AdminHandler
                 break;
         }
 
-        //
         map.put("mtxs", mtxs);
+        return Results.html().render(map);
+    }
+    
+    public Result pagedMTX(Context context){
+        Map<String, Object> map = new HashMap<String, Object>();
+        PageList<MailTransaction> pl = new PageList<MailTransaction>(MailTransaction.all(), 5);
+        map.put("plist", pl);
         return Results.html().render(map);
     }
 
@@ -209,7 +225,6 @@ public class AdminHandler
             User.promote(id);
         }
         return Results.redirect("/admin");
-
     }
 
     /**

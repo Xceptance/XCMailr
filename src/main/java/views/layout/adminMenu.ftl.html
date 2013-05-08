@@ -1,0 +1,28 @@
+<div>
+	<ul class="nav nav-pills nav-stacked">
+		<#if (users)??>
+			<li class="active"><a href="/admin/users">Users</a></li>
+		<#else>
+			<li><a href="/admin/users">Users</a></li>
+		</#if>
+		
+		<#if (stats)??>
+			<li class="active"><a href="/admin/summedtx">Summed Statistics</a></li>
+		<#else>
+			<li><a href="/admin/summedtx">Summed Statistics</a></li>
+		</#if>
+		
+		<#if (mtxs)??>
+			<li class="active"><a href="/admin/mtx">Transactions</a></li>
+		<#else>
+			<li><a href="/admin/mtx">Transactions</a></li>
+		</#if>
+		<#if (plist)??>
+			<li class="active"><a href="/admin/mtxs">Paginated Transactions</a></li>
+		<#else>
+			<li><a href="/admin/mtxs">Paginated Transactions</a></li>
+		</#if>
+	</ul>
+</div>
+
+

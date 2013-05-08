@@ -1,21 +1,25 @@
 <#import "../layout/adminLayout.ftl.html" as layout> <@layout.myLayout
 "User Administration">
+<div class="pagination">  
+<ul >
+<#list 1..plist.getPageCount() as x >  
+<#if x = 1 >
+<li class="active"><a href="#${x}" data-toggle="tab">${x}</a></li>
+<#else>
+<li ><a href="#${x}" data-toggle="tab">${x}</a></li>
+</#if>
+</#list>
+</ul>  
+<div class="tab-content">  
 
-	<div class="btn-group">
-	  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-	    Vorgabezeit
-	    <span class="caret"></span>
-	  </a>
-	  
-	  <ul class="dropdown-menu">
-	    	<li> <a href="./">All</a></li>
-	    	<li><a tabindex="./1" href="1">1 hour</a></li>
-	    	<li><a tabindex="./2" href="2">1 day</a></li>
-	    	<li><a tabindex="./3" href="3">1 week</a></li>
-	  </ul>
-	</div>
-	
-	<table class="table table-hover">
+<#list 1..plist.getPageCount() as x > 
+<#if x = 1 >
+<div class="tab-pane active" id="${x}">  
+<#else>
+<div class="tab-pane" id="${x}">  
+</#if>
+
+<table class="table table-hover">
 	<thead>
     <tr>
 	    <th>${i18nadmin_mtxts}</th>
@@ -25,7 +29,7 @@
     </tr>
     </thead>
     <tbody>
-		<#list mtxs as mtx>
+<#list plist.getPage(x) as mtx>
 		
 		<#switch mtx.status>
 	    		<#case  100>
@@ -71,6 +75,7 @@
 		</#list>
 		</tbody>
     </table>
-</p>
-	
+</div>  
+</#list>
+</div>  
 </@layout.myLayout>	
