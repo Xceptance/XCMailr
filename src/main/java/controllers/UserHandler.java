@@ -46,6 +46,9 @@ public class UserHandler
 
         if (validation.hasViolations())
         { // the filled form has errors
+            edt.setPw("");
+            edt.setPwn1("");
+            edt.setPwn2("");
             s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/user/edit");
@@ -76,6 +79,9 @@ public class UserHandler
                         { // the passwords are not equal
                             s = msg.get("i18nmsg_wrongpw", context, opt, (Object) null).get();
                             context.getFlashCookie().error(s, (Object) null);
+                            edt.setPw("");
+                            edt.setPwn1("");
+                            edt.setPwn2("");
                             return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
                         }
                     }
@@ -89,6 +95,9 @@ public class UserHandler
             }
             else
             { // the authorization-prozess failed
+                edt.setPw("");
+                edt.setPwn1("");
+                edt.setPwn2("");
                 s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.redirect("/user/edit");

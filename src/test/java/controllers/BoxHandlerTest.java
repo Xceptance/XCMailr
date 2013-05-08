@@ -134,6 +134,23 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.contains("class=\"error\">"));
         // check that there is a mailbox with that address
         assertNull(MBox.getByName("", ""));
+        
+        
+        /*
+         * TEST: try to add a box with a wrong timestamp
+         */
+
+        // add the box
+        formParams.put("address", "bbox");
+        formParams.put("domain", "xcmailr.test");
+        formParams.put("duration", "2x,3d");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/mail/add", headers,
+                                                                    formParams);
+
+        // check that the add of the mbox was successful
+        assertTrue(result.contains("class=\"error\">"));
+        // check that there is a mailbox with that address
+        assertNull(MBox.getByName("bbox", "xcmailr.test"));
 
     }
 
