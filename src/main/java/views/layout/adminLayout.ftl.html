@@ -30,33 +30,28 @@
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/assets/ico/apple-touch-icon-72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="/assets/ico/apple-touch-icon-57-precomposed.png">
   </head>
-
-
   <body>
-	
-	
     <#include "headerLoggedIn.ftl.html"/>
     <div class="container">
-	<div class="container-fluid">
-	  <div class="row-fluid">
-		<div class="span2">
-		  <div class="well sidebar-nav">
-			<#include "adminMenu.ftl.html"/>
-		  </div><!-- /sidebar-nav -->
-		</div> <!-- /span3 -->
-		<div class="span9">	
-			<#if flash_error??>
-			        <p class="error"><span class="label label-important">${flash_error}</span></p>
-			</#if>
-			
-			<#if flash_success??>
-			        <p class="success"><span class="label label-success">${flash_success}</span></p>
-			</#if>
+		<div class="container-fluid">
+		  <div class="row-fluid">
+			<div class="span2">
+			  <div class="well sidebar-nav">
+				<#include "adminMenu.ftl.html"/>
+			  </div><!-- /sidebar-nav -->
+			</div> <!-- /span2 -->
+			<div class="span10">	
+				<#if flash_error??>
+				        <p class="error"><span class="label label-important">${flash_error}</span></p>
+				</#if>
+				<#if flash_success??>
+				        <p class="success"><span class="label label-success">${flash_success}</span></p>
+				</#if>
 				<#nested/>
-		</div> <!-- /span9 -->
-	</div><!-- row-fluid -->
-        <#include "footer.ftl.html"/>
-    </div> <!-- /container fluid -->
+			</div> <!-- /span9 -->
+		</div><!-- row-fluid -->
+		</div> <!-- /container fluid -->
+	  <#include "footer.ftl.html"/>
    </div><!-- /container -->
         <script src="/assets/js/jquery.js"></script>
     <script src="/assets/js/bootstrap.js"></script>

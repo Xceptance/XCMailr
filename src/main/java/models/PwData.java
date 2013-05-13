@@ -1,6 +1,8 @@
 package models;
 
-import com.avaje.ebean.validation.NotEmpty;
+import org.hibernate.validator.constraints.NotEmpty;
+
+
 
 /**
  * The Model for the Password-Reset-Form

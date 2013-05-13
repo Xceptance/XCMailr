@@ -18,6 +18,7 @@ public class EditUsr
     private String surName;
 
     @Email
+    @NotEmpty
     private String mail;
 
     @NotEmpty

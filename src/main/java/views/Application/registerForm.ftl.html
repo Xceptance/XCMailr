@@ -4,51 +4,43 @@
 <div class="cpan7">
 	<form action="/register" method="post" class="form-horizontal">
 		<fieldset>
-			<legend>${i18nuser_edit}</legend>
+			<legend>${i18nlink_register}</legend>
 			<div class="control-group">
-				<label class="control-label" for="forename">
-					${i18nuser_forename} </label>
+				<label class="control-label" for="forename">${i18nuser_forename} </label>
 				<div class="controls">
-					<input class="input_full" type="text" id="forename" name="forename"
-						value="${(editUsr.forename)!}" required="required" />
+					<input class="input_full" type="text" id="forename" name="forename"	value="${(editUsr.forename)!}" required="required" />
 				</div>
 			</div>
-
 			<div class="control-group">
 				<label class="control-label" for="surname">
 					${i18nuser_surname} </label>
 				<div class="controls">
-					<input class="input_full" type="text" id="surName" name="surName"
-						value="${(editUsr.surName)!}" required="required" />
+					<input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="mail"> ${i18nuser_mail} </label>
 				<div class="controls">
-					<input class="input_full" type="email" id="mail" name="mail"
-						value="${(editUsr.mail)!}" required="required" />
+					<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required" />
 				</div>
 			</div>
 
 			<div class="control-group">
 				<label class="control-label" for="user_pw"> ${i18nuser_pw} </label>
 				<div class="controls">
-					<input class="input_full" type="password" id="pw" name="pw"
-						required="required" />
+					<input class="input_full" type="password" id="pw" name="pw" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label" for="user_pwagain">
-					${i18nuser_pwagain} </label>
+				<label class="control-label" for="user_pwagain">${i18nuser_pwagain} </label>
 				<div class="controls">
-					<input class="input_full" type="password" id="pwn1" name="pwn1"
-						required="required" />
+					<input class="input_full" type="password" id="pwn1" name="pwn1" required="required" />
 				</div>
 			</div>
 
 			<div class="form-actions">
-				<input type="submit" class="btn" value="${i18nuser_create}" /> <input
-					type="reset" class="btn" value="Reset">
+				<input type="submit" class="btn" value="${i18nuser_create}" /> 
+				<input type="reset" class="btn" value="Reset">
 			</div>
 		</fieldset>
 	</form>

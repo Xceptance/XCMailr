@@ -42,9 +42,9 @@ public class JobController
     private final ScheduledExecutorService executorService2 = Executors.newSingleThreadScheduledExecutor();
 
     public SMTPServer smtpServer;
-    
+
     public Queue<MimeMessage> mailQueue = new LinkedList<MimeMessage>();
-    
+
     @Inject
     Logger log;
 
@@ -53,7 +53,7 @@ public class JobController
 
     @Inject
     MemCachedSessionHandler mcsh;
-    
+
     @Inject
     MailrMessageHandlerFactory mailrFactory;
 
@@ -61,13 +61,13 @@ public class JobController
     public void startActions()
     {
         String pwd = ninjaProp.get("admin.pass");
-        //interval to check for expired mailboxes
+        // interval to check for expired mailboxes
         int interval = Integer.parseInt(ninjaProp.get("mbox.interval"));
-        //interval to check for new mails to send
+        // interval to check for new mails to send
         int mailinterval = Integer.parseInt(ninjaProp.getWithDefault("mbox.mailinterval", "1"));
-        
+
         mcsh.create();
-        
+
         log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
 
         if (!(pwd == null))
@@ -85,10 +85,9 @@ public class JobController
                 usr.save();
             }
         }
-        //create the server for incoming mails
+        // create the server for incoming mails
         smtpServer = new SMTPServer(mailrFactory);
-        
-        
+
         // dynamic ports: 49152–65535
         int port;
 
@@ -98,7 +97,7 @@ public class JobController
          * TODO maybe use the mode (e.g. check for ninjaProp.isDev() or ninjaProp.isTest() ) or alternatively check if
          * the port which was set in application.conf at mbox.port is used
          */
-        if (ninjaProp.isDev()||ninjaProp.isTest())
+        if (ninjaProp.isDev() || ninjaProp.isTest())
         {
             port = findAvailablePort(49152, 65535);
         }
@@ -133,7 +132,6 @@ public class JobController
             }
         }, new Long(1), new Long(interval), TimeUnit.MINUTES);
 
-
         executorService2.scheduleAtFixedRate(new Runnable()
         {
             @Override
@@ -147,7 +145,10 @@ public class JobController
                     log.info("Mailjob: Message found");
                     try
                     {
-                        Transport.send(message);
+                        if (!ninjaProp.isTest()) //TODO maybe remove this
+                        {
+                            Transport.send(message);
+                        }
                         log.info("Message sent");
                     }
                     catch (MessagingException e)
@@ -171,7 +172,7 @@ public class JobController
     {
         // stop the forwarding-service
         smtpServer.stop();
-        
+
         // stop the job to expire the mailboxes
         executorService.shutdown();
         executorService2.shutdown();

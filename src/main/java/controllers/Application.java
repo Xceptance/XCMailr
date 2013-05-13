@@ -3,8 +3,6 @@ package controllers;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.joda.time.DateTime;
 
 import com.google.common.base.Optional;
@@ -12,14 +10,11 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import etc.HelperUtils;
-import filters.AdminFilter;
-import filters.SecureFilter;
 import models.EditUsr;
 import models.Login;
 import models.PwData;
 import ninja.Context;
 import models.User;
-import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Messages;
@@ -58,7 +53,7 @@ public class Application
      */
     public Result index(Context context)
     {
-        String uuid = context.getSessionCookie().getId();        
+        String uuid = context.getSessionCookie().getId();
         User usr = (User) mcsh.get(uuid);
         if (usr == null)
         {
@@ -94,8 +89,7 @@ public class Application
 
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
     {
-        Result result = Results.html();
-        Optional<Result> opt = Optional.of(result);
+        Optional<Result> opt = Optional.of(Results.html());
         String s;
         if (validation.hasViolations())
         {
@@ -115,17 +109,17 @@ public class Application
                 if (frdat.getPw().equals(frdat.getPwn1()))
                 {
                     // create the user
-                    User u = frdat.getAsUser();
+                    User user = frdat.getAsUser();
 
                     // generate the confirmation-token
-                    u.setConfirmation(HelperUtils.getRndSecureString(20));
-                    u.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
-                                            .getMillis());
+                    user.setConfirmation(HelperUtils.getRndSecureString(20));
+                    user.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
+                                               .getMillis());
 
-                    u.save();
+                    user.save();
                     Optional<String> lang = Optional.of(context.getAcceptLanguage());
-                    mmhf.sendConfirmAddressMail(u.getMail(), u.getForename(), String.valueOf(u.getId()),
-                                                u.getConfirmation(), lang);
+                    mmhf.sendConfirmAddressMail(user.getMail(), user.getForename(), String.valueOf(user.getId()),
+                                                user.getConfirmation(), lang);
 
                     s = msg.get("i18nmsg_regok", context, opt, (Object) null).get();
                     context.getFlashCookie().success(s, (Object) null);
@@ -164,16 +158,15 @@ public class Application
      */
     public Result verifyActivation(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
-        User u = User.getById(id);
-        if (!(u == null))
+        User user = User.getById(id);
+        if (!(user == null))
         { // the user exists
-            if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
+            if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
             { // the passed token is the right one -> activate the user
-                u.setActive(true);
-                u.update();
+                user.setActive(true);
+                user.update();
 
-                Result result = Results.html();
-                Optional<Result> opt = Optional.of(result);
+                Optional<Result> opt = Optional.of(Results.html());
                 String s = msg.get("i18nuser_verify_success", context, opt, (Object) null).get();
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/");
@@ -207,8 +200,8 @@ public class Application
         String sessionKey = context.getSessionCookie().getId();
         context.getSessionCookie().clear();
         mcsh.delete(sessionKey);
-        Result result = Results.html();
-        Optional<Result> opt = Optional.of(result);
+
+        Optional<Result> opt = Optional.of(Results.html());
         String s = msg.get("i18nmsg_logout", context, opt, (Object) null).get();
         context.getFlashCookie().success(s, (Object) null);
         return Results.redirect("/");
@@ -220,7 +213,7 @@ public class Application
      * 
      * @return the login form or the index page
      */
-    public Result loggedInForm(Context context, @JSR303Validation Login l, Validation validation)
+    public Result loggedInForm(Context context, @JSR303Validation Login loginDat, Validation validation)
     {
 
         Result result = Results.html();
@@ -229,17 +222,17 @@ public class Application
 
         if (validation.hasViolations())
         {
-            l.setPwd("");
+            loginDat.setPwd("");
             s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
-            return Results.html().template("views/Application/loginForm.ftl.html").render(l);
+            return Results.html().template("views/Application/loginForm.ftl.html").render(loginDat);
         }
         else
         {
-            User lgr = User.getUsrByMail(l.getMail());
+            User lgr = User.getUsrByMail(loginDat.getMail());
             if (!(lgr == null))
             {// the user exists
-                if (lgr.checkPasswd(l.getPwd()))
+                if (lgr.checkPasswd(loginDat.getPwd()))
                 { // correct login
                     if (!lgr.isActive())
                     {
@@ -276,18 +269,18 @@ public class Application
                         return Results.redirect("/pwresend");
                     }
 
-                    l.setPwd("");
+                    loginDat.setPwd("");
                     s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
                     context.getFlashCookie().error(s, (Object) null);
-                    return Results.html().template("views/Application/loginForm.ftl.html").render(l);
+                    return Results.html().template("views/Application/loginForm.ftl.html").render(loginDat);
                 }
             }
             else
             {// the user does not exist
-                l.setPwd("");
+                loginDat.setPwd("");
                 s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
                 context.getFlashCookie().error(s, (Object) null);
-                return Results.html().template("views/Application/loginForm.ftl.html").render(l);
+                return Results.html().template("views/Application/loginForm.ftl.html").render(loginDat);
             }
         }
     }
@@ -309,7 +302,7 @@ public class Application
      * 
      * @return index page
      */
-    public Result pwResend(Context context, @JSR303Validation Login l, Validation validation)
+    public Result pwResend(Context context, @JSR303Validation Login loginDat, Validation validation)
     {
         Result result = Results.html();
         Optional<Result> opt = Optional.of(result);
@@ -324,7 +317,7 @@ public class Application
         }
         else
         {
-            User usr = User.getUsrByMail(l.getMail());
+            User usr = User.getUsrByMail(loginDat.getMail());
             if (!(usr == null))
             { // mailadress was correct (exists in the DB)
               // generate a new pw and send it to the given mailadress
@@ -334,19 +327,18 @@ public class Application
                 // set the new validity-time
                 usr.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
                                           .getMillis());
-
                 usr.update();
                 Optional<String> lang = Optional.of(context.getAcceptLanguage());
                 mmhf.sendPwForgotAddressMail(usr.getMail(), usr.getForename(), String.valueOf(usr.getId()),
                                              usr.getConfirmation(), lang);
                 s = msg.get("i18nforgpw_succ", context, opt, (Object) null).get();
-                context.getFlashCookie().error(s, (Object) null);
+                context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/");
             }
 
             // The user doesn't exist in the db, but we show him the success-msg anyway
             s = msg.get("i18nforgpw_succ", context, opt, (Object) null).get();
-            context.getFlashCookie().error(s, (Object) null);
+            context.getFlashCookie().success(s, (Object) null);
             return Results.redirect("/");
         }
 
@@ -366,10 +358,10 @@ public class Application
     public Result lostPw(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
 
-        User u = User.getById(id);
-        if (!(u == null))
+        User user = User.getById(id);
+        if (!(user == null))
         { // the user exists
-            if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
+            if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
             { // the token is right and the request is in time
                 Map<String, String> map = new HashMap<String, String>();
                 map.put("id", id.toString());
@@ -404,38 +396,38 @@ public class Application
         Optional<Result> opt = Optional.of(result);
         String s;
         // check the PathParams again
-        User u = User.getById(id);
-        if (!(u == null))
+        User user = User.getById(id);
+        if (!(user == null))
         { // the user exists
-            if ((u.getConfirmation().equals(token)) && (u.getTs_confirm() >= DateTime.now().getMillis()))
+            if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
             { // the passed token is the right one
                 if (!validation.hasViolations())
                 { // the form was filled correctly
                     if (pwd.getPw().equals(pwd.getPw2()))
                     { // the entered PWs are equal -> set the new pw
-                        u.hashPasswd(pwd.getPw());
-                        u.setActive(true);
-                        u.setBadPwCount(0);
+                        user.hashPasswd(pwd.getPw());
+                        user.setActive(true);
+                        user.setBadPwCount(0);
 
-                        // set the confirm-ts to now to prevent the reuse of the link
-                        u.setTs_confirm(DateTime.now().getMillis());
-                        u.update();
+                        // set the confirm-period-timestamp to now to prevent the reuse of the link
+                        user.setTs_confirm(DateTime.now().getMillis());
+                        user.update();
                         s = msg.get("i18nmsg_chok", context, opt, (Object) null).get();
-                        context.getFlashCookie().error(s, (Object) null);
+                        context.getFlashCookie().success(s, (Object) null);
                         return Results.redirect("/");
                     }
                     else
                     { // the passwords are not equal
                         s = msg.get("i18nmsg_wrongpw", context, opt, (Object) null).get();
                         context.getFlashCookie().error(s, (Object) null);
-                        return Results.redirect("/lostpw" + id + "/" + token);
+                        return Results.redirect("/lostpw/" + id + "/" + token);
                     }
                 }
                 else
                 { // the form has errors
                     s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
                     context.getFlashCookie().error(s, (Object) null);
-                    return Results.redirect("/lostpw" + id + "/" + token);
+                    return Results.redirect("/lostpw/" + id + "/" + token);
                 }
             }
         }
