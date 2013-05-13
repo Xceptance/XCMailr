@@ -373,17 +373,6 @@ public class MBox
     }
 
     /**
-     * returns the Local Part of a Box
-     * 
-     * @param id
-     * @return the local part
-     */
-    public static String getNameById(Long id)
-    {
-        return Ebean.find(MBox.class, id).getAddress();
-    }
-
-    /**
      * @param mbId
      * @return the mailaddress of the owner of this box
      */

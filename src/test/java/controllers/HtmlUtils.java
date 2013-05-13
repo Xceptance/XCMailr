@@ -40,7 +40,7 @@ public class HtmlUtils
     }
 
     /**
-     * inner class for parsing the inputfields
+     * inner class for parsing the inputfields & selection fields
      * 
      * @author pthum
      */
@@ -48,17 +48,35 @@ public class HtmlUtils
     {
         public Map<String, String> map = new HashMap<String, String>();
 
-        public void handleSimpleTag(HTML.Tag t, MutableAttributeSet a, int pos)
+        public void handleSimpleTag(HTML.Tag tag, MutableAttributeSet attr, int pos)
         {
-            if (t == HTML.Tag.INPUT)
-            { //found an input-field
-                String key = (String) a.getAttribute(HTML.Attribute.NAME);
-                String value = (String) a.getAttribute(HTML.Attribute.VALUE);
+            if (tag == HTML.Tag.INPUT)
+            { // found an input-field
+                String key = (String) attr.getAttribute(HTML.Attribute.NAME);
+                String value = (String) attr.getAttribute(HTML.Attribute.VALUE);
                 if (!(key == null) && !(value.equals("")))
                 {
                     map.put(key, value);
                 }
 
+            }
+
+        }
+
+        public void handleStartTag(HTML.Tag tag, MutableAttributeSet attr, int pos)
+        {
+            // TODO this is not really good...
+            if (tag == HTML.Tag.OPTION)
+            { // found an option-field
+                if (!(attr.getAttribute(HTML.Attribute.SELECTED) == null))
+                {
+                    String key = "domain";
+                    String value = (String) attr.getAttribute(HTML.Attribute.VALUE);
+                    if (!(key == null) && !(value.equals("")))
+                    {
+                        map.put(key, value);
+                    }
+                }
             }
         }
     }

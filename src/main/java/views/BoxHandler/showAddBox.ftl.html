@@ -1,47 +1,48 @@
 <#import "../layout/loginLayout.ftl.html" as layout> <@layout.myLayout
 "Home Page">
-<div class="span7">
-<form action="/mail/add" method="post" class="form-horizontal">
-<fieldset>
-<legend>${i18nmailbox_create}</legend>  
+<div class="row">
+	<div class="span7">
+		<form action="/mail/add" method="post" class="form-horizontal">
+			<fieldset>
+				<legend>${i18nmailbox_create}</legend>
 
-        <div class="control-group"> 
-			<label class="control-label" for="address"> ${i18nmailbox_address} </label>
-			<div class="controls">  
-				<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required"/>
-			</div>
-		</div>
-		<div class="control-group"> 	
-			<label class="control-label" for="domain"> ${i18nmailbox_domain} </label>
-			<div class="controls">
-				<select name="domain">
-					<#list domain as String>
-						<#if (mbFrmDat.domain)??>
-							<#if (mbFrmDat.domain==String)>
-								<option value="${String}"  selected="selected"> ${String}</option>
+				<div class="control-group">
+					<label class="control-label" for="address">	${i18nmailbox_address} </label>
+					<div class="controls">
+						<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required" />
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="domain"> ${i18nmailbox_domain} </label>
+					<div class="controls">
+						<select name="domain"> 
+						<#list domain as String> 
+							<#if (mbFrmDat.domain)??> 
+								<#if (mbFrmDat.domain == String)>
+									<option value="${String}" selected="selected">${String}</option>
+								<#else>
+									<option value="${String}">${String}</option> 
+								</#if> 
 							<#else>
-								<option value="${String}" > ${String}</option>
-							</#if>
-						<#else>
-							<option value="${String}" > ${String}</option>
-						</#if>
-					</#list>
-				</select>
-			</div>
-		</div>
-		<div class="control-group"> 	
-			<label class="control-label" for="duration"> ${i18nmailbox_duration} </label>
-			<div class="controls"> 	
-				<input class="input_full" type="text" id="duration" name="duration"	value="${ (mbFrmDat.duration)!}"  required="required" />
-			</div>
-		</div>
-		<div class="form-actions"> 
+								<option value="${String}">${String}</option> 
+							</#if> 
+						</#list>
+						</select>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="duration"> ${i18nmailbox_duration} </label>
+					<div class="controls">
+						<input class="input_full" type="text" id="duration" name="duration" value="${ (mbFrmDat.duration)!}" required="required" />
+					</div>
+				</div>
+				<div class="form-actions">
 					<input type="submit" class="btn" value="${i18nmailbox_new}" /> 
-					<input type="reset"	class="btn" value="Reset">
-		</div>
-</fieldset>	
-</form>
+					<input type="reset" class="btn" value="Reset">
+				</div>
+			</fieldset>
+		</form>
+	</div>
 </div>
 
-						
-</@layout.myLayout> 
+</@layout.myLayout>

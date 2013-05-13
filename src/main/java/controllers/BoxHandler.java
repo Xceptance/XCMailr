@@ -73,6 +73,7 @@ public class BoxHandler
                 name = HelperUtils.getRndString(7).toLowerCase();
             }
         }
+        mbdat.setDomain(domains[0]);
         map.put("mbFrmDat", mbdat);
 
         return Results.html().render(map);
@@ -89,8 +90,6 @@ public class BoxHandler
      */
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
-
-        // Long id = new Long(context.getSessionCookie().get("id"));
         Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
         map = HelperUtils.getDomainsFromConfig(ninjaProp);
         Result result = Results.html();
@@ -159,14 +158,12 @@ public class BoxHandler
     public Result deleteBox(@PathParam("id") Long boxid, Context context)
     {
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
-
         if (MBox.boxToUser(boxid, usr.getId()))
         {
             // deletes the box from DB
             MBox.delete(boxid);
         }
         return Results.redirect("/mail");
-
     }
 
     /**
@@ -179,16 +176,17 @@ public class BoxHandler
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
                           Validation validation)
     {
-        Result result = Results.html();
-        Optional<Result> opt = Optional.of(result);
+        Optional<Result> opt = Optional.of(Results.html());
         String s;
 
         if (validation.hasViolations())
         { // not all fields were filled
             s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
-
-            return Results.redirect("/mail/edit/" + boxId.toString()).render(mbdat);
+            Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
+            map.put("mbFrmDat", mbdat);
+            return Results.html().template("views/BoxHandler/showEditBox.ftl.html").render(mbdat);
+            // return Results.redirect("/mail/edit/" + boxId.toString()).render(mbdat);
         }
         else
         { // the form was filled correctly
@@ -266,7 +264,7 @@ public class BoxHandler
     public Result showEditBox(Context context, @PathParam("id") Long boxId)
     {
         MBox mb = MBox.getById(boxId);
-        if (mb.equals(null))
+        if (mb == null)
         { // there's no box with that id
             return Results.redirect("/mail");
         }
@@ -282,7 +280,6 @@ public class BoxHandler
                 mbdat.setDuration(HelperUtils.parseTime(mb.getTs_Active()));
                 Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
                 map.put("mbFrmDat", mbdat);
-
                 return Results.html().render(map);
             }
             else
@@ -301,7 +298,6 @@ public class BoxHandler
 
     public Result showBoxes(Context context)
     {
-
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
         return Results.html().render(MBox.allUserMap(usr.getId()));
     }
@@ -320,15 +316,12 @@ public class BoxHandler
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
         if (mb.belongsTo(usr.getId()))
         {// check if the mailbox belongs to the current user
-            DateTime dt = new DateTime();
-            if (!(mb.getTs_Active() == 0) && (mb.getTs_Active() < dt.getMillis()))
-            {
-                // if the validity period is over return the Edit page
+            if (!(mb.getTs_Active() == 0) && (mb.getTs_Active() < DateTime.now().getMillis()))
+            { // if the validity period is over, return the Edit page
                 return Results.redirect("/mail/edit/" + id);
             }
             else
-            {
-                // otherwise just set the new status
+            { // otherwise just set the new status
                 mb.enable();
             }
         }
