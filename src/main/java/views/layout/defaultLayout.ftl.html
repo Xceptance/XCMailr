@@ -1,4 +1,4 @@
-<#macro myLayout title="Layout example">
+<#macro xcLayout title="" header="0">
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -34,7 +34,11 @@
     <div class="container">
         <div class="container-fluid">
 	    	<div class="row-fluid">
-	        <#include "header.ftl.html"/>
+	    	<#switch header>
+	    	<#case "login"><#include "headerLoggedIn.ftl.html"/><#break>
+	    	<#default><#include "header.ftl.html"/><#break>
+	    	</#switch>
+
 				<#if flash_error??>
 				        <p class="error"><span class="label label-important">${flash_error}</span></p>
 				</#if>

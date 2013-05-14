@@ -18,12 +18,11 @@ package models;
 
 import java.util.ArrayList;
 import java.util.List;
+
 /**
- * 
- * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- * 
- * @param <T> the Type of the List
+ * @param <T>
+ *            the Type of the List
  */
 
 public class PageList<T>
@@ -71,29 +70,41 @@ public class PageList<T>
 
     public int getPageCount()
     {
-        int entrys = allEntrys.size() - 1;
+        if (pagesize <= 0)
+        {
+            return 1;
+        }
+        int entrys = allEntrys.size();
         if (entrys < pagesize)
         {
             return 1;
         }
         else
         {
-            return (entrys) / pagesize;
+            return (int) Math.ceil((entrys / new Double(pagesize)));
         }
     }
 
     public List<T> getPage(int page)
     {
-        if (page > pagesize)
+        if (pagesize <= 0)
+        {
+            return allEntrys;
+        }
+        if (page > getPageCount())
         {
             return new ArrayList<T>();
         }
         int endIdx = (page * pagesize) - 1;
 
         int startIdx = endIdx - pagesize + 1;
-        if (endIdx > getEntryCount())
+        if (endIdx >= getEntryCount())
         {
-            endIdx = getEntryCount() - 1;
+            endIdx = getEntryCount();
+        }
+        else
+        {
+            endIdx += 1;
         }
         return allEntrys.subList(startIdx, endIdx);
     }

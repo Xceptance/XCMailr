@@ -1,5 +1,5 @@
-<#import "../layout/loginLayout.ftl.html" as layout> 
-<@layout.myLayout "${i18nuser_edit}">
+<#import "../layout/defaultLayout.ftl.html" as layout> 
+<@layout.xcLayout title="${i18nuser_edit}" header="login">
 <div class="row">
 <div class="span7">
 <form action="/user/edit" method="post" class="form-horizontal">
@@ -50,4 +50,4 @@
 </form>
 </div>
 </div>
-</@layout.myLayout>
+</@layout.xcLayout>

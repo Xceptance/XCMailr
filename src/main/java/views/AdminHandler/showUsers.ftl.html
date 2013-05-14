@@ -1,92 +1,90 @@
-<#import "../layout/adminLayout.ftl.html" as layout> <@layout.myLayout
+<#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
 "User Administration">
+<#import "../layout/macros.ftl.html" as pag/>
+<div class="pagination">
 
-<div class="pagination">  
+<form action="/admin/users">
+<@pag.entrycount/>
+</form>  
+
 <div class="tab-content">  
 <#list 1..users.getPageCount() as x > 
-<#if x = 1 >
-	<div class="tab-pane active" id="${x}">  
-<#else>
-	<div class="tab-pane" id="${x}">  
-</#if>
-<table class="table table-hover">
-	<thead>
-	    <tr>
-	    	<th>${i18nuser_forename}</th>
-	    	<th>${i18nuser_surname}</th>
-	    	<th>ID</th>
-	    	<th>${i18nuser_mail}</th>
-	    	<th>Admin</th>
-	    	<th>${i18nuser_active}</th>
-	    	<th>${i18nmailbox_delete}</th>
-	    	<th>${i18nuser_promote}</th>
-	    	<th>${i18nuser_activate}</th>
-	    </tr>
-	    </thead>
-	    <tbody>
-	<#list users.getPage(x)?sort_by("active") as user>
-		<tr>
-		    <td>${user.forename}</td>
-		    <td>${user.surname}</td>
-		    <td>${user.id}</td>
-		    <td>${user.mail}</td>
-		    <td>
-			    <#if (user.isAdmin())>
-			    	${i18nmsg_yes}
-			    <#else>
-			    	${i18nmsg_no}
-			    </#if>
-			</td>
-		    <td>
-			    <#if (user.isActive())>
-			    	${i18nmsg_yes}
-			    <#else>
-			    	${i18nmsg_no}
-			    </#if>
-		    </td>
-		<#if uid = user.id>	
-			<td></td><td></td><td></td>		   
-		 <#else>
-			<td>
-	   			<form action="/admin/delete/${user.id}" method="post"> 
-	                   <input type="submit" class="btn" value="${i18nmailbox_delete}"/>
-	        	</form>
-	        </td>
-		    <td> 
-			    <form action="/admin/promote/${user.id}" method="post">
-			    <#if (user.isAdmin())>
-				    	<input type="submit" class= "btn" value="${i18nuser_demote}"/>
+	<#if x = 1 >
+		<div class="tab-pane active" id="${x}">  
+	<#else>
+		<div class="tab-pane" id="${x}">  
+	</#if>
+	
+	<table class="table table-hover">
+		<thead>
+		    <tr>
+		    	<th>${i18nuser_forename}</th>
+		    	<th>${i18nuser_surname}</th>
+		    	<th>ID</th>
+		    	<th>${i18nuser_mail}</th>
+		    	<th>Admin</th>
+		    	<th>${i18nuser_active}</th>
+		    	<th>${i18nmailbox_delete}</th>
+		    	<th>${i18nuser_promote}</th>
+		    	<th>${i18nuser_activate}</th>
+		    </tr>
+		    </thead>
+		    <tbody>
+		<#list users.getPage(x)?sort_by("active") as user>
+			<tr>
+			    <td>${user.forename}</td>
+			    <td>${user.surname}</td>
+			    <td>${user.id}</td>
+			    <td>${user.mail}</td>
+			    <td>
+				    <#if (user.isAdmin())>
+				    	${i18nmsg_yes}
 				    <#else>
-			    		<input type="submit" class= "btn" value="${i18nuser_promote}"/>
-			    </#if>		          
-			    </form>
-		    </td>
-		    <td> 
-			    <form action="/admin/activate/${user.id}" method="post">
-				<#if (user.isActive())>
-				   	<input type="submit" class= "btn" value="${i18nuser_deactivate}"/>
-				 <#else>
-			    	<input type="submit" class= "btn" value="${i18nuser_activate}"/>
-			    </#if>
-			 	</form>
-			 </td>
-	    </#if>
-	    </tr>
-	</#list>
-	</tbody>
-</table>
+				    	${i18nmsg_no}
+				    </#if>
+				</td>
+			    <td>
+				    <#if (user.isActive())>
+				    	${i18nmsg_yes}
+				    <#else>
+				    	${i18nmsg_no}
+				    </#if>
+			    </td>
+			<#if uid = user.id>	
+				<td></td><td></td><td></td>		   
+			 <#else>
+				<td>
+		   			<form action="/admin/delete/${user.id}" method="post"> 
+		                   <input type="submit" class="btn" value="${i18nmailbox_delete}"/>
+		        	</form>
+		        </td>
+			    <td> 
+				    <form action="/admin/promote/${user.id}" method="post">
+				    <#if (user.isAdmin())>
+					    	<input type="submit" class= "btn" value="${i18nuser_demote}"/>
+					    <#else>
+				    		<input type="submit" class= "btn" value="${i18nuser_promote}"/>
+				    </#if>		          
+				    </form>
+			    </td>
+			    <td> 
+				    <form action="/admin/activate/${user.id}" method="post">
+					<#if (user.isActive())>
+					   	<input type="submit" class= "btn" value="${i18nuser_deactivate}"/>
+					 <#else>
+				    	<input type="submit" class= "btn" value="${i18nuser_activate}"/>
+				    </#if>
+				 	</form>
+				 </td>
+		    </#if>
+		    </tr>
+		</#list>
+		</tbody>
+	</table>
+	</div><!--  /tab-pane (active)-->
 </#list>
-</div><!--  /tab-pane (active)-->
 </div><!-- /tab-content -->
 
-<ul>
-	<#list 1..users.getPageCount() as x >  
-		<#if x = 1 >
-			<li class="active"><a href="#${x}" data-toggle="tab">${x}</a></li>
-		<#else>
-			<li ><a href="#${x}" data-toggle="tab">${x}</a></li>
-		</#if>
-	</#list>
-</ul>  
+<@pag.pager name=users/> 
 </div><!-- /pagination -->
-</@layout.myLayout>
+</@layout.adminLayout>

@@ -1,11 +1,23 @@
-<#import "../layout/loginLayout.ftl.html" as layout> <@layout.myLayout
-"Home Page">
-
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
+title="Home Page" header="login">
+<#import "../layout/macros.ftl.html" as pag/>
 <div class="row">
-	<div class="span4">
-		<h1 class="legendary">${i18nmailbox_title}</h1> 
+	<h1 class="legendary">${i18nmailbox_title}</h1> 
 	<!--mailboxoverview-->
-		<p>
+	<div class="pagination"> 
+
+	<form action="/mail">
+	<@pag.entrycount/>
+	</form>
+
+	<div class="tab-content">  
+	<#list 1..mboxes.getPageCount() as x > 
+	<#if x = 1 >
+		<div class="tab-pane active" id="${x}">  
+	<#else>
+		<div class="tab-pane" id="${x}">  
+	</#if>
+	
 		<table class="table table-hover">
 		    <tr>
 		    	<th>${i18nmailbox_address}</th>		<th>${i18nmailbox_duration}</th>
@@ -13,7 +25,7 @@
 		    	<th>${i18nmailbox_valid}</th>		<th>${i18nmailbox_renew}</th>
 			    <th>${i18nmailbox_delete}</th>  	<th>${i18nmailbox_edit}</th>
 		    </tr>
-		<#list mboxes as mBox>
+		<#list mboxes.getPage(x) as mBox>
 		    <#if (mBox.isExpired())>
 				<tr class="error">     
 		    <#else>
@@ -53,11 +65,12 @@
 			</tr>
 		</#list>
     </table>
-		
-		</p>
-		
-	</div>
-</div>
+    </div> <!-- /tab pane (active) -->
+  </#list>
+</div><!-- /tab content -->
+<@pag.pager name=mboxes/>
+</div><!-- /pagination -->
+</div><!-- /row -->
 
-</@layout.myLayout>
+</@layout.xcLayout>
 

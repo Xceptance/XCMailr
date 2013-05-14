@@ -1,0 +1,24 @@
+<!-- Selector for the numbers of Entries per Page -->
+
+<#macro entrycount>
+<ul> 
+	<li><input type="submit"  value="5" name="no"/> </li>
+	<li> <input type="submit" value="15" name="no"/></li>
+	<li><input type="submit"  value="25" name="no"/></li>
+	<li><input type="submit"  value="all" name="no"/></li>
+</ul>
+</#macro>
+
+<!-- Pager  -->
+
+<#macro pager name="plist">
+	<ul >
+	<#list 1..name.getPageCount() as x >  
+		<#if x = 1 >
+			<li class="active"><a href="#${x}" data-toggle="tab">${x}</a></li>
+		<#else>
+			<li ><a href="#${x}" data-toggle="tab">${x}</a></li>
+		</#if>
+	</#list>
+	</ul>  
+</#macro>

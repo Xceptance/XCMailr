@@ -1,4 +1,5 @@
-<#macro myLayout title="LoggedIn">
+<#macro adminLayout title="Admin">
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -30,7 +31,7 @@
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/assets/ico/apple-touch-icon-72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="/assets/ico/apple-touch-icon-57-precomposed.png">
   </head>
-  <body>
+  <body>  
     <#include "headerLoggedIn.ftl.html"/>
     <div class="container">
 		<div class="container-fluid">
@@ -40,7 +41,7 @@
 				<#include "adminMenu.ftl.html"/>
 			  </div><!-- /sidebar-nav -->
 			</div> <!-- /span2 -->
-			<div class="span10">	
+			<div class="span10">	  
 				<#if flash_error??>
 				        <p class="error"><span class="label label-important">${flash_error}</span></p>
 				</#if>

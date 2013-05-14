@@ -153,25 +153,6 @@ public class AdminHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtxs");
         assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtxs\">"));
         
-        /*
-         * the next is deprecated
-         */
-        //default
-        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
-        //1hour
-        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx/1");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
-        //1day
-        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx/2");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
-        //1week
-        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx/3");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
-        //1month
-        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx/4");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
-        
     }
 
 }

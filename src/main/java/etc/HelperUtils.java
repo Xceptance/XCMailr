@@ -22,6 +22,10 @@ import java.util.Map;
 import java.util.Random;
 
 import org.joda.time.DateTime;
+
+import models.MailTransaction;
+import models.PageList;
+import ninja.Context;
 import ninja.utils.NinjaProperties;
 
 import com.google.inject.Singleton;
@@ -239,7 +243,8 @@ public class HelperUtils
      * 
      * @param millis
      *            - Timestamp in Milliseconds
-     * @return the Duration to this Date (with the Pattern: 1h, 1d) or a Default-Value (if the given Timestamp was in the past)
+     * @return the Duration to this Date (with the Pattern: 1h, 1d) or a Default-Value (if the given Timestamp was in
+     *         the past)
      */
     public static String parseTime(Long millis)
     {
@@ -264,6 +269,41 @@ public class HelperUtils
         hours = hours % 24;
 
         return hours + "h," + days + "d";
+    }
+
+    /**
+     * Helper-Function for Pagination
+     * Tries to parse the number (Parameter "no") from the Context and returns this number.<br/>
+     * If the Parameter has been set to "all", the number 0 is returned.<br/>  
+     * If null or no number (except "all") is given, the number 5 will be returned.
+     * @param context - the Context 
+     * @return 0, 5 or another Number
+     */
+    public static int parseEntryValue(Context context)
+    {
+        String no = context.getParameter("no");
+        if (no == null)
+        {
+            return 5;
+        }
+        else
+        {
+            if (no.equals("all"))
+            {
+                return 0;
+            }
+            else
+            {
+                try
+                {
+                    return Integer.parseInt(no);
+                }
+                catch (NumberFormatException nfe)
+                {
+                    return 5;
+                }
+            }
+        }
     }
 
 }

@@ -30,6 +30,7 @@ import ninja.Results;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
 import ninja.utils.NinjaProperties;
+import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
 import models.MailTransaction;
@@ -83,11 +84,12 @@ public class AdminHandler
      *            - the Number of Users per Page
      * @return a List of all Users
      */
-    public Result showUsers(Context context, String no)
+    public Result showUsers(Context context)
     {
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
         Map<String, Object> map = new HashMap<String, Object>();
-        PageList<User> plist = new PageList<User>(User.all(), 5);
+        int entrys = HelperUtils.parseEntryValue(context);
+        PageList<User> plist = new PageList<User>(User.all(), entrys);
         map.put("users", plist);
         map.put("uid", usr.getId());
 
@@ -111,49 +113,6 @@ public class AdminHandler
     }
 
     /**
-     * Shows a List of all Users in the DB <br/>
-     * GET site/admin/mtx/{no}
-     * 
-     * @param context
-     * @param no
-     *            - the Number of Users per Page
-     * @return a list of all Mailtransactions
-     * @deprecated use {@link AdminHandler#pagedMTX(Context)} instead
-     */
-    @Deprecated
-    public Result showMTX(Context context, @PathParam("no") String no)
-    {
-        Map<String, Object> map = new HashMap<String, Object>();
-        List<MailTransaction> mtxs;
-        if (no == null)
-        {
-            no = "0";
-        }
-        int value = Integer.parseInt(no);
-        switch (value)
-        {
-            case (1): // 1hour
-                // years, months, weeks, days, hours, minutes, secs, millis
-                mtxs = MailTransaction.allInPeriod(new Period(0, 0, 0, 0, 1, 0, 0, 0));
-                break;
-            case (2):// 1day
-                mtxs = MailTransaction.allInPeriod(new Period(0, 0, 0, 1, 0, 0, 0, 0));
-                break;
-            case (3):// 1week
-                mtxs = MailTransaction.allInPeriod(new Period(0, 0, 1, 0, 0, 0, 0, 0));
-                break;
-            case (4):// 1week
-                mtxs = MailTransaction.allInPeriod(new Period(0, 1, 0, 0, 0, 0, 0, 0));
-                break;
-            default:// all
-                mtxs = MailTransaction.all();
-                break;
-        }
-        map.put("mtxs", mtxs);
-        return Results.html().render(map);
-    }
-
-    /**
      * Shows a paginated List of all {@link MailTransaction}s in the DB <br/>
      * GET site/admin/mtxs
      * 
@@ -162,10 +121,13 @@ public class AdminHandler
      *            - the Number of {@link MailTransaction}s per Page
      * @return the Page to show paginated MailTransactions
      */
-    public Result pagedMTX(Context context, String no)
+    public Result pagedMTX(Context context)
     {
         Map<String, Object> map = new HashMap<String, Object>();
-        PageList<MailTransaction> pl = new PageList<MailTransaction>(MailTransaction.all(), 5);
+        PageList<MailTransaction> pl;
+        int entrys = HelperUtils.parseEntryValue(context);
+        pl = new PageList<MailTransaction>(MailTransaction.all(), entrys);
+        
         map.put("plist", pl);
         return Results.html().render(map);
     }

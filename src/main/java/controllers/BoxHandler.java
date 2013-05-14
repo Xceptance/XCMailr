@@ -17,6 +17,7 @@
 package controllers;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +36,7 @@ import com.google.inject.Singleton;
 
 import models.MBox;
 import models.MbFrmDat;
+import models.PageList;
 import models.User;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
@@ -317,14 +319,19 @@ public class BoxHandler
     public Result showBoxes(Context context)
     {
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
-        return Results.html().render(MBox.allUserMap(usr.getId()));
+        int entries = HelperUtils.parseEntryValue(context);
+        Map<String, PageList<MBox>> map = new HashMap<String, PageList<MBox>>();
+        PageList<MBox> plist = new PageList<MBox>(MBox.allUser(usr.getId()), entries);
+        map.put("mboxes", plist);
+
+        return Results.html().render(map);
     }
 
     /**
      * Sets the Box valid/invalid
      * 
      * @param id
-     *           - the ID of the Mailbox
+     *            - the ID of the Mailbox
      * @return the rendered Mailbox-Overview-Page
      */
 
