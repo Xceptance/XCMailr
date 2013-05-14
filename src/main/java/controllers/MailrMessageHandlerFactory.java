@@ -21,16 +21,13 @@ import models.MailTransaction;
 import models.User;
 import ninja.i18n.Messages;
 import ninja.utils.NinjaProperties;
-
 import org.slf4j.Logger;
 import org.subethamail.smtp.*;
-
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.UnknownHostException;
 import java.util.Properties;
 import javax.mail.Message;
 import javax.mail.MessagingException;

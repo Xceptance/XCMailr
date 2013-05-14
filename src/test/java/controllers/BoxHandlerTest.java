@@ -315,6 +315,7 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: edit of an mbox that does not exist
          */
+
         id = mbox.getId() + 1;
 
         // increase the id until we found a "free" id or reached 1000000 (prevent an endless loop)

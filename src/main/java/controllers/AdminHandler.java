@@ -17,9 +17,7 @@
 package controllers;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import org.joda.time.Period;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

@@ -19,21 +19,15 @@ package controllers;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Results;
 import etc.HelperUtils;
 import filters.SecureFilter;
-
 import org.joda.time.DateTime;
-
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import models.MBox;
 import models.MbFrmDat;
 import models.PageList;
@@ -118,6 +112,10 @@ public class BoxHandler
         { // not all fields were filled (correctly)
             s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
+            if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDuration() == null))
+            {
+                return Results.redirect("/mail/add");
+            }
             map.put("mbFrmDat", mbdat);
 
             return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
@@ -203,6 +201,10 @@ public class BoxHandler
             s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
+            if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDuration() == null))
+            {
+                return Results.redirect("/mail/edit/"+boxId.toString());
+            }
             map.put("mbFrmDat", mbdat);
             return Results.html().template("views/BoxHandler/showEditBox.ftl.html").render(mbdat);
             // return Results.redirect("/mail/edit/" + boxId.toString()).render(mbdat);

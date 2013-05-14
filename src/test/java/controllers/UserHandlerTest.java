@@ -31,20 +31,21 @@ public class UserHandlerTest extends NinjaTest
     Map<String, String> userData = Maps.newHashMap();
 
     String result;
-    
+
     private static NinjaTestServer ninjaTestServer;
-    
+
     @BeforeClass
-    public static void beforeClass(){
-        ninjaTestServer = new NinjaTestServer(); 
-        
+    public static void beforeClass()
+    {
+        ninjaTestServer = new NinjaTestServer();
+
     }
-    
+
     @AfterClass
-    public static void afterClass(){
+    public static void afterClass()
+    {
         ninjaTestServer.shutdown();
     }
-    
 
     @Before
     public void setUp()
@@ -227,8 +228,7 @@ public class UserHandlerTest extends NinjaTest
         // the returned data should now be equal to the formparams without the password
         formParams.remove("pw");
         TestUtils.testMapEntryEquality(formParams, returnedData);
-        
-        
+
         /*
          * TEST: Edit the Userdata correctly (fore- and surname and passwords)
          */
@@ -252,12 +252,14 @@ public class UserHandlerTest extends NinjaTest
         formParams.remove("pwn1");
         formParams.remove("pwn2");
         TestUtils.testMapEntryEquality(formParams, returnedData);
-        
+
     }
+
     @Test
-    public void testUserWrongNewPws(){
+    public void testUserWrongNewPws()
+    {
         /*
-         * TEST: Edit the Userdata with two new passwords which were not equal 
+         * TEST: Edit the Userdata with two new passwords which were not equal
          */
         formParams.clear();
         formParams.put("forename", "John");
@@ -273,7 +275,7 @@ public class UserHandlerTest extends NinjaTest
 
         // check if the userdata-edit has been successfully changed
         assertTrue(result.contains("class=\"success\">"));
-        System.out.println(returnedData+"\n\n\n");
+        System.out.println(returnedData + "\n\n\n");
         // the returned data should now be equal to the formparams without the password
         formParams.remove("pw");
         formParams.remove("pwn1");

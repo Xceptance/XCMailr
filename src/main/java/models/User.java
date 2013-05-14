@@ -36,6 +36,7 @@ import com.avaje.ebean.validation.NotEmpty;
 @Table(name = "users")
 public class User implements Serializable
 {
+
     // UserId
     @Id
     private long id;

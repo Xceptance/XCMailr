@@ -404,7 +404,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("pw2", "abc");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "lostpw/" + user.getId() + "/"
                                                                     + user.getConfirmation(), headers, formParams);
-        System.out.println(result+"\n\n\n\n");
+        System.out.println(result + "\n\n\n\n");
         assertTrue(result.contains("class=\"error\""));
         assertTrue(result.contains("form action=\"/lostpw"));
 
@@ -418,29 +418,28 @@ public class ApplicationHandlerTest extends NinjaTest
                                                                     + user.getConfirmation(), headers, formParams);
         assertTrue(result.contains("class=\"error\""));
         assertTrue(result.contains("form action=\"/lostpw"));
-        
+
         User updateuser = User.getById(user.getId());
         assertFalse(updateuser.isActive());
 
         /*
          * TEST: correct data (equal passwords)
          */
-        
+
         formParams.clear();
         formParams.put("pw", "1234");
-        formParams.put("pw2", "1234");        
+        formParams.put("pw2", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "lostpw/" + user.getId() + "/"
                                                                     + user.getConfirmation(), headers, formParams);
         assertTrue(result.contains("class=\"success\""));
         updateuser = User.getById(user.getId());
         assertTrue(updateuser.isActive());
 
-        
         /*
          * TEST: re-use of the verification link should redirect to the index-page without any action
          */
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "lostpw/" + user.getId() + "/"
-            + user.getConfirmation(), headers, formParams);
+                                                                    + user.getConfirmation(), headers, formParams);
         String expected = ninjaTestBrowser.makeRequest(getServerAddress());
         assertTrue(expected.equals(result));
     }

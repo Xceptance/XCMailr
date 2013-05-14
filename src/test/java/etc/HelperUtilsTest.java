@@ -1,18 +1,12 @@
 package etc;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-
 import java.util.Map;
-
 import org.joda.time.DateTime;
 import org.junit.Test;
-
 import ninja.utils.NinjaProperties;
-
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
-
 import controllers.TestUtils;
 
 public class HelperUtilsTest
