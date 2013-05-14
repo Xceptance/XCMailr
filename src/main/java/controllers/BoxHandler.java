@@ -110,7 +110,7 @@ public class BoxHandler
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
-            s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
+            s = msg.get("i18nMsg_FormErr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDuration() == null))
             {
@@ -137,7 +137,7 @@ public class BoxHandler
                 Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                 if (ts == -1)
                 { // show an error-page if the timestamp is faulty
-                    s = msg.get("i18nmsg_wrongf", context, opt, (Object) null).get();
+                    s = msg.get("i18nMsg_WrongF", context, opt, (Object) null).get();
                     context.getFlashCookie().error(s, (Object) null);
                     map.put("mbFrmDat", mbdat);
 
@@ -155,7 +155,7 @@ public class BoxHandler
             else
             {
                 // the mailbox already exists
-                s = msg.get("i18nmsg_mailex", context, opt, (Object) null).get();
+                s = msg.get("i18nMsg_MailEx", context, opt, (Object) null).get();
                 context.getFlashCookie().error(s, (Object) null);
                 map.put("mbFrmDat", mbdat);
 
@@ -198,12 +198,12 @@ public class BoxHandler
 
         if (validation.hasViolations())
         { // not all fields were filled
-            s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
+            s = msg.get("i18nMsg_FormErr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDuration() == null))
             {
-                return Results.redirect("/mail/edit/"+boxId.toString());
+                return Results.redirect("/mail/edit/" + boxId.toString());
             }
             map.put("mbFrmDat", mbdat);
             return Results.html().template("views/BoxHandler/showEditBox.ftl.html").render(mbdat);
@@ -242,7 +242,7 @@ public class BoxHandler
                     Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
-                        s = msg.get("i18nmsg_wrongf", context, opt, (Object) null).get();
+                        s = msg.get("i18nMsg_WrongF", context, opt, (Object) null).get();
                         context.getFlashCookie().error(s, (Object) null);
 
                         return Results.redirect("/mail/edit/" + boxId.toString());
@@ -351,6 +351,29 @@ public class BoxHandler
             { // otherwise just set the new status
                 mb.enable();
             }
+        }
+        return Results.redirect("/mail");
+    }
+
+    /**
+     * Sets the Values of the Counters for the Box, given by their ID, to zero
+     * 
+     * @param id
+     *            - the ID of the Mailbox
+     * @param context
+     *            - the Context
+     * @return the Mailbox-Overview-Page
+     */
+    public Result resetBoxCounters(@PathParam("id") Long id, Context context)
+    {
+        MBox mb = MBox.getById(id);
+        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        // check if the mailbox belongs to the current user
+        if (mb.belongsTo(usr.getId()))
+        {
+            mb.resetForwards();
+            mb.resetSuppressions();
+            mb.update();
         }
         return Results.redirect("/mail");
     }

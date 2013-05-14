@@ -2,7 +2,7 @@
 "User Administration">
 	<table class="table table-hover">
 	<thead>
-	    <tr> <th>${i18nadmin_mtxstatus}</th> <th>${i18ncount}</th> </tr>
+	    <tr> <th>${i18nAdmin_MtxStatus}</th> <th>${i18nCount}</th> </tr>
 	</thead>
 	<tbody>
     	<#list stats as stat>
@@ -15,11 +15,11 @@
 	    	</#switch>
  		    	<td>
 			    	<#switch stat.statuscode>
-			    		<#case 100> ${i18nadmin_mtxstat100}	<#break>
-			    		<#case 200> ${i18nadmin_mtxstat200}	<#break>
-			    		<#case 300> ${i18nadmin_mtxstat300} <#break>
-			    		<#case 400> ${i18nadmin_mtxstat400} <#break>
-			    		<#default> 	${i18nadmin_mtxunknown} <#break>
+			    		<#case 100> ${i18nAdmin_MtxStat100}	<#break>
+			    		<#case 200> ${i18nAdmin_MtxStat200}	<#break>
+			    		<#case 300> ${i18nAdmin_MtxStat300} <#break>
+			    		<#case 400> ${i18nAdmin_MtxStat400} <#break>
+			    		<#default> 	${i18nAdmin_MtxUnknown} <#break>
 			    	</#switch>
 			    </td>
 	    		<td>${stat.count}</td>

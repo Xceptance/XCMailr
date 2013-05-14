@@ -143,7 +143,6 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("pwn1", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
                                                                     formParams);
-        System.out.println(result);
         // check if the user couldn't be registered
         assertTrue(result.contains("class=\"error\""));
 
@@ -404,7 +403,6 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("pw2", "abc");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "lostpw/" + user.getId() + "/"
                                                                     + user.getConfirmation(), headers, formParams);
-        System.out.println(result + "\n\n\n\n");
         assertTrue(result.contains("class=\"error\""));
         assertTrue(result.contains("form action=\"/lostpw"));
 

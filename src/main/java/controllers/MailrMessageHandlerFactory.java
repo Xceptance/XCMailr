@@ -276,8 +276,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                 forename, url
 
             };
-        String body = msg.get("i18nuser_verify_message", lang, object).get();
-        String subj = msg.get("i18nuser_verify_subject", lang, (Object) null).get();
+        String body = msg.get("i18nUser_Verify_Message", lang, object).get();
+        String subj = msg.get("i18nUser_Verify_Subject", lang, (Object) null).get();
 
         sendMail(from, to, body, subj);
 
@@ -305,8 +305,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
             {
                 forename, url
             };
-        String body = msg.get("i18nuser_pwresend_message", lang, object).get();
-        String subj = msg.get("i18nuser_pwresend_subject", lang, (Object) null).get();
+        String body = msg.get("i18nUser_PwResend_Message", lang, object).get();
+        String subj = msg.get("i18nUser_PwResend_Subject", lang, (Object) null).get();
         sendMail(from, to, body, subj);
     }
 }

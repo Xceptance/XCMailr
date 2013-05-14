@@ -4,23 +4,23 @@
 <div class="span7">
 <form action="/login" method="post" class="form-horizontal">
 <fieldset>
-<legend>${i18nlink_login}</legend>  
+<legend>${i18nLink_Login}</legend>  
         <div class="control-group"> 
-			<label class="control-label" for="mail"> ${i18nuser_mail} </label>
+			<label class="control-label" for="mail"> ${i18nUser_Mail} </label>
 			<div class="controls">  
 				<input class="input_full" type="email" id="mail" name="mail" required="required" value="${(login.mail)!}"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label" for="pwd"> ${i18nuser_pw} </label>
+			<label class="control-label" for="pwd"> ${i18nUser_Pw} </label>
 			<div class="controls"> 
 				<input class="input_full" type="password" id="pwd" name="pwd" required="required" value="${(login.pwd)!}"/>
 			</div>
 		</div>
 		<div class="form-actions"> 
-			<input type="submit" class="btn" value="${i18nlink_login}" /> 
+			<input type="submit" class="btn" value="${i18nLink_Login}" /> 
 			<input type="reset" class="btn"	value="Reset"> 
-			<br/> <a href="/pwresend">${i18nlink_forgotpw}</a>
+			<br/> <a href="/pwresend">${i18nLink_ForgotPw}</a>
 		</div>
 </fieldset>
 </form>

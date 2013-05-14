@@ -125,7 +125,7 @@ public class AdminHandler
         PageList<MailTransaction> pl;
         int entrys = HelperUtils.parseEntryValue(context);
         pl = new PageList<MailTransaction>(MailTransaction.all(), entrys);
-        
+
         map.put("plist", pl);
         return Results.html().render(map);
     }
@@ -160,13 +160,13 @@ public class AdminHandler
                     {
                         host
                     };
-                String subject = msg.get("i18nuser_activate_title", opt, param).get();
+                String subject = msg.get("i18nUser_Activate_Title", opt, param).get();
                 // generate the message body
                 param = new Object[]
                     {
                         actusr.getForename()
                     };
-                String content = msg.get("i18nuser_activate_message", opt, param).get();
+                String content = msg.get("i18nUser_Activate_Message", opt, param).get();
                 // send the mail
                 mmhf.sendMail(from, actusr.getMail(), content, subject);
             }
@@ -177,13 +177,13 @@ public class AdminHandler
                     {
                         host
                     };
-                String subject = msg.get("i18nuser_deactivate_title", opt, param).get();
+                String subject = msg.get("i18nUser_Deactivate_Title", opt, param).get();
                 // generate the message body
                 param = new Object[]
                     {
                         actusr.getForename()
                     };
-                String content = msg.get("i18nuser_deactivate_message", opt, param).get();
+                String content = msg.get("i18nUser_Deactivate_Message", opt, param).get();
                 // send the mail
                 mmhf.sendMail(from, actusr.getMail(), content, subject);
             }

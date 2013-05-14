@@ -67,7 +67,7 @@ public class UserHandler
             edt.setPw("");
             edt.setPwn1("");
             edt.setPwn2("");
-            s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
+            s = msg.get("i18nMsg_FormErr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
             return Results.redirect("/user/edit");
         }
@@ -95,7 +95,7 @@ public class UserHandler
                         }
                         else
                         { // the passwords are not equal
-                            s = msg.get("i18nmsg_wrongpw", context, opt, (Object) null).get();
+                            s = msg.get("i18nMsg_WrongPw", context, opt, (Object) null).get();
                             context.getFlashCookie().error(s, (Object) null);
                             edt.setPw("");
                             edt.setPwn1("");
@@ -107,7 +107,7 @@ public class UserHandler
                 // update the user
                 usr.update();
                 mcsh.set(context.getSessionCookie().getId(), 3600, usr);
-                s = msg.get("i18nmsg_chok", context, opt, (Object) null).get();
+                s = msg.get("i18nMsg_ChOk", context, opt, (Object) null).get();
                 context.getFlashCookie().success(s, (Object) null);
                 return Results.redirect("/user/edit");
             }
@@ -116,7 +116,7 @@ public class UserHandler
                 edt.setPw("");
                 edt.setPwn1("");
                 edt.setPwn2("");
-                s = msg.get("i18nmsg_formerr", context, opt, (Object) null).get();
+                s = msg.get("i18nMsg_FormErr", context, opt, (Object) null).get();
                 context.getFlashCookie().error(s, (Object) null);
                 return Results.redirect("/user/edit");
             }

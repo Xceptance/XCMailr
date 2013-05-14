@@ -5,10 +5,10 @@ title="Home Page" header="login">
 		<form action="/mail/edit/${mbFrmDat.boxId}" class="form-horizontal"
 			method="post">
 			<fieldset>
-				<legend>${i18nmailbox_edit}</legend>
+				<legend>${i18nMailbox_Edit}</legend>
 				<div class="control-group">
 					<label class="control-label" for="address">
-						${i18nmailbox_address} </label>
+						${i18nMailbox_Address} </label>
 					<div class="controls">
 						<input class="input_full" type="text" id="address" name="address"
 							value="${ (mbFrmDat.address)!}" required="required" />
@@ -16,7 +16,7 @@ title="Home Page" header="login">
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="domain">
-						${i18nmailbox_domain} </label>
+						${i18nMailbox_Domain} </label>
 					<div class="controls">
 						<select name="domain"> 
 						<#list domain as String> 
@@ -35,7 +35,7 @@ title="Home Page" header="login">
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="duration">
-						${i18nmailbox_duration} </label>
+						${i18nMailbox_Duration} </label>
 					<div class="controls">
 						<input class="input_full" type="text" id="duration"
 							name="duration" value="${ (mbFrmDat.duration)!}"
@@ -43,7 +43,7 @@ title="Home Page" header="login">
 					</div>
 				</div>
 				<div class="form-actions">
-					<input type="submit" class="btn" value="${i18nmailbox_edit}" /> <input
+					<input type="submit" class="btn" value="${i18nMailbox_Edit}" /> <input
 						type="reset" class="btn" value="Reset">
 				</div>
 			</fieldset>

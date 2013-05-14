@@ -1,48 +1,48 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> 
-<@layout.xcLayout title="${i18nuser_edit}" header="login">
+<@layout.xcLayout title="${i18nUser_Edit}" header="login">
 <div class="row">
 <div class="span7">
 <form action="/user/edit" method="post" class="form-horizontal">
 <fieldset>
-<legend>${i18nuser_edit}</legend>  
+<legend>${i18nUser_Edit}</legend>  
         <div class="control-group"> 
-			<label class="control-label" for="forename"> ${i18nuser_forename} </label>
+			<label class="control-label" for="forename"> ${i18nUser_Forename} </label>
 			<div class="controls">  
 				<input class="input_full" type="text" id="forename" name="forename" value="${(editUsr.forename)!}" required="required"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label" for="surName"> ${i18nuser_surname} </label>
+			<label class="control-label" for="surName"> ${i18nUser_Surname} </label>
 			<div class="controls">  
 				<input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label" for="mail"> ${i18nuser_mail} </label>
+			<label class="control-label" for="mail"> ${i18nUser_Mail} </label>
 			<div class="controls">  
 				<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required"/>
 			</div>
 		</div>	
 		<div class="control-group"> 
-			<label class="control-label" for="pw"> ${i18nuser_pw} </label>
+			<label class="control-label" for="pw"> ${i18nUser_Pw} </label>
 			<div class="controls">  
 				<input class="input_full" type="password" id="pw"name="pw" value="${(editUsr.pw)!}" required="required"/>
 			</div>
 		</div>		
 		<div class="control-group"> 
-			<label class="control-label" for="pwn1"> ${i18nuser_pw1} </label>
+			<label class="control-label" for="pwn1"> ${i18nUser_Pw1} </label>
 			<div class="controls">  
 				<input class="input_full" type="password" id="pwn1"name="pwn1" value="${(editUsr.pwn1)!}"/>
 			</div>
 		</div>		
 		<div class="control-group"> 
-			<label class="control-label" for="pwn2"> ${i18nuser_pw2} </label>
+			<label class="control-label" for="pwn2"> ${i18nUser_Pw2} </label>
 			<div class="controls">  
 				<input class="input_full" type="password" id="pwn2"	name="pwn2" value="${(editUsr.pwn2)!}"/>
 			</div>
 		</div>
 		<div class="form-actions"> 
-			<input type="submit" class="btn" value="${i18nuser_edit}"/>  
+			<input type="submit" class="btn" value="${i18nUser_Edit}"/>  
 			<input type="reset"  class="btn" value="Reset" />
 		</div>
 

@@ -18,15 +18,15 @@
 	<table class="table table-hover">
 		<thead>
 		    <tr>
-		    	<th>${i18nuser_forename}</th>
-		    	<th>${i18nuser_surname}</th>
+		    	<th>${i18nUser_Forename}</th>
+		    	<th>${i18nUser_Surname}</th>
 		    	<th>ID</th>
-		    	<th>${i18nuser_mail}</th>
+		    	<th>${i18nUser_Mail}</th>
 		    	<th>Admin</th>
-		    	<th>${i18nuser_active}</th>
-		    	<th>${i18nmailbox_delete}</th>
-		    	<th>${i18nuser_promote}</th>
-		    	<th>${i18nuser_activate}</th>
+		    	<th>${i18nUser_Active}</th>
+		    	<th>${i18nMailbox_Delete}</th>
+		    	<th>${i18nUser_Promote}</th>
+		    	<th>${i18nUser_Activate}</th>
 		    </tr>
 		    </thead>
 		    <tbody>
@@ -38,16 +38,16 @@
 			    <td>${user.mail}</td>
 			    <td>
 				    <#if (user.isAdmin())>
-				    	${i18nmsg_yes}
+				    	${i18nMsg_Yes}
 				    <#else>
-				    	${i18nmsg_no}
+				    	${i18nMsg_No}
 				    </#if>
 				</td>
 			    <td>
 				    <#if (user.isActive())>
-				    	${i18nmsg_yes}
+				    	${i18nMsg_Yes}
 				    <#else>
-				    	${i18nmsg_no}
+				    	${i18nMsg_No}
 				    </#if>
 			    </td>
 			<#if uid = user.id>	
@@ -55,24 +55,24 @@
 			 <#else>
 				<td>
 		   			<form action="/admin/delete/${user.id}" method="post"> 
-		                   <input type="submit" class="btn" value="${i18nmailbox_delete}"/>
+		                   <input type="submit" class="btn" value="${i18nMailbox_Delete}"/>
 		        	</form>
 		        </td>
 			    <td> 
 				    <form action="/admin/promote/${user.id}" method="post">
 				    <#if (user.isAdmin())>
-					    	<input type="submit" class= "btn" value="${i18nuser_demote}"/>
+					    	<input type="submit" class= "btn" value="${i18nUser_Demote}"/>
 					    <#else>
-				    		<input type="submit" class= "btn" value="${i18nuser_promote}"/>
+				    		<input type="submit" class= "btn" value="${i18nUser_Promote}"/>
 				    </#if>		          
 				    </form>
 			    </td>
 			    <td> 
 				    <form action="/admin/activate/${user.id}" method="post">
 					<#if (user.isActive())>
-					   	<input type="submit" class= "btn" value="${i18nuser_deactivate}"/>
+					   	<input type="submit" class= "btn" value="${i18nUser_Deactivate}"/>
 					 <#else>
-				    	<input type="submit" class= "btn" value="${i18nuser_activate}"/>
+				    	<input type="submit" class= "btn" value="${i18nUser_Activate}"/>
 				    </#if>
 				 	</form>
 				 </td>
