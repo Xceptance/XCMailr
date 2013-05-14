@@ -1,7 +1,24 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package controllers;
 
 import models.MBox;
 import models.MailTransaction;
+import models.User;
 import ninja.i18n.Messages;
 import ninja.utils.NinjaProperties;
 
@@ -23,6 +40,11 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+/**
+ * Handles all actions for Mails, especially processes all incoming Mails
+ * 
+ * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
+ */
 @Singleton
 public class MailrMessageHandlerFactory implements MessageHandlerFactory
 {
@@ -39,13 +61,19 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     JobController jc;
 
     private Session sess;
-
+    
+    /**
+     * This Method will be called by the SubethaSMTP-Server for every incoming Mail
+     */
     public MessageHandler create(MessageContext ctx)
     {
 
         return new Handler(ctx);
     }
-
+    
+    /**
+     * Handles incoming Mails
+     */
     class Handler implements MessageHandler
     {
         MessageContext ctx;
@@ -66,18 +94,18 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
         }
 
         public void from(String from) throws RejectException
-        {// no rejections!?
+        {
             sender = from;
         }
 
         public void recipient(String recipient) throws RejectException
-        { // no rejections!?
+        { 
             rcpt = recipient;
         }
 
         public void data(InputStream data) throws IOException
         {
-            //create the session, read the entrys from the config file
+            // create the session, read the entrys from the config file
             Session session = MailrMessageHandlerFactory.this.getSession();
             session.setDebug(true);
             try
@@ -151,22 +179,24 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         }
     }
-/**
- * Reads the Configuration-File and creates the session for the Mailtransport
- * @return the Session-Object 
- */
+
+    /**
+     * Reads the Configuration-File and creates the Session for the Mail-Transport
+     * 
+     * @return the Session-Object
+     */
     public Session getSession()
     {
         if (sess == null)
         {
-            //get the data from application.conf
+            // get the data from application.conf
             final String host = ninjaProp.get("mail.smtp.host");
             final String port = ninjaProp.get("mail.smtp.port");
             final String user = ninjaProp.get("mail.smtp.user");
             final String pwd = ninjaProp.get("mail.smtp.pass");
             boolean auth = ninjaProp.getBoolean("mail.smtp.auth");
             boolean tls = ninjaProp.getBoolean("mail.smtp.tls");
-            //set the data
+            // set the data
             Properties prop = System.getProperties();
             prop.put("mail.smtp.host", host);
             prop.put("mail.smtp.port", port);
@@ -185,18 +215,17 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     }
 
     /**
-     * Takes the mail specified by the parameters and sends it to the given target
+     * Takes the Mail specified by the Parameters and sends it to the given Target
      * 
      * @param from
-     *            - the mail-author
+     *            - the Mail-Author
      * @param to
-     *            - the recipients-address
+     *            - the Recipients-Address
      * @param content
-     *            - the message body
+     *            - the Message-Body
      * @param subject
-     *            - the message subject
-     * @return true if the addition to the mailqueue was successful
-     * @throws UnknownHostException
+     *            - the Message Subject
+     * @return true, if the Addition to the Mail-Queue was successful
      */
     public boolean sendMail(String from, String to, String content, String subject)
     {
@@ -225,7 +254,6 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
             return false;
         }
         return true;
-
     }
 
     /**
@@ -236,9 +264,9 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * @param forename
      *            - Forename of the Recipient
      * @param id
-     *            - UserID of the Recipient
+     *            - {@link User}-ID of the Recipient
      * @param token
-     *            - the generated Confirmation-Token of the User
+     *            - the generated Confirmation-Token of the {@link User}
      * @param lang
      *            - The Language for the Mail
      */
@@ -252,7 +280,6 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
             };
         String body = msg.get("i18nuser_verify_message", lang, object).get();
-
         String subj = msg.get("i18nuser_verify_subject", lang, (Object) null).get();
 
         sendMail(from, to, body, subj);
@@ -267,7 +294,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * @param forename
      *            - Forename of the Recipient
      * @param id
-     *            - UserID of the Recipient
+     *            - {@link User}-ID of the Recipient
      * @param token
      *            - the generated Confirmation-Token of the User
      * @param lang

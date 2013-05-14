@@ -1,3 +1,19 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package controllers;
 
 import net.spy.memcached.AddrUtil;
@@ -9,10 +25,10 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
- * Handles all actions that belong to the memcached-server<br/>
- * This is almost a Wrapper-Class for the MemCachedClient
+ * Handles all actions that belong to the Memcached-Server<br/>
+ * This is almost a Wrapper-Class for the MemCached-Client
  * 
- * @author Patrick Thum
+ * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 
 @Singleton
@@ -31,10 +47,9 @@ public class MemCachedSessionHandler
 
     public MemcachedClient client;
 
-
     /**
-     * Call this Method to initialise all Data from application.conf
-     * (if this wasn't called before, it will be invoked by all other operations in this class) 
+     * Call this Method to initialize all Data from application.conf (if this wasn't called before, it will be invoked
+     * by all other Operations in this class automatically)
      */
     public void create()
     {
@@ -58,11 +73,11 @@ public class MemCachedSessionHandler
      * Sets a new Object in the Memcache
      * 
      * @param key
-     *            - the key to find the object
+     *            - the Key to find the Object
      * @param ttl
      *            - TimeToLive in Seconds
      * @param o
-     *            - the object to store
+     *            - the Object to store
      */
     public void set(String key, int ttl, final Object o)
     {
@@ -71,10 +86,11 @@ public class MemCachedSessionHandler
     }
 
     /**
-     * loads the object to the given key will return null if the key doesn't exist
+     * loads the Object belonging to the given Key <br/>
+     * it will return null if the Key doesn't exist
      * 
      * @param key
-     * @return the specified object
+     * @return the specified Object
      */
     public Object get(String key)
     {
@@ -95,7 +111,7 @@ public class MemCachedSessionHandler
     }
 
     /**
-     * @return the client that handles the connection to the MemCachedServer
+     * @return the Client that handles the Connection to the MemCached-Server
      */
     public MemcachedClient getCache()
     {

@@ -1,3 +1,19 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package models;
 
 import java.util.List;
@@ -16,7 +32,8 @@ import com.avaje.ebean.RawSqlBuilder;
 /**
  * This Class is used to save all Actions on the Mailserver
  * 
- * @author Patrick Thum
+ * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
+ * 
  */
 @Entity
 @Table(name = "mailtransactions")
@@ -34,7 +51,7 @@ public class MailTransaction
     private String targetaddr;
 
     /**
-     * the Default-Constructor which initialises all fields with Default-values
+     * the Default-Constructor which initializes all Fields with Default-values
      */
     public MailTransaction()
     {
@@ -46,18 +63,20 @@ public class MailTransaction
     }
 
     /**
-     * Creates an MailTransaction-Object, with parameters<br/>
+     * Creates an MailTransaction-Object, with Parameters<br/>
      * <b>Statuscodes:</b> <br/>
-     *   0 - Mail has a wrong pattern
+     *   0 - Mail has a wrong Pattern<br/>
      * 100 - Mail does not exist<br/>
      * 200 - Mail exists but is inactive <br/>
-     * 300 - Mail has been successfully <br/>
+     * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 
      * @param stat
-     *            -statuscode of the transaction
+     *            - Statuscode of the Transaction
      * @param target
-     *            -recipients-address of the mail
+     *            - Original Recipients-Address of the Mail
+     * @param source 
+     *            - the Sender's - Address
      */
     public MailTransaction(int stat, String target, String source)
     {
@@ -68,7 +87,7 @@ public class MailTransaction
     }
 
     /**
-     * @return the id of this transaction (primary key in the DB)
+     * @return the ID of this Transaction 
      */
     public Long getId()
     {
@@ -77,7 +96,7 @@ public class MailTransaction
 
     /**
      * @param id
-     *            - the id to set
+     *            - the ID of this Transaction to set
      */
     public void setId(Long id)
     {
@@ -85,7 +104,7 @@ public class MailTransaction
     }
 
     /**
-     * @return the timestamp of this transaction
+     * @return the Timestamp of this Transaction
      */
     public Long getTs()
     {
@@ -93,7 +112,7 @@ public class MailTransaction
     }
 
     /**
-     * @return the Timestamp in a displayable form as String
+     * @return the Timestamp as String in the Format "dd.mm.yyyy hh:mm"
      */
     public String getTsAsString()
     {
@@ -102,7 +121,8 @@ public class MailTransaction
         String mon = "";
         String hou = "";
         String min = "";
-
+        
+        //add a leading "0" if the value is under ten
         if (dt.getDayOfMonth() < 10)
         {
             day += "0";
@@ -126,14 +146,13 @@ public class MailTransaction
             min += "0";
         }
         min += String.valueOf(dt.getMinuteOfHour());
-
+        
         return day + "." + mon + "." + dt.getYear() + " " + hou + ":" + min;
-
     }
 
     /**
      * @param ts
-     *            sets the timestamp in milliseconds
+     *            - sets the Timestamp in Milliseconds
      */
     public void setTs(Long ts)
     {
@@ -142,11 +161,13 @@ public class MailTransaction
 
     /**
      * <b>Statuscodes:</b> <br/>
-     * 100 - targetmail does not exist <br/>
-     * 200 - targetmail exists but is inactive <br/>
-     * 300 - mail has been successfully forwarded <br/>
+     *   0 - Mail has a wrong Pattern <br/>
+     * 100 - Mail does not exist<br/>
+     * 200 - Mail exists but is inactive <br/>
+     * 300 - Mail has been forwarded successfully <br/>
+     * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 
-     * @return a statuscode
+     * @return a Statuscode
      */
     public int getStatus()
     {
@@ -155,12 +176,14 @@ public class MailTransaction
 
     /**
      * <b>Statuscodes:</b> <br/>
-     * 100 - targetmail does not exist <br/>
-     * 200 - targetmail exists but is inactive <br/>
-     * 300 - mail has been successfully forwarded <br/>
+     *   0 - Mail has a wrong Pattern<br/>
+     * 100 - Mail does not exist<br/>
+     * 200 - Mail exists but is inactive <br/>
+     * 300 - Mail has been forwarded successfully <br/>
+     * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 
      * @param status
-     *            - the status to set
+     *            - the Status to set
      */
     public void setStatus(int status)
     {
@@ -168,7 +191,7 @@ public class MailTransaction
     }
 
     /**
-     * @return the targetaddress of this transaction
+     * @return the Target-Address of this Transaction
      */
     public String getTargetaddr()
     {
@@ -177,7 +200,7 @@ public class MailTransaction
 
     /**
      * @param targetaddr
-     *            - the targetaddress to set
+     *            - the Target-Address to set
      */
     public void setTargetaddr(String targetaddr)
     {
@@ -185,7 +208,7 @@ public class MailTransaction
     }
 
     /**
-     * @return the sourceaddress of this transaction
+     * @return the Source-Address of this transaction
      */
     public String getSourceaddr()
     {
@@ -194,7 +217,7 @@ public class MailTransaction
 
     /**
      * @param sourceaddr
-     *            - the sourceaddress to set
+     *            - the Source-Address to set
      */
     public void setSourceaddr(String sourceaddr)
     {
@@ -213,7 +236,7 @@ public class MailTransaction
     }
 
     /**
-     * @return all Transactions which were stored in the database
+     * @return all Transactions which were stored in the Database
      */
     public static List<MailTransaction> all()
     {
@@ -221,11 +244,11 @@ public class MailTransaction
     }
 
     /**
-     * Gets all mailtransactions in the last "Period"
+     * Gets all Mail-Transactions in the last "Period"
      * 
      * @param period
      *            - Joda-Time Period
-     * @return a List of Mailtransactions
+     * @return a List of Mail-Transactions
      */
     public static List<MailTransaction> allInPeriod(Period period)
     {
@@ -233,7 +256,7 @@ public class MailTransaction
     }
 
     /**
-     * Generates a List of Statusnumbers and the number of ther occurences
+     * Generates a List of Status-Numbers and the Number of their occurrences
      * 
      * @return a List of Status-Elements (as an aggregate of Transactions)
      * @see Status

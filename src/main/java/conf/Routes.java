@@ -40,19 +40,12 @@ public class Routes implements ApplicationRoutes
 
     }
 
-    /**
-     * Using a (almost) nice DSL we can configure the router. The second argument NinjaModuleDemoRouter contains all
-     * routes of a submodule. By simply injecting it we activate the routes.
-     * 
-     * @param router
-     *            The default router of this application
-     */
     @Override
     public void init(Router router)
     {
 
         // /////////////////////////////////////////////////////////////////////
-        // CCMailr-Functions
+        // XCMailr-Functions
         // /////////////////////////////////////////////////////////////////////
         router.GET().route("/").with(Application.class, "index");
 
@@ -91,6 +84,7 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/admin/mtx").with(AdminHandler.class, "showMTX");
         router.GET().route("/admin/mtx/{no}").with(AdminHandler.class, "showMTX");
         router.GET().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
+        
         router.GET().route("/assets/.*").with(AssetsController.class, "serve");
 
     }

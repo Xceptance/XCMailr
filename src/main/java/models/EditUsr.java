@@ -1,12 +1,29 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package models;
 
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
- * Holds all data for the Edit Form (also used in the registration process)
+ * Holds all Data for the Edit Form (and is also used in the Registration-Process)
  * 
- * @author Patrick Thum 2012 released under Apache 2.0 License
+ * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
+ * 
  */
 
 public class EditUsr
@@ -29,7 +46,7 @@ public class EditUsr
     private String pwn2;
 
     /**
-     * @return the forename
+     * @return the Forename
      */
     public String getForename()
     {
@@ -38,7 +55,7 @@ public class EditUsr
 
     /**
      * @param foreName
-     *            - the forename to set
+     *            - the Forename to set
      */
     public void setForeName(String foreName)
     {
@@ -46,7 +63,7 @@ public class EditUsr
     }
 
     /**
-     * @return the surname
+     * @return the Surname
      */
     public String getSurName()
     {
@@ -55,7 +72,7 @@ public class EditUsr
 
     /**
      * @param surName
-     *            - the surname to set
+     *            - the Surname to set
      */
     public void setSurName(String surName)
     {
@@ -63,7 +80,7 @@ public class EditUsr
     }
 
     /**
-     * @return the mailaddress
+     * @return the Mail-Address
      */
     public String getMail()
     {
@@ -72,7 +89,7 @@ public class EditUsr
 
     /**
      * @param mail
-     *            - the mailaddress to set
+     *            - the Mail-Address to set
      */
     public void setMail(String mail)
     {
@@ -80,7 +97,7 @@ public class EditUsr
     }
 
     /**
-     * @return the password
+     * @return the Password
      */
     public String getPw()
     {
@@ -89,7 +106,7 @@ public class EditUsr
 
     /**
      * @param pw
-     *            - the password to set
+     *            - the Password to set
      */
     public void setPw(String pw)
     {
@@ -97,7 +114,7 @@ public class EditUsr
     }
 
     /**
-     * @return the new password
+     * @return the new Password
      */
     public String getPwn1()
     {
@@ -106,7 +123,7 @@ public class EditUsr
 
     /**
      * @param pwn1
-     *            - the new password to set
+     *            - the new Password to set
      */
     public void setPwn1(String pwn1)
     {
@@ -114,7 +131,7 @@ public class EditUsr
     }
 
     /**
-     * @return the repetition of the new password
+     * @return the Repetition of the new Password
      */
     public String getPwn2()
     {
@@ -123,7 +140,7 @@ public class EditUsr
 
     /**
      * @param pwn2
-     *            the repetition of the new password to set
+     *            the Repetition of the new Password to set
      */
     public void setPwn2(String pwn2)
     {
@@ -131,10 +148,10 @@ public class EditUsr
     }
 
     /**
-     * This Method will create a Userobject by the given data<br/>
-     * Be careful: The pwn1-field will be used as password for the User-object <br/>
+     * This Method will create a User-Object by the given Data<br/>
+     * Be careful: The pwn1-field will be used as Password for the -object <br/>
      * 
-     * @return a user-object instantiated with the given data
+     * @return a User-Object instantiated with the given data
      * @see User
      */
     public User getAsUser()
@@ -146,7 +163,7 @@ public class EditUsr
      * This Method takes a User-Object and converts it into a returned EditUsr-Object<br/>
      * 
      * @param user - the User-object to convert
-     * @return - an EditUsr-Object filled with the userdata
+     * @return - an EditUsr-Object filled with the User-Data
      */
     public static EditUsr prepopulate(User user)
     {

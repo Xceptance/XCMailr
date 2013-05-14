@@ -1,3 +1,19 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package models;
 
 import java.io.Serializable;
@@ -14,7 +30,7 @@ import com.avaje.ebean.validation.NotEmpty;
 /**
  * User Object
  * 
- * @author Patrick Thum 2012 released under Apache 2.0 License
+ * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 @Entity
 @Table(name = "users")
@@ -59,7 +75,7 @@ public class User implements Serializable
 
     // ----------------------------- Getter and Setter ------------------------
     /**
-     * Default constructor, just initialize the variables
+     * Default-Constructor, just initializes the Variables
      */
     public User()
     {
@@ -72,7 +88,7 @@ public class User implements Serializable
     }
 
     /**
-     * constructor for the userobject
+     * Constructor for the User-Object
      * 
      * @param fName
      *            forename
@@ -94,7 +110,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return all boxes that belong to this user
+     * @return all {@link MBox}-Objects in a List that belong to this User
      */
     public List<MBox> getBoxes()
     {
@@ -103,7 +119,7 @@ public class User implements Serializable
 
     /**
      * @param boxes
-     *            - all boxes that belong to this user
+     *            - all {@link MBox} -Objects in a List that belong to this User
      */
     public void setBoxes(List<MBox> boxes)
     {
@@ -111,7 +127,7 @@ public class User implements Serializable
     }
 
     /**
-     * persists a user in the DB
+     * Persists a User in the DB
      */
     public void save()
     {
@@ -119,7 +135,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return the Id of a user
+     * @return the ID of a User
      */
     public long getId()
     {
@@ -127,7 +143,7 @@ public class User implements Serializable
     }
 
     /**
-     * Sets the id of a Userobject used to identify it in the db
+     * Sets the ID of a User-Object used to identify the Object in the DB
      * 
      * @param id
      */
@@ -138,7 +154,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return the forename of a user
+     * @return the Forename of a User
      */
     public String getForename()
     {
@@ -146,7 +162,7 @@ public class User implements Serializable
     }
 
     /**
-     * Sets the forename of a user
+     * Sets the Forename of a User
      * 
      * @param forename
      */
@@ -156,7 +172,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return the surname of a user
+     * @return the Surname of a User
      */
     public String getSurname()
     {
@@ -164,7 +180,7 @@ public class User implements Serializable
     }
 
     /**
-     * Sets the surname of a user
+     * Sets the Surname of a User
      * 
      * @param surname
      */
@@ -174,7 +190,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return the real Mailadress of a user
+     * @return the "real" Mail-Address of a User
      */
     public String getMail()
     {
@@ -182,7 +198,7 @@ public class User implements Serializable
     }
 
     /**
-     * Sets the real Mailadress of a user
+     * Sets the "real" Mail-Address of a User
      * 
      * @param mail
      */
@@ -192,7 +208,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return the hashed value of the bcrypted password
+     * @return the hashed Value of the BCrypted Password
      */
     public String getPasswd()
     {
@@ -201,7 +217,7 @@ public class User implements Serializable
     }
 
     /**
-     * Hashes the password and sets it as the current pwd
+     * Hashes the Password and sets it as the current Password
      * 
      * @param passwd
      */
@@ -212,8 +228,8 @@ public class User implements Serializable
 
     /**
      * @param pwd
-     *            - the plaintext password to check
-     * @return true if the passwords are matching
+     *            - the Plaintext-Password to check
+     * @return true if the Passwords are matching
      */
     public boolean checkPasswd(String pwd)
     {
@@ -221,8 +237,10 @@ public class User implements Serializable
     }
 
     /**
-     * sets the given password WARNING: don't use this method to set a new password! always use hashPasswd() for that!
+     * sets the given Password <br/>
+     * WARNING: don't use this Method to set a new Password! always use hashPasswd() for that!
      * 
+     * @see User#hashPasswd(String)
      * @param passwd
      */
     public void setPasswd(String passwd)
@@ -231,7 +249,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return true if a user is admin
+     * @return true, if a User is Admin
      */
     public boolean isAdmin()
     {
@@ -239,7 +257,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return true if the account is active
+     * @return true, if the Account is active
      */
     public boolean isActive()
     {
@@ -247,10 +265,10 @@ public class User implements Serializable
     }
 
     /**
-     * Sets the account as active or inactive
+     * Sets the Account as active or inactive
      * 
      * @param active
-     *            - boolean which indicates the new state of the account
+     *            - boolean which indicates the new state of the User-account
      */
     public void setActive(boolean active)
     {
@@ -269,6 +287,7 @@ public class User implements Serializable
 
     /**
      * @return the randomly-generated confirm-token
+     * @see etc.HelperUtils#getRndSecureString(int)
      */
     public String getConfirmation()
     {
@@ -278,6 +297,7 @@ public class User implements Serializable
     /**
      * sets the random-confirm-token
      * 
+     * @see etc.HelperUtils#getRndSecureString(int)
      * @param confirmation
      */
     public void setConfirmation(String confirmation)
@@ -286,7 +306,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return the validity-period of the string
+     * @return the Validity-Period of the String
      */
     public Long getTs_confirm()
     {
@@ -295,7 +315,7 @@ public class User implements Serializable
 
     /**
      * @param ts_confirm
-     *            - the timestamp for the end of the confirmation-period
+     *            - the Timestamp for the End of the Confirmation-Period
      */
     public void setTs_confirm(Long ts_confirm)
     {
@@ -303,7 +323,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return the number of a wrong entered password
+     * @return the Number of wrong entered Passwords
      */
     public int getBadPwCount()
     {
@@ -312,7 +332,7 @@ public class User implements Serializable
 
     /**
      * @param badPwCount
-     *            - the number of wrong entered passwords
+     *            - the Number of wrong entered Passwords
      */
     public void setBadPwCount(int badPwCount)
     {
@@ -322,7 +342,7 @@ public class User implements Serializable
     // ---------------------------- EBean-Functions----------------------
 
     /**
-     * @return the list of all users in the database
+     * @return the List of all Users in the Database
      */
     public static List<User> all()
     {
@@ -339,10 +359,10 @@ public class User implements Serializable
     }
 
     /**
-     * Checks if a Mailaddress exists in the Database
+     * Checks, if a Mail-Address exists in the Database
      * 
      * @param mail
-     *            - Mailaddress of a User
+     *            - Mail-Address of a User
      * @return true if the given Address exists
      */
     public static boolean mailExists(String mail)
@@ -358,10 +378,12 @@ public class User implements Serializable
     }
 
     /**
-     * Checks whether the mail of the user (identified by its id) has changed and if the new address can be used
+     * Checks whether the Mail of the User (identified by its ID) has changed and if the new Address can be used
      * 
-     * @param mail - the new Mailaddress of the User
-     * @param uId - the User-ID
+     * @param mail
+     *            - the new Mail-Address of the User
+     * @param uId
+     *            - the User-ID
      * @return true - Mail has changed and the new address does not exist <br/>
      *         false - Mail has not changed, User is unknown or Address already exists
      */
@@ -396,7 +418,7 @@ public class User implements Serializable
     }
 
     /**
-     * @return the number of active admin-accounts
+     * @return the Number of active Admin-Accounts
      */
     public static int getActiveAdminCount()
     {
@@ -405,8 +427,8 @@ public class User implements Serializable
 
     /**
      * @param id
-     *            - userid
-     * @return true if the user is an admin
+     *            - the User-ID
+     * @return true if the User is an Admin
      */
     public static boolean isUserAdmin(long id)
     {
@@ -414,11 +436,11 @@ public class User implements Serializable
     }
 
     /**
-     * returns the user-object that belongs to the given mailadress
+     * returns the User-Object that belongs to the given Mail-Address
      * 
      * @param mail
-     *            : adress of a user
-     * @return the user
+     *            - Address of a User
+     * @return the User
      */
     public static User getUsrByMail(String mail)
     {
@@ -426,11 +448,11 @@ public class User implements Serializable
     }
 
     /**
-     * returns the user-object if the given mail and password combination matches
+     * returns the User-Object if the given Mail and Password combination matches
      * 
      * @param mail
      * @param pw
-     * @return the user object if the given mail and password belong together <br/>
+     * @return the User Object if the given Mail and Password belong together <br/>
      *         null - else
      */
 
@@ -464,14 +486,14 @@ public class User implements Serializable
     }
 
     /**
-     * This Method returns the user object if the given userId and password belong together otherwise it will return
-     * null
+     * This Method returns the User-Object if the given User-ID and Password belong together<br/>
+     * otherwise it will return null
      * 
      * @param id
-     *            - the id of a user
+     *            - the ID of a User
      * @param pw
-     *            - the pw of a user
-     * @return the user object if the given userId and password belong together
+     *            - the Password of a User
+     * @return the User-Object if the given User-ID and Password belong together
      */
 
     public static User authById(Long id, String pw)
@@ -492,8 +514,8 @@ public class User implements Serializable
      * Returns the User-Object which belongs to the given User-ID
      * 
      * @param id
-     *            : a users id
-     * @return the user-object
+     *            - an Users-ID
+     * @return the User-Object
      */
     public static User getById(Long id)
     {
@@ -504,7 +526,7 @@ public class User implements Serializable
      * Deletes the User with the given ID
      * 
      * @param id
-     *            : the id of the user that has to be deleted
+     *            - the ID of the User that has to be deleted
      */
 
     public static void delete(Long id)
@@ -513,7 +535,8 @@ public class User implements Serializable
     }
 
     /**
-     * Promotes or Demotes the User and Updates the DB the Method checks the actual state and sets the opposite
+     * Promotes or Demotes the User and Updates the DB <br/>
+     * The Method checks the actual state and sets the Opposite
      * 
      * @param id
      *            - id of the user
@@ -527,7 +550,8 @@ public class User implements Serializable
     }
 
     /**
-     * Activates or Deactivates the User and Updates the DB the Method checks the actual state and sets the opposite
+     * Activates or Deactivates the User and Updates the DB<br/>
+     * The Method checks the actual state and sets the opposite
      * 
      * @param id
      *            - id of the user
@@ -542,10 +566,9 @@ public class User implements Serializable
     }
 
     /**
-     *  Converts the Userobject to a String which contains in one line:<br/>
-     *  UserID, Forename, Surname, Mail and (the crypted) Password<br/>
-     *  The fields are separated by a whitespace 
-     *  
+     * Converts the User-Object to a String which contains in one line:<br/>
+     * UserID, Forename, Surname, Mail and (the BCrypted) Password<br/>
+     * The fields are separated by a Whitespace
      */
     @Override
     public String toString()

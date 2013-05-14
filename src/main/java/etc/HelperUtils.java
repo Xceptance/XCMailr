@@ -1,3 +1,19 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package etc;
 
 import java.security.SecureRandom;
@@ -10,6 +26,9 @@ import ninja.utils.NinjaProperties;
 
 import com.google.inject.Singleton;
 
+/**
+ * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
+ */
 @Singleton
 public class HelperUtils
 {
@@ -35,7 +54,6 @@ public class HelperUtils
                 return map;
             }
         }
-
         // the property does not exist or has no value
         // prevent a NullPointerException by returning an empty Stringarray
         map.put("domain", new String[] {});
@@ -43,11 +61,11 @@ public class HelperUtils
     }
 
     /**
-     * Generates a random name, generated with java.util.Random and an alphabet of 0-9,a-z,A-Z <br/>
-     * e.g. for the mailbox
+     * Generates a random name, generated with {@link java.util.Random} and an Alphabet of 0-9,a-z,A-Z <br/>
+     * e.g. for the Mailbox
      * 
      * @param length
-     *            - length of the returned string
+     *            - Length of the returned String
      * @return a randomly generated String consisting of a-z,A-Z and 0-9
      */
 
@@ -73,10 +91,10 @@ public class HelperUtils
     }
 
     /**
-     * All in all, the same like the getRndString(), but here's SecureRandom used
+     * All in all, the same like the getRndString(), but here's {@link java.security.SecureRandom} used
      * 
      * @param length
-     *            - length of the returned string
+     *            - Length of the returned String
      * @return a secure-randomly generated String consisting of a-z,A-Z and 0-9
      */
     public static String getRndSecureString(int length)
@@ -101,10 +119,10 @@ public class HelperUtils
     }
 
     /**
-     * Checks if a given string is in the right format <br/>
-     * there should be 1 or 2 time-values (d,h or h,d or h or d or 0)<br/>
-     * uppercase-letters will be converted and spaces removed the highest time-interval is set to 30 days, everything
-     * above will be set to 0 (unlimited)
+     * Checks if a given String is in the correct Format <br/>
+     * There should be specified 1 or 2 time-values (e.g. 1d,1h or 1h,1d or 1h or 1d or 0)<br/>
+     * Uppercase-Letters will be converted and Whitespaces removed <br/>
+     * The highest Time-Interval is set to 30 days, everything above will be set to 0 (unlimited)
      * 
      * @param s
      *            - the String to parse
@@ -175,11 +193,12 @@ public class HelperUtils
     }
 
     /**
-     * Helper function for parseDuration() checks if a string consists only of digits
+     * Helper-Function for parseDuration() <br/>
+     * Checks whether a String consists only of digits
      * 
      * @param helper
-     *            - String to check
-     * @return the integer value of the string or -1 if the string does not match
+     *            - the String to check
+     * @return the Integer-Value of the String or -1 if the String does not match
      */
     public static int digitsOnly(String helper)
     {
@@ -187,21 +206,19 @@ public class HelperUtils
         if (helper.matches("[0-9]+"))
         {
             return Integer.parseInt(helper);
-
         }
         else
         {
             return -1;
         }
-
     }
 
     /**
-     * Checks whether the Inputstring is in the Form [digit][d or h][,][digit][d or h] or [digit][d or h] or [0]
+     * Checks whether the Input-String is in the Form [digit][d or h][,][digit][d or h] or [digit][d or h] or [0]
      * 
      * @param helper
-     *            the Inputstring to check
-     * @return 0 for a match, -1 for a mismatch
+     *            the Input-String to check
+     * @return true for a match, false for a mismatch
      */
     public static boolean hasCorrectFormat(String helper)
     {
@@ -218,10 +235,11 @@ public class HelperUtils
     }
 
     /**
-     * Gets a Timestamp in milliseconds and parses the time-interval to that in a readable way
+     * Gets a Timestamp in Milliseconds and parses the Time-Interval to this Timestamp in a readable way
      * 
-     * @param millis - Timestamp in milliseconds
-     * @return the duration to this date (in the pattern 1h, 1d) or a default value (given timestamp was in the past)
+     * @param millis
+     *            - Timestamp in Milliseconds
+     * @return the Duration to this Date (with the Pattern: 1h, 1d) or a Default-Value (if the given Timestamp was in the past)
      */
     public static String parseTime(Long millis)
     {

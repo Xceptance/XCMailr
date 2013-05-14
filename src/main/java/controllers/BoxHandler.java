@@ -1,3 +1,19 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package controllers;
 
 import java.util.Arrays;
@@ -28,9 +44,9 @@ import ninja.validation.Validation;
 import ninja.Result;
 
 /**
- * Handles all actions for the Mailboxes like add, delete and edit box
+ * Handles all actions for the (virtual) Mailboxes like add, delete and edit box
  * 
- * @author Patrick Thum 2012 released under Apache 2.0 License
+ * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 
 @FilterWith(SecureFilter.class)
@@ -47,11 +63,11 @@ public class BoxHandler
     NinjaProperties ninjaProp;
 
     /**
-     * Shows the "New Mailforward"-Page <br/>
+     * Shows the "new Mail-Forward"-Page <br/>
      * GET /mail/add
      * 
      * @param context
-     * @return a prepopulated "add-box"-form
+     * @return a prepopulated "Add-Box"-Form
      */
     public Result showAddBox(Context context)
     {
@@ -80,13 +96,13 @@ public class BoxHandler
     }
 
     /**
-     * Adds a Mailbox to the Useraccount <br/>
+     * Adds a Mailbox to the {@link User}-Account <br/>
      * POST of /mail/add
      * 
      * @param context
      * @param mbdat
      * @param validation
-     * @return the addbox-form on error or the box-overview
+     * @return the Add-Box-Form (on Error) or the Box-Overview
      */
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
@@ -153,7 +169,7 @@ public class BoxHandler
      * 
      * @param boxid
      *            the ID of the Mailbox
-     * @return the Mailbox-Overviewpage
+     * @return the Mailbox-Overview-Page
      */
     public Result deleteBox(@PathParam("id") Long boxid, Context context)
     {
@@ -171,7 +187,8 @@ public class BoxHandler
      * POST /mail/edit/{id}
      * 
      * @param boxId
-     * @return error/success-page
+     *            - the ID of a Mailbox
+     * @return Mailbox-Overview-Page or the Mailbox-Form with an Error- or Success-Message
      */
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
                           Validation validation)
@@ -255,11 +272,12 @@ public class BoxHandler
     }
 
     /**
-     * Shows the edit-form for the box with boxId. GET /mail/edit/:boxid
+     * Shows the Edit-Form for the Box with the given boxId. <br/>
+     * GET /mail/edit/:boxid
      * 
      * @param boxId
-     *            ID of the Box
-     * @return the edit-form
+     *            - ID of the Box
+     * @return the Mailbox-Edit-Form
      */
     public Result showEditBox(Context context, @PathParam("id") Long boxId)
     {
@@ -290,10 +308,10 @@ public class BoxHandler
     }
 
     /**
-     * Generates the mailbox-overview-page of a user.
+     * Generates the Mailbox-Overview-Page of a {@link User}.
      * 
      * @param context
-     * @return the mailbox-overview-page
+     * @return the Mailbox-Overview-Page
      */
 
     public Result showBoxes(Context context)
@@ -303,11 +321,11 @@ public class BoxHandler
     }
 
     /**
-     * sets the box valid/invalid
+     * Sets the Box valid/invalid
      * 
      * @param id
-     *            the ID of the mailbox
-     * @return the rendered mailbox-overview-page
+     *           - the ID of the Mailbox
+     * @return the rendered Mailbox-Overview-Page
      */
 
     public Result expireBox(@PathParam("id") Long id, Context context)

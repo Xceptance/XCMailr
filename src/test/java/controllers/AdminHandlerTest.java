@@ -28,18 +28,6 @@ public class AdminHandlerTest extends NinjaTest
     @Before
     public void setUp()
     {
-
-    }
-
-    @After
-    public void tearDown()
-    {
-
-    }
-
-    @Test
-    public void testAccountActivation()
-    {
         // get the adminaccount and login
         // TODO get this by application.conf
         admin = User.getUsrByMail("admin@xcmailr.test");
@@ -60,7 +48,20 @@ public class AdminHandlerTest extends NinjaTest
 
         formParams.clear();
 
-        // register a new user
+    }
+
+    @After
+    public void tearDown()
+    {
+
+    }
+
+    @Test
+    public void testAccountActivation()
+    {
+
+
+        // "register" a new user
         User testuser = new User("test", "user", "testuser@xcmailr.test", "1234");
         testuser.save();
 
@@ -70,14 +71,13 @@ public class AdminHandlerTest extends NinjaTest
 
         assertFalse(testuser.isActive());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "/admin/activate/" + testuser.getId(),
-                                                                    headers,
-                                                                    formParams);
+                                                                        + "admin/activate/" + testuser.getId(),
+                                                                    headers, formParams);
         testuser = User.getUsrByMail("testuser@xcmailr.test");
         assertTrue(testuser.isActive());
         // deactivate
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "/admin/activate/" + testuser.getId(),
+                                                                        + "admin/activate/" + testuser.getId(),
                                                                     headers,
                                                                     formParams);
         testuser = User.getUsrByMail("testuser@xcmailr.test");
@@ -88,14 +88,14 @@ public class AdminHandlerTest extends NinjaTest
          * TEST: promote and demote the testuser
          */
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "/admin/promote/" + testuser.getId(),
+                                                                        + "admin/promote/" + testuser.getId(),
                                                                     headers,
                                                                     formParams);
 
         testuser = User.getUsrByMail("testuser@xcmailr.test");
         assertTrue(testuser.isAdmin());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "/admin/promote/" + testuser.getId(),
+                                                                        + "admin/promote/" + testuser.getId(),
                                                                     headers,
                                                                     formParams);
         testuser = User.getUsrByMail("testuser@xcmailr.test");
@@ -105,7 +105,7 @@ public class AdminHandlerTest extends NinjaTest
          * TEST: delete the testuser
          */
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "/admin/delete/" + testuser.getId(), headers,
+                                                                        + "admin/delete/" + testuser.getId(), headers,
                                                                     formParams);
         testuser = User.getUsrByMail("testuser@xcmailr.test");
         assertNull(testuser);
@@ -114,7 +114,7 @@ public class AdminHandlerTest extends NinjaTest
          */
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "/admin/activate/" + admin.getId(), headers,
+                                                                        + "admin/activate/" + admin.getId(), headers,
                                                                     formParams);
         admin = User.getById(admin.getId());
         assertTrue(admin.isActive());
@@ -124,7 +124,7 @@ public class AdminHandlerTest extends NinjaTest
          */
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "/admin/delete/" + admin.getId(), headers,
+                                                                        + "admin/delete/" + admin.getId(), headers,
                                                                     formParams);
         admin = User.getById(admin.getId());
         assertNotNull(admin);
@@ -134,11 +134,44 @@ public class AdminHandlerTest extends NinjaTest
          */
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "/admin/promote/" + admin.getId(), headers,
+                                                                        + "admin/promote/" + admin.getId(), headers,
                                                                     formParams);
         admin = User.getById(admin.getId());
         assertTrue(admin.isAdmin());
 
+    }
+    
+    @Test
+    public void showStatistics(){
+
+        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/users");
+        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/users\">"));
+        
+        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/summedtx");
+        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/summedtx\">"));
+        
+        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtxs");
+        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtxs\">"));
+        
+        /*
+         * the next is deprecated
+         */
+        //default
+        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx");
+        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
+        //1hour
+        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx/1");
+        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
+        //1day
+        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx/2");
+        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
+        //1week
+        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx/3");
+        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
+        //1month
+        result = ninjaTestBrowser.makeRequest(getServerAddress()+"admin/mtx/4");
+        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtx\">"));
+        
     }
 
 }

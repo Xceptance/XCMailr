@@ -1,3 +1,19 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package controllers;
 
 import java.util.HashMap;
@@ -26,9 +42,8 @@ import ninja.validation.Validation;
 /**
  * Handles all general application actions like login, logout, forgot password or index page
  * 
- * @author Patrick Thum 2012 released under Apache 2.0 License
+ * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-
 @Singleton
 public class Application
 {
@@ -45,11 +60,11 @@ public class Application
     MemCachedSessionHandler mcsh;
 
     /**
-     * Shows the index-page <br/>
+     * Shows the Index-Page <br/>
      * GET /
      * 
      * @param context
-     * @return the index page
+     * @return the Index-Page
      */
     public Result index(Context context)
     {
@@ -69,10 +84,10 @@ public class Application
 
     // -------------------- Registration -----------------------------------
     /**
-     * shows the registration form <br/>
+     * Shows the Registration-Form <br/>
      * GET /register
      * 
-     * @return the registration form
+     * @return the Registration-Form
      */
 
     public Result registerForm()
@@ -81,10 +96,10 @@ public class Application
     }
 
     /**
-     * Creates the User <br/>
+     * Processes the entered Data and creates the {@link User} <br/>
      * POST /register
      * 
-     * @return the registration form and an error, or - if successful - the index-page
+     * @return the Registration-Form and an error, or - if successful - the Index-Page
      */
 
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
@@ -150,11 +165,11 @@ public class Application
      * GET /verify/{id}/{token}
      * 
      * @param id
-     *            - the userid
+     *            - the {@link User}-ID
      * @param token
-     *            - the verification-token
+     *            - the Verification-Token
      * @param context
-     * @return to the index-page
+     * @return to the Index-Page
      */
     public Result verifyActivation(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
@@ -179,10 +194,10 @@ public class Application
     // -------------------- Login/-out Functions -----------------------------------
 
     /**
-     * Shows the login form<br/>
+     * Shows the Login-Form<br/>
      * GET /login
      * 
-     * @return the rendered login form
+     * @return the rendered Login-Form
      */
     public Result loginForm(Context context)
     {
@@ -190,10 +205,10 @@ public class Application
     }
 
     /**
-     * Handles the logout process<br/>
+     * Handles the Logout-Process<br/>
      * GET /logout
      * 
-     * @return the index page
+     * @return the Index-Page
      */
     public Result logout(Context context)
     {
@@ -208,10 +223,10 @@ public class Application
     }
 
     /**
-     * Handles the login-process <br/>
+     * Handles the Login-Process <br/>
      * POST for /login
      * 
-     * @return the login form or the index page
+     * @return the Login-Form or the Index-Page
      */
     public Result loggedInForm(Context context, @JSR303Validation Login loginDat, Validation validation)
     {
@@ -286,10 +301,10 @@ public class Application
     }
 
     /**
-     * Shows the "forgot password" page <br/>
+     * Shows the "Forgot Password"-Page <br/>
      * GET /resendpw
      * 
-     * @return forgot-pw-form
+     * @return Forgot-Password-Form
      */
     public Result forgotPwForm()
     {
@@ -300,7 +315,7 @@ public class Application
      * Generates a new Token and sends it to the user<br/>
      * POST /resendpw
      * 
-     * @return index page
+     * @return Index-Page
      */
     public Result pwResend(Context context, @JSR303Validation Login loginDat, Validation validation)
     {
@@ -345,15 +360,15 @@ public class Application
     }
 
     /**
-     * This method handles the confirmation-mail-link<br/>
+     * This Method handles the Confirmation-Mail-Link<br/>
      * GET /lostpw/{id}/{token}
      * 
      * @param id
-     *            - the Userid
+     *            - the {@link User}-ID
      * @param token
-     *            - the Token for the User
+     *            - the Token for the {@link User}
      * @param context
-     * @return the reset-pw-form or (on error) to the index-page
+     * @return the Reset-Password-Form or (on error) the Index-Page
      */
     public Result lostPw(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
@@ -376,18 +391,18 @@ public class Application
     }
 
     /**
-     * Sets a new PW for the user <br/>
+     * Sets a new Password for the {@link User}<br/>
      * POST /lostpw/{id}/{token}
      * 
      * @param id
-     *            - the UserID
+     *            - the {@link User}-ID
      * @param token
-     *            - the Token for the User
+     *            - the Token of the {@link User}
      * @param context
      * @param pwd
-     *            - the PwData (the form-entrys)
+     *            - the PwData (the Form-Entrys)
      * @param validation
-     * @return the "change your pw"-site on error or the index-page
+     * @return the "Change your Password"-Site or (on Error) the Index-Page
      */
     public Result changePw(@PathParam("id") Long id, @PathParam("token") String token, Context context,
                            @JSR303Validation PwData pwd, Validation validation)

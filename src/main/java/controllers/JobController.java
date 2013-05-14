@@ -1,3 +1,19 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package controllers;
 
 import java.io.IOException;
@@ -29,17 +45,17 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
- * Handles the Jobs...
+ * Handles the Jobs which will be executed on Start and Stop of the Application
  * 
- * @author Patrick Thum
+ * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
+ * 
  */
-
 @Singleton
 public class JobController
 {
-    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService expirationService = Executors.newSingleThreadScheduledExecutor();
 
-    private final ScheduledExecutorService executorService2 = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService mailTransportService = Executors.newSingleThreadScheduledExecutor();
 
     public SMTPServer smtpServer;
 
@@ -110,8 +126,8 @@ public class JobController
         smtpServer.setPort(port);
         smtpServer.start();
 
-        // create the sheduler-service to check the mailboxes which were expired since the last run and disable them
-        executorService.scheduleAtFixedRate(new Runnable()
+        // create the executor-service to check the mailboxes which were expired since the last run and disable them
+        expirationService.scheduleAtFixedRate(new Runnable()
         {
             @Override
             public void run()
@@ -132,7 +148,7 @@ public class JobController
             }
         }, new Long(1), new Long(interval), TimeUnit.MINUTES);
 
-        executorService2.scheduleAtFixedRate(new Runnable()
+        mailTransportService.scheduleAtFixedRate(new Runnable()
         {
             @Override
             public void run() // Mailjob
@@ -174,8 +190,8 @@ public class JobController
         smtpServer.stop();
 
         // stop the job to expire the mailboxes
-        executorService.shutdown();
-        executorService2.shutdown();
+        expirationService.shutdown();
+        mailTransportService.shutdown();
     }
 
     // stolen from NinjaTestServer-source
