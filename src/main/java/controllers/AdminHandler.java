@@ -86,8 +86,10 @@ public class AdminHandler
     {
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
         Map<String, Object> map = new HashMap<String, Object>();
-        int entrys = HelperUtils.parseEntryValue(context);
-        PageList<User> plist = new PageList<User>(User.all(), entrys);
+        HelperUtils.parseEntryValue(context);
+        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
+
+        PageList<User> plist = new PageList<User>(User.all(), entries);
         map.put("users", plist);
         map.put("uid", usr.getId());
 
@@ -121,8 +123,9 @@ public class AdminHandler
     {
         Map<String, Object> map = new HashMap<String, Object>();
         PageList<MailTransaction> pl;
-        int entrys = HelperUtils.parseEntryValue(context);
-        pl = new PageList<MailTransaction>(MailTransaction.all(), entrys);
+        HelperUtils.parseEntryValue(context);
+        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
+        pl = new PageList<MailTransaction>(MailTransaction.all(), entries);
 
         map.put("plist", pl);
         return Results.html().render(map);

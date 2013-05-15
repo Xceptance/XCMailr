@@ -62,7 +62,8 @@ public class BoxHandler
      * Shows the "new Mail-Forward"-Page <br/>
      * GET /mail/add
      * 
-     * @param context the Context of this Request
+     * @param context
+     *            the Context of this Request
      * @return a prepopulated "Add-Box"-Form
      */
     public Result showAddBox(Context context)
@@ -95,9 +96,12 @@ public class BoxHandler
      * Adds a Mailbox to the {@link User}-Account <br/>
      * POST of /mail/add
      * 
-     * @param context the Context of this Request
-     * @param mbdat the Data of the Mailbox-Add-Form
-     * @param validation Form validation
+     * @param context
+     *            the Context of this Request
+     * @param mbdat
+     *            the Data of the Mailbox-Add-Form
+     * @param validation
+     *            Form validation
      * @return the Add-Box-Form (on Error) or the Box-Overview
      */
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
@@ -169,7 +173,8 @@ public class BoxHandler
      * 
      * @param boxid
      *            the ID of the Mailbox
-     * @param context the Context of this Request
+     * @param context
+     *            the Context of this Request
      * @return the Mailbox-Overview-Page
      */
     public Result deleteBox(@PathParam("id") Long boxid, Context context)
@@ -187,11 +192,14 @@ public class BoxHandler
      * Edits a Mailbox <br/>
      * POST /mail/edit/{id}
      * 
-     * 
-     * @param context the Context of this Request
-     * @param boxId the ID of a Mailbox
-     * @param mbdat the Data of the Mailbox-Edit-Form
-     * @param validation Form validation
+     * @param context
+     *            the Context of this Request
+     * @param boxId
+     *            the ID of a Mailbox
+     * @param mbdat
+     *            the Data of the Mailbox-Edit-Form
+     * @param validation
+     *            Form validation
      * @return Mailbox-Overview-Page or the Mailbox-Form with an Error- or Success-Message
      */
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
@@ -283,9 +291,10 @@ public class BoxHandler
      * Shows the Edit-Form for the Box with the given boxId. <br/>
      * GET /mail/edit/:boxid
      * 
-     * @param context the Context of this Request
+     * @param context
+     *            the Context of this Request
      * @param boxId
-     *             ID of the Box
+     *            ID of the Box
      * @return the Mailbox-Edit-Form with prepopulated values
      */
     public Result showEditBox(Context context, @PathParam("id") Long boxId)
@@ -319,14 +328,16 @@ public class BoxHandler
     /**
      * Generates the Mailbox-Overview-Page of a {@link User}.
      * 
-     * @param context  the Context of this Request
+     * @param context
+     *            the Context of this Request
      * @return the Mailbox-Overview-Page
      */
 
     public Result showBoxes(Context context)
     {
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
-        int entries = HelperUtils.parseEntryValue(context);
+        HelperUtils.parseEntryValue(context);
+        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
         Map<String, PageList<MBox>> map = new HashMap<String, PageList<MBox>>();
         PageList<MBox> plist = new PageList<MBox>(MBox.allUser(usr.getId()), entries);
         map.put("mboxes", plist);
@@ -338,8 +349,9 @@ public class BoxHandler
      * Sets the Box valid/invalid
      * 
      * @param id
-     *             the ID of the Mailbox
-     * @param context the Context of this Request
+     *            the ID of the Mailbox
+     * @param context
+     *            the Context of this Request
      * @return the rendered Mailbox-Overview-Page
      */
 
@@ -358,6 +370,7 @@ public class BoxHandler
                 mb.enable();
             }
         }
+
         return Results.redirect("/mail");
     }
 
@@ -365,9 +378,9 @@ public class BoxHandler
      * Sets the Values of the Counters for the Box, given by their ID, to zero
      * 
      * @param id
-     *             the ID of the Mailbox
+     *            the ID of the Mailbox
      * @param context
-     *             the Context of this Request
+     *            the Context of this Request
      * @return the Mailbox-Overview-Page
      */
     public Result resetBoxCounters(@PathParam("id") Long id, Context context)

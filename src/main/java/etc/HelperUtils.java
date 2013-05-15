@@ -36,7 +36,7 @@ public class HelperUtils
      * Extracts the List of Domains from the ninjaProperties and returns it as a nicely renderable Map
      * 
      * @param ninjaProp
-     *            - the properties of this application
+     *             the Properties for this Application
      * @return a Map with a "domain"-key which contains the list of domains
      */
     public static Map<String, Object> getDomainsFromConfig(NinjaProperties ninjaProp)
@@ -64,7 +64,7 @@ public class HelperUtils
      * e.g. for the Mailbox
      * 
      * @param length
-     *            - Length of the returned String
+     *             Length of the returned String
      * @return a randomly generated String consisting of a-z,A-Z and 0-9
      */
 
@@ -93,7 +93,7 @@ public class HelperUtils
      * All in all, the same like the getRndString(), but here's {@link java.security.SecureRandom} used
      * 
      * @param length
-     *            - Length of the returned String
+     *             Length of the returned String
      * @return a secure-randomly generated String consisting of a-z,A-Z and 0-9
      */
     public static String getRndSecureString(int length)
@@ -124,7 +124,7 @@ public class HelperUtils
      * The highest Time-Interval is set to 30 days, everything above will be set to 0 (unlimited)
      * 
      * @param s
-     *            - the String to parse
+     *            the String to parse
      * @return the Duration which was given by the String
      */
     public static long parseDuration(String s)
@@ -196,7 +196,7 @@ public class HelperUtils
      * Checks whether a String consists only of digits
      * 
      * @param helper
-     *            - the String to check
+     *             the String to check
      * @return the Integer-Value of the String or -1 if the String does not match
      */
     public static int digitsOnly(String helper)
@@ -237,7 +237,7 @@ public class HelperUtils
      * Gets a Timestamp in Milliseconds and parses the Time-Interval to this Timestamp in a readable way
      * 
      * @param millis
-     *            - Timestamp in Milliseconds
+     *             Timestamp in Milliseconds
      * @return the Duration to this Date (with the Pattern: 1h, 1d) or a Default-Value (if the given Timestamp was in
      *         the past)
      */
@@ -267,38 +267,48 @@ public class HelperUtils
     }
 
     /**
-     * Helper-Function for Pagination
-     * Tries to parse the number (Parameter "no") from the Context and returns this number.<br/>
-     * If the Parameter has been set to "all", the number 0 is returned.<br/>  
-     * If null or no number (except "all") is given, the number 5 will be returned.
-     * @param context - the Context 
+     * Helper-Function for Pagination Tries to parse the number (Parameter "no") from the Context and stores this
+     * number in the session-cookie.<br/>
+     * If the Parameter has been set to "all", the number 0 is set.<br/>
+     * If no number (except "all") is given, the number 5 will be set.
+     * If null, there will be a separated check, whether a value is already set
+     * 
+     * @param context
+     *             the Context
      * @return 0, 5 or another Number
      */
-    public static int parseEntryValue(Context context)
+    public static void parseEntryValue(Context context)
     {
+
         String no = context.getParameter("no");
+        String value;
         if (no == null)
-        {
-            return 5;
+        {// no parameter
+            if (!(context.getSessionCookie().get("no") == null))
+            {
+                return;
+            }
+            value = "5";
         }
         else
         {
             if (no.equals("all"))
             {
-                return 0;
+                value = "0";
             }
             else
             {
                 try
                 {
-                    return Integer.parseInt(no);
+                    value = no;
                 }
                 catch (NumberFormatException nfe)
                 {
-                    return 5;
+                    value = "5";
                 }
             }
         }
+        context.getSessionCookie().put("no", value);
     }
 
 }

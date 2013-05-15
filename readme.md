@@ -1,6 +1,6 @@
 XCMailr
 =======
-About
+Summary
 ------
 * Name: XCMailr
 * Version: 1.0
@@ -27,18 +27,16 @@ Requirements
 Configuration:
 --------------
 * Open and edit the application.conf in conf/ 
-* We strongly recommend to create a new application secret. This secret ensures that the Session-Cookie of a User has not been modified. 
-* You should  
+* It is strongly recommended to create a new application secret. This secret ensures that the Session-Cookie of a User has not been modified. 
+* You should especially customize the following settings:
+    * **mbox.dlist**: the list of available domains
+    * **mbox.host** the main-application-host 
+    * ** mail.smtp.* ** the "outbound" SMTP-Server (the Server to which the Application will forward any Messages )
+    * ** memcached.* ** the MemCached-Server (host and port)
+    * ** ebean.* ** the Ebean-Configuration
 
 
-* since there is no real HTTPS support in play 2.0 until now
-  you have to install and configure a reverse proxy as described in
-  http://www.playframework.org/documentation/2.0.1/HTTPServer
-  A nice guide to set up the reverse proxy correctly is described in
-  http://www.nczonline.net/blog/2012/08/08/setting-up-apache-as-a-ssl-front-end-for-play/
-  and a german tutorial for generating the server.key file and self-signed certificate server.crt
-  is available at http://www.schirmacher.de/display/INFO/Apache+SSL+Zertifikat+erstellen
-  
+* HTTPS Support: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
 
 Frameworks/Librarys/Code/etc which were provided by others:
 -----------------------------------------------------------
