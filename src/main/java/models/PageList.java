@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * A generic Wrapper-Class for a List to provide Pagination
+ * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  * @param <T>
  *            the Type of the List
@@ -31,43 +33,80 @@ public class PageList<T>
 
     private int pagesize;
 
+    /**
+     * Default Constructor
+     */
     public PageList()
     {
         this.allEntrys = new ArrayList<T>();
         this.pagesize = 0;
     }
 
+    /**
+     * Constructor to initialize the Object
+     * 
+     * @param in
+     *            the List with Entries
+     * @param size
+     *            the Size of one Page
+     */
     public PageList(List<T> in, int size)
     {
         this.allEntrys = in;
         this.pagesize = size;
     }
 
+    /**
+     * @return the complete list which has been initialized
+     */
     public List<T> getAllEntrys()
     {
         return allEntrys;
     }
 
+    /**
+     * Sets the List to handle
+     * 
+     * @param allEntrys
+     *            the List with Entries
+     */
     public void setAllEntrys(List<T> allEntrys)
     {
         this.allEntrys = allEntrys;
     }
+
+    /**
+     * @return the Number of Entries of a Page
+     */
 
     public int getPagesize()
     {
         return pagesize;
     }
 
+    /**
+     * Sets the Number of Entries on a Page
+     * 
+     * @param size
+     *            the Number of Entries
+     */
+
     public void setPagesize(int size)
     {
         this.pagesize = size;
     }
 
+    /**
+     * @return the Number of Elements in the List
+     */
     public int getEntryCount()
     {
         return allEntrys.size();
     }
 
+    /**
+     * @return the Number of Pages
+     */
     public int getPageCount()
     {
         if (pagesize <= 0)
@@ -85,6 +124,10 @@ public class PageList<T>
         }
     }
 
+    /**
+     * @param page the Page-number
+     * @return a List which contains all Entries of the specified Page
+     */
     public List<T> getPage(int page)
     {
         if (pagesize <= 0)
@@ -108,11 +151,4 @@ public class PageList<T>
         }
         return allEntrys.subList(startIdx, endIdx);
     }
-
-    public List<T> getPageByString(String page)
-    {
-        int i = Integer.parseInt(page);
-        return getPage(i);
-    }
-
 }

@@ -86,13 +86,13 @@ public class MBox
      * Constructor
      * 
      * @param local
-     *            - Local-Part of the Forward-Address
+     *            Local-Part of the Forward-Address
      * @param domain
-     *            - Domain-Part of the Forward-Address
+     *            Domain-Part of the Forward-Address
      * @param ts
-     *            - Timestamp for expiration
+     *            Timestamp for expiration
      * @param expired
-     *            - indicates the Status of the Mail-Forward
+     *            indicates the Status of the Mail-Forward
      */
 
     public MBox(String local, String domain, long ts, boolean expired, User usr)
@@ -107,7 +107,7 @@ public class MBox
     }
 
     // -------------------------------------
-    // Getter und Setter
+    // Getters and Setters
     // -------------------------------------
     /**
      * @return the ID of this MBox (primary key in the DB)
@@ -119,7 +119,7 @@ public class MBox
 
     /**
      * @param id
-     *            - the ID of this MBox to set
+     *            the ID of this MBox to set
      */
     public void setId(long id)
     {
@@ -136,7 +136,7 @@ public class MBox
 
     /**
      * @param address
-     *            - the Local-Part of the Address to set
+     *            the Local-Part of the Address to set
      */
     public void setAddress(String address)
     {
@@ -168,7 +168,7 @@ public class MBox
      * if true, the Box will be expired/inactive
      * 
      * @param expired
-     *            - the Expiration-Status to set
+     *            the Expiration-Status to set
      */
     public void setExpired(boolean expired)
     {
@@ -185,7 +185,7 @@ public class MBox
 
     /**
      * @param usr
-     *            - the {@link User} which owns this Box/Forward
+     *            the {@link User} which owns this Box/Forward
      */
     public void setUsr(User usr)
     {
@@ -202,7 +202,7 @@ public class MBox
 
     /**
      * @param domain
-     *            - the Domain-Part of this Mail-Forward to set
+     *            the Domain-Part of this Mail-Forward to set
      */
     public void setDomain(String domain)
     {
@@ -211,7 +211,7 @@ public class MBox
 
     /**
      * @param uid
-     *            - the {@link User}-ID
+     *            the {@link User}-ID
      * @return true, if the {@link User} with the given ID owns this Mailbox
      */
     public boolean belongsTo(Long uid)
@@ -263,7 +263,7 @@ public class MBox
 
     /**
      * @param suppressions
-     *            - sets the Number of suppressed Mails on this Address<br/>
+     *            sets the Number of suppressed Mails on this Address<br/>
      */
     public void setSuppressions(int suppressions)
     {
@@ -296,7 +296,7 @@ public class MBox
 
     /**
      * @param ts_Active
-     *            - sets the Time as long as this Address will be active
+     *            sets the Time as long as this Address will be active
      */
     public void setTs_Active(long ts_Active)
     {
@@ -345,7 +345,7 @@ public class MBox
      * Removes a Box from the DB
      * 
      * @param id
-     *            - the ID of the Box to delete
+     *            the ID of the Box to delete
      */
     public static void delete(Long id)
     {
@@ -354,8 +354,9 @@ public class MBox
 
     /**
      * Resolves the Mailbox by their given ID
+     * 
      * @param id
-     *            - ID of the Box
+     *            ID of the Box
      * @return the Box
      */
     public static MBox getById(Long id)
@@ -364,10 +365,12 @@ public class MBox
     }
 
     /**
-     * returns the Box by the given Name 
+     * returns the Box by the given Name
      * 
-     * @param mail - the Local-Part of the virtual Mailbox
-     * @param domain - the Domain-Part of the virtual Mailbox
+     * @param mail
+     *            the Local-Part of the virtual Mailbox
+     * @param domain
+     *            the Domain-Part of the virtual Mailbox
      * @return the MBox-Object that belongs to this Address
      */
     public static MBox getByName(String mail, String domain)
@@ -379,9 +382,9 @@ public class MBox
      * Checks the relation between a {@link User} and a Box
      * 
      * @param bId
-     *            - the Box-ID
+     *            the Box-ID
      * @param uId
-     *            - the {@link User}-ID
+     *            the {@link User}-ID
      * @return true if the given Box-ID belongs to the given {@link User}-Id
      */
     public static boolean boxToUser(long bId, long uId)
@@ -390,7 +393,8 @@ public class MBox
     }
 
     /**
-     * @param mbId - the virtual Mailbox-ID
+     * @param mbId
+     *            the virtual Mailbox-ID
      * @return the "real" Mail-Address of the Owner of this Box
      */
     public static String getFWD(Long mbId)
@@ -402,9 +406,9 @@ public class MBox
      * Gets the "real" Mail-Address that belongs to the given virtual Mailbox
      * 
      * @param mail
-     *            - Local-Part of the virtual Mailbox
+     *            Local-Part of the virtual Mailbox
      * @param domain
-     *            - Domain-Part of the virtual Mailbox
+     *            Domain-Part of the virtual Mailbox
      * @return the "real" Mail-Address of the {@link User} that owns this virtual Mailbox
      */
     public static String getFwdByName(String mail, String domain)
@@ -425,7 +429,7 @@ public class MBox
      * Finds all Addresses which belong to a specific {@link User} given by the User-ID
      * 
      * @param id
-     *            - ID of a {@link User}
+     *            ID of a {@link User}
      * @return returns all Boxes of a specific {@link User}
      */
     public static List<MBox> allUser(Long id)
@@ -434,7 +438,8 @@ public class MBox
     }
 
     /**
-     * @param userId - the ID of a User
+     * @param userId
+     *            the ID of a User
      * @return all Boxes in a List, wrapped in a Map with the key "mboxes"
      */
     public static Map<String, List<MBox>> allUserMap(Long userId)
@@ -449,8 +454,10 @@ public class MBox
     /**
      * Checks if a given Mailbox-Address exists
      * 
-     * @param mail - Local-Part of the Address to check
-     * @param domain - Domain-Part of the Address to check
+     * @param mail
+     *            Local-Part of the Address to check
+     * @param domain
+     *            Domain-Part of the Address to check
      * @return true, if the Mailbox-Address exists
      */
     public static boolean mailExists(String mail, String domain)
@@ -467,11 +474,11 @@ public class MBox
 
     /**
      * @param local
-     *            - the new Local-Part of the Box
+     *            the new Local-Part of the Box
      * @param domain
-     *            - the new Domain-Part of the Box
+     *            the new Domain-Part of the Box
      * @param boxId
-     *            - the ID of the Box to check
+     *            the ID of the Box to check
      * @return true, if the Address has changed and is not used
      */
 
@@ -504,7 +511,7 @@ public class MBox
 
     /**
      * @return the Timestamp as String in the Format "dd.mm.yyyy hh:mm"
-     *///TODO mm-month  mm-min?
+     */
     public String getTSAsString()
     {
         if (this.ts_Active == 0)
@@ -518,7 +525,7 @@ public class MBox
             String mon = "";
             String hou = "";
             String min = "";
-            //add a leading "0" if the value is under ten
+            // add a leading "0" if the value is under ten
             if (dt.getDayOfMonth() < 10)
             {
                 day += "0";
@@ -551,7 +558,7 @@ public class MBox
      * Generates a List of the Boxes which will expire in the next hour(s)
      * 
      * @param hours
-     *            - the hour(s) to check for
+     *            the hour(s) to check for
      * @return List of MBoxes
      */
     public static List<MBox> getNextBoxes(int hours)

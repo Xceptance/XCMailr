@@ -57,10 +57,11 @@ public class Application
     MemCachedSessionHandler mcsh;
 
     /**
-     * Shows the Index-Page <br/>
+     * Shows the general or logged-in Index-Page <br/>
      * GET /
      * 
      * @param context
+     *            the Context of this Request
      * @return the Index-Page
      */
     public Result index(Context context)
@@ -93,9 +94,15 @@ public class Application
     }
 
     /**
-     * Processes the entered Data and creates the {@link User} <br/>
+     * Processes the entered Registration-Data and creates the {@link User} <br/>
      * POST /register
      * 
+     * @param context
+     *            the Context of this Request
+     * @param frdat
+     *            the Data of the Registration-Form
+     * @param validation
+     *            Form validation
      * @return the Registration-Form and an error, or - if successful - the Index-Page
      */
 
@@ -162,10 +169,11 @@ public class Application
      * GET /verify/{id}/{token}
      * 
      * @param id
-     *            - the {@link User}-ID
+     *            the {@link User}-ID
      * @param token
-     *            - the Verification-Token
+     *            the Verification-Token
      * @param context
+     *            the Context of this Request
      * @return to the Index-Page
      */
     public Result verifyActivation(@PathParam("id") Long id, @PathParam("token") String token, Context context)
@@ -194,6 +202,8 @@ public class Application
      * Shows the Login-Form<br/>
      * GET /login
      * 
+     * @param context
+     *            the Context of this Request
      * @return the rendered Login-Form
      */
     public Result loginForm(Context context)
@@ -205,6 +215,8 @@ public class Application
      * Handles the Logout-Process<br/>
      * GET /logout
      * 
+     * @param context
+     *            the Context of this Request
      * @return the Index-Page
      */
     public Result logout(Context context)
@@ -223,6 +235,12 @@ public class Application
      * Handles the Login-Process <br/>
      * POST for /login
      * 
+     * @param context
+     *            the Context of this Request
+     * @param loginDat
+     *            the Data of the Login-Form
+     * @param validation
+     *            Form validation
      * @return the Login-Form or the Index-Page
      */
     public Result loggedInForm(Context context, @JSR303Validation Login loginDat, Validation validation)
@@ -312,7 +330,13 @@ public class Application
      * Generates a new Token and sends it to the user<br/>
      * POST /resendpw
      * 
-     * @return Index-Page
+     * @param context
+     *            the Context of this Request
+     * @param loginDat
+     *            the Data of the Resend-Password-Form (just one Field for the Mail-Address)
+     * @param validation
+     *            Form validation
+     * @return the Index-Page
      */
     public Result pwResend(Context context, @JSR303Validation Login loginDat, Validation validation)
     {
@@ -361,10 +385,11 @@ public class Application
      * GET /lostpw/{id}/{token}
      * 
      * @param id
-     *            - the {@link User}-ID
+     *            the {@link User}-ID
      * @param token
-     *            - the Token for the {@link User}
+     *            the Token for the {@link User}
      * @param context
+     *            the Context of this Request
      * @return the Reset-Password-Form or (on error) the Index-Page
      */
     public Result lostPw(@PathParam("id") Long id, @PathParam("token") String token, Context context)
@@ -392,13 +417,15 @@ public class Application
      * POST /lostpw/{id}/{token}
      * 
      * @param id
-     *            - the {@link User}-ID
+     *            the {@link User}-ID
      * @param token
-     *            - the Token of the {@link User}
+     *            the Token of the {@link User}
      * @param context
+     *            the Context of this Request
      * @param pwd
-     *            - the PwData (the Form-Entrys)
+     *            the PwData (the Form-Entrys)
      * @param validation
+     *            Form validation
      * @return the "Change your Password"-Site or (on Error) the Index-Page
      */
     public Result changePw(@PathParam("id") Long id, @PathParam("token") String token, Context context,

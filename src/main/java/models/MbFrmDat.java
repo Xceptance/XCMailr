@@ -49,7 +49,7 @@ public class MbFrmDat
 
     /**
      * @param boxId
-     *            - the {@link MBox}-ID to set
+     *             the {@link MBox}-ID to set
      */
     public void setBoxId(Long boxId)
     {
@@ -66,7 +66,7 @@ public class MbFrmDat
 
     /**
      * @param address
-     *            - the Local-Part of a Mail-Address to set
+     *             the Local-Part of a Mail-Address to set
      */
     public void setAddress(String address)
     {
@@ -84,7 +84,7 @@ public class MbFrmDat
 
     /**
      * @param duration
-     *            - the Duration until the Validity-Period ends
+     *             the Duration until the Validity-Period ends
      * @see etc.HelperUtils#parseDuration(String) Informations about the Format of the String
      */
     public void setDuration(String duration)
@@ -102,7 +102,7 @@ public class MbFrmDat
 
     /**
      * @param domain
-     *            - the Domain-Part to set
+     *             the Domain-Part to set
      */
     public void setDomain(String domain)
     {

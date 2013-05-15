@@ -44,7 +44,7 @@ public class PwData
 
     /**
      * @param pw
-     *            - the new password to set
+     *             the new password to set
      */
     public void setPw(String pw)
     {
@@ -61,7 +61,7 @@ public class PwData
 
     /**
      * @param pw2
-     *            - the repetition of the new Password
+     *             the repetition of the new Password
      */
     public void setPw2(String pw2)
     {

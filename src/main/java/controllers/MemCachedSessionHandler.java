@@ -73,11 +73,11 @@ public class MemCachedSessionHandler
      * Sets a new Object in the Memcache
      * 
      * @param key
-     *            - the Key to find the Object
+     *            the Key to find the Object
      * @param ttl
-     *            - TimeToLive in Seconds
+     *            TimeToLive in Seconds
      * @param o
-     *            - the Object to store
+     *            the Object to store
      */
     public void set(String key, int ttl, final Object o)
     {
@@ -90,6 +90,7 @@ public class MemCachedSessionHandler
      * it will return null if the Key doesn't exist
      * 
      * @param key
+     *            the Key
      * @return the specified Object
      */
     public Object get(String key)
@@ -102,6 +103,7 @@ public class MemCachedSessionHandler
      * deletes the object to the given key
      * 
      * @param key
+     *            the Key
      * @return an OperationFuture<Boolean>
      */
 

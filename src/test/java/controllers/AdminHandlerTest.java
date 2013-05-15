@@ -28,6 +28,7 @@ public class AdminHandlerTest extends NinjaTest
     @Before
     public void setUp()
     {
+        
         // get the adminaccount and login
         // TODO get this by application.conf
         admin = User.getUsrByMail("admin@xcmailr.test");

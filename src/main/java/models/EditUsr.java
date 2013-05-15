@@ -23,7 +23,6 @@ import org.hibernate.validator.constraints.NotEmpty;
  * Holds all Data for the Edit Form (and is also used in the Registration-Process)
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- * 
  */
 
 public class EditUsr
@@ -55,7 +54,7 @@ public class EditUsr
 
     /**
      * @param foreName
-     *            - the Forename to set
+     *            the Forename to set
      */
     public void setForeName(String foreName)
     {
@@ -72,7 +71,7 @@ public class EditUsr
 
     /**
      * @param surName
-     *            - the Surname to set
+     *            the Surname to set
      */
     public void setSurName(String surName)
     {
@@ -89,7 +88,7 @@ public class EditUsr
 
     /**
      * @param mail
-     *            - the Mail-Address to set
+     *            the Mail-Address to set
      */
     public void setMail(String mail)
     {
@@ -106,7 +105,7 @@ public class EditUsr
 
     /**
      * @param pw
-     *            - the Password to set
+     *            the Password to set
      */
     public void setPw(String pw)
     {
@@ -123,7 +122,7 @@ public class EditUsr
 
     /**
      * @param pwn1
-     *            - the new Password to set
+     *            the new Password to set
      */
     public void setPwn1(String pwn1)
     {
@@ -148,10 +147,10 @@ public class EditUsr
     }
 
     /**
-     * This Method will create a User-Object by the given Data<br/>
-     * Be careful: The pwn1-field will be used as Password for the -object <br/>
+     * This Method will create a {@link User}-Object by the given Data<br/>
+     * Be careful: The pwn1-field will be used as Password for the {@link User}-Object <br/>
      * 
-     * @return a User-Object instantiated with the given data
+     * @return a {@link User}-Object instantiated with the given Data
      * @see User
      */
     public User getAsUser()
@@ -160,10 +159,11 @@ public class EditUsr
     }
 
     /**
-     * This Method takes a User-Object and converts it into a returned EditUsr-Object<br/>
+     * This Method takes an {@link User}-Object and converts it into a returned EditUsr-Object<br/>
      * 
-     * @param user - the User-object to convert
-     * @return - an EditUsr-Object filled with the User-Data
+     * @param user
+     *             the {@link User}-Object to convert
+     * @return an EditUsr-Object filled with the User-Data
      */
     public static EditUsr prepopulate(User user)
     {

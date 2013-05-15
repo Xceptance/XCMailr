@@ -1,17 +1,20 @@
 <!-- Selector for the numbers of Entries per Page -->
 
 <#macro entrycount>
-<ul> 
+<div class="row-fluid">
+<ul class ="pull-right"> 
 	<li><input type="submit"  value="5" name="no"/> </li>
 	<li> <input type="submit" value="15" name="no"/></li>
 	<li><input type="submit"  value="25" name="no"/></li>
 	<li><input type="submit"  value="all" name="no"/></li>
 </ul>
+</div>
 </#macro>
 
 <!-- Pager  -->
 
 <#macro pager name="plist">
+<#if (name.getPageCount() > 1) >
 	<ul >
 	<#list 1..name.getPageCount() as x >  
 		<#if x = 1 >
@@ -21,4 +24,5 @@
 		</#if>
 	</#list>
 	</ul>  
+</#if>
 </#macro>

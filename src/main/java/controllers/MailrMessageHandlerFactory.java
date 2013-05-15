@@ -38,7 +38,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 /**
- * Handles all actions for Mails, especially processes all incoming Mails
+ * Handles all Actions for Mails and especially processes all incoming Mails
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
@@ -215,13 +215,13 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * Takes the Mail specified by the Parameters and sends it to the given Target
      * 
      * @param from
-     *            - the Mail-Author
+     *             the Mail-Author
      * @param to
-     *            - the Recipients-Address
+     *             the Recipients-Address
      * @param content
-     *            - the Message-Body
+     *             the Message-Body
      * @param subject
-     *            - the Message Subject
+     *             the Message Subject
      * @return true, if the Addition to the Mail-Queue was successful
      */
     public boolean sendMail(String from, String to, String content, String subject)
@@ -257,15 +257,15 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * Generates the Confirmation-Mail after Registration
      * 
      * @param to
-     *            - Recipients-Address
+     *            Recipients-Address
      * @param forename
-     *            - Forename of the Recipient
+     *             Forename of the Recipient
      * @param id
-     *            - {@link User}-ID of the Recipient
+     *             {@link User}-ID of the Recipient
      * @param token
-     *            - the generated Confirmation-Token of the {@link User}
+     *             the generated Confirmation-Token of the {@link User}
      * @param lang
-     *            - The Language for the Mail
+     *             The Language for the Mail
      */
     public void sendConfirmAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {
@@ -287,15 +287,15 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * Generates the Confirmation-Mail for a forgotten Password
      * 
      * @param to
-     *            - Recipients-Address
+     *             Recipients-Address
      * @param forename
-     *            - Forename of the Recipient
+     *             Forename of the Recipient
      * @param id
-     *            - {@link User}-ID of the Recipient
+     *             {@link User}-ID of the Recipient
      * @param token
-     *            - the generated Confirmation-Token of the User
+     *             The generated Confirmation-Token of the User
      * @param lang
-     *            - The Language for the Mail
+     *             The Language for the Mail
      */
     public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {

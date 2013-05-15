@@ -22,7 +22,6 @@ import org.hibernate.validator.constraints.NotEmpty;
  * Holds the Data for the Login Form
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- * 
  */
 public class Login
 {
@@ -40,7 +39,8 @@ public class Login
     }
 
     /**
-     * @param mail - the Mail-Address to set
+     * @param mail
+     *            the Mail-Address to set
      */
     public void setMail(String mail)
     {
@@ -48,7 +48,7 @@ public class Login
     }
 
     /**
-     * @return the Password 
+     * @return the Password
      */
     public String getPwd()
     {
@@ -56,7 +56,8 @@ public class Login
     }
 
     /**
-     * @param pwd - the Password to set
+     * @param pwd
+     *            the Password to set
      */
     public void setPwd(String pwd)
     {

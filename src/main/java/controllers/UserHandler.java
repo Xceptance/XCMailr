@@ -33,10 +33,9 @@ import filters.SecureFilter;
 
 /**
  * Handles the actions of the User-Object
+ * 
  * @see User
- * 
  * @author Patrick Thum 2012 released under Apache 2.0 License
- * 
  */
 @FilterWith(SecureFilter.class)
 @Singleton
@@ -52,6 +51,12 @@ public class UserHandler
      * Edits the {@link User}-Data <br/>
      * POST /user/edit
      * 
+     * @param context
+     *            the Context of this Request
+     * @param edt
+     *            the Data of the User-Edit-Form
+     * @param validation
+     *            Form validation
      * @return the Edit-Page again
      */
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
@@ -127,8 +132,11 @@ public class UserHandler
      * Prepopulates the EditForm and show it <br/>
      * GET /user/edit
      * 
+     * @param context
+     *            the Context of this Request
      * @return the {@link User}-Edit-Form
      */
+
     public Result editUserForm(Context context)
     {
         User usr = (User) mcsh.get(context.getSessionCookie().getId());

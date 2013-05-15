@@ -33,7 +33,6 @@ import com.avaje.ebean.RawSqlBuilder;
  * This Class is used to save all Actions on the Mailserver
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- * 
  */
 @Entity
 @Table(name = "mailtransactions")
@@ -65,18 +64,18 @@ public class MailTransaction
     /**
      * Creates an MailTransaction-Object, with Parameters<br/>
      * <b>Statuscodes:</b> <br/>
-     *   0 - Mail has a wrong Pattern<br/>
+     * 0 - Mail has a wrong Pattern<br/>
      * 100 - Mail does not exist<br/>
      * 200 - Mail exists but is inactive <br/>
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 
      * @param stat
-     *            - Statuscode of the Transaction
+     *            Statuscode of the Transaction
      * @param target
-     *            - Original Recipients-Address of the Mail
-     * @param source 
-     *            - the Sender's - Address
+     *            Original Recipients-Address of the Mail
+     * @param source
+     *            the Sender's - Address
      */
     public MailTransaction(int stat, String target, String source)
     {
@@ -87,7 +86,7 @@ public class MailTransaction
     }
 
     /**
-     * @return the ID of this Transaction 
+     * @return the ID of this Transaction
      */
     public Long getId()
     {
@@ -96,7 +95,7 @@ public class MailTransaction
 
     /**
      * @param id
-     *            - the ID of this Transaction to set
+     *            the ID of this Transaction to set
      */
     public void setId(Long id)
     {
@@ -112,7 +111,7 @@ public class MailTransaction
     }
 
     /**
-     * @return the Timestamp as String in the Format "dd.mm.yyyy hh:mm"
+     * @return the Timestamp as String in the Format "dd.MM.yyyy hh:mm"
      */
     public String getTsAsString()
     {
@@ -121,8 +120,8 @@ public class MailTransaction
         String mon = "";
         String hou = "";
         String min = "";
-        
-        //add a leading "0" if the value is under ten
+
+        // add a leading "0" if the value is under ten
         if (dt.getDayOfMonth() < 10)
         {
             day += "0";
@@ -140,19 +139,19 @@ public class MailTransaction
             hou += "0";
         }
         hou += String.valueOf(dt.getHourOfDay());
-        
+
         if (dt.getMinuteOfHour() < 10)
         {
             min += "0";
         }
         min += String.valueOf(dt.getMinuteOfHour());
-        
+
         return day + "." + mon + "." + dt.getYear() + " " + hou + ":" + min;
     }
 
     /**
      * @param ts
-     *            - sets the Timestamp in Milliseconds
+     *            sets the Timestamp in Milliseconds
      */
     public void setTs(Long ts)
     {
@@ -161,7 +160,7 @@ public class MailTransaction
 
     /**
      * <b>Statuscodes:</b> <br/>
-     *   0 - Mail has a wrong Pattern <br/>
+     * 0 - Mail has a wrong Pattern <br/>
      * 100 - Mail does not exist<br/>
      * 200 - Mail exists but is inactive <br/>
      * 300 - Mail has been forwarded successfully <br/>
@@ -176,14 +175,14 @@ public class MailTransaction
 
     /**
      * <b>Statuscodes:</b> <br/>
-     *   0 - Mail has a wrong Pattern<br/>
+     * 0 - Mail has a wrong Pattern<br/>
      * 100 - Mail does not exist<br/>
      * 200 - Mail exists but is inactive <br/>
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 
      * @param status
-     *            - the Status to set
+     *            the Status to set
      */
     public void setStatus(int status)
     {
@@ -200,7 +199,7 @@ public class MailTransaction
 
     /**
      * @param targetaddr
-     *            - the Target-Address to set
+     *            the Target-Address to set
      */
     public void setTargetaddr(String targetaddr)
     {
@@ -217,7 +216,7 @@ public class MailTransaction
 
     /**
      * @param sourceaddr
-     *            - the Source-Address to set
+     *            the Source-Address to set
      */
     public void setSourceaddr(String sourceaddr)
     {
@@ -247,7 +246,7 @@ public class MailTransaction
      * Gets all Mail-Transactions in the last "Period"
      * 
      * @param period
-     *            - Joda-Time Period
+     *            Joda-Time Period
      * @return a List of Mail-Transactions
      */
     public static List<MailTransaction> allInPeriod(Period period)

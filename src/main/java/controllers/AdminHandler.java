@@ -62,24 +62,24 @@ public class AdminHandler
 
     // ---------------------Functions for the Admin-Section ---------------------
     /**
-     * Shows a the Administration-Index-Page<br/>
+     * Shows the Administration-Index-Page<br/>
      * GET site/admin
      * 
      * @param context
+     *            the Context of this Request
      * @return the Admin-Index-Page
      */
-    public Result showAdmin(Context context, String no)
+    public Result showAdmin(Context context)
     {
         return Results.html();
     }
 
     /**
-     * Shows a List of all {@link User}s in the DB <br/>
-     * site/admin/users
+     * Shows a List of all {@link models.User Users} in the DB <br/>
+     * GET site/admin/users
      * 
      * @param context
-     * @param no
-     *            - the Number of Users per Page
+     *            the Context of this Request
      * @return a List of all Users
      */
     public Result showUsers(Context context)
@@ -95,15 +95,14 @@ public class AdminHandler
     }
 
     /**
-     * Shows a List of all {@link Status} in the DB <br/>
+     * Shows a List of all {@link models.Status Status} in the DB <br/>
      * GET site/admin/summedtx
      * 
      * @param context
-     * @param no
-     *            - the Number of Transactions per Page
+     *            the Context of this Request
      * @return a List of all Status
      */
-    public Result showSumTx(Context context, String no)
+    public Result showSumTx(Context context)
     {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("stats", MailTransaction.getStatusList());
@@ -111,12 +110,11 @@ public class AdminHandler
     }
 
     /**
-     * Shows a paginated List of all {@link MailTransaction}s in the DB <br/>
+     * Shows a paginated List of all {@link models.MailTransaction Mailtransactions} in the DB <br/>
      * GET site/admin/mtxs
      * 
      * @param context
-     * @param no
-     *            - the Number of {@link MailTransaction}s per Page
+     *            the Context of this Request
      * @return the Page to show paginated MailTransactions
      */
     public Result pagedMTX(Context context)
@@ -135,7 +133,9 @@ public class AdminHandler
      * POST /admin/activate/{id}
      * 
      * @param id
-     *            - ID of a User
+     *            ID of a User
+     * @param context
+     *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
     public Result activate(@PathParam("id") Long id, Context context)
@@ -196,11 +196,13 @@ public class AdminHandler
     }
 
     /**
-     * Pro- or Demotes the {@link User} with the given ID <br/>
+     * Pro- or Demotes the {@link models.User User} with the given ID <br/>
      * POST /admin/promote/{id}
      * 
      * @param id
-     *            - ID of a {@link User}
+     *            ID of a {@link models.User User}
+     * @param context
+     *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
     public Result promote(@PathParam("id") Long id, Context context)
@@ -214,11 +216,13 @@ public class AdminHandler
     }
 
     /**
-     * Handles the {@link User}-Delete-Function <br/>
+     * Handles the {@link models.User User}-Delete-Function <br/>
      * POST /admin/delete/{id}
      * 
      * @param id
-     *            - the ID of a {@link User}
+     *            the ID of a {@link models.User User}
+     * @param context
+     *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
     public Result deleteUser(@PathParam("id") Long id, Context context)

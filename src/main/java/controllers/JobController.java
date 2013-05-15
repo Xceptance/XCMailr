@@ -40,7 +40,6 @@ import models.User;
 import ninja.lifecycle.Dispose;
 import ninja.lifecycle.Start;
 import ninja.utils.NinjaProperties;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -48,7 +47,6 @@ import com.google.inject.Singleton;
  * Handles the Jobs which will be executed on Start and Stop of the Application
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- * 
  */
 @Singleton
 public class JobController
@@ -73,6 +71,10 @@ public class JobController
     @Inject
     MailrMessageHandlerFactory mailrFactory;
 
+    /**
+     * Starts the Mailserver, creates the Admin-Account specified in application.conf and Threads to expire the
+     * Mailaddresses and the Mails which have to be sent
+     */
     @Start(order = 90)
     public void startActions()
     {
@@ -161,7 +163,7 @@ public class JobController
                     log.info("Mailjob: Message found");
                     try
                     {
-                        if (!ninjaProp.isTest()) //TODO maybe remove this
+                        if (!ninjaProp.isTest()) // TODO maybe remove this
                         {
                             Transport.send(message);
                         }
@@ -178,11 +180,19 @@ public class JobController
         }, new Long(1), new Long(mailinterval), TimeUnit.MINUTES);
     }
 
+    /**
+     * adds a Message to the Mailqueue
+     * 
+     * @param msg the Message to add
+     */
     public void addMessage(MimeMessage msg)
     {
         mailQueue.add(msg);
     }
 
+    /**
+     * Stops the Threads and the SMTP-Server
+     */
     @Dispose(order = 90)
     public void stopActions()
     {
@@ -194,6 +204,17 @@ public class JobController
         mailTransportService.shutdown();
     }
 
+    /**
+     * finds an available Port in the Range of "min" and "max" Copyright information: this Method comes from
+     * NinjaTestServer
+     * 
+     * @param min
+     *            lower bound of ports to search
+     * @param max
+     *            upper bound of ports to search
+     * @return an available port
+     * 
+     */
     // stolen from NinjaTestServer-source
     private static int findAvailablePort(int min, int max)
     {
