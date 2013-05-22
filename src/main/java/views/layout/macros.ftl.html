@@ -3,10 +3,10 @@
 <#macro entrycount>
 <div class="row-fluid">
 <ul class ="pull-right"> 
-	<li><input type="submit"  value="5" name="no"/> </li>
+	<li><input type="submit" value="5" name="no"/> </li>
 	<li> <input type="submit" value="15" name="no"/></li>
-	<li><input type="submit"  value="25" name="no"/></li>
-	<li><input type="submit"  value="all" name="no"/></li>
+	<li><input type="submit" value="25" name="no"/></li>
+	<li><input type="submit" value="all" name="no"/></li>
 </ul>
 </div>
 </#macro>
@@ -25,4 +25,25 @@
 	</#list>
 	</ul>  
 </#if>
+</#macro>
+
+<#macro incSorter vals=[]>
+    <script type="text/javascript" src="/assets/js/jquery.tablesorter.js"></script> 
+    <script type="text/javascript" id="js">
+    $(document).ready(function() 
+	    { 
+	        $("#sortingTable").tablesorter(
+	        		{
+	                	headers: { 
+                			<#list vals as x>
+                				${x}: { sorter: false }<#if x_has_next>,</#if>
+                			</#list>
+                			}
+	        		}
+); 
+	    }); 
+    </script>
+
+		
+
 </#macro>

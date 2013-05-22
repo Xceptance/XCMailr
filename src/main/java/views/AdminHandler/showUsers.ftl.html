@@ -1,6 +1,7 @@
 <#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
 "User Administration">
 <#import "../layout/macros.ftl.html" as pag/>
+
 <div class="pagination">
 
 <form action="/admin/users">
@@ -15,18 +16,18 @@
 		<div class="tab-pane" id="${x}">  
 	</#if>
 	
-	<table class="table table-hover">
+	<table id="sortingTable" class="table tablesorter table-hover">
 		<thead>
 		    <tr>
-		    	<th>${i18nUser_Forename}</th>
-		    	<th>${i18nUser_Surname}</th>
-		    	<th>ID</th>
-		    	<th>${i18nUser_Mail}</th>
-		    	<th>Admin</th>
-		    	<th>${i18nUser_Active}</th>
+		    	<th class="header">${i18nUser_Forename}</th>
+		    	<th class="header">${i18nUser_Surname}</th>
+		    	<th class="header">ID</th>
+		    	<th class="header">${i18nUser_Mail}</th>
+		    	<th class="header">Admin</th>
+		    	<th class="header">${i18nUser_Active}</th>
 		    	<th>${i18nMailbox_Delete}</th>
 		    	<th>${i18nUser_Promote}</th>
-		    	<th>${i18nUser_Activate}</th>
+		    	<th >${i18nUser_Activate}</th>
 		    </tr>
 		    </thead>
 		    <tbody>
@@ -87,4 +88,5 @@
 
 <@pag.pager name=users/> 
 </div><!-- /pagination -->
+<@pag.incSorter vals=[6,7,8]/>
 </@layout.adminLayout>

@@ -9,3 +9,23 @@ h1.legendary {
   border: 0;
   border-bottom: 1px solid #e5e5e5;
 }
+
+/* tables */
+
+table.tablesorter thead tr .header {
+	background-image: url("../img/bg.gif");
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+
+
+table.tablesorter thead tr .headerSortUp {
+	background-image: url("../img/asc.gif");
+}
+table.tablesorter thead tr .headerSortDown {
+	background-image: url("../img/desc.gif");
+}
+table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+background-color: #8dbdd8;
+}

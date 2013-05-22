@@ -18,14 +18,17 @@ title="Home Page" header="login">
 		<div class="tab-pane" id="${x}">  
 	</#if>
 	
-		<table class="table table-hover">
+		<table id="sortingTable" class="table tablesorter table-hover">
+		<thead>
 		    <tr>
-		    	<th>${i18nMailbox_Address}</th>		<th>${i18nMailbox_Duration}</th>
-		    	<th>${i18nMailbox_Forwards}</th>	<th>${i18nMailbox_Suppressions}</th>
-		    	<th>${i18nMailbox_Valid}</th>		<th>${i18nMailbox_Renew}</th>
+		    	<th class="header">${i18nMailbox_Address}</th>	<th class="header">${i18nMailbox_Duration}</th>
+		    	<th class="header">${i18nMailbox_Forwards}</th>	<th class="header">${i18nMailbox_Suppressions}</th>
+		    	<th class="header">${i18nMailbox_Valid}</th>	<th>${i18nMailbox_Renew}</th>
 			    <th>${i18nMailbox_Delete}</th>  	<th>${i18nMailbox_Reset}</th> 
 			    <th>${i18nMailbox_Edit}</th>
 		    </tr>
+		    </thead>
+		    <tbody>
 		<#list mboxes.getPage(x) as mBox>
 		    <#if (mBox.isExpired())>
 				<tr class="error">     
@@ -71,6 +74,7 @@ title="Home Page" header="login">
 		        </td>
 			</tr>
 		</#list>
+		</tbody>
     </table>
     </div> <!-- /tab pane (active) -->
   </#list>
@@ -78,6 +82,6 @@ title="Home Page" header="login">
 <@pag.pager name=mboxes/>
 </div><!-- /pagination -->
 </div><!-- /row -->
-
+<@pag.incSorter vals=[5,6,7,8]/>
 </@layout.xcLayout>
 

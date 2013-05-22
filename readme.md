@@ -10,7 +10,7 @@ Summary
 * Tags: AntiSpam, Testutility
 * Contributors:
     * Patrick Thum, Xceptance Software Technologies GmbH
-    * 
+    *  
 
 Description:
 ------------
@@ -34,6 +34,10 @@ Configuration:
     * ** mail.smtp.* ** the "outbound" SMTP-Server (the Server to which the Application will forward any Messages )
     * ** memcached.* ** the MemCached-Server (host and port)
     * ** ebean.* ** the Ebean-Configuration
+* To run the Application in Production-Mode, you have to set the Java system property **ninja.mode** with the value "prod". This can be reached for example by setting the MAVEN_OPTS environment variable:
+    * `MAVEN_OPTS="-ninja.mode=prod"`
+    * `export $MAVEN_OPTS`
+    * You may also add additional Java-Parameters like -Xmx, -Xms for maximal and initial heap spaces or -XX:MaxPermSize for maximal permanent space (have a look at the documentation of your JVM for further informations)
 
 
 * HTTPS Support: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
@@ -61,7 +65,18 @@ Frameworks/Librarys/Code/etc which were provided by others:
     * Copyright 2011 Twitter, Inc.
     * http://twitter.github.io/bootstrap/
     * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
+
+* Icons by Glyphicons (shipped with Twitter Bootstrap)
+    * Copyright Jan Kovařík
+    * http://glyphicons.com/
+    * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
   	
+* jQuery Tablesorter 2.0 plugin
+    * 
+    * http://tablesorter.com
+    * Dual licensed 
+         * MIT-License: http://www.opensource.org/licenses/mit-license.php
+         * GPL-License: http://www.opensource.org/licenses/gpl-license.php
 
 License:
 --------

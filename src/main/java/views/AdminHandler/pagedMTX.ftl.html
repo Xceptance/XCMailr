@@ -15,13 +15,13 @@ title="User Administration" >
 		<div class="tab-pane" id="${x}">  
 	</#if>
 	
-	<table class="table table-hover">
+	<table id="sortingTable" class="table tablesorter table-hover">
 		<thead>
 	    <tr>
-		    <th>${i18nAdmin_MtxTs}</th>
-		    <th>${i18nAdmin_MtxStatus}</th>
-		    <th>${i18nAdmin_MtxTarget}</th>
-		    <th>${i18nAdmin_MtxSource}</th>
+		    <th class="header">${i18nAdmin_MtxTs}</th>
+		    <th class="header">${i18nAdmin_MtxStatus}</th>
+		    <th class="header">${i18nAdmin_MtxTarget}</th>
+		    <th class="header">${i18nAdmin_MtxSource}</th>
 	    </tr>
 	    </thead>
 	    <tbody>
@@ -54,6 +54,6 @@ title="User Administration" >
 
 </div>  <!-- tab-content -->
 <@pag.pager name=plist/>
-
+<@pag.incSorter/>
 </div> <!-- pagination -->
 </@layout.adminLayout>	
