@@ -17,12 +17,9 @@
 package etc;
 
 import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import org.joda.time.DateTime;
 import ninja.Context;
-import ninja.utils.NinjaProperties;
 import com.google.inject.Singleton;
 
 /**

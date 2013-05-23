@@ -36,7 +36,6 @@ import models.PageList;
 import models.User;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
-import ninja.utils.NinjaProperties;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 import ninja.Result;

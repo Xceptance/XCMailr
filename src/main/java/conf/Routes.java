@@ -19,10 +19,6 @@ package conf;
 import ninja.AssetsController;
 import ninja.Router;
 import ninja.application.ApplicationRoutes;
-import ninja.utils.NinjaProperties;
-
-import com.google.inject.Inject;
-
 import controllers.AdminHandler;
 import controllers.Application;
 import controllers.BoxHandler;
@@ -31,22 +27,10 @@ import controllers.UserHandler;
 public class Routes implements ApplicationRoutes
 {
 
-    private NinjaProperties ninjaProperties;
-
-    @Inject
-    public Routes(NinjaProperties ninjaProperties)
-    {
-        this.ninjaProperties = ninjaProperties;
-
-    }
-
     @Override
     public void init(Router router)
     {
 
-        // /////////////////////////////////////////////////////////////////////
-        // XCMailr-Functions
-        // /////////////////////////////////////////////////////////////////////
         router.GET().route("/").with(Application.class, "index");
 
         router.GET().route("/register").with(Application.class, "registerForm");
@@ -60,7 +44,6 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/lostpw/{id}/{token}").with(Application.class, "lostPw");
         router.POST().route("/lostpw/{id}/{token}").with(Application.class, "changePw"); 
         router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
-        
 
         router.GET().route("/logout").with(Application.class, "logout");
 
