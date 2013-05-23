@@ -36,9 +36,8 @@ public class Module extends AbstractModule
     {
 
         install(new NinjaEbeanModule());
-        
+        bind(XCMailrConf.class);       
         bind(JobController.class);
-        
         bind(MemCachedSessionHandler.class);
 
     }

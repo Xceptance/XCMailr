@@ -43,6 +43,8 @@ import ninja.utils.NinjaProperties;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import conf.XCMailrConf;
+
 /**
  * Handles the Jobs which will be executed on Start and Stop of the Application
  * 
@@ -71,6 +73,9 @@ public class JobController
     @Inject
     MailrMessageHandlerFactory mailrFactory;
 
+    @Inject
+    XCMailrConf xcmConf;
+
     /**
      * Starts the Mailserver, creates the Admin-Account specified in application.conf and Threads to expire the
      * Mailaddresses and the Mails which have to be sent
@@ -78,24 +83,22 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
-        String pwd = ninjaProp.get("admin.pass");
+        String pwd = xcmConf.ADMIN_PASS;
         // interval to check for expired mailboxes
-        int interval = Integer.parseInt(ninjaProp.get("mbox.interval"));
+        int interval = xcmConf.MB_INT;
+
         // interval to check for new mails to send
-        int mailinterval = Integer.parseInt(ninjaProp.getWithDefault("mbox.mailinterval", "1"));
-
+        int mailinterval = xcmConf.MAIL_INT;
+        // create the MemcachedHandler
         mcsh.create();
-
         log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
 
         if (!(pwd == null))
         { // if a pw is set in application.conf..
-            log.info("the passwd is set in the db");
-            String mail = ninjaProp.getOrDie("mbox.adminaddr");
+            String mail = xcmConf.ADMIN_ADD;
             if (!User.mailExists(mail))
             {// ...and the admin-acc doesn't exist
              // create the adminaccount
-                log.info("Adminaccount is: " + mail + ":" + pwd);
                 User usr = new User("Site", "Admin", mail, pwd);
                 // set the status and admin flags
                 usr.setAdmin(true);
@@ -106,24 +109,16 @@ public class JobController
         // create the server for incoming mails
         smtpServer = new SMTPServer(mailrFactory);
 
-        // dynamic ports: 49152–65535
+        // using a dynamic port in test-mode
         int port;
-
-        /*
-         * check if the test.serv option in application.conf was set to true
-         * 
-         * TODO maybe use the mode (e.g. check for ninjaProp.isDev() or ninjaProp.isTest() ) or alternatively check if
-         * the port which was set in application.conf at mbox.port is used
-         */
-        if (ninjaProp.isDev() || ninjaProp.isTest())
+        if (ninjaProp.isTest())
         {
             port = findAvailablePort(49152, 65535);
         }
         else
         {
-            port = Integer.parseInt(ninjaProp.get("mbox.port"));
+            port = xcmConf.MB_PORT;
         }
-
         // set the port and start it
         smtpServer.setPort(port);
         smtpServer.start();
@@ -135,7 +130,7 @@ public class JobController
             public void run()
             {
                 log.info("mbox-scheduler run");
-                int size = Integer.parseInt(ninjaProp.get("mbox.size"));
+                int size = xcmConf.MB_SIZE;
                 List<MBox> mbList = MBox.getNextBoxes(size);
                 ListIterator<MBox> it = mbList.listIterator();
                 DateTime dt = new DateTime();
@@ -183,7 +178,8 @@ public class JobController
     /**
      * adds a Message to the Mailqueue
      * 
-     * @param msg the Message to add
+     * @param msg
+     *            the Message to add
      */
     public void addMessage(MimeMessage msg)
     {
@@ -213,7 +209,6 @@ public class JobController
      * @param max
      *            upper bound of ports to search
      * @return an available port
-     * 
      */
     // stolen from NinjaTestServer-source
     private static int findAvailablePort(int min, int max)

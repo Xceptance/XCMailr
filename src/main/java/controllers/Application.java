@@ -22,6 +22,8 @@ import org.joda.time.DateTime;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 import etc.HelperUtils;
 import models.EditUsr;
 import models.Login;
@@ -32,7 +34,6 @@ import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
-import ninja.utils.NinjaProperties;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 
@@ -48,7 +49,7 @@ public class Application
     Messages msg;
 
     @Inject
-    NinjaProperties ninjaProp;
+    XCMailrConf xcmConf;
 
     @Inject
     MailrMessageHandlerFactory mmhf;
@@ -132,8 +133,7 @@ public class Application
 
                     // generate the confirmation-token
                     user.setConfirmation(HelperUtils.getRndSecureString(20));
-                    user.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
-                                               .getMillis());
+                    user.setTs_confirm(DateTime.now().plusHours(xcmConf.CONF_PERIOD).getMillis());
 
                     user.save();
                     Optional<String> lang = Optional.of(context.getAcceptLanguage());
@@ -361,8 +361,7 @@ public class Application
                 // generate the confirmation-token
                 usr.setConfirmation(HelperUtils.getRndSecureString(20));
                 // set the new validity-time
-                usr.setTs_confirm(DateTime.now().plusHours(ninjaProp.getIntegerWithDefault("confirm.period", 1))
-                                          .getMillis());
+                usr.setTs_confirm(DateTime.now().plusHours(xcmConf.CONF_PERIOD).getMillis());
                 usr.update();
                 Optional<String> lang = Optional.of(context.getAcceptLanguage());
                 mmhf.sendPwForgotAddressMail(usr.getMail(), usr.getForename(), String.valueOf(usr.getId()),

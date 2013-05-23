@@ -28,6 +28,8 @@ import org.joda.time.DateTime;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 import models.MBox;
 import models.MbFrmDat;
 import models.PageList;
@@ -56,7 +58,7 @@ public class BoxHandler
     Messages msg;
 
     @Inject
-    NinjaProperties ninjaProp;
+    XCMailrConf xcmConf;
 
     /**
      * Shows the "new Mail-Forward"-Page <br/>
@@ -68,7 +70,7 @@ public class BoxHandler
      */
     public Result showAddBox(Context context)
     {
-        Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
+        Map<String, Object> map = xcmConf.getDomListAsMap();
         MbFrmDat mbdat = new MbFrmDat();
         // set the value of the random-name to 7
         // use the lowercase, we handle the address as case-insensitive
@@ -106,8 +108,7 @@ public class BoxHandler
      */
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
-        Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
-        map = HelperUtils.getDomainsFromConfig(ninjaProp);
+        Map<String, Object> map = xcmConf.getDomListAsMap();
         Result result = Results.html();
         Optional<Result> opt = Optional.of(result);
         String s;
@@ -132,7 +133,7 @@ public class BoxHandler
                 String mbName = mbdat.getAddress().toLowerCase();
 
                 // set the data of the box
-                String[] dom = (String[]) HelperUtils.getDomainsFromConfig(ninjaProp).get("domain");
+                String[] dom = xcmConf.DM_LIST;
                 if (!Arrays.asList(dom).contains(mbdat.getDomain()))
                 { // the new domainname does not exist in the application.conf
                   // stop the process and return to the mailbox-overview page
@@ -212,7 +213,7 @@ public class BoxHandler
         { // not all fields were filled
             s = msg.get("i18nMsg_FormErr", context, opt, (Object) null).get();
             context.getFlashCookie().error(s, (Object) null);
-            Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
+            Map<String, Object> map = xcmConf.getDomListAsMap();
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDuration() == null))
             {
                 return Results.redirect("/mail/edit/" + boxId.toString());
@@ -239,7 +240,7 @@ public class BoxHandler
                     if (MBox.mailChanged(newLName, newDName, boxId))
                     { // this is only true when the address changed and the new address does not exist
 
-                        String[] dom = (String[]) HelperUtils.getDomainsFromConfig(ninjaProp).get("domain");
+                        String[] dom = xcmConf.DM_LIST;
                         // assume that the POST-Request was modified and the domainname does not exist in our app
                         if (!Arrays.asList(dom).contains(mbdat.getDomain()))
                         {
@@ -314,7 +315,7 @@ public class BoxHandler
                 mbdat.setAddress(mb.getAddress());
                 mbdat.setDomain(mb.getDomain());
                 mbdat.setDuration(HelperUtils.parseTime(mb.getTs_Active()));
-                Map<String, Object> map = HelperUtils.getDomainsFromConfig(ninjaProp);
+                Map<String, Object> map = xcmConf.getDomListAsMap();
                 map.put("mbFrmDat", mbdat);
                 return Results.html().render(map);
             }
@@ -370,7 +371,6 @@ public class BoxHandler
                 mb.enable();
             }
         }
-
         return Results.redirect("/mail");
     }
 

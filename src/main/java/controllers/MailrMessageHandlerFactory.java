@@ -20,12 +20,14 @@ import models.MBox;
 import models.MailTransaction;
 import models.User;
 import ninja.i18n.Messages;
-import ninja.utils.NinjaProperties;
 import org.slf4j.Logger;
 import org.subethamail.smtp.*;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -52,13 +54,13 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     Messages msg;
 
     @Inject
-    NinjaProperties ninjaProp;
+    XCMailrConf xcmConf;
 
     @Inject
     JobController jc;
 
     private Session sess;
-    
+
     /**
      * This Method will be called by the SubethaSMTP-Server for every incoming Mail
      */
@@ -67,7 +69,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         return new Handler(ctx);
     }
-    
+
     /**
      * Handles incoming Mails
      */
@@ -96,7 +98,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
         }
 
         public void recipient(String recipient) throws RejectException
-        { 
+        {
             rcpt = recipient;
         }
 
@@ -185,12 +187,12 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
         if (sess == null)
         {
             // get the data from application.conf
-            final String host = ninjaProp.get("mail.smtp.host");
-            final String port = ninjaProp.get("mail.smtp.port");
-            final String user = ninjaProp.get("mail.smtp.user");
-            final String pwd = ninjaProp.get("mail.smtp.pass");
-            boolean auth = ninjaProp.getBoolean("mail.smtp.auth");
-            boolean tls = ninjaProp.getBoolean("mail.smtp.tls");
+            final String host = xcmConf.OUT_SMTP_HOST;
+            final String port = Integer.toString(xcmConf.OUT_SMTP_PORT);
+            final String user = xcmConf.OUT_SMTP_USER;
+            final String pwd = xcmConf.OUT_SMTP_PASS;
+            boolean auth = xcmConf.OUT_SMTP_AUTH;
+            boolean tls = xcmConf.OUT_SMTP_TLS;
             // set the data
             Properties prop = System.getProperties();
             prop.put("mail.smtp.host", host);
@@ -213,13 +215,13 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * Takes the Mail specified by the Parameters and sends it to the given Target
      * 
      * @param from
-     *             the Mail-Author
+     *            the Mail-Author
      * @param to
-     *             the Recipients-Address
+     *            the Recipients-Address
      * @param content
-     *             the Message-Body
+     *            the Message-Body
      * @param subject
-     *             the Message Subject
+     *            the Message Subject
      * @return true, if the Addition to the Mail-Queue was successful
      */
     public boolean sendMail(String from, String to, String content, String subject)
@@ -255,18 +257,18 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * @param to
      *            Recipients-Address
      * @param forename
-     *             Forename of the Recipient
+     *            Forename of the Recipient
      * @param id
-     *             {@link User}-ID of the Recipient
+     *            {@link User}-ID of the Recipient
      * @param token
-     *             the generated Confirmation-Token of the {@link User}
+     *            the generated Confirmation-Token of the {@link User}
      * @param lang
-     *             The Language for the Mail
+     *            The Language for the Mail
      */
     public void sendConfirmAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {
-        String from = ninjaProp.get("mbox.adminaddr");
-        String url = "http://" + ninjaProp.get("mbox.host") + "/verify/" + id + "/" + token;
+        String from = xcmConf.ADMIN_ADD;
+        String url = "http://" + xcmConf.MB_HOST + "/verify/" + id + "/" + token;
         Object[] object = new Object[]
             {
                 forename, url
@@ -283,20 +285,20 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
      * Generates the Confirmation-Mail for a forgotten Password
      * 
      * @param to
-     *             Recipients-Address
+     *            Recipients-Address
      * @param forename
-     *             Forename of the Recipient
+     *            Forename of the Recipient
      * @param id
-     *             {@link User}-ID of the Recipient
+     *            {@link User}-ID of the Recipient
      * @param token
-     *             The generated Confirmation-Token of the User
+     *            The generated Confirmation-Token of the User
      * @param lang
-     *             The Language for the Mail
+     *            The Language for the Mail
      */
     public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {
-        String from = ninjaProp.get("mbox.adminaddr");
-        String url = "http://" + ninjaProp.get("mbox.host") + "/lostpw/" + id + "/" + token;
+        String from = xcmConf.ADMIN_ADD;
+        String url = "http://" + xcmConf.MB_HOST + "/lostpw/" + id + "/" + token;
         Object[] object = new Object[]
             {
                 forename, url

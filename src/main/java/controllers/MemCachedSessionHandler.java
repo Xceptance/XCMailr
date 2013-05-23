@@ -29,6 +29,8 @@ import ninja.utils.NinjaProperties;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import conf.XCMailrConf;
+
 /**
  * Handles all actions that belong to the Memcached-Server<br/>
  * This is almost a Wrapper-Class for the MemCached-Client
@@ -41,10 +43,13 @@ public class MemCachedSessionHandler
 {
     @Inject
     NinjaProperties ninjaProp;
+    
+    @Inject 
+    XCMailrConf xcmConf;
 
     private String memHost;
 
-    private String memPort;
+    private int memPort;
 
     private String NAMESPACE = "XCMAILR";
 
@@ -60,10 +65,9 @@ public class MemCachedSessionHandler
     {
         try
         {
-            memHost = ninjaProp.getWithDefault("memcached.host", "127.0.0.1");
-            memPort = ninjaProp.getWithDefault("memcached.port", "11211");
+            memHost = xcmConf.MC_HOST;
+            memPort = xcmConf.MC_PORT;
             client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
-            client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses("127.0.0.1:11211"));
             // TODO no. of clients?
         }
         catch (Exception e)

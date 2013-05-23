@@ -33,38 +33,11 @@ public class HelperUtils
 {
 
     /**
-     * Extracts the List of Domains from the ninjaProperties and returns it as a nicely renderable Map
-     * 
-     * @param ninjaProp
-     *             the Properties for this Application
-     * @return a Map with a "domain"-key which contains the list of domains
-     */
-    public static Map<String, Object> getDomainsFromConfig(NinjaProperties ninjaProp)
-    {
-        Map<String, Object> map = new HashMap<String, Object>();
-        String dlist = ninjaProp.get("mbox.dlist");
-
-        if (!dlist.equals(null))
-        {
-            String[] list = dlist.split(";");
-            if (!list.equals(null))
-            {
-                map.put("domain", list);
-                return map;
-            }
-        }
-        // the property does not exist or has no value
-        // prevent a NullPointerException by returning an empty Stringarray
-        map.put("domain", new String[] {});
-        return map;
-    }
-
-    /**
      * Generates a random name, generated with {@link java.util.Random} and an Alphabet of 0-9,a-z,A-Z <br/>
      * e.g. for the Mailbox
      * 
      * @param length
-     *             Length of the returned String
+     *            Length of the returned String
      * @return a randomly generated String consisting of a-z,A-Z and 0-9
      */
 
@@ -93,7 +66,7 @@ public class HelperUtils
      * All in all, the same like the getRndString(), but here's {@link java.security.SecureRandom} used
      * 
      * @param length
-     *             Length of the returned String
+     *            Length of the returned String
      * @return a secure-randomly generated String consisting of a-z,A-Z and 0-9
      */
     public static String getRndSecureString(int length)
@@ -196,7 +169,7 @@ public class HelperUtils
      * Checks whether a String consists only of digits
      * 
      * @param helper
-     *             the String to check
+     *            the String to check
      * @return the Integer-Value of the String or -1 if the String does not match
      */
     public static int digitsOnly(String helper)
@@ -237,7 +210,7 @@ public class HelperUtils
      * Gets a Timestamp in Milliseconds and parses the Time-Interval to this Timestamp in a readable way
      * 
      * @param millis
-     *             Timestamp in Milliseconds
+     *            Timestamp in Milliseconds
      * @return the Duration to this Date (with the Pattern: 1h, 1d) or a Default-Value (if the given Timestamp was in
      *         the past)
      */
@@ -267,14 +240,14 @@ public class HelperUtils
     }
 
     /**
-     * Helper-Function for Pagination Tries to parse the number (Parameter "no") from the Context and stores this
-     * number in the session-cookie.<br/>
+     * Helper-Function for Pagination Tries to parse the number (Parameter "no") from the Context and stores this number
+     * in the session-cookie.<br/>
      * If the Parameter has been set to "all", the number 0 is set.<br/>
-     * If no number (except "all") is given, the number 5 will be set.
-     * If null, there will be a separated check, whether a value is already set
+     * If no number (except "all") is given, the number 5 will be set. If null, there will be a separated check, whether
+     * a value is already set
      * 
      * @param context
-     *             the Context
+     *            the Context
      */
     public static void parseEntryValue(Context context)
     {

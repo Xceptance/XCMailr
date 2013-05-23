@@ -21,13 +21,14 @@ import java.util.Map;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
-import ninja.utils.NinjaProperties;
 import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
@@ -48,8 +49,9 @@ import models.User;
 @Singleton
 public class AdminHandler
 {
+   
     @Inject
-    NinjaProperties ninjaProp;
+    XCMailrConf xcmConf;
 
     @Inject
     Messages msg;
@@ -152,8 +154,8 @@ public class AdminHandler
 
             // generate the (de-)activation-information mail and send it to the user
             User actusr = User.getById(id);
-            String from = ninjaProp.get("mbox.adminaddr");
-            String host = ninjaProp.get("mbox.host");
+            String from = xcmConf.ADMIN_ADD;
+            String host = xcmConf.MB_HOST;
             Optional<String> opt = Optional.fromNullable(context.getAcceptLanguage());
 
             if (active)
