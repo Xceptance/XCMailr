@@ -25,7 +25,6 @@ import ninja.Results;
 import etc.HelperUtils;
 import filters.SecureFilter;
 import org.joda.time.DateTime;
-import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -34,7 +33,6 @@ import models.MBox;
 import models.MbFrmDat;
 import models.PageList;
 import models.User;
-import ninja.i18n.Messages;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
@@ -52,9 +50,6 @@ public class BoxHandler
 {
     @Inject
     MemCachedSessionHandler mcsh;
-
-    @Inject
-    Messages msg;
 
     @Inject
     XCMailrConf xcmConf;
@@ -108,14 +103,11 @@ public class BoxHandler
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
         Map<String, Object> map = xcmConf.getDomListAsMap();
-        Result result = Results.html();
-        Optional<Result> opt = Optional.of(result);
-        String s;
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
-            s = msg.get("i18nMsg_FormErr", context, opt, (Object) null).get();
-            context.getFlashCookie().error(s, (Object) null);
+
+            context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDuration() == null))
             {
                 return Results.redirect("/mail/add");
@@ -130,7 +122,6 @@ public class BoxHandler
             if (!MBox.mailExists(mbdat.getAddress(), mbdat.getDomain()))
             {
                 String mbName = mbdat.getAddress().toLowerCase();
-
                 // set the data of the box
                 String[] dom = xcmConf.DM_LIST;
                 if (!Arrays.asList(dom).contains(mbdat.getDomain()))
@@ -141,8 +132,7 @@ public class BoxHandler
                 Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                 if (ts == -1)
                 { // show an error-page if the timestamp is faulty
-                    s = msg.get("i18nMsg_WrongF", context, opt, (Object) null).get();
-                    context.getFlashCookie().error(s, (Object) null);
+                    context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
                     map.put("mbFrmDat", mbdat);
 
                     return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
@@ -159,8 +149,7 @@ public class BoxHandler
             else
             {
                 // the mailbox already exists
-                s = msg.get("i18nMsg_MailEx", context, opt, (Object) null).get();
-                context.getFlashCookie().error(s, (Object) null);
+                context.getFlashCookie().error("i18nMsg_MailEx", (Object) null);
                 map.put("mbFrmDat", mbdat);
 
                 return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
@@ -205,13 +194,10 @@ public class BoxHandler
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
                           Validation validation)
     {
-        Optional<Result> opt = Optional.of(Results.html());
-        String s;
-
         if (validation.hasViolations())
         { // not all fields were filled
-            s = msg.get("i18nMsg_FormErr", context, opt, (Object) null).get();
-            context.getFlashCookie().error(s, (Object) null);
+
+            context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
             Map<String, Object> map = xcmConf.getDomListAsMap();
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDuration() == null))
             {
@@ -254,9 +240,7 @@ public class BoxHandler
                     Long ts = HelperUtils.parseDuration(mbdat.getDuration());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
-                        s = msg.get("i18nMsg_WrongF", context, opt, (Object) null).get();
-                        context.getFlashCookie().error(s, (Object) null);
-
+                        context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
                         return Results.redirect("/mail/edit/" + boxId.toString());
                     }
 

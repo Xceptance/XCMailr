@@ -16,17 +16,14 @@
  */
 package controllers;
 
-import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import models.EditUsr;
 import models.User;
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
-import ninja.i18n.Messages;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 import filters.SecureFilter;
@@ -44,9 +41,6 @@ public class UserHandler
     @Inject
     MemCachedSessionHandler mcsh;
 
-    @Inject
-    Messages msg;
-
     /**
      * Edits the {@link User}-Data <br/>
      * POST /user/edit
@@ -63,17 +57,13 @@ public class UserHandler
     {
 
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
-        Result result = Results.html();
-        Optional<Result> opt = Optional.of(result);
-        String s;
 
         if (validation.hasViolations())
         { // the filled form has errors
             edt.setPw("");
             edt.setPwn1("");
             edt.setPwn2("");
-            s = msg.get("i18nMsg_FormErr", context, opt, (Object) null).get();
-            context.getFlashCookie().error(s, (Object) null);
+            context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
             return Results.redirect("/user/edit");
         }
         else
@@ -100,8 +90,7 @@ public class UserHandler
                         }
                         else
                         { // the passwords are not equal
-                            s = msg.get("i18nMsg_WrongPw", context, opt, (Object) null).get();
-                            context.getFlashCookie().error(s, (Object) null);
+                            context.getFlashCookie().error("i18nMsg_WrongPw", (Object) null);
                             edt.setPw("");
                             edt.setPwn1("");
                             edt.setPwn2("");
@@ -112,8 +101,8 @@ public class UserHandler
                 // update the user
                 usr.update();
                 mcsh.set(context.getSessionCookie().getId(), 3600, usr);
-                s = msg.get("i18nMsg_ChOk", context, opt, (Object) null).get();
-                context.getFlashCookie().success(s, (Object) null);
+
+                context.getFlashCookie().success("i18nMsg_ChOk", (Object) null);
                 return Results.redirect("/user/edit");
             }
             else
@@ -121,8 +110,7 @@ public class UserHandler
                 edt.setPw("");
                 edt.setPwn1("");
                 edt.setPwn2("");
-                s = msg.get("i18nMsg_FormErr", context, opt, (Object) null).get();
-                context.getFlashCookie().error(s, (Object) null);
+                context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
                 return Results.redirect("/user/edit");
             }
         }

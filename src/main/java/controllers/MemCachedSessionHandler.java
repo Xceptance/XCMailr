@@ -20,12 +20,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.BinaryConnectionFactory;
 import net.spy.memcached.MemcachedClient;
-import ninja.utils.NinjaProperties;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -41,10 +38,8 @@ import conf.XCMailrConf;
 @Singleton
 public class MemCachedSessionHandler
 {
+
     @Inject
-    NinjaProperties ninjaProp;
-    
-    @Inject 
     XCMailrConf xcmConf;
 
     private String memHost;
