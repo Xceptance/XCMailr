@@ -16,7 +16,7 @@
 		<div class="tab-pane" id="${x}">  
 	</#if>
 	
-	<table id="sortingTable" class="table tablesorter table-hover">
+	<table class="table tablesorter table-hover table-condensed">
 		<thead>
 		    <tr>
 		    	<th class="header">${i18nUser_Forename}</th>
@@ -55,25 +55,25 @@
 				<td></td><td></td><td></td>		   
 			 <#else>
 				<td>
-		   			<form action="/admin/delete/${user.id}" method="post"> 
-		                   <input type="submit" class="btn" value="${i18nMailbox_Delete}"/>
+		   			<form class="nomarg" action="/admin/delete/${user.id}" method="post"> 
+		                   <input type="submit" class="btn btn-small" value="${i18nMailbox_Delete}"/>
 		        	</form>
 		        </td>
 			    <td> 
-				    <form action="/admin/promote/${user.id}" method="post">
+				    <form class="nomarg" action="/admin/promote/${user.id}" method="post">
 				    <#if (user.isAdmin())>
-					    	<input type="submit" class= "btn" value="${i18nUser_Demote}"/>
+					    	<input type="submit" class= "btn btn-small" value="${i18nUser_Demote}"/>
 					    <#else>
-				    		<input type="submit" class= "btn" value="${i18nUser_Promote}"/>
+				    		<input type="submit" class= "btn btn-small" value="${i18nUser_Promote}"/>
 				    </#if>		          
 				    </form>
 			    </td>
 			    <td> 
-				    <form action="/admin/activate/${user.id}" method="post">
+				    <form class="nomarg" action="/admin/activate/${user.id}" method="post">
 					<#if (user.isActive())>
-					   	<input type="submit" class= "btn" value="${i18nUser_Deactivate}"/>
+					   	<input type="submit" class= "btn btn-small" value="${i18nUser_Deactivate}"/>
 					 <#else>
-				    	<input type="submit" class= "btn" value="${i18nUser_Activate}"/>
+				    	<input type="submit" class= "btn btn-small" value="${i18nUser_Activate}"/>
 				    </#if>
 				 	</form>
 				 </td>

@@ -1,7 +1,8 @@
 <#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
 "User Administration">
 <#import "../layout/macros.ftl.html" as pag/>
-	<table id="sortingTable" class="table tablesorter table-hover">
+<div class="span4">
+	<table class="table tablesorter table-hover table-condensed">
 	<thead>
 	    <tr> <th class="header">${i18nAdmin_MtxStatus}</th> <th class="header">${i18nCount}</th> </tr>
 	</thead>
@@ -28,5 +29,6 @@
     	</#list>
     	</tbody>
     </table>
-    <@pag.incSorter/>
+</div>
+ <@pag.incSorter/>
 </@layout.adminLayout>	

@@ -3,10 +3,10 @@
 <#macro entrycount>
 <div class="row-fluid">
 <ul class ="pull-right"> 
-	<li><input type="submit" value="5" name="no"/> </li>
-	<li> <input type="submit" value="15" name="no"/></li>
-	<li><input type="submit" value="25" name="no"/></li>
-	<li><input type="submit" value="all" name="no"/></li>
+	<li><input type="submit" class="btn btn-link btn-small" value="5" name="no"/> </li>
+	<li> <input type="submit" class="btn btn-link btn-small" value="15" name="no"/></li>
+	<li><input type="submit" class="btn btn-link btn-small" value="25" name="no"/></li>
+	<li><input type="submit" class="btn btn-link btn-small" value="all" name="no"/></li>
 </ul>
 </div>
 </#macro>
@@ -32,7 +32,7 @@
     <script type="text/javascript" id="js">
     $(document).ready(function() 
 	    { 
-	        $("#sortingTable").tablesorter(
+	        $("table").tablesorter(
 	        		{
 	                	headers: { 
                 			<#list vals as x>
