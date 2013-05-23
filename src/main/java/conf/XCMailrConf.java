@@ -18,10 +18,7 @@ package conf;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import ninja.Ninja;
 import ninja.utils.NinjaProperties;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
