@@ -275,7 +275,6 @@ public class HelperUtils
      * 
      * @param context
      *             the Context
-     * @return 0, 5 or another Number
      */
     public static void parseEntryValue(Context context)
     {

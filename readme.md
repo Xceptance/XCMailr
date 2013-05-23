@@ -39,6 +39,7 @@ Configuration:
     * `export $MAVEN_OPTS`
     * You may also add additional Java-Parameters like -Xmx, -Xms for maximal and initial heap spaces or -XX:MaxPermSize for maximal permanent space (have a look at the documentation of your JVM for further informations)
 
+* To reach the Admin-Panel visit http://yourdomain/admin (a more comfortable solution will come in a later version).
 
 * HTTPS Support: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
 

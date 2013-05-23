@@ -619,7 +619,6 @@ public class ApplicationHandlerTest extends NinjaTest
 
     }
 
-    // TODO add tests for the activations..
 
     @Test
     public void testPwResend()

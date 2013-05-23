@@ -163,7 +163,7 @@ public class JobController
                     log.info("Mailjob: Message found");
                     try
                     {
-                        if (!ninjaProp.isTest()) // TODO maybe remove this
+                        if (!ninjaProp.isTest()) // TODO maybe remove this (no messages will be sent when in test-mode)
                         {
                             Transport.send(message);
                         }

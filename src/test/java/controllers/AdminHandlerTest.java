@@ -30,7 +30,7 @@ public class AdminHandlerTest extends NinjaTest
     {
         
         // get the adminaccount and login
-        // TODO get this by application.conf
+
         admin = User.getUsrByMail("admin@xcmailr.test");
         formParams.put("mail", "admin@xcmailr.test");
         formParams.put("pwd", "1234");

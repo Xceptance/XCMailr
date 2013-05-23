@@ -32,7 +32,7 @@ public class BoxHandlerTest extends NinjaTest
 
     User user;
 
-    // TODO make the domain-field in the tests dependend on the settings in the application.conf
+
     @Before
     public void setUp()
     {
@@ -107,7 +107,6 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.contains("class=\"success\">"));
         // check that there is a mailbox with that address
         assertNotNull(MBox.getByName("abox", "xcmailr.test"));
-        // TODO check the data of the mbox
 
         /*
          * TEST: Try to add a box with the same data again

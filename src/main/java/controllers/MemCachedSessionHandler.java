@@ -16,6 +16,11 @@
  */
 package controllers;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.BinaryConnectionFactory;
 import net.spy.memcached.MemcachedClient;
@@ -59,7 +64,7 @@ public class MemCachedSessionHandler
             memPort = ninjaProp.getWithDefault("memcached.port", "11211");
             client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
             client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses("127.0.0.1:11211"));
-            // TODO no. of clients
+            // TODO no. of clients?
         }
         catch (Exception e)
         {
@@ -95,7 +100,24 @@ public class MemCachedSessionHandler
      */
     public Object get(String key)
     {
-        Object o = getCache().get(NAMESPACE + key);
+        Object o = null;// getCache().get(NAMESPACE + key);
+        Future<Object> f = getCache().asyncGet(NAMESPACE + key);
+        try
+        {
+            o = f.get(5, TimeUnit.SECONDS);
+        }
+        catch (TimeoutException e)
+        {
+            f.cancel(false);
+        }
+        catch (InterruptedException e)
+        {
+            f.cancel(false);
+        }
+        catch (ExecutionException e)
+        {
+            f.cancel(false);
+        }
         return o;
     }
 

@@ -138,7 +138,6 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                 MBox mb = MBox.getByName(splitaddress[0], splitaddress[1]);
                 if (mb.isActive())
                 { // there's an existing and active mailaddress
-                  // TODO the language here
                   // prepare the message
                     String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
                     try
@@ -153,7 +152,6 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                     }
                     catch (MessagingException e)
                     {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                         // the message can't be forwarded
                         mtx = new MailTransaction(400, rcpt, sender);
@@ -240,13 +238,11 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
         }
         catch (AddressException e)
         {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return false;
         }
         catch (MessagingException e)
         {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return false;
         }

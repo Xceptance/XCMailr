@@ -71,7 +71,6 @@ public class Status
         this.count = count;
     }
 
-    // TODO 1to1-relation, orly?
     /**
      * @return the Mailtransaction to which this belongs
      */
