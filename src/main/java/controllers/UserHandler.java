@@ -94,7 +94,7 @@ public class UserHandler
                             edt.setPw("");
                             edt.setPwn1("");
                             edt.setPwn2("");
-                            return Results.html().template("views/UserHandler/editUserForm.ftl.html").render(edt);
+                            return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
                         }
                     }
                 }

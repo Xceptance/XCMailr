@@ -49,7 +49,6 @@ import models.User;
 @Singleton
 public class AdminHandler
 {
-   
     @Inject
     XCMailrConf xcmConf;
 

@@ -74,7 +74,7 @@ public class BoxHandler
         mbdat.setDuration("1h,1d");
 
         // check that the generated mailname-proposal does not exist
-        String[] domains = (String[]) map.get("domain");
+        String[] domains = xcmConf.DM_LIST;
         if (domains.length > 0)
         {// prevent OutOfBoundException
             while (MBox.mailExists(name, domains[0]))
@@ -114,7 +114,7 @@ public class BoxHandler
             }
             map.put("mbFrmDat", mbdat);
 
-            return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
+            return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
         }
         else
         {
@@ -135,7 +135,7 @@ public class BoxHandler
                     context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
                     map.put("mbFrmDat", mbdat);
 
-                    return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
+                    return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
                 // create the MBox
                 User usr = (User) mcsh.get(context.getSessionCookie().getId());
@@ -152,7 +152,7 @@ public class BoxHandler
                 context.getFlashCookie().error("i18nMsg_MailEx", (Object) null);
                 map.put("mbFrmDat", mbdat);
 
-                return Results.html().template("views/BoxHandler/showAddBox.ftl.html").render(map);
+                return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
             }
         }
     }
@@ -204,7 +204,7 @@ public class BoxHandler
                 return Results.redirect("/mail/edit/" + boxId.toString());
             }
             map.put("mbFrmDat", mbdat);
-            return Results.html().template("views/BoxHandler/showEditBox.ftl.html").render(mbdat);
+            return Results.html().template("/views/BoxHandler/showEditBox.ftl.html").render(mbdat);
             // return Results.redirect("/mail/edit/" + boxId.toString()).render(mbdat);
         }
         else

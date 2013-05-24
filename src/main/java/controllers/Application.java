@@ -113,7 +113,7 @@ public class Application
             frdat.setPwn2("");
 
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
-            return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
+            return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
         }
         else
         { // form was filled correctly, go on!
@@ -142,13 +142,13 @@ public class Application
                     frdat.setPwn1("");
                     frdat.setPwn2("");
                     context.getFlashCookie().error("i18nMsg_WrongPw", (Object) null);
-                    return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
+                    return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
                 }
             }
             else
             { // mailadress already exists
                 context.getFlashCookie().error("i18nMsg_MailEx", (Object) null);
-                return Results.html().template("views/Application/registerForm.ftl.html").render(frdat);
+                return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
             }
         }
     }
@@ -232,7 +232,7 @@ public class Application
         {
             loginDat.setPwd("");
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
-            return Results.html().template("views/Application/loginForm.ftl.html").render(loginDat);
+            return Results.html().template("/views/Application/loginForm.ftl.html").render(loginDat);
         }
         else
         {
@@ -255,7 +255,7 @@ public class Application
                     lgr.setBadPwCount(0);
                     lgr.update();
                     context.getFlashCookie().success("i18nMsg_LogIn", (Object) null);
-                    return Results.html().template("views/Application/indexLogin.ftl.html");
+                    return Results.html().template("/views/Application/indexLogin.ftl.html");
                 }
                 else
                 { // the authentication was not correct
@@ -274,14 +274,14 @@ public class Application
 
                     loginDat.setPwd("");
                     context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
-                    return Results.html().template("views/Application/loginForm.ftl.html").render(loginDat);
+                    return Results.html().template("/views/Application/loginForm.ftl.html").render(loginDat);
                 }
             }
             else
             {// the user does not exist
                 loginDat.setPwd("");
                 context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
-                return Results.html().template("views/Application/loginForm.ftl.html").render(loginDat);
+                return Results.html().template("/views/Application/loginForm.ftl.html").render(loginDat);
             }
         }
     }
