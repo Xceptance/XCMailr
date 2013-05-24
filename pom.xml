@@ -19,18 +19,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>ccmailr-ninja</artifactId>
-	<groupId>org.xceptance</groupId>	
+	<artifactId>xcmailr</artifactId>
+	<groupId>org.xcmailr</groupId>	
 	<packaging>war</packaging>
 	<name>XCMailr</name>
 	<version>1.0</version>
-
+	
 	<parent>
 		<groupId>org.ninjaframework</groupId>
 		<artifactId>ninja</artifactId>
-		<version>1.4.1</version>
+		<version>1.4.2</version>
 	</parent>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -53,16 +52,14 @@
 					</scanTargets>
 				</configuration>
 			</plugin>
-			    <plugin>
-				<groupId>org.apache.maven.plugins</groupId>
+			<plugin>  
+				<groupId>org.apache.maven.plugins</groupId>  
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.9</version>
-				<configuration>
-				    <useSystemClassLoader>false</useSystemClassLoader>
-				</configuration>
-			    </plugin> 
-
-
+				<version>2.14</version>  
+				<configuration>  
+					<useSystemClassLoader>false</useSystemClassLoader>  
+				</configuration>  
+			</plugin>  		 
 		</plugins>
 
 		<resources>
@@ -75,6 +72,31 @@
 		</resources>
 
 	</build>
+	<scm>
+		<url>https://github.com/pthum/xcmailr</url>
+		<connection>scm:git://github.com/pthum/xcmailr.git</connection>
+		<developerConnection>scm:git:git@github.com:pthum/xcmailr.git</developerConnection>
+	</scm>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/pthum/xcmailr/issues</url>
+	</issueManagement>
+	
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+	<distributionManagement>
+		<site>
+			<id>github-project-site</id>
+			<url>gitsite:git@github.com/pthum/xcmailr.git</url>
+		</site>
+	</distributionManagement>
+
+
 	<repositories>
 	    <repository>
 	      <id>spy</id>

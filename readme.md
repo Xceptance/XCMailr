@@ -43,11 +43,27 @@ Configuration:
 
 * HTTPS Support: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
 
+
 Frameworks/Librarys/Code/etc which were provided by others:
 -----------------------------------------------------------
 * Avaje Ebean 
     * http://www.avaje.org/
     * LGPL: http://www.gnu.org/licenses/lgpl.html
+
+* Icons by Glyphicons (shipped with Twitter Bootstrap)
+    * Copyright Jan Kovařík
+    * http://glyphicons.com/
+    * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
+  	
+* jQuery Tablesorter 2.0 plugin
+    * http://tablesorter.com
+    * Dual licensed 
+         * MIT-License: http://www.opensource.org/licenses/mit-license.php
+         * GPL-License: http://www.opensource.org/licenses/gpl-license.php
+
+ * Spymemcached
+    * http://code.google.com/p/spymemcached/
+    * MIT-License: http://www.opensource.org/licenses/mit-license.php
 
 * JBCrypt - a Java BCrypt implementation 
     * Copyright (c) 2006 Damien Miller
@@ -67,17 +83,6 @@ Frameworks/Librarys/Code/etc which were provided by others:
     * http://twitter.github.io/bootstrap/
     * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
 
-* Icons by Glyphicons (shipped with Twitter Bootstrap)
-    * Copyright Jan Kovařík
-    * http://glyphicons.com/
-    * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
-  	
-* jQuery Tablesorter 2.0 plugin
-    * 
-    * http://tablesorter.com
-    * Dual licensed 
-         * MIT-License: http://www.opensource.org/licenses/mit-license.php
-         * GPL-License: http://www.opensource.org/licenses/gpl-license.php
 
 License:
 --------
