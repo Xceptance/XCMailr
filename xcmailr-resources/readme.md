@@ -32,14 +32,18 @@ Configuration:
     * ** mail.smtp.* ** the "outbound" SMTP-Server (the Server to which the Application will forward any Messages )
     * ** memcached.* ** the MemCached-Server (host and port)
     * ** ebean.* ** the Ebean-Configuration
-* To run the Application in Production-Mode, you have to set the Java system property **ninja.mode** with the value "prod". This can be reached for example by setting the MAVEN_OPTS environment variable:
-    * `MAVEN_OPTS="-ninja.mode=prod"`
-    * `export $MAVEN_OPTS`
-    * You may also add additional Java-Parameters like -Xmx, -Xms for maximal and initial heap spaces or -XX:MaxPermSize for maximal permanent space (have a look at the documentation of your JVM for further informations)
 
 * To reach the Admin-Panel visit http://yourdomain/admin (a more comfortable solution will come in a later version).
+* HTTPS Support, Edit conf/jetty.xml-file: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
 
-* HTTPS Support: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
+Run the Application:
+--------------------
+ * For your first run, add "-Dxcmailr.xcmstarter.firstrun=true" to the XCMAILR_CONF-variable in the run.sh-script
+    * The xcmailr-starter will then run the necessary SQL-Scripts to build all tables
+    * Unfortunately, the xcmailr-starter can't read your values from application.conf and will always execute the scripts with the default-user "sa" and no password to the database in ~/xcmailrDB.h2.db . we're sorry for that and will try to fix this to the next release.
+    * You can manually run the scripts by customising and running the "createSQLTables.sh" in conf/ 
+ * **WARNING:** running the xcmailr-starter with firstrun-option or running the createSQLTables will drop existing tables (in this database)! Be careful!
+ * Please remove the firstrun-option after the first run, otherwise the tables will be rewritten on every start (with the consequence of data loss)
 
 
 Frameworks/Librarys/Code/etc which were provided by others:
