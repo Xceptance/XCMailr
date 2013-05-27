@@ -1,0 +1,42 @@
+<assembly>
+  <id>bin-${project.version}</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <fileSets>
+    <!-- add release directories and files -->
+    <fileSet>
+      <directory>${basedir}/xcmailr-build</directory>
+      <filtered>true</filtered>
+    </fileSet>  
+    <fileSet>
+      <includes>
+        <include>*.jar</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <dependencySets>
+    <!-- add runtime dependency jars-->    
+    <!-- <dependencySet>
+     <outputDirectory>/lib</outputDirectory>
+      <unpack>false</unpack>
+      <scope>runtime</scope>
+      <useTransitiveDependencies>true</useTransitiveDependencies>
+      <excludes>
+        <exclude>*:war:*</exclude>
+      </excludes>        
+    </dependencySet>-->
+     <!-- add runtime dependency warss-->  
+    <dependencySet>
+      <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>     
+      <outputDirectory>/webapps</outputDirectory>
+      <unpack>false</unpack>
+      <scope>runtime</scope>
+      <includes>
+        <include>*:war:*</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+  
+</assembly>
