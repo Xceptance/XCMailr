@@ -1,0 +1,48 @@
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
+title="Home Page" header="login">
+<div class="row">
+	<div class="span7">
+		<form action="/mail/add" method="post" class="form-horizontal">
+			<fieldset>
+				<legend>${i18nMailbox_Create}</legend>
+
+				<div class="control-group">
+					<label class="control-label" for="address">	${i18nMailbox_Address} </label>
+					<div class="controls">
+						<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required" />
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="domain"> ${i18nMailbox_Domain} </label>
+					<div class="controls">
+						<select name="domain"> 
+						<#list domain as String> 
+							<#if (mbFrmDat.domain)??> 
+								<#if (mbFrmDat.domain == String)>
+									<option value="${String}" selected="selected">${String}</option>
+								<#else>
+									<option value="${String}">${String}</option> 
+								</#if> 
+							<#else>
+								<option value="${String}">${String}</option> 
+							</#if> 
+						</#list>
+						</select>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="duration"> ${i18nMailbox_Duration} </label>
+					<div class="controls">
+						<input class="input_full" type="text" id="duration" name="duration" value="${ (mbFrmDat.duration)!}" required="required" />
+					</div>
+				</div>
+				<div class="form-actions">
+					<input type="submit" class="btn" value="${i18nMailbox_New}" /> 
+					<input type="reset" class="btn" value="Reset">
+				</div>
+			</fieldset>
+		</form>
+	</div>
+</div>
+
+</@layout.xcLayout>

@@ -1,0 +1,87 @@
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
+title="Home Page" header="login">
+<#import "../layout/macros.ftl.html" as pag/>
+<div class="row">
+	<h1 class="legendary">${i18nMailbox_Title}</h1> 
+	<!--mailboxoverview-->
+	<div class="pagination"> 
+
+	<form action="/mail">
+	<@pag.entrycount/>
+	</form>
+
+	<div class="tab-content">  
+	<#list 1..mboxes.getPageCount() as x > 
+	<#if x = 1 >
+		<div class="tab-pane active" id="${x}">  
+	<#else>
+		<div class="tab-pane" id="${x}">  
+	</#if>
+	
+		<table class="table tablesorter table-hover table-condensed">
+		<thead>
+		    <tr>
+		    	<th class="header">${i18nMailbox_Address}</th>	<th class="header">${i18nMailbox_Duration}</th>
+		    	<th class="header">${i18nMailbox_Forwards}</th>	<th class="header">${i18nMailbox_Suppressions}</th>
+		    	<th class="header">${i18nMailbox_Valid}</th>	<th>${i18nMailbox_Renew}</th>
+			    <th>${i18nMailbox_Delete}</th>  	<th>${i18nMailbox_Reset}</th> 
+			    <th>${i18nMailbox_Edit}</th>
+		    </tr>
+		    </thead>
+		    <tbody>
+		<#list mboxes.getPage(x) as mBox>
+		    <#if (mBox.isExpired())>
+				<tr class="error">   
+		    <#else>
+		    	<tr class="success">
+		    </#if>   
+				<td>${mBox.address}&#064;${mBox.domain}</td>
+				<td>${mBox.getTSAsString()}</td>			
+				<td>${mBox.forwards}</td>
+				<td>${mBox.suppressions}</td>
+				
+				<#if (mBox.isActive())>
+    				<td>${i18nMsg_Yes}</td>
+	    			 <td><form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
+	                    <input type="submit" class= "btn  btn-small" value="${i18nMailbox_Deactivate}"/>
+	                    </form>
+	                </td>
+		    	<#else>
+	    			<td>${i18nMsg_No}</td>
+	    	    	<td>
+		    	    	<form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
+		                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Activate}"/>
+		                </form>
+	                </td>
+		    	</#if>
+		    	
+    			<td>
+    			<form class="nomarg" action="/mail/delete/${mBox.id}" method="post"> 
+                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Delete}"/>
+                </form>
+                </td>
+                
+                <td>
+    			<form class="nomarg" action="/mail/reset/${mBox.id}" method="post"> 
+                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Reset}"/>
+                </form>
+                </td>
+                
+		        <td> 
+		        <form class="nomarg" action="/mail/edit/${mBox.id}" method="get">
+		             <input type="submit" class="btn btn-small" value="${i18nMailbox_Edit}"/>
+		         </form>
+		        </td>
+			</tr>
+		</#list>
+		</tbody>
+    </table>
+    </div> <!-- /tab pane (active) -->
+  </#list>
+</div><!-- /tab content -->
+<@pag.pager name=mboxes/>
+</div><!-- /pagination -->
+</div><!-- /row -->
+<@pag.incSorter vals=[5,6,7,8]/>
+</@layout.xcLayout>
+

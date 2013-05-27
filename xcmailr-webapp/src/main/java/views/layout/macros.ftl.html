@@ -1,0 +1,49 @@
+<!-- Selector for the numbers of Entries per Page -->
+
+<#macro entrycount>
+<div class="row-fluid">
+<ul class ="pull-right"> 
+	<li><input type="submit" class="btn btn-link btn-small" value="5" name="no"/> </li>
+	<li> <input type="submit" class="btn btn-link btn-small" value="15" name="no"/></li>
+	<li><input type="submit" class="btn btn-link btn-small" value="25" name="no"/></li>
+	<li><input type="submit" class="btn btn-link btn-small" value="all" name="no"/></li>
+</ul>
+</div>
+</#macro>
+
+<!-- Pager  -->
+
+<#macro pager name="plist">
+<#if (name.getPageCount() > 1) >
+	<ul >
+	<#list 1..name.getPageCount() as x >  
+		<#if x = 1 >
+			<li class="active"><a href="#${x}" data-toggle="tab">${x}</a></li>
+		<#else>
+			<li ><a href="#${x}" data-toggle="tab">${x}</a></li>
+		</#if>
+	</#list>
+	</ul>  
+</#if>
+</#macro>
+
+<#macro incSorter vals=[]>
+    <script type="text/javascript" src="/assets/js/jquery.tablesorter.js"></script> 
+    <script type="text/javascript" id="js">
+    $(document).ready(function() 
+	    { 
+	        $("table").tablesorter(
+	        		{
+	                	headers: { 
+                			<#list vals as x>
+                				${x}: { sorter: false }<#if x_has_next>,</#if>
+                			</#list>
+                			}
+	        		}
+); 
+	    }); 
+    </script>
+
+		
+
+</#macro>

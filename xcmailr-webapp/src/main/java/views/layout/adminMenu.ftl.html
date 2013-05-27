@@ -1,0 +1,23 @@
+<div>
+	<ul class="nav nav-pills nav-stacked">
+		<#if (users)??>
+			<li class="active"><a href="/admin/users">${i18nAdmin_UserView}</a></li>
+		<#else>
+			<li><a href="/admin/users">${i18nAdmin_UserView}</a></li>
+		</#if>
+		
+		<#if (stats)??>
+			<li class="active"><a href="/admin/summedtx">${i18nAdmin_SumStat}</a></li>
+		<#else>
+			<li><a href="/admin/summedtx">${i18nAdmin_SumStat}</a></li>
+		</#if>
+		
+		<#if (plist)??>
+			<li class="active"><a href="/admin/mtxs">${i18nAdmin_Trans}</a></li>
+		<#else>
+			<li><a href="/admin/mtxs">${i18nAdmin_Trans}</a></li>
+		</#if>
+	</ul>
+</div>
+
+

@@ -1,0 +1,34 @@
+<#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
+"User Administration">
+<#import "../layout/macros.ftl.html" as pag/>
+<div class="span4">
+	<table class="table tablesorter table-hover table-condensed">
+	<thead>
+	    <tr> <th class="header">${i18nAdmin_MtxStatus}</th> <th class="header">${i18nCount}</th> </tr>
+	</thead>
+	<tbody>
+    	<#list stats as stat>
+   			<#switch stat.statuscode>
+	    		<#case 100><tr class="error"><#break>
+	    		<#case 200><tr class="warning"><#break>
+	    		<#case 300><tr class="success"><#break>
+	    		<#case 400><tr class="error"><#break>
+	    		<#default><tr><#break>
+	    	</#switch>
+ 		    	<td>
+			    	<#switch stat.statuscode>
+			    		<#case 100> ${i18nAdmin_MtxStat100}	<#break>
+			    		<#case 200> ${i18nAdmin_MtxStat200}	<#break>
+			    		<#case 300> ${i18nAdmin_MtxStat300} <#break>
+			    		<#case 400> ${i18nAdmin_MtxStat400} <#break>
+			    		<#default> 	${i18nAdmin_MtxUnknown} <#break>
+			    	</#switch>
+			    </td>
+	    		<td>${stat.count}</td>
+    		</tr>
+    	</#list>
+    	</tbody>
+    </table>
+</div>
+ <@pag.incSorter/>
+</@layout.adminLayout>	

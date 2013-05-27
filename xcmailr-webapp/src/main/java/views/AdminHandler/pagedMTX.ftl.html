@@ -1,0 +1,59 @@
+<#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
+title="User Administration" >
+<#import "../layout/macros.ftl.html" as pag/>
+<div class="pagination"> 
+
+<form action="/admin/mtxs">
+<@pag.entrycount/>
+</form>
+
+<div class="tab-content">  
+<#list 1..plist.getPageCount() as x > 
+	<#if x = 1 >
+		<div class="tab-pane active" id="${x}">  
+	<#else>
+		<div class="tab-pane" id="${x}">  
+	</#if>
+	
+	<table class="table tablesorter table-hover table-condensed">
+		<thead>
+	    <tr>
+		    <th class="header">${i18nAdmin_MtxTs}</th>
+		    <th class="header">${i18nAdmin_MtxStatus}</th>
+		    <th class="header">${i18nAdmin_MtxTarget}</th>
+		    <th class="header">${i18nAdmin_MtxSource}</th>
+	    </tr>
+	    </thead>
+	    <tbody>
+		<#list plist.getPage(x) as mtx>
+			<#switch mtx.status>
+		    		<#case 100> <tr class="error"> <#break>
+		    		<#case 200> <tr class="warning"> <#break>
+		    		<#case 300> <tr class="success"> <#break>
+		    		<#case 400> <tr class="error"> <#break>
+		    		<#default> <tr>
+			 </#switch>
+					<td>${mtx.getTsAsString()}</td>
+				    <td>
+				    	<#switch mtx.status>
+				    		<#case 100> ${i18nAdmin_MtxStat100} <#break>
+				    		<#case 200>	${i18nAdmin_MtxStat200} <#break>
+				    		<#case 300> ${i18nAdmin_MtxStat300} <#break>
+				    		<#case 400> ${i18nAdmin_MtxStat400} <#break>
+				    		<#default> ${i18nAdmin_MtxUnknown}
+				    	</#switch>
+				    </td>
+				    <td> ${mtx.sourceaddr} </td>
+				    <td> ${mtx.targetaddr} </td>
+			    </tr>
+			</#list>
+			</tbody>
+	    </table>
+	</div> <!-- /tab pane (active) --> 
+</#list>
+
+</div>  <!-- tab-content -->
+<@pag.pager name=plist/>
+<@pag.incSorter/>
+</div> <!-- pagination -->
+</@layout.adminLayout>	

@@ -1,0 +1,21 @@
+<#import "../layout/defaultLayout.ftl.html" as layout> 
+<@layout.xcLayout "Home page">
+
+<div class="span7">
+<form action="/pwresend" method="post" class="form-horizontal">
+<fieldset>
+<legend>${i18nLink_ForgotPw}</legend>
+       <div class="control-group"> 
+		<label class="control-label"  for="mail"> ${i18nUser_Mail} </label>
+		<div class="controls">  
+			<input class="input_full" type="email" id="mail" name="mail" required="required"/>
+		</div>
+	</div>
+	<div class="form-actions"> 
+		<input type="submit" class="btn" value="${i18nLink_ForgotPw}" /> 
+		<input type="reset" class="btn" value="Reset"> 
+	</div>
+</fieldset>
+</form>
+</div>
+</@layout.xcLayout>
