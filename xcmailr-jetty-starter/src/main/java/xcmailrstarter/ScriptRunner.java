@@ -19,40 +19,66 @@ package xcmailrstarter;
 import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
-
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.h2.tools.RunScript;
 import org.mortbay.log.Log;
 
 /**
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-public class ScriptRunner
-{
+public class ScriptRunner {
 
-    public ScriptRunner()
-    {
-        Connection conn;
-        try
-        {
+	public ScriptRunner(String[] args) {
+		// get the server file-location
+		String serverHome = System.getProperty("xcmailr.xcmstarter.home");
+		// get the config file-location
+		String confFile = System.getProperty("ninja.external.configuration");
+		PropertiesConfiguration c = new PropertiesConfiguration();
+		c.setEncoding("utf-8");
+		c.setDelimiterParsingDisabled(true);
+		String confPath = serverHome + "/" + confFile;
+		try {
 
-            Class.forName("org.h2.Driver");
-            System.out.println("Driver Loaded.");
-            String url = "jdbc:h2:~/xcmailrDB;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE";
+			c.load(confPath);
 
-            conn = DriverManager.getConnection(url, "sa", "");
-            Log.info("Got Connection.");
-            
-            RunScript.execute(conn, new FileReader("conf/default-drop.sql"));
-            RunScript.execute(conn, new FileReader("conf/default-create.sql"));
-            conn.close();
-            Log.info("Executed Scripts.");
-        }
-        catch (Exception e)
-        {
-            System.err.println("Got an exception! Connection error or Script execution failed.");
-            e.printStackTrace();
-            System.exit(0);
-        }
+		} catch (ConfigurationException e) {
 
-    }
+			Log.info("Could not load file " + confPath
+					+ " (not a bad thing necessarily, but I am returing null)");
+			System.exit(0);
+		}
+
+		Configuration conf = (Configuration) c;
+		String dbUrl = conf.getString("ebean.datasource.databaseUrl");
+		String dbUser = conf.getString("ebean.datasource.username");
+		String dbPass = conf.getString("ebean.datasource.password");
+		String dbDriver = conf.getString("ebean.datasource.databaseDriver");
+
+		// Handle the connection
+		Connection conn;
+		try {
+
+			Class.forName(dbDriver);
+			Log.info("Driver Loaded.");
+
+			conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
+			Log.info("Got Connection.");
+            if (!(System.getProperty("xcmailr.xcmstart.droptables") == null)) {
+                RunScript
+                        .execute(conn, new FileReader("conf/default-drop.sql"));
+            }
+			RunScript.execute(conn, new FileReader("conf/default-create.sql"));
+
+			conn.close();
+			Log.info("Executed Scripts.");
+		} catch (Exception e) {
+			System.err
+					.println("Got an exception! Connection error or Script execution failed.");
+			e.printStackTrace();
+			System.exit(0);
+		}
+
+	}
 }

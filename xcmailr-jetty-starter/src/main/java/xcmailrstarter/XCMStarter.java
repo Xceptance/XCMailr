@@ -31,87 +31,81 @@ import org.mortbay.xml.XmlConfiguration;
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-public class XCMStarter
-{
+public class XCMStarter {
 
-    /**
-     * @param args
-     * @throws Exception
-     */
-    public static void XCMStart(String[] args) throws Exception
-    {
+	/**
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void XCMStart(String[] args) throws Exception {
 
-        try
-        {
-            // get server home system property
-            String serverHome = System.getProperty("xcmailr.xcmstarter.home");
+		try {
+			// get server home system property
+			String serverHome = System.getProperty("xcmailr.xcmstarter.home");
 
-            // get server host system property
-            String serverHost = System.getProperty("xcmailr.xcmstarter.host");
+			// get server host system property
+			String serverHost = System.getProperty("xcmailr.xcmstarter.host");
 
-            // get server host system property
-            String serverPort = System.getProperty("xcmailr.xcmstarter.port");
-            System.out.println(serverHome + " " + serverHost + " " + serverPort);
-            // create server
-            Server server = new Server();
+			// get server host system property
+			String serverPort = System.getProperty("xcmailr.xcmstarter.port");
+			System.out
+					.println(serverHome + " " + serverHost + " " + serverPort);
+			// create server
+			Server server = new Server();
 
-            // create Jetty XML file
-            File jettyConfDirectory = new File(serverHome, "conf");
-            File jettyXmlFile = new File(jettyConfDirectory, "jetty.xml");
+			// create Jetty XML file
+			File jettyConfDirectory = new File(serverHome, "conf");
+			File jettyXmlFile = new File(jettyConfDirectory, "jetty.xml");
 
-            // load configuration
-            XmlConfiguration configuration = new XmlConfiguration(jettyXmlFile.toURI().toURL());
-            configuration.configure(server);
+			// load configuration
+			XmlConfiguration configuration = new XmlConfiguration(jettyXmlFile
+					.toURI().toURL());
+			configuration.configure(server);
 
-            // create WAR path
-            StringBuilder warPath = new StringBuilder();
-            warPath.append(serverHome);
-            warPath.append("/");
-            warPath.append("webapps");
-            warPath.append("/");
-            warPath.append("xcmailr-webapp-1.0.war");
+			// create WAR path
+			StringBuilder warPath = new StringBuilder();
+			warPath.append(serverHome);
+			warPath.append("/");
+			warPath.append("webapps");
+			warPath.append("/");
+			warPath.append("xcmailr-webapp-1.0.war");
 
-            // add web application
-            WebAppContext webapp = new WebAppContext();
-            webapp.setContextPath("/");
-            webapp.setWar(warPath.toString());
+			// add web application
+			WebAppContext webapp = new WebAppContext();
+			webapp.setContextPath("/");
+			webapp.setWar(warPath.toString());
 
-            // create connector
-            Connector connector = new SelectChannelConnector();
-            connector.setPort(Integer.parseInt(serverPort));
-            connector.setHost(serverHost);
+			// create connector
+			Connector connector = new SelectChannelConnector();
+			connector.setPort(Integer.parseInt(serverPort));
+			connector.setHost(serverHost);
 
-            // configure the server
-            server.addConnector(connector);
-            server.setHandler(webapp);
-            server.setStopAtShutdown(true);
+			// configure the server
+			server.addConnector(connector);
+			server.setHandler(webapp);
+			server.setStopAtShutdown(true);
 
-            server.start();
-            server.join();
+			server.start();
+			server.join();
 
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            Log.warn("Exiting application due to unrecoverable error.");
-            System.exit(1);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.warn("Exiting application due to unrecoverable error.");
+			System.exit(1);
+		}
+	}
 
-    /**
-     * Static main method to invoke Jetty starter class and run the SQL-Scripts.
-     * 
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception
-    {
-        if (!(System.getProperty("xcmailr.xcmstarter.firstrun") == null))
-        {
-            new ScriptRunner();
-        }
+	/**
+	 * Static main method to invoke Jetty starter class and run the SQL-Scripts.
+	 * 
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void main(String[] args) throws Exception {
 
-        XCMStart(args);
+		new ScriptRunner(args);
 
-    }
+		XCMStart(args);
+
+	}
 }
