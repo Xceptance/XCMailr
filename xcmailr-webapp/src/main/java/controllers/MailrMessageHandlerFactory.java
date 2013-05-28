@@ -20,7 +20,6 @@ import models.MBox;
 import models.MailTransaction;
 import models.User;
 import ninja.i18n.Messages;
-import org.slf4j.Logger;
 import org.subethamail.smtp.*;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
@@ -47,9 +46,6 @@ import javax.mail.internet.MimeMessage;
 @Singleton
 public class MailrMessageHandlerFactory implements MessageHandlerFactory
 {
-    @Inject
-    Logger log;
-
     @Inject
     Messages msg;
 

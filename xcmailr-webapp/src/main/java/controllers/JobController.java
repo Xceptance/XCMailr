@@ -25,16 +25,12 @@ import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
-
 import org.joda.time.DateTime;
-
-import org.slf4j.Logger;
+import org.mortbay.log.Log;
 import org.subethamail.smtp.server.SMTPServer;
-
 import models.MBox;
 import models.User;
 import ninja.lifecycle.Dispose;
@@ -42,7 +38,6 @@ import ninja.lifecycle.Start;
 import ninja.utils.NinjaProperties;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import conf.XCMailrConf;
 
 /**
@@ -60,9 +55,6 @@ public class JobController
     public SMTPServer smtpServer;
 
     public Queue<MimeMessage> mailQueue = new LinkedList<MimeMessage>();
-
-    @Inject
-    Logger log;
 
     @Inject
     NinjaProperties ninjaProp;
@@ -91,7 +83,7 @@ public class JobController
         int mailinterval = xcmConf.MAIL_INT;
         // create the MemcachedHandler
         mcsh.create();
-        log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
+        Log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
 
         if (!(pwd == null))
         { // if a pw is set in application.conf..
@@ -129,7 +121,7 @@ public class JobController
             @Override
             public void run()
             {
-                log.info("mbox-scheduler run");
+                Log.info("mbox-scheduler run");
                 int size = xcmConf.MB_SIZE;
                 List<MBox> mbList = MBox.getNextBoxes(size);
                 ListIterator<MBox> it = mbList.listIterator();
@@ -150,19 +142,19 @@ public class JobController
             @Override
             public void run() // Mailjob
             {
-                log.info("mailjob run " + mailQueue.size());
+                Log.info("mailjob run " + mailQueue.size());
                 MimeMessage message = mailQueue.poll();
 
                 while (!(message == null))
                 {
-                    log.info("Mailjob: Message found");
+                    Log.info("Mailjob: Message found");
                     try
                     {
                         if (!ninjaProp.isTest()) // TODO maybe remove this (no messages will be sent when in test-mode)
                         {
                             Transport.send(message);
                         }
-                        log.info("Message sent");
+                        Log.info("Message sent");
                     }
                     catch (MessagingException e)
                     {
