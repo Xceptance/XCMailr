@@ -81,7 +81,6 @@ public class ScriptRunner
             boolean mtxTable = false;
             while (rs.next())
             {
-                System.out.println(rs.getString(3));
                 if (rs.getString(3).equals("USERS"))
                 {
                     usrTable = true;
@@ -101,13 +100,14 @@ public class ScriptRunner
                 RunScript.execute(conn, new FileReader("conf/default-drop.sql"));
                 Log.info("Executed Drop Table.");
             }
-            
-            if(!(usrTable && mbxTable && mtxTable)){
-            RunScript.execute(conn, new FileReader("conf/default-create.sql"));
-            Log.info("Executed Create Table.");
+
+            if (!(usrTable && mbxTable && mtxTable))
+            {
+                RunScript.execute(conn, new FileReader("conf/default-create.sql"));
+                Log.info("Executed Create Table.");
             }
             conn.close();
-            
+
         }
         catch (Exception e)
         {
