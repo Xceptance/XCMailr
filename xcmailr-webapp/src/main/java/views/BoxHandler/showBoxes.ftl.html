@@ -5,12 +5,13 @@ title="Home Page" header="login">
 	<h1 class="legendary">${i18nMailbox_Title}</h1> 
 	<!--mailboxoverview-->
 	<div class="pagination"> 
-
+	<#if (mboxes.getPageCount() > 1) >
 	<form action="/mail">
 	<@pag.entrycount/>
 	</form>
-
+	</#if>
 	<div class="tab-content">  
+	<#if (mboxes.getPageCount() > 1) >
 	<#list 1..mboxes.getPageCount() as x > 
 	<#if x = 1 >
 		<div class="tab-pane active" id="${x}">  
@@ -23,7 +24,7 @@ title="Home Page" header="login">
 		    <tr>
 		    	<th class="header">${i18nMailbox_Address}</th>	<th class="header">${i18nMailbox_Duration}</th>
 		    	<th class="header">${i18nMailbox_Forwards}</th>	<th class="header">${i18nMailbox_Suppressions}</th>
-		    	<th class="header">${i18nMailbox_Valid}</th>	<th>${i18nMailbox_Renew}</th>
+		    	<th>${i18nMailbox_Renew}</th>
 			    <th>${i18nMailbox_Delete}</th>  	<th>${i18nMailbox_Reset}</th> 
 			    <th>${i18nMailbox_Edit}</th>
 		    </tr>
@@ -40,21 +41,6 @@ title="Home Page" header="login">
 				<td>${mBox.forwards}</td>
 				<td>${mBox.suppressions}</td>
 				
-				<#if (mBox.isActive())>
-    				<td>${i18nMsg_Yes}</td>
-	    			 <td><form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
-	                    <input type="submit" class= "btn  btn-small" value="${i18nMailbox_Deactivate}"/>
-	                    </form>
-	                </td>
-		    	<#else>
-	    			<td>${i18nMsg_No}</td>
-	    	    	<td>
-		    	    	<form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
-		                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Activate}"/>
-		                </form>
-	                </td>
-		    	</#if>
-		    	
     			<td>
     			<form class="nomarg" action="/mail/delete/${mBox.id}" method="post"> 
                     <input type="submit" class="btn btn-small" value="${i18nMailbox_Delete}"/>
@@ -78,6 +64,9 @@ title="Home Page" header="login">
     </table>
     </div> <!-- /tab pane (active) -->
   </#list>
+  <#else>
+  	${i18nMsg_NoEntries}
+ </#if>
 </div><!-- /tab content -->
 <@pag.pager name=mboxes/>
 </div><!-- /pagination -->

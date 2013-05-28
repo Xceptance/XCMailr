@@ -172,7 +172,7 @@ public class JobController
                     message = mailQueue.poll();
                 }
             }
-        }, new Long(1), new Long(mailinterval), TimeUnit.MINUTES);
+        }, new Long(1), new Long(mailinterval), TimeUnit.SECONDS);
     }
 
     /**
