@@ -86,7 +86,7 @@ public class JobController
         int mailinterval = xcmConf.MAIL_INT;
         // create the MemcachedHandler
         mcsh.create();
-        log.info("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
+        log.debug("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
 
         if (!(pwd == null))
         { // if a pw is set in application.conf..
@@ -124,7 +124,7 @@ public class JobController
             @Override
             public void run()
             {
-                log.info("mbox-scheduler run");
+                log.debug("mbox-scheduler run");
                 int size = xcmConf.MB_SIZE;
                 List<MBox> mbList = MBox.getNextBoxes(size);
                 ListIterator<MBox> it = mbList.listIterator();
@@ -145,19 +145,19 @@ public class JobController
             @Override
             public void run() // Mailjob
             {
-                log.info("mailjob run " + mailQueue.size());
+                log.debug("mailjob run " + mailQueue.size());
                 MimeMessage message = mailQueue.poll();
 
                 while (!(message == null))
                 {
-                    log.info("Mailjob: Message found");
+                    log.debug("Mailjob: Message found");
                     try
                     {
                         if (!ninjaProp.isTest()) // TODO maybe remove this (no messages will be sent when in test-mode)
                         {
                             Transport.send(message);
                         }
-                        log.info("Message sent");
+                        log.debug("Message sent");
                     }
                     catch (MessagingException e)
                     {

@@ -58,6 +58,10 @@ Frameworks/Librarys/Code/etc which were provided by others:
     * Copyright Jan Kovařík
     * http://glyphicons.com/
     * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
+
+ * Jetty 6
+    * http://www.eclipse.org/jetty/
+    * Apache V2.0 License: http://www.apache.org/licenses/LICENSE-2.0
   	
  * jQuery Tablesorter 2.0 plugin
     * http://tablesorter.com
@@ -86,6 +90,8 @@ Frameworks/Librarys/Code/etc which were provided by others:
     * Copyright 2011 Twitter, Inc.
     * http://twitter.github.io/bootstrap/
     * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
+
+
 
 
 License:

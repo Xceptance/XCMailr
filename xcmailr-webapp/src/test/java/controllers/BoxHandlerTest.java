@@ -104,6 +104,7 @@ public class BoxHandlerTest extends NinjaTest
                                                                     formParams);
 
         // check that the add of the mbox was successful
+        System.out.println(result+"\n\n\n\n");
         assertTrue(result.contains("class=\"success\">"));
         // check that there is a mailbox with that address
         assertNotNull(MBox.getByName("abox", "xcmailr.test"));
