@@ -44,9 +44,10 @@ public class ScriptRunner
         c.setEncoding("utf-8");
         c.setDelimiterParsingDisabled(true);
         String confPath = serverHome + "/" + confFile;
+        
         try
         {
-
+            //try to load the config
             c.load(confPath);
 
         }
@@ -58,6 +59,7 @@ public class ScriptRunner
         }
 
         Configuration conf = (Configuration) c;
+        //get the Database-Config
         String dbUrl = conf.getString("ebean.datasource.databaseUrl");
         String dbUser = conf.getString("ebean.datasource.username");
         String dbPass = conf.getString("ebean.datasource.password");
@@ -76,6 +78,7 @@ public class ScriptRunner
 
             DatabaseMetaData md = conn.getMetaData();
             ResultSet rs = md.getTables(null, null, "%", null);
+            
             boolean usrTable = false;
             boolean mbxTable = false;
             boolean mtxTable = false;

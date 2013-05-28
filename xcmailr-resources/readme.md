@@ -2,13 +2,13 @@ XCMailr
 =======
 Summary
 ------
-* Name: XCMailr
-* Version: 1.0
-* Release: May 2013
-* License: Apache V2.0
-* License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
-* Tags: AntiSpam, Testutility
-* Contributors:
+ * Name: XCMailr
+ * Version: 1.0
+ * Release: May 2013
+ * License: Apache V2.0
+ * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
+ * Tags: AntiSpam, Testutility
+ * Contributors:
     * Patrick Thum, Xceptance Software Technologies GmbH
     *  
 
@@ -19,68 +19,70 @@ XCMailr helps you to reduce the amount of spam in your personal E-Mail-Account. 
 
 Requirements
 -------------
-* Memcached ( http://memcached.org/ )
+ * Memcached ( http://memcached.org/ )
 
 
 Configuration:
 --------------
-* Open and edit the application.conf in conf/ 
-* It is strongly recommended to create a new application secret. This secret ensures that the Session-Cookie of a User has not been modified. 
-* You should especially customize the following settings:
+ * Open and edit the application.conf in conf/ 
+ * It is strongly recommended to create a new application secret. This secret ensures that the Session-Cookie of a User has not been modified. 
+ * You should especially customize the following settings:
     * **mbox.dlist**: the list of available domains
     * **mbox.host** the main-application-host 
-    * ** mail.smtp.* ** the "outbound" SMTP-Server (the Server to which the Application will forward any Messages )
+    * ** mail.smtp.* ** the "outbound" SMTP-Server (the Server to which the Application will forward any "valid" Messages )
     * ** memcached.* ** the MemCached-Server (host and port)
     * ** ebean.* ** the Ebean-Configuration
 
-* To reach the Admin-Panel visit http://yourdomain/admin (a more comfortable solution will come in a later version).
-* HTTPS Support, Edit conf/jetty.xml-file: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
+ * To reach the Admin-Panel visit http://yourdomain/admin (a more comfortable solution will come in a later version).
+ * HTTPS Support, Edit conf/jetty.xml-file: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
 
 Run the Application:
 --------------------
- * For your first run, add "-Dxcmailr.xcmstarter.firstrun=true" to the XCMAILR_CONF-variable in the run.sh-script
-    * The xcmailr-starter will then run the necessary SQL-Scripts to build all tables
-    * Unfortunately, the xcmailr-starter can't read your values from application.conf and will always execute the scripts with the default-user "sa" and no password to the database in ~/xcmailrDB.h2.db . we're sorry for that and will try to fix this to the next release.
-    * You can manually run the scripts by customising and running the "createSQLTables.sh" in conf/ 
- * **WARNING:** running the xcmailr-starter with firstrun-option or running the createSQLTables will drop existing tables (in this database)! Be careful!
- * Please remove the firstrun-option after the first run, otherwise the tables will be rewritten on every start (with the consequence of data loss)
+ * Just edit the application.conf (see Configuration) and run the 'run.sh'-script
+ * To drop and recreate all Tables (this will remove all data contained in this tables!) run the script with the parameter "-Dxcmailr.xcmstart.droptables=true"
 
 
 Frameworks/Librarys/Code/etc which were provided by others:
 -----------------------------------------------------------
-* Avaje Ebean 
+ * Avaje Ebean 
     * http://www.avaje.org/
     * LGPL: http://www.gnu.org/licenses/lgpl.html
 
-* Icons by Glyphicons (shipped with Twitter Bootstrap)
+ * H2 Database Engine
+    * http://www.h2database.com/
+    * Dual licensed
+         * H2 License, V1.0: http://www.h2database.com/html/license.html#h2_license
+         * EPL: http://www.h2database.com/html/license.html#eclipse_license
+
+ * Icons by Glyphicons (shipped with Twitter Bootstrap)
     * Copyright Jan Kovařík
     * http://glyphicons.com/
     * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
   	
-* jQuery Tablesorter 2.0 plugin
+ * jQuery Tablesorter 2.0 plugin
     * http://tablesorter.com
     * Dual licensed 
          * MIT-License: http://www.opensource.org/licenses/mit-license.php
-         * GPL-License: http://www.opensource.org/licenses/gpl-license.php
+         * GPL: http://www.opensource.org/licenses/gpl-license.php
 
  * Spymemcached
     * http://code.google.com/p/spymemcached/
     * MIT-License: http://www.opensource.org/licenses/mit-license.php
 
-* JBCrypt - a Java BCrypt implementation 
+ * JBCrypt - a Java BCrypt implementation 
     * Copyright (c) 2006 Damien Miller
     * http://www.mindrot.org/projects/jBCrypt/
     * ISC/BSD License: http://www.mindrot.org/files/jBCrypt/LICENSE
 
-* JodaTime
+ * JodaTime
     * http://joda-time.sourceforge.net
     * Apache V2.0 License: http://joda-time.sourceforge.net/license.html
 
-* NinjaFramework
+ * NinjaFramework
     * http://www.ninjaframework.org/
     * Apache V2.0 License: https://github.com/reyez/ninja/blob/develop/license.txt
 
-* Twitter Bootstrap
+ * Twitter Bootstrap
     * Copyright 2011 Twitter, Inc.
     * http://twitter.github.io/bootstrap/
     * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
