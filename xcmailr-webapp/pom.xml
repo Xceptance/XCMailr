@@ -40,24 +40,64 @@
 					<outputDirectory>${project.parent.basedir}/xcmailr-build/webapps/</outputDirectory>
 				</configuration>
 			  </plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.5.1</version>
-				<executions>
-				  <execution>
-					<id>copy-dependencies</id>
-					<phase>package</phase>
-					<goals>
-						<goal>copy-dependencies</goal>
-					</goals>
-					<configuration>
-						<outputDirectory>${project.parent.basedir}/xcmailr-build/lib/</outputDirectory>
-					</configuration>
-				  </execution>
-				 </executions>
-			</plugin>
-
 		</plugins>
 	</build>
+
+	<repositories>
+	    <repository>
+	      <id>spy</id>
+	      <name>Spy Repository</name>
+	      <layout>default</layout>
+	      <url>http://files.couchbase.com/maven2/</url>
+	      <snapshots>
+	        <enabled>false</enabled>
+	      </snapshots>
+	    </repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<groupId>org.ninjaframework</groupId>
+			<artifactId>ninja-core</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.ninjaframework</groupId>
+			<artifactId>ninja-core-test</artifactId>
+			<version>1.4.1</version>
+			<scope>test</scope>
+		</dependency>
+	
+		<dependency>
+			<groupId>org.ninjaframework</groupId>
+			<artifactId>ninja-ebean-module</artifactId>
+			<version>1.0</version>
+		</dependency>
+        <dependency>
+        	<groupId>org.ninjaframework</groupId>
+        	<artifactId>ninja-servlet</artifactId>
+        	<version>1.4.1</version>
+        </dependency>
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.subethamail</groupId>
+			<artifactId>subethasmtp</artifactId>
+			<version>3.1.7</version>
+		</dependency>
+		<dependency>
+		        <groupId>spy</groupId>
+		        <artifactId>spymemcached</artifactId>
+		        <version>2.8.4</version>
+	    	</dependency>
+	</dependencies>
 </project>
