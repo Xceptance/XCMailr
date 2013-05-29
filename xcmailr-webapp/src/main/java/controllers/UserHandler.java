@@ -16,8 +16,13 @@
  */
 package controllers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 import models.EditUsr;
 import models.User;
 import ninja.Context;
@@ -40,6 +45,9 @@ public class UserHandler
 {
     @Inject
     MemCachedSessionHandler mcsh;
+
+    @Inject
+    XCMailrConf xcmConf;
 
     /**
      * Edits the {@link User}-Data <br/>
@@ -68,6 +76,21 @@ public class UserHandler
         }
         else
         { // the form is filled correctly
+
+            // don't let the user register with one of our domains
+            // (prevent mail-loops)
+            String mail = edt.getMail();
+            String domPart = mail.split("@")[1];
+            if (Arrays.asList(xcmConf.DM_LIST).contains(domPart))
+            {
+                context.getFlashCookie().error("i18nMsg_NoLoop", (Object) null);
+                edt.setMail(usr.getMail());
+                edt.setPw("");
+                edt.setPwn1("");
+                edt.setPwn2("");
+                return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
+            }
+
             String pw1 = edt.getPwn1();
             String pw2 = edt.getPwn2();
 
@@ -75,6 +98,8 @@ public class UserHandler
             { // the user authorized himself
                 if (!User.mailChanged(edt.getMail(), usr.getId()))
                 { // the mailaddress changed
+                    System.out.println("\n\n\n mail CHANGED!\n\n ");
+
                     usr.setMail(edt.getMail());
                 }
                 // update the fore- and surname

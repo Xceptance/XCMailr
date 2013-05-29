@@ -16,6 +16,7 @@
  */
 package controllers;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.joda.time.DateTime;
@@ -121,6 +122,20 @@ public class Application
         { // form was filled correctly, go on!
             if (!User.mailExists(frdat.getMail()))
             {
+                //don't let the user register with one of our domains
+                // (prevent mail-loops)
+                String mail = frdat.getMail();
+                String domPart = mail.split("@")[1];
+                if (Arrays.asList(xcmConf.DM_LIST).contains(domPart))
+                {
+                    context.getFlashCookie().error("i18nMsg_NoLoop", (Object) null);
+                    frdat.setMail("");
+                    frdat.setPw("");
+                    frdat.setPwn1("");
+                    frdat.setPwn2("");
+                    return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
+                }
+                
                 // a new user, check if the passwords are matching
                 if (frdat.getPw().equals(frdat.getPwn1()))
                 {
