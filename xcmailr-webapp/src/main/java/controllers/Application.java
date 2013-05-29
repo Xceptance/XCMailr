@@ -65,6 +65,8 @@ public class Application
     {
         String uuid = context.getSessionCookie().getId();
         User usr = (User) mcsh.get(uuid);
+
+        
         if (usr == null)
         {
             // show the default index page if there's no user

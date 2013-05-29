@@ -50,24 +50,7 @@
 			  <target>1.6</target>
 			</configuration>
 		    </plugin>
-			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
-				<artifactId>maven-jetty-plugin</artifactId>
-				<version>6.1.26</version>
-				<configuration>
-					<contextPath>/</contextPath>
-					<stopKey>stop</stopKey>
-   					<stopPort>8889</stopPort>					
-					<scanIntervalSeconds>10</scanIntervalSeconds>
-					<reload>automatic</reload>
-					<classesDirectory>
-						target/classes
-					</classesDirectory>
-					<scanTargets>
-						<scanTarget>target/classes</scanTarget>
-					</scanTargets>
-				</configuration>
-			</plugin>
+
 			<plugin>  
 				<groupId>org.apache.maven.plugins</groupId>  
 				<artifactId>maven-surefire-plugin</artifactId>

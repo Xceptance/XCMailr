@@ -18,6 +18,9 @@ package controllers;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.joda.time.DateTime;
+
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -109,6 +112,7 @@ public class AdminHandler
     {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("stats", MailTransaction.getStatusList());
+        System.out.println(MailTransaction.getStatusList());
         return Results.html().render(map);
     }
 
@@ -122,6 +126,7 @@ public class AdminHandler
      */
     public Result pagedMTX(Context context)
     {
+
         Map<String, Object> map = new HashMap<String, Object>();
         PageList<MailTransaction> pl;
         HelperUtils.parseEntryValue(context);
@@ -130,6 +135,26 @@ public class AdminHandler
 
         map.put("plist", pl);
         return Results.html().render(map);
+    }
+
+    /**
+     * @param time
+     * @return
+     */
+
+    public Result deleteMTX(@PathParam("time") Integer time)
+    {
+        if (time == -1)
+        {
+            MailTransaction.deleteTxInPeriod(null);
+        }
+        else
+        {
+            DateTime dt = DateTime.now().minusDays(time);
+            MailTransaction.deleteTxInPeriod(dt.getMillis());
+        }
+
+        return Results.redirect("/admin/mtxs");
     }
 
     /**

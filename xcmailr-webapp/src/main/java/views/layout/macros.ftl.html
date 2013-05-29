@@ -1,21 +1,26 @@
 <!-- Selector for the numbers of Entries per Page -->
 
 <#macro entrycount>
+<div class="pagination">
 <div class="row-fluid">
-<ul class ="pull-right"> 
+<ul class ="pull-right">
+	  <li class="btn btn-small disabled">${i18nMsg_EntriesPerPage}</li>
 	<li><input type="submit" class="btn btn-link btn-small" value="5" name="no"/> </li>
 	<li> <input type="submit" class="btn btn-link btn-small" value="15" name="no"/></li>
 	<li><input type="submit" class="btn btn-link btn-small" value="25" name="no"/></li>
 	<li><input type="submit" class="btn btn-link btn-small" value="all" name="no"/></li>
 </ul>
 </div>
+</div>
 </#macro>
 
 <!-- Pager  -->
 
 <#macro pager name="plist">
+<div class="pagination">
 <#if (name.getPageCount() > 1) >
 	<ul >
+	<li class="disabled"><a>${i18nMsg_Page}: </a></li>
 	<#list 1..name.getPageCount() as x >  
 		<#if x = 1 >
 			<li class="active"><a href="#${x}" data-toggle="tab">${x}</a></li>
@@ -43,7 +48,19 @@
 ); 
 	    }); 
     </script>
+    </div>
+</#macro>
 
-		
-
+<!-- Shows the delete MTX-Form -->
+<#macro mtxDeleter>
+<div class="btn-group">
+	<button class="btn dropdown-toggle btn-small" data-toggle="dropdown">${i18nAdmin_RemoveMtx}<span class="caret"></span></button>
+	<ul class="dropdown-menu">
+		<li><a href="/admin/mtxs/delete/7">1 ${i18nAdmin_Week}</a></li>
+		<li><a href="/admin/mtxs/delete/14">2 ${i18nAdmin_Week}</a></li>
+		<li><a href="/admin/mtxs/delete/21">3 ${i18nAdmin_Week}</a></li>
+		<li><a href="/admin/mtxs/delete/28">4 ${i18nAdmin_Week}</a></li>
+		<li><a href="/admin/mtxs/delete/-1">All</a></li>
+	</ul>
+</div><!-- /btn-group -->
 </#macro>

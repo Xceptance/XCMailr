@@ -272,4 +272,18 @@ public class MailTransaction
         return list;
     }
 
+    public static void deleteTxInPeriod(Long ts)
+    {
+        List<Object> ids;
+        if (ts == null)
+        {
+            ids = Ebean.find(MailTransaction.class).findIds();
+        }
+        else
+        {
+            ids = Ebean.find(MailTransaction.class).where().lt("ts", ts).findIds();
+        }
+        Ebean.delete(MailTransaction.class, ids);
+    }
+
 }

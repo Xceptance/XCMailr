@@ -70,6 +70,7 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/admin/summedtx").with(AdminHandler.class, "showSumTx");
         router.GET().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.POST().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
+        router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler.class, "deleteMTX");
         
         router.GET().route("/assets/.*").with(AssetsController.class, "serve");
 

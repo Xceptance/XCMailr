@@ -81,7 +81,7 @@ public class PageList<T>
 
     public int getPagesize()
     {
-        return pagesize;
+        return this.pagesize;
     }
 
     /**
