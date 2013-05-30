@@ -145,7 +145,7 @@ public class JobController
             @Override
             public void run() // Mailjob
             {
-                log.debug("mailjob run " + mailQueue.size());
+                log.debug("mailjob run, size: " + mailQueue.size());
                 MimeMessage message = mailQueue.poll();
 
                 while (!(message == null))
