@@ -70,7 +70,7 @@ public class XCMStarter
             warPath.append("webapps");
             warPath.append("/");
             //TODO make this version-independent
-            warPath.append("xcmailr-webapp-1.0.war");
+            warPath.append("xcmailr-webapp.war");
 
             // add web application
             WebAppContext webapp = new WebAppContext();
@@ -108,6 +108,7 @@ public class XCMStarter
     public static void main(String[] args) throws Exception
     {
 
+        
         new ScriptRunner(args);
 
         XCMStart(args);

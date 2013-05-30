@@ -22,7 +22,7 @@
 	<groupId>org.xcmailr</groupId>	
 	<packaging>pom</packaging>
 	<name>XCMailr</name>
-	<version>1.0</version>
+	<version>1.0.0-SNAPSHOT</version>
 
 	<modules>
 		<module>xcmailr-webapp</module>
@@ -38,6 +38,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<siteProjectVersion>${project.version}</siteProjectVersion>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 	</properties>
 	<build>
 		<plugins>
@@ -75,7 +77,6 @@
 			      <resources>          
 				<resource>
 				  <directory>${basedir}/xcmailr-resources/</directory>
-				  <filtering>true</filtering>
 				</resource>
 			      </resources>              
 			    </configuration>            
@@ -90,9 +91,14 @@
 				<includes>
 					<include>**/*</include>
 				</includes>
+			</resource>         
+			<resource>
+				<directory>src/main/resources</directory>
+				<targetPath>${project.build.outputDirectory}/views/layout</targetPath>
+				<filtering>true</filtering>
 			</resource>
 		</resources>
-
+	<finalName>${project.artifactId}</finalName>
 	</build>
 
 	<scm>

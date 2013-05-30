@@ -29,6 +29,10 @@ import com.google.inject.Singleton;
 public class XCMailrConf
 {
     public final String APP_NAME;
+    
+    public final String APP_HOME;
+    
+    public final String APP_BASE;
 
     public final String C_PREFIX;
 
@@ -70,10 +74,13 @@ public class XCMailrConf
 
     public final Integer MC_PORT;
 
+
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
     {
         APP_NAME = ninjaProp.getOrDie("application.name");
+        APP_HOME = ninjaProp.getOrDie("application.url");
+        APP_BASE = ninjaProp.getOrDie("application.basedir");
         C_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
@@ -94,6 +101,8 @@ public class XCMailrConf
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
         MC_HOST = ninjaProp.getOrDie("memcached.host");
         MC_PORT = ninjaProp.getIntegerOrDie("memcached.port");
+
+
         if (DM_LIST == null)
         {
             throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "

@@ -26,7 +26,7 @@
 	<parent>
 		<groupId>org.xcmailr</groupId>
 		<artifactId>xcmailr</artifactId>
-		<version>1.0</version>
+		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 		<build>
 		<plugins>
@@ -53,10 +53,19 @@
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.3</version>
 				<configuration>
+					<archive>
+					    <manifest>
+					      <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+					    </manifest>
+					    <manifestEntries>
+					      <Implementation-Build>${project.version}.${maven.build.timestamp}</Implementation-Build>
+					    </manifestEntries>
+					  </archive>
 					<outputDirectory>${project.parent.basedir}/xcmailr-build/webapps/</outputDirectory>
 				</configuration>
 			  </plugin>
 		</plugins>
+
 	</build>
 
 	<repositories>
