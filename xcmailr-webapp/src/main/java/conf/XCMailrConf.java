@@ -101,8 +101,6 @@ public class XCMailrConf
         MC_HOST = ninjaProp.getOrDie("memcached.host");
         MC_PORT = ninjaProp.getIntegerOrDie("memcached.port");
 
-
-
         if (DM_LIST == null)
         {
             throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "

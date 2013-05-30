@@ -58,7 +58,7 @@ public class JobController
 
     @Inject
     Logger log;
-    
+
     @Inject
     NinjaProperties ninjaProp;
 
@@ -117,59 +117,62 @@ public class JobController
         // set the port and start it
         smtpServer.setPort(port);
         smtpServer.start();
-
-        // create the executor-service to check the mailboxes which were expired since the last run and disable them
-        expirationService.scheduleAtFixedRate(new Runnable()
+        if (!ninjaProp.isTest())
         {
-            @Override
-            public void run()
+            // create the executor-service to check the mailboxes which were expired since the last run and disable them
+            expirationService.scheduleAtFixedRate(new Runnable()
             {
-                log.debug("mbox-scheduler run");
-                int size = xcmConf.MB_SIZE;
-                List<MBox> mbList = MBox.getNextBoxes(size);
-                ListIterator<MBox> it = mbList.listIterator();
-                DateTime dt = new DateTime();
-                while (it.hasNext())
+                @Override
+                public void run()
                 {
-                    MBox mb = it.next();
-                    if (dt.isAfter(mb.getTs_Active()) && !(mb.getTs_Active() == 0))
-                    { // this element is expired
-                        mb.enable();
-                    }
-                }
-            }
-        }, new Long(1), new Long(interval), TimeUnit.MINUTES);
-
-        mailTransportService.scheduleAtFixedRate(new Runnable()
-        {
-            @Override
-            public void run() // Mailjob
-            {
-                log.debug("mailjob run, size: " + mailQueue.size());
-                MimeMessage message = mailQueue.poll();
-
-                while (!(message == null))
-                {
-                    log.debug("Mailjob: Message found");
-                    try
+                    log.debug("mbox-scheduler run");
+                    int size = xcmConf.MB_SIZE;
+                    List<MBox> mbList = MBox.getNextBoxes(size);
+                    ListIterator<MBox> it = mbList.listIterator();
+                    DateTime dt = new DateTime();
+                    while (it.hasNext())
                     {
-                        if (!ninjaProp.isTest()) // TODO maybe remove this (no messages will be sent when in test-mode)
-                        {
-                            Transport.send(message);
+                        MBox mb = it.next();
+                        if (dt.isAfter(mb.getTs_Active()) && !(mb.getTs_Active() == 0))
+                        { // this element is expired
+                            mb.enable();
                         }
-                        log.debug("Message sent");
                     }
-                    catch (MessagingException e)
-                    {
-                        log.error(e.getMessage());
-                        // TODO Auto-generated catch block
-                        //e.printStackTrace();
-                        
-                    }
-                    message = mailQueue.poll();
                 }
-            }
-        }, new Long(1), new Long(mailinterval), TimeUnit.SECONDS);
+            }, new Long(1), new Long(interval), TimeUnit.MINUTES);
+
+            mailTransportService.scheduleAtFixedRate(new Runnable()
+            {
+                @Override
+                public void run() // Mailjob
+                {
+                    log.debug("mailjob run, size: " + mailQueue.size());
+                    MimeMessage message = mailQueue.poll();
+
+                    while (!(message == null))
+                    {
+                        log.debug("Mailjob: Message found");
+                        try
+                        {
+                            if (!ninjaProp.isTest()) // TODO maybe remove this (no messages will be sent when in
+                                                     // test-mode)
+                            {
+                                Transport.send(message);
+                            }
+                            log.debug("Message sent");
+                        }
+                        catch (MessagingException e)
+                        {
+                            log.error(e.getMessage());
+                            // TODO Auto-generated catch block
+                            // e.printStackTrace();
+
+                        }
+                        message = mailQueue.poll();
+                    }
+                }
+            }, new Long(1), new Long(mailinterval), TimeUnit.SECONDS);
+        }
     }
 
     /**

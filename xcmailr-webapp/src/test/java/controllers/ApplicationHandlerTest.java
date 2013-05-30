@@ -54,16 +54,16 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "1234");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
-
+        System.out.println("\n\n\n"+result);
         // check if the user has been registered successfully
         assertTrue(result.contains("class=\"success\""));
-        assertNotNull(User.getUsrByMail("admin@ccmailr.test"));
+        assertNotNull(User.getUsrByMail("admin@localhost.de"));
 
         /*
          * TEST: try to register this address again
@@ -74,7 +74,7 @@ public class ApplicationHandlerTest extends NinjaTest
 
         // check if the user has been registered successfully
         assertTrue(result.contains("class=\"error\""));
-        User user = User.getUsrByMail("admin@ccmailr.test");
+        User user = User.getUsrByMail("admin@localhost.de");
         assertTrue(user.getForename().equals("John"));
 
         /*
@@ -105,7 +105,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
@@ -119,7 +119,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
@@ -213,7 +213,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "");
         formParams.put("pwn1", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
@@ -227,7 +227,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
@@ -241,7 +241,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "4321");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
@@ -255,7 +255,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "Cats");
         formParams.put("pwn1", "cats");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
@@ -269,7 +269,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "dogs");
         formParams.put("pwn1", "Dogs");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
@@ -286,7 +286,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "1234");
 
@@ -294,7 +294,7 @@ public class ApplicationHandlerTest extends NinjaTest
                                                                     formParams);
         // check if the user has been registered successfully
         assertTrue(result.contains("class=\"success\""));
-        User user = User.getUsrByMail("admin@ccmailr.test");
+        User user = User.getUsrByMail("admin@localhost.de");
         assertNotNull(user);
         // the user should be inactive
         assertFalse(user.isActive());
@@ -340,13 +340,13 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user has been registered successfully
-        User user = User.getUsrByMail("admin@ccmailr.test");
+        User user = User.getUsrByMail("admin@localhost.de");
         // the user should be inactive
         assertFalse(user.isActive());
 
@@ -386,13 +386,13 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user has been registered successfully
-        User user = User.getUsrByMail("admin@ccmailr.test");
+        User user = User.getUsrByMail("admin@localhost.de");
         // the user should be inactive
         assertFalse(user.isActive());
 
@@ -453,7 +453,7 @@ public class ApplicationHandlerTest extends NinjaTest
 
         assertTrue(result.contains("form action=\"/login\""));
 
-        User user = new User("John", "Doe", "admin@ccmailr.test", "1234");
+        User user = new User("John", "Doe", "admin@localhost.de", "1234");
         user.save();
 
         /*
@@ -486,7 +486,7 @@ public class ApplicationHandlerTest extends NinjaTest
          * TEST: try to login with a wrong password
          */
         formParams.clear();
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pwd", "baum");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
         // now there should be no session-cookie
@@ -498,7 +498,7 @@ public class ApplicationHandlerTest extends NinjaTest
          * TEST: test the successful login with an inactive user
          */
         formParams.clear();
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
@@ -515,7 +515,7 @@ public class ApplicationHandlerTest extends NinjaTest
         user.setActive(true);
         user.update();
         formParams.clear();
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
@@ -536,11 +536,11 @@ public class ApplicationHandlerTest extends NinjaTest
         /*
          * TEST: try to login six times with a wrong password
          */
-        User user = new User("John", "Doe", "admin@ccmailr.test", "1234");
+        User user = new User("John", "Doe", "admin@localhost.de", "1234");
         user.setActive(true);
         user.save();
         formParams.clear();
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pwd", "12");
         for (int i = 0; i < 7; i++)
         {
@@ -557,13 +557,13 @@ public class ApplicationHandlerTest extends NinjaTest
     @Test
     public void testLogout()
     {
-        User u = new User("John", "Doe", "admin@ccmailr.test", "1234");
+        User u = new User("John", "Doe", "admin@localhost.de", "1234");
         u.setActive(true);
         u.save();
 
         // login
         formParams.clear();
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
@@ -576,7 +576,7 @@ public class ApplicationHandlerTest extends NinjaTest
 
         // test logout
         formParams.clear();
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/logout", headers);
 
@@ -599,13 +599,13 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/");
         assertTrue(result.contains("<a href=\"/register\">Register</a>"));
         // register the user
-        User u = new User("John", "Doe", "admin@ccmailr.test", "1234");
+        User u = new User("John", "Doe", "admin@localhost.de", "1234");
         u.setActive(true);
         u.save();
 
         // login
         formParams.clear();
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
         // make sure that the success-page is displayed and the cookie was set
@@ -636,12 +636,12 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(result.contains("class=\"error\""));
 
         //
-        User user = new User("forename", "surname", "admin@ccmailr.test", "1234");
+        User user = new User("forename", "surname", "admin@localhost.de", "1234");
         user.setActive(true);
         user.save();
 
         // try an existing account
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.de");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "pwresend", headers,
                                                                     formParams);
         // and an success message
