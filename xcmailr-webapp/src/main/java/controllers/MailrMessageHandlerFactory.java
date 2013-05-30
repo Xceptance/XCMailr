@@ -264,12 +264,19 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     public void sendConfirmAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {
         String from = xcmConf.ADMIN_ADD;
-        String url = "http://" + xcmConf.MB_HOST + "/verify/" + id + "/" + token;
+        StringBuilder strb = new StringBuilder();
+        strb.append(xcmConf.APP_HOME);
+        if (!xcmConf.APP_BASE.isEmpty())
+        {
+            strb.append("/" + xcmConf.APP_BASE);
+        }
+        strb.append("/verify/" + id + "/" + token);
+
         Object[] object = new Object[]
             {
-                forename, url
+                forename, strb.toString()
+            };//log4j messagelogging, infinite loop, versionsnr, x-forwarded header 
 
-            };
         String body = msg.get("i18nUser_Verify_Message", lang, object).get();
         String subj = msg.get("i18nUser_Verify_Subject", lang, (Object) null).get();
 
@@ -294,11 +301,19 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {
         String from = xcmConf.ADMIN_ADD;
-        String url = "http://" + xcmConf.MB_HOST + "/lostpw/" + id + "/" + token;
+        StringBuilder strb = new StringBuilder();
+        strb.append(xcmConf.APP_HOME);
+        if (!xcmConf.APP_BASE.isEmpty())
+        {
+            strb.append("/" + xcmConf.APP_BASE);
+        }
+        strb.append("/lostpw/" + id + "/" + token);
+
         Object[] object = new Object[]
             {
-                forename, url
+                forename, strb.toString()
             };
+
         String body = msg.get("i18nUser_PwResend_Message", lang, object).get();
         String subj = msg.get("i18nUser_PwResend_Subject", lang, (Object) null).get();
         sendMail(from, to, body, subj);
