@@ -101,12 +101,7 @@ public class XCMailrConf
         MC_HOST = ninjaProp.getOrDie("memcached.host");
         MC_PORT = ninjaProp.getIntegerOrDie("memcached.port");
 
-        if (APP_NAME.isEmpty() || APP_HOME.isEmpty() || C_PREFIX.isEmpty() || MB_HOST.isEmpty() || D_LIST.isEmpty()
-            || MB_HOST.isEmpty() || MC_HOST.isEmpty() || OUT_SMTP_HOST.isEmpty() || OUT_SMTP_PASS.isEmpty()
-            || OUT_SMTP_USER.isEmpty())
-        {
-            throw new RuntimeException("One of the Keys in application.conf has no value! Please check that!");
-        }
+
 
         if (DM_LIST == null)
         {
