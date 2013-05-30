@@ -20,6 +20,8 @@ import models.MBox;
 import models.MailTransaction;
 import models.User;
 import ninja.i18n.Messages;
+
+import org.slf4j.Logger;
 import org.subethamail.smtp.*;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
@@ -29,7 +31,12 @@ import conf.XCMailrConf;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Properties;
+
+import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
@@ -55,6 +62,9 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     @Inject
     JobController jc;
 
+    @Inject
+    Logger log;
+
     private Session sess;
 
     /**
@@ -77,6 +87,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         String rcpt;
 
+        ArrayList<String> rcpts;
+
         InputStream data;
 
         MimeMessage mail;
@@ -85,6 +97,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
         {
 
             this.ctx = ctx;
+            rcpts = new ArrayList<String>();
 
         }
 
@@ -96,6 +109,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
         public void recipient(String recipient) throws RejectException
         {
             rcpt = recipient;
+            rcpts.add(recipient);
         }
 
         public void data(InputStream data) throws IOException
@@ -110,64 +124,95 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
             catch (MessagingException e)
             {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                // e.printStackTrace();
+                log.error(e.getMessage());
             }
         }
 
-        /**
-         * this will handle the message
-         */
-
         public void done()
         {
-            String[] splitaddress = rcpt.split("@");
+            Iterator<String> it = rcpts.iterator();
             MailTransaction mtx;
+            String[] splitAddress;
+            String recipient;
 
-            if (!(splitaddress.length == 2))
-            { // the mailaddress does not have the expected pattern -> do nothing, just log it
-                mtx = new MailTransaction(0, rcpt, sender);
-                mtx.saveTx();
-                return;
-            }
+            // object to store the extracted new recipients of the message
+            ArrayList<Address> mailRecipients = new ArrayList<Address>();
+            Address fwdAddress;
+            String fwdTarget;
 
-            if (MBox.mailExists(splitaddress[0], splitaddress[1]))
-            { // the given mailaddress exists in the db
+            while (it.hasNext())
+            {
+                recipient = it.next();
+                splitAddress = recipient.split("@");
+                if (!(splitAddress.length == 2))
+                { // the mailaddress does not have the expected pattern -> do nothing, just log it
+                    mtx = new MailTransaction(0, recipient, sender);
+                    mtx.saveTx();
+                    return;
+                }
 
-                MBox mb = MBox.getByName(splitaddress[0], splitaddress[1]);
-                if (mb.isActive())
-                { // there's an existing and active mailaddress
-                  // prepare the message
-                    String fwdtarget = MBox.getFwdByName(splitaddress[0], splitaddress[1]);
-                    try
-                    {
-                        mail.setFrom(new InternetAddress(sender));
-                        mail.addRecipient(Message.RecipientType.TO, new InternetAddress(fwdtarget));
-                        jc.addMessage(mail);
-                        mtx = new MailTransaction(300, rcpt, sender);
-                        mtx.saveTx();
-                        mb.increaseForwards();
-                        mb.update();
+                if (MBox.mailExists(splitAddress[0], splitAddress[1]))
+                { // the given mailaddress exists in the db
+
+                    MBox mb = MBox.getByName(splitAddress[0], splitAddress[1]);
+                    if (mb.isActive())
+                    { // there's an existing and active mailaddress
+                      // prepare the message
+                        try
+                        {
+                            fwdTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
+                            fwdAddress = new InternetAddress(fwdTarget);
+
+                            if (!mailRecipients.contains(fwdAddress))
+                            {
+                                mailRecipients.add(fwdAddress);
+                            }
+                            mtx = new MailTransaction(300, recipient, sender);
+                            mtx.saveTx();
+                            mb.increaseForwards();
+                            mb.update();
+                        }
+                        catch (MessagingException e)
+                        {
+                            e.printStackTrace();
+                            // the message can't be forwarded
+                            mtx = new MailTransaction(400, recipient, sender);
+                            mtx.saveTx();
+                        }
                     }
-                    catch (MessagingException e)
-                    {
-                        e.printStackTrace();
-                        // the message can't be forwarded
-                        mtx = new MailTransaction(400, rcpt, sender);
+                    else
+                    { // there's a mailaddress, but its inactive
+                        mb.increaseSuppressions();
+                        mtx = new MailTransaction(200, recipient, sender);
                         mtx.saveTx();
+                        mb.update();
                     }
                 }
                 else
-                { // there's a mailaddress, but its inactive
-                    mb.increaseSuppressions();
-                    mtx = new MailTransaction(200, rcpt, sender);
+                { // mailaddress does not exist
+                    mtx = new MailTransaction(100, recipient, sender);
                     mtx.saveTx();
-                    mb.update();
                 }
+
             }
-            else
-            { // mailaddress does not exist
-                mtx = new MailTransaction(100, rcpt, sender);
-                mtx.saveTx();
+
+            if (!mailRecipients.isEmpty())
+            {
+                try
+                {
+                    Address[] recipientArray = new Address[mailRecipients.size()];
+                    recipientArray = mailRecipients.toArray(recipientArray);
+                    mail.setRecipients(Message.RecipientType.TO, recipientArray);
+                    jc.addMessage(mail);
+                }
+                catch (MessagingException e)
+                {
+                    // TODO Auto-generated catch block
+                    // e.printStackTrace();
+                    log.error(e.getMessage());
+                }
+
             }
 
         }
@@ -236,12 +281,14 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
         }
         catch (AddressException e)
         {
-            e.printStackTrace();
+            // e.printStackTrace();
+            log.error(e.getMessage());
             return false;
         }
         catch (MessagingException e)
         {
-            e.printStackTrace();
+            // e.printStackTrace();
+            log.error(e.getMessage());
             return false;
         }
         return true;
@@ -275,7 +322,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
         Object[] object = new Object[]
             {
                 forename, strb.toString()
-            };//log4j messagelogging, infinite loop, versionsnr, x-forwarded header 
+            };
 
         String body = msg.get("i18nUser_Verify_Message", lang, object).get();
         String subj = msg.get("i18nUser_Verify_Subject", lang, (Object) null).get();
