@@ -161,8 +161,10 @@ public class JobController
                     }
                     catch (MessagingException e)
                     {
+                        log.error(e.getMessage());
                         // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        //e.printStackTrace();
+                        
                     }
                     message = mailQueue.poll();
                 }
