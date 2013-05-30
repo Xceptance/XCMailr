@@ -16,12 +16,10 @@
  */
 package controllers;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import conf.XCMailrConf;
 import models.EditUsr;
 import models.User;
