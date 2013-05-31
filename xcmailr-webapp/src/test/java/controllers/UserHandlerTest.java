@@ -54,16 +54,16 @@ public class UserHandlerTest extends NinjaTest
         headers.clear();
         returnedData.clear();
 
-        User u = new User("John", "Doe", "admin@ccmailr.test", "1234");
+        User u = new User("John", "Doe", "admin@localhost.test", "1234");
         u.setActive(true);
         u.save();
 
         userData.put("forename", "John");
         userData.put("surName", "Doe");
-        userData.put("mail", "admin@ccmailr.test");
+        userData.put("mail", "admin@localhost.test");
 
         formParams.clear();
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.test");
         formParams.put("pwd", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
         formParams.clear();
@@ -85,7 +85,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -106,7 +106,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -160,7 +160,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "Johnny");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -178,7 +178,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "Johnny");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "4321");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -196,7 +196,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "Johnny");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "abcdef");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -215,7 +215,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "Johnny");
         formParams.put("surName", "Doey");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -235,7 +235,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "4321");
         formParams.put("pwn2", "4321");
@@ -264,7 +264,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("forename", "John");
         formParams.put("surName", "Doe");
-        formParams.put("mail", "admin@ccmailr.test");
+        formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
         formParams.put("pwn1", "4321");
         formParams.put("pwn2", "1234");
