@@ -96,8 +96,6 @@ public class UserHandler
             { // the user authorized himself
                 if (!User.mailChanged(edt.getMail(), usr.getId()))
                 { // the mailaddress changed
-                    System.out.println("\n\n\n mail CHANGED!\n\n ");
-
                     usr.setMail(edt.getMail());
                 }
                 // update the fore- and surname

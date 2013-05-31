@@ -112,7 +112,6 @@ public class AdminHandler
     {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("stats", MailTransaction.getStatusList());
-        System.out.println(MailTransaction.getStatusList());
         return Results.html().render(map);
     }
 

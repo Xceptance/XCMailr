@@ -20,6 +20,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.slf4j.Logger;
+
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.BinaryConnectionFactory;
 import net.spy.memcached.MemcachedClient;
@@ -41,6 +44,9 @@ public class MemCachedSessionHandler
 
     @Inject
     XCMailrConf xcmConf;
+    
+    @Inject 
+    Logger log;
 
     private String memHost;
 
@@ -67,7 +73,7 @@ public class MemCachedSessionHandler
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
 
         instantiated = true;
