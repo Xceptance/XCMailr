@@ -50,8 +50,6 @@ public class XCMailrConf
 
     public final String ADMIN_PASS;
 
-    public final Integer MAIL_INT;
-
     public final Integer MB_SIZE;
 
     public final Integer PW_LEN;
@@ -88,7 +86,6 @@ public class XCMailrConf
         DM_LIST = ninjaProp.getStringArray("mbox.dlist");
         ADMIN_ADD = ninjaProp.getOrDie("mbox.adminaddr");
         ADMIN_PASS = ninjaProp.getOrDie("admin.pass");
-        MAIL_INT = ninjaProp.getIntegerOrDie("mbox.mailinterval");
         MB_SIZE = ninjaProp.getIntegerOrDie("mbox.size");
         PW_LEN = ninjaProp.getIntegerOrDie("pw.length");
         CONF_PERIOD = ninjaProp.getIntegerOrDie("confirm.period");

@@ -20,27 +20,24 @@ import models.MBox;
 import models.MailTransaction;
 import models.User;
 import ninja.i18n.Messages;
-
+import ninja.utils.NinjaProperties;
 import org.slf4j.Logger;
 import org.subethamail.smtp.*;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import conf.XCMailrConf;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Properties;
-
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
+import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
@@ -60,10 +57,10 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
     XCMailrConf xcmConf;
 
     @Inject
-    JobController jc;
+    Logger log;
 
     @Inject
-    Logger log;
+    NinjaProperties ninjaProp;
 
     private Session sess;
 
@@ -85,19 +82,20 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         String sender;
 
-        String rcpt;
-
-        ArrayList<String> rcpts;
-
         InputStream data;
 
         MimeMessage mail;
+
+        ArrayList<String> rcpts;
+
+        String rcpAddr;
 
         public Handler(MessageContext ctx)
         {
 
             this.ctx = ctx;
             rcpts = new ArrayList<String>();
+            rcpAddr = "";
 
         }
 
@@ -108,7 +106,6 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         public void recipient(String recipient) throws RejectException
         {
-            rcpt = recipient;
             rcpts.add(recipient);
         }
 
@@ -123,8 +120,6 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
             }
             catch (MessagingException e)
             {
-                // TODO Auto-generated catch block
-                // e.printStackTrace();
                 log.error(e.getMessage());
             }
         }
@@ -135,12 +130,10 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
             MailTransaction mtx;
             String[] splitAddress;
             String recipient;
-
-            // object to store the extracted new recipients of the message
             ArrayList<Address> mailRecipients = new ArrayList<Address>();
             Address fwdAddress;
             String fwdTarget;
-
+            MBox mb;
             while (it.hasNext())
             {
                 recipient = it.next();
@@ -155,15 +148,16 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                 if (MBox.mailExists(splitAddress[0], splitAddress[1]))
                 { // the given mailaddress exists in the db
 
-                    MBox mb = MBox.getByName(splitAddress[0], splitAddress[1]);
+                    mb = MBox.getByName(splitAddress[0], splitAddress[1]);
                     if (mb.isActive())
                     { // there's an existing and active mailaddress
-                      // prepare the message
+                      // add the target-address to the list
+                        fwdTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
                         try
                         {
-                            fwdTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
                             fwdAddress = new InternetAddress(fwdTarget);
 
+                            // add the recipient if its not already in the list
                             if (!mailRecipients.contains(fwdAddress))
                             {
                                 mailRecipients.add(fwdAddress);
@@ -173,19 +167,20 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                             mb.increaseForwards();
                             mb.update();
                         }
-                        catch (MessagingException e)
+                        catch (AddressException e)
                         {
-                            e.printStackTrace();
-                            // the message can't be forwarded
+                            log.error(e.getMessage());
+                            // the message can't be forwarded (has not the correct format)
+                            // this SHOULD never be the case...
                             mtx = new MailTransaction(400, recipient, sender);
                             mtx.saveTx();
                         }
                     }
                     else
-                    { // there's a mailaddress, but its inactive
-                        mb.increaseSuppressions();
+                    { // there's a mailaddress, but the forward is inactive
                         mtx = new MailTransaction(200, recipient, sender);
                         mtx.saveTx();
+                        mb.increaseSuppressions();
                         mb.update();
                     }
                 }
@@ -194,9 +189,9 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                     mtx = new MailTransaction(100, recipient, sender);
                     mtx.saveTx();
                 }
-
             }
 
+            // object to store the extracted new recipients of the message
             if (!mailRecipients.isEmpty())
             {
                 try
@@ -204,18 +199,48 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
                     Address[] recipientArray = new Address[mailRecipients.size()];
                     recipientArray = mailRecipients.toArray(recipientArray);
                     mail.setRecipients(Message.RecipientType.TO, recipientArray);
-                    jc.addMessage(mail);
+                    mail.removeHeader("Cc");
+                    mail.removeHeader("BCC");
+                    new ThreadedMailSend(mail);
                 }
                 catch (MessagingException e)
                 {
-                    // TODO Auto-generated catch block
-                    // e.printStackTrace();
                     log.error(e.getMessage());
                 }
-
             }
-
         }
+    }
+
+    class ThreadedMailSend extends Thread
+    {
+        private MimeMessage mail;
+
+        public ThreadedMailSend(MimeMessage mail)
+        {
+            this.mail = mail;
+            this.run();
+        }
+
+        /**
+         * Sends the mail in a new thread
+         */
+        @Override
+        public void run()
+        {
+            try
+            {
+                if (!ninjaProp.isTest()) // no messages will be sent when running in test-mode
+                {
+                    Transport.send(mail);
+                }
+                log.debug("Message sent");
+            }
+            catch (MessagingException e)
+            {
+                log.error(e.getMessage());
+            }
+        }
+
     }
 
     /**
@@ -277,7 +302,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
             message.setSubject(subject);
             message.setText(content);
             message.saveChanges();
-            jc.addMessage(message);
+            new ThreadedMailSend(message);
         }
         catch (AddressException e)
         {

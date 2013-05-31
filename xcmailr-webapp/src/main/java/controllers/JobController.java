@@ -18,16 +18,11 @@ package controllers;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.mail.MessagingException;
-import javax.mail.Transport;
-import javax.mail.internet.MimeMessage;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.subethamail.smtp.server.SMTPServer;
@@ -53,8 +48,6 @@ public class JobController
     private final ScheduledExecutorService mailTransportService = Executors.newSingleThreadScheduledExecutor();
 
     public SMTPServer smtpServer;
-
-    public Queue<MimeMessage> mailQueue = new LinkedList<MimeMessage>();
 
     @Inject
     Logger log;
@@ -82,8 +75,6 @@ public class JobController
         // interval to check for expired mailboxes
         int interval = xcmConf.MB_INT;
 
-        // interval to check for new mails to send
-        int mailinterval = xcmConf.MAIL_INT;
         // create the MemcachedHandler
         mcsh.create();
         log.debug("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
@@ -141,49 +132,7 @@ public class JobController
                 }
             }, new Long(1), new Long(interval), TimeUnit.MINUTES);
 
-            mailTransportService.scheduleAtFixedRate(new Runnable()
-            {
-                @Override
-                public void run() // Mailjob
-                {
-                    log.debug("mailjob run, size: " + mailQueue.size());
-                    MimeMessage message = mailQueue.poll();
-
-                    while (!(message == null))
-                    {
-                        log.debug("Mailjob: Message found");
-                        try
-                        {
-                            if (!ninjaProp.isTest()) // TODO maybe remove this (no messages will be sent when in
-                                                     // test-mode)
-                            {
-                                Transport.send(message);
-                            }
-                            log.debug("Message sent");
-                        }
-                        catch (MessagingException e)
-                        {
-                            log.error(e.getMessage());
-                            // TODO Auto-generated catch block
-                            // e.printStackTrace();
-
-                        }
-                        message = mailQueue.poll();
-                    }
-                }
-            }, new Long(1), new Long(mailinterval), TimeUnit.SECONDS);
         }
-    }
-
-    /**
-     * adds a Message to the Mailqueue
-     * 
-     * @param msg
-     *            the Message to add
-     */
-    public void addMessage(MimeMessage msg)
-    {
-        mailQueue.add(msg);
     }
 
     /**
