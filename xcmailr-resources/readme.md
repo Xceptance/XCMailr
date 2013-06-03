@@ -34,7 +34,8 @@ Configuration:
     * ** ebean.* ** the Ebean-Configuration
 
  * To reach the Admin-Panel visit http://yourdomain/admin (a more comfortable solution will come in a later version).
- * HTTPS Support, Edit conf/jetty.xml-file: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
+ * You can configure the logging by editing conf/logback.xml, see http://logback.qos.ch/manual/ for documentation
+ * HTTPS Support, Edit conf/jetty.xml-file as shown here: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
 
 Run the Application:
 --------------------
