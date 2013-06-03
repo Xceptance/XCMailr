@@ -94,6 +94,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         String rcpAddr;
 
+        boolean accepted;
+
         public Handler(MessageContext ctx)
         {
 
@@ -101,6 +103,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
             rcpts = new ArrayList<String>();
             rcpAddr = "";
             domainlist = Arrays.asList(xcmConf.DM_LIST);
+            accepted = true;
 
         }
 
@@ -116,6 +119,9 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
             if ((splitaddress.length != 2) || (!domainlist.contains(splitaddress[1])))
             {
+                accepted = false;
+                MailTransaction mtx = new MailTransaction(300, recipient, sender);
+                mtx.saveTx();
                 throw new RejectException("Relay access denied");
             }
             else
@@ -126,101 +132,107 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         public void data(InputStream data) throws IOException
         {
-            // create the session, read the entrys from the config file
-            Session session = MailrMessageHandlerFactory.this.getSession();
-            session.setDebug(true);
-            try
+            if (accepted)
             {
-                mail = new MimeMessage(session, data);
-            }
-            catch (MessagingException e)
-            {
-                log.error(e.getMessage());
+                // create the session, read the entrys from the config file
+                Session session = MailrMessageHandlerFactory.this.getSession();
+                session.setDebug(true);
+                try
+                {
+                    mail = new MimeMessage(session, data);
+                }
+                catch (MessagingException e)
+                {
+                    log.error(e.getMessage());
+                }
             }
         }
 
         public void done()
         {
-            Iterator<String> it = rcpts.iterator();
-            MailTransaction mtx;
-            String[] splitAddress;
-            String recipient;
-            ArrayList<Address> mailRecipients = new ArrayList<Address>();
-            Address fwdAddress;
-            String fwdTarget;
-            MBox mb;
-            while (it.hasNext())
+            if (accepted)
             {
-                recipient = it.next();
-                splitAddress = recipient.split("@");
-                if (!(splitAddress.length == 2))
-                { // the mailaddress does not have the expected pattern -> do nothing, just log it
-                    mtx = new MailTransaction(0, recipient, sender);
-                    mtx.saveTx();
-                    return;
-                }
+                Iterator<String> it = rcpts.iterator();
+                MailTransaction mtx;
+                String[] splitAddress;
+                String recipient;
+                ArrayList<Address> mailRecipients = new ArrayList<Address>();
+                Address fwdAddress;
+                String fwdTarget;
+                MBox mb;
+                while (it.hasNext())
+                {
+                    recipient = it.next();
+                    splitAddress = recipient.split("@");
+                    if (!(splitAddress.length == 2))
+                    { // the mailaddress does not have the expected pattern -> do nothing, just log it
+                        mtx = new MailTransaction(0, recipient, sender);
+                        mtx.saveTx();
+                        return;
+                    }
 
-                if (MBox.mailExists(splitAddress[0], splitAddress[1]))
-                { // the given mailaddress exists in the db
+                    if (MBox.mailExists(splitAddress[0], splitAddress[1]))
+                    { // the given mailaddress exists in the db
 
-                    mb = MBox.getByName(splitAddress[0], splitAddress[1]);
-                    if (mb.isActive())
-                    { // there's an existing and active mailaddress
-                      // add the target-address to the list
-                        fwdTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
-                        try
-                        {
-                            fwdAddress = new InternetAddress(fwdTarget);
-
-                            // add the recipient if its not already in the list
-                            if (!mailRecipients.contains(fwdAddress))
+                        mb = MBox.getByName(splitAddress[0], splitAddress[1]);
+                        if (mb.isActive())
+                        { // there's an existing and active mailaddress
+                          // add the target-address to the list
+                            fwdTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
+                            try
                             {
-                                mailRecipients.add(fwdAddress);
+                                fwdAddress = new InternetAddress(fwdTarget);
+
+                                // add the recipient if its not already in the list
+                                if (!mailRecipients.contains(fwdAddress))
+                                {
+                                    mailRecipients.add(fwdAddress);
+                                }
+                                mtx = new MailTransaction(300, recipient, sender);
+                                mtx.saveTx();
+                                mb.increaseForwards();
+                                mb.update();
                             }
-                            mtx = new MailTransaction(300, recipient, sender);
-                            mtx.saveTx();
-                            mb.increaseForwards();
-                            mb.update();
+                            catch (AddressException e)
+                            {
+                                log.error(e.getMessage());
+                                // the message can't be forwarded (has not the correct format)
+                                // this SHOULD never be the case...
+                                mtx = new MailTransaction(400, recipient, sender);
+                                mtx.saveTx();
+                            }
                         }
-                        catch (AddressException e)
-                        {
-                            log.error(e.getMessage());
-                            // the message can't be forwarded (has not the correct format)
-                            // this SHOULD never be the case...
-                            mtx = new MailTransaction(400, recipient, sender);
+                        else
+                        { // there's a mailaddress, but the forward is inactive
+                            mtx = new MailTransaction(200, recipient, sender);
                             mtx.saveTx();
+                            mb.increaseSuppressions();
+                            mb.update();
                         }
                     }
                     else
-                    { // there's a mailaddress, but the forward is inactive
-                        mtx = new MailTransaction(200, recipient, sender);
+                    { // mailaddress does not exist
+                        mtx = new MailTransaction(100, recipient, sender);
                         mtx.saveTx();
-                        mb.increaseSuppressions();
-                        mb.update();
                     }
                 }
-                else
-                { // mailaddress does not exist
-                    mtx = new MailTransaction(100, recipient, sender);
-                    mtx.saveTx();
-                }
-            }
 
-            // object to store the extracted new recipients of the message
-            if (!mailRecipients.isEmpty())
-            {
-                try
+                // object to store the extracted new recipients of the message
+                if (!mailRecipients.isEmpty())
                 {
-                    Address[] recipientArray = new Address[mailRecipients.size()];
-                    recipientArray = mailRecipients.toArray(recipientArray);
-                    mail.setRecipients(Message.RecipientType.TO, recipientArray);
-                    mail.removeHeader("Cc");
-                    mail.removeHeader("BCC");
-                    new ThreadedMailSend(mail);
-                }
-                catch (MessagingException e)
-                {
-                    log.error(e.getMessage());
+                    try
+                    {
+                        Address[] recipientArray = new Address[mailRecipients.size()];
+                        recipientArray = mailRecipients.toArray(recipientArray);
+                        mail.setRecipients(Message.RecipientType.TO, recipientArray);
+                        mail.removeHeader("Cc");
+                        mail.removeHeader("BCC");
+                        new ThreadedMailSend(mail);
+                    }
+                    catch (MessagingException e)
+                    {
+                        log.error(e.getMessage());
+                    }
                 }
             }
         }
