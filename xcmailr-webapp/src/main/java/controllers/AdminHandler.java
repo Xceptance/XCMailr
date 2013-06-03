@@ -130,7 +130,7 @@ public class AdminHandler
         PageList<MailTransaction> pl;
         HelperUtils.parseEntryValue(context);
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
-        pl = new PageList<MailTransaction>(MailTransaction.all(), entries);
+        pl = new PageList<MailTransaction>(MailTransaction.all("ts desc"), entries);
 
         map.put("plist", pl);
         return Results.html().render(map);

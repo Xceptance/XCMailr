@@ -242,6 +242,13 @@ public class MailTransaction
         return Ebean.find(MailTransaction.class).findList();
     }
 
+    public static List<MailTransaction> all(String sortage)
+    {
+        List<MailTransaction> list =  Ebean.find(MailTransaction.class).findList();
+        Ebean.sort(list, sortage);
+        return list;
+    }
+
     /**
      * Gets all Mail-Transactions in the last "Period"
      * 
