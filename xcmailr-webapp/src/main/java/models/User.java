@@ -399,7 +399,7 @@ public class User implements Serializable
     public static boolean mailChanged(String mail, Long uId)
     {
         User usr = User.getById(uId);
-        if (usr.equals(null))
+        if (usr == null)
         { // theres no user with that id
             return false;
         }
