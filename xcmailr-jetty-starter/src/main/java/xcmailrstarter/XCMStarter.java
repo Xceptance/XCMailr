@@ -19,6 +19,8 @@ package xcmailrstarter;
 
 import java.io.File;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.nio.SelectChannelConnector;
@@ -43,15 +45,34 @@ public class XCMStarter
 
         try
         {
-            // get server home system property
+            
+            
+            // get the server file-location
             String serverHome = System.getProperty("xcmailr.xcmstarter.home");
+            // get the config file-location
+            String confFile = System.getProperty("ninja.external.configuration");
+            PropertiesConfiguration c = new PropertiesConfiguration();
+            c.setEncoding("utf-8");
+            c.setDelimiterParsingDisabled(true);
+            String confPath = serverHome + "/" + confFile;
+            
+            try
+            {
+                //try to load the config
+                c.load(confPath);
 
+            }
+            catch (ConfigurationException e)
+            {
+
+                Log.info("Could not load configuration-file " + confPath );
+                System.exit(0);
+            }
             // get server host system property
             String serverHost = System.getProperty("xcmailr.xcmstarter.host");
 
             // get server host system property
-            String serverPort = System.getProperty("xcmailr.xcmstarter.port");
-            System.out.println(serverHome + " " + serverHost + " " + serverPort);
+            Integer serverPort = c.getInt("application.port");
             // create server
             Server server = new Server();
 
@@ -79,7 +100,7 @@ public class XCMStarter
 
             // create connector
             Connector connector = new SelectChannelConnector();
-            connector.setPort(Integer.parseInt(serverPort));
+            connector.setPort(serverPort);
             connector.setHost(serverHost);
 
             // configure the server

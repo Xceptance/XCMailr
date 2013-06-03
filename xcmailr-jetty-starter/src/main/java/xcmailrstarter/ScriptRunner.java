@@ -54,7 +54,7 @@ public class ScriptRunner
         catch (ConfigurationException e)
         {
 
-            Log.info("Could not load file " + confPath + " (not a bad thing necessarily, but I am returing null)");
+            Log.info("Could not load configuration-file " + confPath );
             System.exit(0);
         }
 
