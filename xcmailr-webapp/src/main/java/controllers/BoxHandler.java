@@ -205,7 +205,6 @@ public class BoxHandler
             }
             map.put("mbFrmDat", mbdat);
             return Results.html().template("/views/BoxHandler/showEditBox.ftl.html").render(mbdat);
-            // return Results.redirect("/mail/edit/" + boxId.toString()).render(mbdat);
         }
         else
         { // the form was filled correctly
