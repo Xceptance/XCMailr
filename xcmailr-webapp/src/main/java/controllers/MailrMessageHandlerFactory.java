@@ -30,7 +30,9 @@ import conf.XCMailrConf;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import javax.mail.Address;
 import javax.mail.Message;
@@ -88,6 +90,8 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         ArrayList<String> rcpts;
 
+        List<String> domainlist;
+
         String rcpAddr;
 
         public Handler(MessageContext ctx)
@@ -96,6 +100,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
             this.ctx = ctx;
             rcpts = new ArrayList<String>();
             rcpAddr = "";
+            domainlist = Arrays.asList(xcmConf.DM_LIST);
 
         }
 
@@ -106,7 +111,17 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         public void recipient(String recipient) throws RejectException
         {
-            rcpts.add(recipient);
+
+            String[] splitaddress = recipient.split("@");
+
+            if ((splitaddress.length != 2) || (!domainlist.contains(splitaddress[1])))
+            {
+                throw new RejectException("Relay access denied");
+            }
+            else
+            {
+                rcpts.add(recipient);
+            }
         }
 
         public void data(InputStream data) throws IOException
