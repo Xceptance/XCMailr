@@ -25,6 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
+import org.subethamail.smtp.helper.SimpleMessageListenerAdapter;
 import org.subethamail.smtp.server.SMTPServer;
 import models.MBox;
 import models.User;
@@ -47,7 +48,7 @@ public class JobController
 
     private final ScheduledExecutorService mailTransportService = Executors.newSingleThreadScheduledExecutor();
 
-    public SMTPServer smtpServer;
+    private SMTPServer smtpServer;
 
     @Inject
     Logger log;
@@ -59,10 +60,10 @@ public class JobController
     MemCachedSessionHandler mcsh;
 
     @Inject
-    MailrMessageHandlerFactory mailrFactory;
-
-    @Inject
     XCMailrConf xcmConf;
+    
+    @Inject 
+    MsgListener msgListener;
 
     /**
      * Starts the Mailserver, creates the Admin-Account specified in application.conf and Threads to expire the
@@ -93,7 +94,7 @@ public class JobController
             }
         }
         // create the server for incoming mails
-        smtpServer = new SMTPServer(mailrFactory);
+        smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(msgListener));
 
         // using a dynamic port in test-mode
         int port;

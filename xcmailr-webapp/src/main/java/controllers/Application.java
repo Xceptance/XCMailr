@@ -49,7 +49,7 @@ public class Application
     XCMailrConf xcmConf;
 
     @Inject
-    MailrMessageHandlerFactory mmhf;
+    MailrMessageSenderFactory mmhf;
 
     @Inject
     MemCachedSessionHandler mcsh;

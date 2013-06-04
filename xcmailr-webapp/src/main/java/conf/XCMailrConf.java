@@ -67,6 +67,8 @@ public class XCMailrConf
     public final Boolean OUT_SMTP_AUTH;
 
     public final Boolean OUT_SMTP_TLS;
+    
+    public final Boolean OUT_SMTP_DEBUG;
 
     public final String MC_HOST;
 
@@ -95,6 +97,7 @@ public class XCMailrConf
         OUT_SMTP_PASS = ninjaProp.getOrDie("mail.smtp.pass");
         OUT_SMTP_AUTH = ninjaProp.getBooleanOrDie("mail.smtp.auth");
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
+        OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", true);
         MC_HOST = ninjaProp.getOrDie("memcached.host");
         MC_PORT = ninjaProp.getIntegerOrDie("memcached.port");
 

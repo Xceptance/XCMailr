@@ -59,7 +59,7 @@ public class AdminHandler
     Messages msg;
 
     @Inject
-    MailrMessageHandlerFactory mmhf;
+    MailrMessageSenderFactory mmhf;
 
     @Inject
     MemCachedSessionHandler mcsh;
