@@ -55,11 +55,6 @@ public class MsgListener implements SimpleMessageListener
     @Inject
     Logger log;
 
-    public MsgListener()
-    {
-
-    }
-
     @Override
     public boolean accept(String from, String recipient)
     {
@@ -68,7 +63,7 @@ public class MsgListener implements SimpleMessageListener
         List<String> domainlist = Arrays.asList(xcmConf.DM_LIST);
         if ((splitaddress.length != 2) || (!domainlist.contains(splitaddress[1])))
         {
-            MailTransaction mtx = new MailTransaction(300, recipient, from);
+            MailTransaction mtx = new MailTransaction(500, recipient, from);
             mtx.saveTx();
             return false;
         }
@@ -76,7 +71,6 @@ public class MsgListener implements SimpleMessageListener
         {
             return true;
         }
-
     }
 
     @Override
@@ -106,7 +100,7 @@ public class MsgListener implements SimpleMessageListener
             if (MBox.mailExists(splitAddress[0], splitAddress[1]))
             { // the given mailaddress exists in the db
                 mb = MBox.getByName(splitAddress[0], splitAddress[1]);
-                
+
                 if (mb.isActive())
                 { // there's an existing and active mailaddress
                   // add the target-address to the list

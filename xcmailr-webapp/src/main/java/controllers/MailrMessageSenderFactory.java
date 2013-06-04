@@ -253,7 +253,7 @@ public class MailrMessageSenderFactory
             {
                 // the message sending-process failed
                 // log it
-                mtx = new MailTransaction(0, recipient, from);
+                mtx = new MailTransaction(400, recipient, from);
                 mtx.saveTx();
 
                 log.error(e.getMessage());

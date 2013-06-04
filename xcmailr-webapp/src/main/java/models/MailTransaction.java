@@ -69,6 +69,7 @@ public class MailTransaction
      * 200 - Mail exists but is inactive <br/>
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
+     * 500 - Relay denied (recipient's address does not belong to this server)<br/>
      * 
      * @param stat
      *            Statuscode of the Transaction
@@ -165,6 +166,7 @@ public class MailTransaction
      * 200 - Mail exists but is inactive <br/>
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
+     * 500 - Relay denied (recipient's address does not belong to this server)<br/>
      * 
      * @return a Statuscode
      */
@@ -180,6 +182,7 @@ public class MailTransaction
      * 200 - Mail exists but is inactive <br/>
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
+     * 500 - Relay denied (recipient's address does not belong to this server)<br/>
      * 
      * @param status
      *            the Status to set
