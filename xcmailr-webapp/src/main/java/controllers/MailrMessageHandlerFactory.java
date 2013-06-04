@@ -373,7 +373,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         Object[] object = new Object[]
             {
-                forename, strb.toString()
+                forename, strb.toString(),xcmConf.CONF_PERIOD
             };
 
         String body = msg.get("i18nUser_Verify_Message", lang, object).get();
@@ -410,7 +410,7 @@ public class MailrMessageHandlerFactory implements MessageHandlerFactory
 
         Object[] object = new Object[]
             {
-                forename, strb.toString()
+                forename, strb.toString(), xcmConf.CONF_PERIOD
             };
 
         String body = msg.get("i18nUser_PwResend_Message", lang, object).get();
