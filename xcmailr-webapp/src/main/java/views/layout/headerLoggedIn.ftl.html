@@ -8,11 +8,24 @@
           </a>
           <a class="brand" href="/">${app_Name}</a>
           <div class="nav-collapse">
-            <ul class="nav nav-pills">
+            <ul class="nav">
 			  <li><a href="/mail">${i18nLink_Mb}</a></li>
-			  <li><a href="/mail/add">${i18nLink_AddMb}</a></li>
-		      <li><a href="/user/edit">${i18nLink_Edit}</a></li>
-			  <li><a href="/logout">${i18nLink_Logout}</a></li>		                                            
+			  <li class="divider-vertical"></li>
+			  <li><a href="/mail/add">${i18nLink_AddMb}</a></li>                          
+            </ul>
+            <ul class="nav pull-right">
+
+			  	<#if (session.username)??>
+            		<li class="navbar-text">${session.username}</li>
+            	</#if>
+            	<#if (session.adm)??>
+	            	<li class="divider-vertical"></li>
+	            	<li><a href="/admin">Admin</a></li>
+            	</#if>
+            	<li class="divider-vertical"></li>
+		      	<li><a href="/user/edit">${i18nLink_Edit}</a></li>
+		      	<li class="divider-vertical"></li>
+            	<li><a href="/logout">${i18nLink_Logout}</a></li>		
             </ul>
           </div><!--/.nav-collapse -->
         </div>

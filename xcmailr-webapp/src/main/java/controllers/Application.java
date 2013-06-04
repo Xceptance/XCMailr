@@ -67,7 +67,6 @@ public class Application
         String uuid = context.getSessionCookie().getId();
         User usr = (User) mcsh.get(uuid);
 
-        
         if (usr == null)
         {
             // show the default index page if there's no user
@@ -108,7 +107,6 @@ public class Application
 
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
     {
-
         if (validation.hasViolations())
         {
             frdat.setPw("");
@@ -122,7 +120,7 @@ public class Application
         { // form was filled correctly, go on!
             if (!User.mailExists(frdat.getMail()))
             {
-                //don't let the user register with one of our domains
+                // don't let the user register with one of our domains
                 // (prevent mail-loops)
                 String mail = frdat.getMail();
                 String domPart = mail.split("@")[1];
@@ -135,7 +133,7 @@ public class Application
                     frdat.setPwn2("");
                     return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
                 }
-                
+
                 // a new user, check if the passwords are matching
                 if (frdat.getPw().equals(frdat.getPwn1()))
                 {
@@ -265,10 +263,13 @@ public class Application
                     }
 
                     // we put the username into the cookie, but use the id of the cookie for authentication
-                    context.setAttribute("uname", lgr.getMail());
                     String sessionKey = context.getSessionCookie().getId();
                     mcsh.set(sessionKey, 3600, lgr);
                     context.getSessionCookie().put("username", lgr.getMail());
+                    if (lgr.isAdmin())
+                    {
+                        context.getSessionCookie().put("adm", "1");
+                    }
                     lgr.setBadPwCount(0);
                     lgr.update();
                     context.getFlashCookie().success("i18nMsg_LogIn", (Object) null);
