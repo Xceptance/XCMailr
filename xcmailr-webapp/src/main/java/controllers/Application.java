@@ -26,11 +26,14 @@ import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
 import etc.HelperUtils;
+import filters.NoLoginFilter;
+import filters.SecureFilter;
 import models.EditUsr;
 import models.Login;
 import models.PwData;
 import ninja.Context;
 import models.User;
+import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
 import ninja.params.PathParam;
@@ -84,12 +87,14 @@ public class Application
      * Shows the Registration-Form <br/>
      * GET /register
      * 
+     * @param context
+     *            the Context of this Request
      * @return the Registration-Form
      */
-
-    public Result registerForm()
+    @FilterWith(NoLoginFilter.class)
+    public Result registerForm(Context context)
     {
-        return Results.html();
+            return Results.html();
     }
 
     /**
@@ -104,7 +109,7 @@ public class Application
      *            Form validation
      * @return the Registration-Form and an error, or - if successful - the Index-Page
      */
-
+    @FilterWith(NoLoginFilter.class)
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
     {
         if (validation.hasViolations())
@@ -205,11 +210,12 @@ public class Application
      * 
      * @param context
      *            the Context of this Request
-     * @return the rendered Login-Form
+     * @return the rendered Login-Form (or index-page if already logged in)
      */
+    @FilterWith(NoLoginFilter.class)
     public Result loginForm(Context context)
     {
-        return Results.html();
+            return Results.html();
     }
 
     /**
@@ -241,6 +247,7 @@ public class Application
      *            Form validation
      * @return the Login-Form or the Index-Page
      */
+    @FilterWith(NoLoginFilter.class)
     public Result loggedInForm(Context context, @JSR303Validation Login loginDat, Validation validation)
     {
         if (validation.hasViolations())

@@ -477,6 +477,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("mail", "");
         formParams.put("pwd", "");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
+        System.out.println(result+"\n\n\n\n");
         // now there should be no session-cookie
         assertTrue(ninjaTestBrowser.getCookieWithName("XCMailr_SESSION") == null);
         // and an error message
