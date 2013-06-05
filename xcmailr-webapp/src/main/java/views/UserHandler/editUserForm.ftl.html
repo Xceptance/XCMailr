@@ -5,30 +5,32 @@
 <form action="/user/edit" method="post" class="form-horizontal">
 <fieldset>
 <legend>${i18nUser_Edit}</legend>  
+		<div class="control-group"> 
+			<label class="control-label" for="pw"> ${i18nUser_Pw}* </label>
+			<div class="controls">  
+				<input class="input_full" type="password" id="pw"name="pw" value="${(editUsr.pw)!}" required="required"/>
+			</div>
+		</div>	
+		<br/>	
         <div class="control-group"> 
-			<label class="control-label" for="forename"> ${i18nUser_Forename} </label>
+			<label class="control-label" for="forename"> ${i18nUser_Forename}* </label>
 			<div class="controls">  
 				<input class="input_full" type="text" id="forename" name="forename" value="${(editUsr.forename)!}" required="required"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label" for="surName"> ${i18nUser_Surname} </label>
+			<label class="control-label" for="surName"> ${i18nUser_Surname}* </label>
 			<div class="controls">  
 				<input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label" for="mail"> ${i18nUser_Mail} </label>
+			<label class="control-label" for="mail"> ${i18nUser_Mail}* </label>
 			<div class="controls">  
 				<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required"/>
 			</div>
 		</div>	
-		<div class="control-group"> 
-			<label class="control-label" for="pw"> ${i18nUser_Pw} </label>
-			<div class="controls">  
-				<input class="input_full" type="password" id="pw"name="pw" value="${(editUsr.pw)!}" required="required"/>
-			</div>
-		</div>		
+	<br/>
 		<div class="control-group"> 
 			<label class="control-label" for="pwn1"> ${i18nUser_Pw1} </label>
 			<div class="controls">  
@@ -40,6 +42,9 @@
 			<div class="controls">  
 				<input class="input_full" type="password" id="pwn2"	name="pwn2" value="${(editUsr.pwn2)!}"/>
 			</div>
+		</div>
+		<div class="control-group"> 
+			<label class="control-label" >* ${i18nMsg_Required} </label>
 		</div>
 		<div class="form-actions"> 
 			<input type="submit" class="btn" value="${i18nUser_Edit}"/>  
