@@ -35,6 +35,7 @@ import models.User;
 import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
+import ninja.i18n.Messages;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
@@ -55,6 +56,9 @@ public class Application
 
     @Inject
     MemCachedSessionHandler mcsh;
+
+    @Inject
+    Messages msg;
 
     /**
      * Shows the general or logged-in Index-Page <br/>
@@ -93,7 +97,7 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result registerForm(Context context)
     {
-            return Results.html();
+        return Results.html();
     }
 
     /**
@@ -138,9 +142,23 @@ public class Application
                     return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
                 }
 
-                // a new user, check if the passwords are matching
+                // a new user, check whether the passwords are matching
                 if (frdat.getPw().equals(frdat.getPwn1()))
                 {
+                    if (frdat.getPwn1().length() < xcmConf.PW_LEN)
+                    {
+                        Object[] o = new Object[]
+                            {
+                                xcmConf.PW_LEN.toString()
+                            };
+                        Optional<String> opt = Optional.of(context.getAcceptLanguage());
+                        String shortPw = msg.get("i18nMsg_ShortPw", opt, o).get();
+                        context.getFlashCookie().error(shortPw, (Object) null);
+                        frdat.setPw("");
+                        frdat.setPwn1("");
+                        frdat.setPwn2("");
+                        return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
+                    }
                     // create the user
                     User user = frdat.getAsUser();
                     // generate the confirmation-token
@@ -214,7 +232,7 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result loginForm(Context context)
     {
-            return Results.html();
+        return Results.html();
     }
 
     /**
@@ -347,7 +365,7 @@ public class Application
             User usr = User.getUsrByMail(loginDat.getMail());
             if (!(usr == null))
             { // mailadress was correct (exists in the DB)
-              // generate a new pw and send it to the given mailadress
+              // generate a new confirmation token and send it to the given mailadress
 
                 // generate the confirmation-token
                 usr.setConfirmation(HelperUtils.getRndSecureString(20));
@@ -427,7 +445,21 @@ public class Application
                 if (!validation.hasViolations())
                 { // the form was filled correctly
                     if (pwd.getPw().equals(pwd.getPw2()))
-                    { // the entered PWs are equal -> set the new pw
+                    { // the entered PWs are equal
+
+                        if (pwd.getPw().length() < xcmConf.PW_LEN)
+                        { // check whether the password has the correct length
+                            Object[] o = new Object[]
+                                {
+                                    xcmConf.PW_LEN
+                                };
+                            Optional<String> opt = Optional.of(context.getAcceptLanguage());
+                            String shortPw = msg.get("i18nMsg_ShortPw", opt, o).get();
+                            context.getFlashCookie().error(shortPw, (Object) null);
+                            pwd.setPw("");
+                            pwd.setPw2("");
+                            return Results.redirect("/lostpw/" + id + "/" + token);
+                        }
                         user.hashPasswd(pwd.getPw());
                         user.setActive(true);
                         user.setBadPwCount(0);

@@ -28,53 +28,53 @@ import com.google.inject.Singleton;
 @Singleton
 public class XCMailrConf
 {
-    public final String APP_NAME;
+    public final String ADMIN_ADD;
 
-    public final String APP_HOME;
+    public final String ADMIN_PASS;
 
     public final String APP_BASE;
 
-    public final String C_PREFIX;
+    public final String APP_HOME;
     
+    public final String APP_NAME;
+
     public final Integer C_EXPIRA;
 
-    public final Integer MB_PORT;
+    public final String C_PREFIX;
 
-    public final String MB_HOST;
-
-    public final Integer MB_INT;
+    public final Integer CONF_PERIOD;
 
     public final String D_LIST;
 
     public final String[] DM_LIST;
 
-    public final String ADMIN_ADD;
+    public final String MB_HOST;
 
-    public final String ADMIN_PASS;
+    public final Integer MB_INT;
+
+    public final Integer MB_PORT;
 
     public final Integer MB_SIZE;
-
-    public final Integer PW_LEN;
-
-    public final Integer CONF_PERIOD;
-
-    public final String OUT_SMTP_HOST;
-
-    public final Integer OUT_SMTP_PORT;
-
-    public final String OUT_SMTP_USER;
-
-    public final String OUT_SMTP_PASS;
-
-    public final Boolean OUT_SMTP_AUTH;
-
-    public final Boolean OUT_SMTP_TLS;
-    
-    public final Boolean OUT_SMTP_DEBUG;
 
     public final String MC_HOST;
 
     public final Integer MC_PORT;
+
+    public final Boolean OUT_SMTP_AUTH;
+
+    public final Boolean OUT_SMTP_DEBUG;
+
+    public final String OUT_SMTP_HOST;
+
+    public final String OUT_SMTP_PASS;
+
+    public final Integer OUT_SMTP_PORT;
+    
+    public final Boolean OUT_SMTP_TLS;
+
+    public final String OUT_SMTP_USER;
+
+    public final Integer PW_LEN;
 
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)

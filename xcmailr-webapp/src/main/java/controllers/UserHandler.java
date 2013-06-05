@@ -18,6 +18,7 @@ package controllers;
 
 import java.util.Arrays;
 
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
@@ -27,6 +28,7 @@ import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
+import ninja.i18n.Messages;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 import filters.SecureFilter;
@@ -46,6 +48,9 @@ public class UserHandler
 
     @Inject
     XCMailrConf xcmConf;
+    
+    @Inject
+    Messages msg;
 
     /**
      * Edits the {@link User}-Data <br/>
@@ -107,6 +112,22 @@ public class UserHandler
                     { // new password has been entered
                         if (pw1.equals(pw2))
                         { // the repetition is equal to the new pw
+                            if (pw1.length() < xcmConf.PW_LEN)
+                            {
+                                Object[] o = new Object[]
+                                    {
+                                        xcmConf.PW_LEN.toString()
+                                    };
+                                Optional<String> opt = Optional.of(context.getAcceptLanguage());
+                                String shortPw = msg.get("i18nMsg_ShortPw", opt, o).get();
+                                context.getFlashCookie().error(shortPw, (Object)null);
+                                edt.setPw("");
+                                edt.setPwn1("");
+                                edt.setPwn2("");
+                                
+                                return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
+                            }
+
                             usr.hashPasswd(pw2);
                         }
                         else
