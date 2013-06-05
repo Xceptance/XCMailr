@@ -121,7 +121,7 @@ public class UserHandler
                 }
                 // update the user
                 usr.update();
-                mcsh.set(context.getSessionCookie().getId(), 3600, usr);
+                mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
 
                 context.getFlashCookie().success("i18nMsg_ChOk", (Object) null);
                 return Results.redirect("/user/edit");

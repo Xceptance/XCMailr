@@ -27,7 +27,6 @@ import com.google.inject.Singleton;
 import conf.XCMailrConf;
 import etc.HelperUtils;
 import filters.NoLoginFilter;
-import filters.SecureFilter;
 import models.EditUsr;
 import models.Login;
 import models.PwData;
@@ -271,7 +270,7 @@ public class Application
 
                     // we put the username into the cookie, but use the id of the cookie for authentication
                     String sessionKey = context.getSessionCookie().getId();
-                    mcsh.set(sessionKey, 3600, lgr);
+                    mcsh.set(sessionKey, xcmConf.C_EXPIRA, lgr);
                     context.getSessionCookie().put("username", lgr.getMail());
                     if (lgr.isAdmin())
                     {

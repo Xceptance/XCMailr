@@ -44,8 +44,8 @@ public class MemCachedSessionHandler
 
     @Inject
     XCMailrConf xcmConf;
-    
-    @Inject 
+
+    @Inject
     Logger log;
 
     private String memHost;
@@ -105,7 +105,7 @@ public class MemCachedSessionHandler
      */
     public Object get(String key)
     {
-        Object o = null;// getCache().get(NAMESPACE + key);
+        Object o = null;
         Future<Object> f = getCache().asyncGet(NAMESPACE + key);
         try
         {

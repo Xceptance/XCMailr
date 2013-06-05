@@ -25,11 +25,11 @@ import ninja.Filter;
 import ninja.FilterChain;
 import ninja.Result;
 import ninja.Results;
+
 /**
  * Ensures that an user is logged in, otherwise it will redirect to the login-page
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- *
  */
 public class SecureFilter implements Filter
 {
@@ -43,11 +43,14 @@ public class SecureFilter implements Filter
         if (!(usr == null) && usr.isActive())
         {
             return chain.next(context);
-
         }
         else
         {
-            return Results.redirect("/login");
+            if (!context.getSessionCookie().isEmpty())
+            {
+                context.getSessionCookie().clear();
+            }
+            return Results.forbidden().redirect("/login");
         }
     }
 }

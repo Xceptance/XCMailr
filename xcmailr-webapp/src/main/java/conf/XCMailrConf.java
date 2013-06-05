@@ -35,6 +35,8 @@ public class XCMailrConf
     public final String APP_BASE;
 
     public final String C_PREFIX;
+    
+    public final Integer C_EXPIRA;
 
     public final Integer MB_PORT;
 
@@ -81,6 +83,7 @@ public class XCMailrConf
         APP_HOME = ninjaProp.getOrDie("application.url");
         APP_BASE = ninjaProp.getOrDie("application.basedir");
         C_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
+        C_EXPIRA = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
         MB_INT = ninjaProp.getIntegerOrDie("mbox.interval");
