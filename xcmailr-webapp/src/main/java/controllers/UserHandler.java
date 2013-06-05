@@ -94,7 +94,7 @@ public class UserHandler
 
             if (usr.checkPasswd(edt.getPw()))
             { // the user authorized himself
-                if (!User.mailChanged(edt.getMail(), usr.getId()))
+                if (User.mailChanged(edt.getMail(), usr.getId()))
                 { // the mailaddress changed
                     usr.setMail(edt.getMail());
                 }
