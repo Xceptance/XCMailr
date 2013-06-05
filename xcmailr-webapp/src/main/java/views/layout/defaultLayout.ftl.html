@@ -36,10 +36,9 @@
     <div class="container">
         <div class="container-fluid">
 	    	<div class="row-fluid">
-	    	<#switch header>
-	    	<#case "login"><#include "headerLoggedIn.ftl.html"/><#break>
-	    	<#default><#include "header.ftl.html"/><#break>
-	    	</#switch>
+
+				<#include "header.ftl.html"/>
+
 
 				<#if flash_error??>
 				        <p class="error"><span class="label label-important">${flash_error}</span></p>
