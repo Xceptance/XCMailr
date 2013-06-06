@@ -18,15 +18,12 @@
 package xcmailrstarter;
 
 import java.io.File;
-
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.log.Log;
 import org.mortbay.xml.XmlConfiguration;
+import xcmailrstarter.ScriptRunner;
 
 /**
  * Drops and creates the SQL-Tables and runs the Jetty-Server
@@ -38,46 +35,16 @@ public class XCMStarter
 
     /**
      * @param args
-     * @throws Exception
      */
-    public static void XCMStart(String[] args) throws Exception
+    public static void XCMStart(StarterConf config)
     {
-
         try
         {
-            
-            
-            // get the server file-location
-            String serverHome = System.getProperty("xcmailr.xcmstarter.home");
-            // get the config file-location
-            String confFile = System.getProperty("ninja.external.configuration");
-            PropertiesConfiguration c = new PropertiesConfiguration();
-            c.setEncoding("utf-8");
-            c.setDelimiterParsingDisabled(true);
-            String confPath = serverHome + "/" + confFile;
-            
-            try
-            {
-                //try to load the config
-                c.load(confPath);
-
-            }
-            catch (ConfigurationException e)
-            {
-
-                Log.info("Could not load configuration-file " + confPath );
-                System.exit(0);
-            }
-            // get server host system property
-            String serverHost = System.getProperty("xcmailr.xcmstarter.host");
-
-            // get server host system property
-            Integer serverPort = c.getInt("application.port");
             // create server
             Server server = new Server();
 
             // create Jetty XML file
-            File jettyConfDirectory = new File(serverHome, "conf");
+            File jettyConfDirectory = new File(config.XCM_HOME, "conf");
             File jettyXmlFile = new File(jettyConfDirectory, "jetty.xml");
 
             // load configuration
@@ -86,22 +53,22 @@ public class XCMStarter
 
             // create WAR path
             StringBuilder warPath = new StringBuilder();
-            warPath.append(serverHome);
+            warPath.append(config.XCM_HOME);
             warPath.append("/");
             warPath.append("webapps");
             warPath.append("/");
-            //TODO make this version-independent
+
             warPath.append("xcmailr-webapp.war");
 
             // add web application
             WebAppContext webapp = new WebAppContext();
-            webapp.setContextPath("/");
+            webapp.setContextPath("/"); //TODO add +config.XCM_CONTEXT_PATH here after update to ninja 1.4.4
             webapp.setWar(warPath.toString());
 
             // create connector
             Connector connector = new SelectChannelConnector();
-            connector.setPort(serverPort);
-            connector.setHost(serverHost);
+            connector.setPort(config.XCM_PORT);
+            connector.setHost("localhost");
 
             // configure the server
             server.addConnector(connector);
@@ -115,8 +82,6 @@ public class XCMStarter
         catch (Exception e)
         {
             e.printStackTrace();
-            Log.warn("Exiting application due to unrecoverable error.");
-            System.exit(1);
         }
     }
 
@@ -128,11 +93,9 @@ public class XCMStarter
      */
     public static void main(String[] args) throws Exception
     {
-
-        
-        new ScriptRunner(args);
-
-        XCMStart(args);
+        StarterConf config = new StarterConf(args);
+        new ScriptRunner(config);
+        XCMStart(config);
 
     }
 }

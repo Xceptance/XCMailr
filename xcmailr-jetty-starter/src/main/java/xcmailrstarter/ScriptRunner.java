@@ -21,10 +21,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import java.sql.Statement;
 import org.h2.tools.RunScript;
 import org.mortbay.log.Log;
 
@@ -34,54 +31,32 @@ import org.mortbay.log.Log;
 public class ScriptRunner
 {
 
-    public ScriptRunner(String[] args)
+    public ScriptRunner(StarterConf config)
     {
-        // get the server file-location
-        String serverHome = System.getProperty("xcmailr.xcmstarter.home");
-        // get the config file-location
-        String confFile = System.getProperty("ninja.external.configuration");
-        PropertiesConfiguration c = new PropertiesConfiguration();
-        c.setEncoding("utf-8");
-        c.setDelimiterParsingDisabled(true);
-        String confPath = serverHome + "/" + confFile;
-        
-        try
-        {
-            //try to load the config
-            c.load(confPath);
-
-        }
-        catch (ConfigurationException e)
-        {
-
-            Log.info("Could not load configuration-file " + confPath );
-            System.exit(0);
-        }
-
-        Configuration conf = (Configuration) c;
-        //get the Database-Config
-        String dbUrl = conf.getString("ebean.datasource.databaseUrl");
-        String dbUser = conf.getString("ebean.datasource.username");
-        String dbPass = conf.getString("ebean.datasource.password");
-        String dbDriver = conf.getString("ebean.datasource.databaseDriver");
-
         // Handle the connection
         Connection conn;
         try
         {
-
-            Class.forName(dbDriver);
+            Class.forName(config.XCM_DB_DRIVER);
             Log.info("Driver Loaded.");
 
-            conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
+            conn = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
             Log.info("Got Connection.");
 
-            DatabaseMetaData md = conn.getMetaData();
-            ResultSet rs = md.getTables(null, null, "%", null);
-            
             boolean usrTable = false;
             boolean mbxTable = false;
             boolean mtxTable = false;
+            // if xcmstarter has been started with the parameter "-Dxcmailr.xcmstart.droptables=true"
+            // drop all tables
+            if (!(System.getProperty("xcmailr.xcmstart.droptables") == null))
+            {
+                RunScript.execute(conn, new FileReader("conf/default-drop.sql"));
+                Log.info("Executed Drop Table.");
+            }
+            DatabaseMetaData md = conn.getMetaData();
+            ResultSet rs;
+            rs = md.getTables(null, null, "%", null);
+            // check if the tables exist
             while (rs.next())
             {
                 if (rs.getString(3).equals("USERS"))
@@ -98,17 +73,29 @@ public class ScriptRunner
                 }
             }
 
-            if (!(System.getProperty("xcmailr.xcmstart.droptables") == null))
-            {
-                RunScript.execute(conn, new FileReader("conf/default-drop.sql"));
-                Log.info("Executed Drop Table.");
-            }
-
+            // create the tables if they're not existing
             if (!(usrTable && mbxTable && mtxTable))
             {
                 RunScript.execute(conn, new FileReader("conf/default-create.sql"));
                 Log.info("Executed Create Table.");
             }
+
+            rs = md.getColumns(null, "PUBLIC", "USERS", null);
+
+            String columns = "";
+            while (rs.next())
+            {
+                columns += rs.getString("COLUMN_NAME");
+                columns += "; ";
+            }
+            // alter the user-table if it has no language-attribute
+            if (!columns.contains("LANGUAGE"))
+            {
+                Statement stmnt = conn.createStatement();
+                stmnt.execute("ALTER TABLE USERS ADD LANGUAGE VARCHAR");
+                Log.info("Altered table users, added language");
+            }
+
             conn.close();
 
         }

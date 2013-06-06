@@ -54,7 +54,7 @@ public class UserHandlerTest extends NinjaTest
         headers.clear();
         returnedData.clear();
 
-        User u = new User("John", "Doe", "admin@localhost.test", "1234");
+        User u = new User("John", "Doe", "admin@localhost.test", "1234", "en");
         u.setActive(true);
         u.save();
 

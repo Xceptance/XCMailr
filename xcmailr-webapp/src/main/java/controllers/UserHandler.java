@@ -28,6 +28,7 @@ import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
+import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
@@ -48,9 +49,12 @@ public class UserHandler
 
     @Inject
     XCMailrConf xcmConf;
-    
+
     @Inject
     Messages msg;
+    
+    @Inject
+    Lang lang;
 
     /**
      * Edits the {@link User}-Data <br/>
@@ -120,11 +124,11 @@ public class UserHandler
                                     };
                                 Optional<String> opt = Optional.of(context.getAcceptLanguage());
                                 String shortPw = msg.get("i18nMsg_ShortPw", opt, o).get();
-                                context.getFlashCookie().error(shortPw, (Object)null);
+                                context.getFlashCookie().error(shortPw, (Object) null);
                                 edt.setPw("");
                                 edt.setPwn1("");
                                 edt.setPwn2("");
-                                
+
                                 return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
                             }
 
@@ -140,12 +144,18 @@ public class UserHandler
                         }
                     }
                 }
+                Result result = Results.redirect("/user/edit");
+                if (Arrays.asList(xcmConf.APP_LANGS).contains(edt.getLanguage()))
+                {
+                    usr.setLanguage(edt.getLanguage());
+                    lang.setLanguage(edt.getLanguage(), result);
+                }
                 // update the user
                 usr.update();
                 mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
 
                 context.getFlashCookie().success("i18nMsg_ChOk", (Object) null);
-                return Results.redirect("/user/edit");
+                return result;
             }
             else
             { // the authorization-prozess failed
@@ -170,6 +180,13 @@ public class UserHandler
     public Result editUserForm(Context context)
     {
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        if (usr.getLanguage() == null || usr.getLanguage() == "")
+        {
+            Optional<Result> opt = null;
+            usr.setLanguage(lang.getLanguage(context, opt).get());
+            usr.update();
+            mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
+        }
         return Results.html().render(EditUsr.prepopulate(usr));
     }
 

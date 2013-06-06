@@ -43,6 +43,8 @@ public class EditUsr
     private String pwn1;
 
     private String pwn2;
+    
+    private String language;
 
     /**
      * @return the Forename
@@ -145,6 +147,17 @@ public class EditUsr
     {
         this.pwn2 = pwn2;
     }
+    
+
+    public String getLanguage()
+    {
+        return language;
+    }
+
+    public void setLanguage(String language)
+    {
+        this.language = language;
+    }
 
     /**
      * This Method will create a {@link User}-Object by the given Data<br/>
@@ -155,7 +168,7 @@ public class EditUsr
      */
     public User getAsUser()
     {
-        return new User(forename, surName, mail, pwn1);
+        return new User(forename, surName, mail, pwn1, language);
     }
 
     /**
@@ -171,6 +184,7 @@ public class EditUsr
         eDat.setForeName(user.getForename());
         eDat.setMail(user.getMail());
         eDat.setSurName(user.getSurname());
+        eDat.setLanguage(user.getLanguage());
         return eDat;
     }
 

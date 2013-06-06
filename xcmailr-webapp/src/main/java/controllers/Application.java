@@ -35,6 +35,7 @@ import models.User;
 import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
+import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
@@ -59,6 +60,9 @@ public class Application
 
     @Inject
     Messages msg;
+
+    @Inject
+    Lang lang;
 
     /**
      * Shows the general or logged-in Index-Page <br/>
@@ -146,12 +150,13 @@ public class Application
                 if (frdat.getPw().equals(frdat.getPwn1()))
                 {
                     if (frdat.getPwn1().length() < xcmConf.PW_LEN)
-                    {
+                    { // password too short
                         Object[] o = new Object[]
                             {
                                 xcmConf.PW_LEN.toString()
                             };
                         Optional<String> opt = Optional.of(context.getAcceptLanguage());
+
                         String shortPw = msg.get("i18nMsg_ShortPw", opt, o).get();
                         context.getFlashCookie().error(shortPw, (Object) null);
                         frdat.setPw("");
@@ -161,17 +166,27 @@ public class Application
                     }
                     // create the user
                     User user = frdat.getAsUser();
+                    if (!Arrays.asList(xcmConf.APP_LANGS).contains(user.getLanguage()))
+                    { // the language stored in the user-object does not exist in the app
+                        frdat.setPw("");
+                        frdat.setPwn1("");
+                        frdat.setPwn2("");
+                        context.getFlashCookie().error("i18nMsg_WrongPw", (Object) null);
+                        return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
+                    }
+
                     // generate the confirmation-token
                     user.setConfirmation(HelperUtils.getRndSecureString(20));
                     user.setTs_confirm(DateTime.now().plusHours(xcmConf.CONF_PERIOD).getMillis());
 
                     user.save();
-                    Optional<String> lang = Optional.of(context.getAcceptLanguage());
+                    Optional<String> lng = Optional.of(context.getAcceptLanguage());
                     mmhf.sendConfirmAddressMail(user.getMail(), user.getForename(), String.valueOf(user.getId()),
-                                                user.getConfirmation(), lang);
+                                                user.getConfirmation(), lng);
                     context.getFlashCookie().success("i18nMsg_RegOk", (Object) null);
-
-                    return Results.redirect("/");
+                    Result result = Results.redirect("/");
+                    lang.setLanguage(user.getLanguage(), result);
+                    return result;
                 }
                 else
                 { // password mismatch

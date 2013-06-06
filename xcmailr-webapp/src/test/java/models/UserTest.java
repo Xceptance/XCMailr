@@ -32,7 +32,7 @@ public class UserTest extends NinjaTest
         /*
          * TEST: create, persist and find a user-object
          */
-        User u = new User("forename", "surname", "test@localhost.com", "1234");
+        User u = new User("forename", "surname", "test@localhost.com", "1234", "en");
         u.save();
         User u2 = User.getById(u.getId());
         assertNotNull(u);
@@ -50,7 +50,7 @@ public class UserTest extends NinjaTest
         /*
          * TEST: Get the Userlist
          */
-        User u3 = new User("forename", "surname", "test2@localhost.com", "1234");
+        User u3 = new User("forename", "surname", "test2@localhost.com", "1234", "en");
         u3.save();
         List<User> list = User.all();
 

@@ -32,7 +32,6 @@ public class Routes implements ApplicationRoutes
     {
 
         router.GET().route("/").with(Application.class, "index");
-
         router.GET().route("/register").with(Application.class, "registerForm");
         router.POST().route("/register").with(Application.class, "postRegisterForm");
 
@@ -42,7 +41,7 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/pwresend").with(Application.class, "forgotPwForm");
         router.POST().route("/pwresend").with(Application.class, "pwResend");
         router.GET().route("/lostpw/{id}/{token}").with(Application.class, "lostPw");
-        router.POST().route("/lostpw/{id}/{token}").with(Application.class, "changePw"); 
+        router.POST().route("/lostpw/{id}/{token}").with(Application.class, "changePw");
         router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
 
         router.GET().route("/logout").with(Application.class, "logout");
@@ -60,7 +59,6 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/mail/edit/{id}").with(BoxHandler.class, "showEditBox");
         router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBox");
 
-
         router.POST().route("/admin/promote/{id}").with(AdminHandler.class, "promote");
         router.POST().route("/admin/activate/{id}").with(AdminHandler.class, "activate");
         router.POST().route("/admin/delete/{id}").with(AdminHandler.class, "deleteUser");
@@ -71,7 +69,6 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.POST().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler.class, "deleteMTX");
-        
         router.GET().route("/assets/.*").with(AssetsController.class, "serve");
 
     }

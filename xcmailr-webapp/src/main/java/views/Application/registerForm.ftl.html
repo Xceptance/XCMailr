@@ -37,6 +37,23 @@ title="Home page">
 					<input class="input_full" type="password" id="pwn1" name="pwn1" required="required" />
 				</div>
 			</div>
+			<div class="control-group">
+			<label class="control-label"  for="language"> ${i18nUser_Language} </label>
+			<div class="controls">
+			<select name="language" id="language" >
+		  			<#if lang=="de">	
+		  				<option value="de" selected="selected">Deutsch</option>
+		  			<#else>
+		  				<option value="de">Deutsch</option>
+		  			</#if>
+		  			<#if lang=="en">
+		  				<option value="en" selected="selected">English</option>
+		  			<#else>
+		  				<option value="en">English</option>
+		  			</#if>
+			</select>
+			</div>
+		</div>
 
 			<div class="form-actions">
 				<input type="submit" class="btn" value="${i18nUser_Create}" /> 

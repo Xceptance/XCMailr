@@ -62,7 +62,7 @@ public class AdminHandlerTest extends NinjaTest
     {
 
         // "register" a new user
-        User testuser = new User("test", "user", "testuser@xcmailr.test", "1234");
+        User testuser = new User("test", "user", "testuser@xcmailr.test", "1234", "en");
         testuser.save();
 
         /*

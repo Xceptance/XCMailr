@@ -71,6 +71,8 @@ public class User implements Serializable
 
     private int badPwCount;
 
+    private String language;
+
     // Relation to the Mailboxes
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
     public List<MBox> boxes;
@@ -86,6 +88,7 @@ public class User implements Serializable
         surname = "";
         mail = "";
         passwd = "";
+        language = "";
         boxes = new ArrayList<MBox>();
     }
 
@@ -101,13 +104,14 @@ public class User implements Serializable
      * @param pw
      *            Plaintext-Password of the User
      */
-    public User(String fName, String sName, String eMail, String pw)
+    public User(String fName, String sName, String eMail, String pw, String language)
     {
         id = 0;
         setForename(fName);
         setSurname(sName);
         setMail(eMail);
         hashPasswd(pw);
+        setLanguage(language);
         boxes = new ArrayList<MBox>();
     }
 
@@ -347,8 +351,17 @@ public class User implements Serializable
         this.badPwCount = badPwCount;
     }
 
-    // ---------------------------- EBean-Functions----------------------
+    public String getLanguage()
+    {
+        return language;
+    }
 
+    public void setLanguage(String language)
+    {
+        this.language = language;
+    }
+
+    // ---------------------------- EBean-Functions----------------------
     /**
      * @return the List of all Users in the Database
      */

@@ -453,7 +453,7 @@ public class ApplicationHandlerTest extends NinjaTest
 
         assertTrue(result.contains("form action=\"/login\""));
 
-        User user = new User("John", "Doe", "admin@localhost.de", "1234");
+        User user = new User("John", "Doe", "admin@localhost.de", "1234", "en");
         user.save();
 
         /*
@@ -537,7 +537,7 @@ public class ApplicationHandlerTest extends NinjaTest
         /*
          * TEST: try to login six times with a wrong password
          */
-        User user = new User("John", "Doe", "admin@localhost.de", "1234");
+        User user = new User("John", "Doe", "admin@localhost.de", "1234", "en");
         user.setActive(true);
         user.save();
         formParams.clear();
@@ -558,7 +558,7 @@ public class ApplicationHandlerTest extends NinjaTest
     @Test
     public void testLogout()
     {
-        User u = new User("John", "Doe", "admin@localhost.de", "1234");
+        User u = new User("John", "Doe", "admin@localhost.de", "1234", "en");
         u.setActive(true);
         u.save();
 
@@ -600,7 +600,7 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/");
         assertTrue(result.contains("<a href=\"/register\">Register</a>"));
         // register the user
-        User u = new User("John", "Doe", "admin@localhost.de", "1234");
+        User u = new User("John", "Doe", "admin@localhost.de", "1234", "en");
         u.setActive(true);
         u.save();
 
@@ -637,7 +637,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(result.contains("class=\"error\""));
 
         //
-        User user = new User("forename", "surname", "admin@localhost.de", "1234");
+        User user = new User("forename", "surname", "admin@localhost.de", "1234", "en");
         user.setActive(true);
         user.save();
 

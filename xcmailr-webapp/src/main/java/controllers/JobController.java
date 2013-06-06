@@ -29,6 +29,7 @@ import org.subethamail.smtp.helper.SimpleMessageListenerAdapter;
 import org.subethamail.smtp.server.SMTPServer;
 import models.MBox;
 import models.User;
+import ninja.i18n.Lang;
 import ninja.lifecycle.Dispose;
 import ninja.lifecycle.Start;
 import ninja.utils.NinjaProperties;
@@ -65,6 +66,8 @@ public class JobController
     @Inject 
     MsgListener msgListener;
 
+    @Inject
+    Lang lang;
     /**
      * Starts the Mailserver, creates the Admin-Account specified in application.conf and Threads to expire the
      * Mailaddresses and the Mails which have to be sent
@@ -86,7 +89,7 @@ public class JobController
             if (!User.mailExists(mail))
             {// ...and the admin-acc doesn't exist
              // create the adminaccount
-                User usr = new User("Site", "Admin", mail, pwd);
+                User usr = new User("Site", "Admin", mail, pwd, "en");
                 // set the status and admin flags
                 usr.setAdmin(true);
                 usr.setActive(true);

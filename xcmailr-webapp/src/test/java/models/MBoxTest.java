@@ -20,7 +20,7 @@ public class MBoxTest extends NinjaTest
     @Before
     public void setUp()
     {
-        u = new User("forename", "surname", "test@localhost.com", "1234");
+        u = new User("forename", "surname", "test@localhost.com", "1234", "en");
         u.save();
         mb = new MBox("test", "xcmailr.test", 0, false, u);
         mb.save();
@@ -39,7 +39,7 @@ public class MBoxTest extends NinjaTest
         /*
          * TEST: create, persist and find a user-object
          */
-        User u2 = new User("forename2", "surname2", "test2@localhost.com", "1234");
+        User u2 = new User("forename2", "surname2", "test2@localhost.com", "1234", "en");
         u2.save();
 
         MBox mb2 = MBox.getById(mb.getId());
@@ -105,7 +105,7 @@ public class MBoxTest extends NinjaTest
     @Test
     public void boxToUserTest()
     {
-        User u2 = new User("fname", "sName", "eMail@localhost.com", "pw");
+        User u2 = new User("fname", "sName", "eMail@localhost.com", "pw", "en");
         u2.save();
 
         assertTrue(mb.belongsTo(u.getId()));

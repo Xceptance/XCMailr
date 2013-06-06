@@ -43,9 +43,34 @@
 				<input class="input_full" type="password" id="pwn2"	name="pwn2" value="${(editUsr.pwn2)!}"/>
 			</div>
 		</div>
+		<div class="control-group">
+			<label class="control-label"  for="language"> ${i18nUser_Language} </label>
+			<div class="controls">
+			<select name="language" id="language" >
+				<#if (editUsr.language)??>
+	  				
+		  			<#if editUsr.language=="de">	
+		  				<option value="de" selected="selected">Deutsch</option>
+		  			<#else>
+		  				<option value="de">Deutsch</option>
+		  			</#if>
+		  			<#if editUsr.language=="en">
+		  				<option value="en" selected="selected">English</option>
+		  			<#else>
+		  				<option value="en">English</option>
+		  			</#if>
+		  		<#else>	
+		  		    <option value="de">Deutsch</option>
+		  			<option value="en">English</option>
+		  		</#if>		
+			</select>
+			</div>
+		</div>
+		
 		<div class="control-group"> 
 			<label class="control-label" >* ${i18nMsg_Required} </label>
 		</div>
+
 		<div class="form-actions"> 
 			<input type="submit" class="btn" value="${i18nUser_Edit}"/>  
 			<input type="reset"  class="btn" value="Reset" />

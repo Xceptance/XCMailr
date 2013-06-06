@@ -35,7 +35,9 @@ public class XCMailrConf
     public final String APP_BASE;
 
     public final String APP_HOME;
-    
+
+    public final String[] APP_LANGS;
+
     public final String APP_NAME;
 
     public final Integer C_EXPIRA;
@@ -69,7 +71,7 @@ public class XCMailrConf
     public final String OUT_SMTP_PASS;
 
     public final Integer OUT_SMTP_PORT;
-    
+
     public final Boolean OUT_SMTP_TLS;
 
     public final String OUT_SMTP_USER;
@@ -89,6 +91,7 @@ public class XCMailrConf
         MB_INT = ninjaProp.getIntegerOrDie("mbox.interval");
         D_LIST = ninjaProp.getOrDie("mbox.dlist");
         DM_LIST = ninjaProp.getStringArray("mbox.dlist");
+        APP_LANGS = ninjaProp.getStringArray("application.languages");
         ADMIN_ADD = ninjaProp.getOrDie("mbox.adminaddr");
         ADMIN_PASS = ninjaProp.getOrDie("admin.pass");
         MB_SIZE = ninjaProp.getIntegerOrDie("mbox.size");

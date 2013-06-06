@@ -37,7 +37,7 @@ public class BoxHandlerTest extends NinjaTest
     public void setUp()
     {
         // create the user (in test mode a volatile in-memory db is used)
-        user = new User("John", "Doe", "admin@ccmailr.test", "1234");
+        user = new User("John", "Doe", "admin@ccmailr.test", "1234", "en");
         user.setActive(true);
         user.save();
 
@@ -340,7 +340,7 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: edit of an mbox that does not belong to this user
          */
 
-        User user2 = new User("fName", "sName", "eMail@xcmailr.test", "1234");
+        User user2 = new User("fName", "sName", "eMail@xcmailr.test", "1234", "en");
         user2.save();
         MBox mbox2 = new MBox("mbox2", "xcmailr.test", 0, false, user2);
         mbox2.save();
