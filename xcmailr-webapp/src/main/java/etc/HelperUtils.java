@@ -257,7 +257,7 @@ public class HelperUtils
             {
                 return;
             }
-            value = "5";
+            value = "15";
         }
         else
         {
@@ -273,7 +273,7 @@ public class HelperUtils
                 }
                 catch (NumberFormatException nfe)
                 {
-                    value = "5";
+                    value = "15";
                 }
             }
         }
