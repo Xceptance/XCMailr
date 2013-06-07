@@ -32,7 +32,7 @@ public class MbFrmDat
     @NotEmpty
     private String address;
 
-
+    @Deprecated
     private String duration;
 
     @NotEmpty
