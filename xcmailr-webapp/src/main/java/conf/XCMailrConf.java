@@ -39,6 +39,8 @@ public class XCMailrConf
     public final String[] APP_LANGS;
 
     public final String APP_NAME;
+    
+    public final Integer APP_DEFAULT_ENTRYNO;
 
     public final Integer C_EXPIRA;
 
@@ -85,6 +87,7 @@ public class XCMailrConf
         APP_HOME = ninjaProp.getOrDie("application.url");
         APP_BASE = ninjaProp.getOrDie("application.basedir");
         APP_LANGS = ninjaProp.getStringArray("application.languages");
+        APP_DEFAULT_ENTRYNO = ninjaProp.getIntegerWithDefault("application.default.entriesperpage", 15);
         ADMIN_ADD = ninjaProp.getOrDie("mbox.adminaddr");
         ADMIN_PASS = ninjaProp.getOrDie("admin.pass");
         C_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");

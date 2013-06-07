@@ -23,12 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import org.joda.time.DateTime;
-
-import models.EditUsr;
 import ninja.Context;
 import ninja.Result;
 import ninja.i18n.Messages;
-
 import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 
@@ -256,7 +253,7 @@ public class HelperUtils
      * @param context
      *            the Context
      */
-    public static void parseEntryValue(Context context)
+    public static void parseEntryValue(Context context, Integer defaultNo)
     {
 
         String no = context.getParameter("no");
@@ -267,13 +264,13 @@ public class HelperUtils
             {
                 return;
             }
-            value = "15";
+            value = defaultNo.toString();
         }
         else
         {
             if (no.equals("all"))
             {
-                value = "0";
+                value = defaultNo.toString();
             }
             else
             {
@@ -283,7 +280,7 @@ public class HelperUtils
                 }
                 catch (NumberFormatException nfe)
                 {
-                    value = "15";
+                    value = defaultNo.toString();
                 }
             }
         }

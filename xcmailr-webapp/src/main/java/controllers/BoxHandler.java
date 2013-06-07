@@ -319,7 +319,7 @@ public class BoxHandler
     public Result showBoxes(Context context)
     {
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
-        HelperUtils.parseEntryValue(context);
+        HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
         Map<String, PageList<MBox>> map = new HashMap<String, PageList<MBox>>();
         PageList<MBox> plist = new PageList<MBox>(MBox.allUser(usr.getId()), entries);
