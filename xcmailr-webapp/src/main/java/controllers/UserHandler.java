@@ -52,7 +52,7 @@ public class UserHandler
 
     @Inject
     Messages msg;
-    
+
     @Inject
     Lang lang;
 
@@ -70,14 +70,13 @@ public class UserHandler
      */
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
-
+        //set the available languages again. in most cases this may not be necessary, 
+        // but if you send the post-request directly and have form violations or wrong passwords or sth.
+        //then you would likely get a nullpointerexception
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
 
         if (validation.hasViolations())
         { // the filled form has errors
-            edt.setPw("");
-            edt.setPwn1("");
-            edt.setPwn2("");
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
             return Results.redirect("/user/edit");
         }
@@ -153,12 +152,12 @@ public class UserHandler
                 // update the user
                 usr.update();
                 mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
-
+                // user-edit was successful
                 context.getFlashCookie().success("i18nMsg_ChOk", (Object) null);
                 return result;
             }
             else
-            { // the authorization-prozess failed
+            { // the authorization-process failed
                 edt.setPw("");
                 edt.setPwn1("");
                 edt.setPwn2("");
@@ -179,15 +178,17 @@ public class UserHandler
 
     public Result editUserForm(Context context)
     {
+        Result result = Results.html();
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
         if (usr.getLanguage() == null || usr.getLanguage() == "")
         {
-            Optional<Result> opt = null;
+            Optional<Result> opt = Optional.of(result);
             usr.setLanguage(lang.getLanguage(context, opt).get());
             usr.update();
             mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
         }
-        return Results.html().render(EditUsr.prepopulate(usr));
+        EditUsr edtusr = EditUsr.prepopulate(usr);
+        return result.render(edtusr);
     }
 
 }

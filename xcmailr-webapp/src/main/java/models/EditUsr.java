@@ -27,6 +27,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 public class EditUsr
 {
+    // TODO change "forename" to "firstname" or sth.
     @NotEmpty
     public String forename;
 
@@ -43,8 +44,9 @@ public class EditUsr
     private String pwn1;
 
     private String pwn2;
-    
+
     private String language;
+
 
     /**
      * @return the Forename
@@ -147,17 +149,25 @@ public class EditUsr
     {
         this.pwn2 = pwn2;
     }
-    
 
+    /**
+     * @return the language of the user
+     */
     public String getLanguage()
     {
         return language;
     }
 
+    /**
+     * @param language
+     *            the language of the user
+     */
     public void setLanguage(String language)
     {
         this.language = language;
     }
+    
+    
 
     /**
      * This Method will create a {@link User}-Object by the given Data<br/>
@@ -175,7 +185,7 @@ public class EditUsr
      * This Method takes an {@link User}-Object and converts it into a returned EditUsr-Object<br/>
      * 
      * @param user
-     *             the {@link User}-Object to convert
+     *            the {@link User}-Object to convert
      * @return an EditUsr-Object filled with the User-Data
      */
     public static EditUsr prepopulate(User user)

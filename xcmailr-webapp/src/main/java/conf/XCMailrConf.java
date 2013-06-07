@@ -84,6 +84,9 @@ public class XCMailrConf
         APP_NAME = ninjaProp.getOrDie("application.name");
         APP_HOME = ninjaProp.getOrDie("application.url");
         APP_BASE = ninjaProp.getOrDie("application.basedir");
+        APP_LANGS = ninjaProp.getStringArray("application.languages");
+        ADMIN_ADD = ninjaProp.getOrDie("mbox.adminaddr");
+        ADMIN_PASS = ninjaProp.getOrDie("admin.pass");
         C_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
         C_EXPIRA = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
@@ -91,9 +94,6 @@ public class XCMailrConf
         MB_INT = ninjaProp.getIntegerOrDie("mbox.interval");
         D_LIST = ninjaProp.getOrDie("mbox.dlist");
         DM_LIST = ninjaProp.getStringArray("mbox.dlist");
-        APP_LANGS = ninjaProp.getStringArray("application.languages");
-        ADMIN_ADD = ninjaProp.getOrDie("mbox.adminaddr");
-        ADMIN_PASS = ninjaProp.getOrDie("admin.pass");
         MB_SIZE = ninjaProp.getIntegerOrDie("mbox.size");
         PW_LEN = ninjaProp.getIntegerOrDie("pw.length");
         CONF_PERIOD = ninjaProp.getIntegerOrDie("confirm.period");

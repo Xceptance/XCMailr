@@ -65,7 +65,7 @@ public class HtmlUtils
 
         public void handleStartTag(HTML.Tag tag, MutableAttributeSet attr, int pos)
         {
-
+            //TODO fix this!
             if (tag == HTML.Tag.OPTION)
             { // found an option-field
                 if (!(attr.getAttribute(HTML.Attribute.SELECTED) == null))

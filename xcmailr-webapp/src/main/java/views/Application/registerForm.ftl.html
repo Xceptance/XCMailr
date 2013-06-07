@@ -41,16 +41,22 @@ title="Home page">
 			<label class="control-label"  for="language"> ${i18nUser_Language} </label>
 			<div class="controls">
 			<select name="language" id="language" >
-		  			<#if lang=="de">	
+				<#if (editUsr.language)??>
+	  				
+		  			<#if editUsr.language=="de">	
 		  				<option value="de" selected="selected">Deutsch</option>
 		  			<#else>
 		  				<option value="de">Deutsch</option>
 		  			</#if>
-		  			<#if lang=="en">
+		  			<#if editUsr.language=="en">
 		  				<option value="en" selected="selected">English</option>
 		  			<#else>
 		  				<option value="en">English</option>
 		  			</#if>
+		  		<#else>	
+		  		    <option value="de">Deutsch</option>
+		  			<option value="en">English</option>
+		  		</#if>		
 			</select>
 			</div>
 		</div>

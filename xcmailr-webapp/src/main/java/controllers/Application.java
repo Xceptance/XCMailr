@@ -23,7 +23,6 @@ import org.joda.time.DateTime;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import conf.XCMailrConf;
 import etc.HelperUtils;
 import filters.NoLoginFilter;
@@ -101,7 +100,9 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result registerForm(Context context)
     {
-        return Results.html();
+        Map<String, Object> map = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
+
+       return Results.html().render(map);
     }
 
     /**
@@ -119,14 +120,15 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
     {
+        Map<String, Object> map = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
         if (validation.hasViolations())
         {
             frdat.setPw("");
             frdat.setPwn1("");
             frdat.setPwn2("");
-
+            map.put("editUsr", frdat);
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
-            return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
+            return Results.html().template("/views/Application/registerForm.ftl.html").render(map);
         }
         else
         { // form was filled correctly, go on!
@@ -143,7 +145,8 @@ public class Application
                     frdat.setPw("");
                     frdat.setPwn1("");
                     frdat.setPwn2("");
-                    return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
+                    map.put("editUsr", frdat);
+                    return Results.html().template("/views/Application/registerForm.ftl.html").render(map);
                 }
 
                 // a new user, check whether the passwords are matching
@@ -162,17 +165,22 @@ public class Application
                         frdat.setPw("");
                         frdat.setPwn1("");
                         frdat.setPwn2("");
-                        return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
+                        map.put("editUsr", frdat);
+                        return Results.html().template("/views/Application/registerForm.ftl.html").render(map);
                     }
                     // create the user
                     User user = frdat.getAsUser();
+
+                    // handle the language
+
                     if (!Arrays.asList(xcmConf.APP_LANGS).contains(user.getLanguage()))
                     { // the language stored in the user-object does not exist in the app
                         frdat.setPw("");
                         frdat.setPwn1("");
                         frdat.setPwn2("");
+                        map.put("editUsr", frdat);
                         context.getFlashCookie().error("i18nMsg_WrongPw", (Object) null);
-                        return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
+                        return Results.html().template("/views/Application/registerForm.ftl.html").render(map);
                     }
 
                     // generate the confirmation-token
@@ -193,14 +201,16 @@ public class Application
                     frdat.setPw("");
                     frdat.setPwn1("");
                     frdat.setPwn2("");
+                    map.put("editUsr", frdat);
                     context.getFlashCookie().error("i18nMsg_WrongPw", (Object) null);
-                    return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
+                    return Results.html().template("/views/Application/registerForm.ftl.html").render(map);
                 }
             }
             else
             { // mailadress already exists
+                map.put("editUsr", frdat);
                 context.getFlashCookie().error("i18nMsg_MailEx", (Object) null);
-                return Results.html().template("/views/Application/registerForm.ftl.html").render(frdat);
+                return Results.html().template("/views/Application/registerForm.ftl.html").render(map);
             }
         }
     }

@@ -17,9 +17,19 @@
 package etc;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import org.joda.time.DateTime;
+
+import models.EditUsr;
 import ninja.Context;
+import ninja.Result;
+import ninja.i18n.Messages;
+
+import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 
 /**
@@ -278,6 +288,35 @@ public class HelperUtils
             }
         }
         context.getSessionCookie().put("no", value);
+    }
+
+    /**
+     * Creates a Map which contains the key "available_langs" with a String[] containing the long form of all languages
+     * translated to the language which is given by the context
+     * 
+     * @param avLangs
+     *            the short form of all languages (e.g. "en", "de")
+     * @param context
+     *            the current user-context
+     * @param msg
+     *            the Messages-object
+     * @return a map with the key "available_langs" and a String[]-object containing the localised long form of all
+     *         languages
+     */
+    public static Map<String, Object> geti18nPrefixedLangMap(String[] avLangs, Context context, Messages msg)
+    {
+        String lng;
+        Optional<Result> opt = Optional.absent();
+        Map<String, Object> map = new HashMap<String, Object>();
+        List<String> avlngs = new ArrayList<String>();
+        for (String s : avLangs)
+        {
+            lng = msg.get("i18nLang_" + s, context, opt, (Object) null).get();
+            avlngs.add(lng);
+        }
+        map.put("available_langs", avlngs.toArray());
+        return map;
+
     }
 
 }

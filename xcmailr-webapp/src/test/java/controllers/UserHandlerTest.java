@@ -61,7 +61,7 @@ public class UserHandlerTest extends NinjaTest
         userData.put("forename", "John");
         userData.put("surName", "Doe");
         userData.put("mail", "admin@localhost.test");
-
+        userData.put("domain", "en");
         formParams.clear();
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pwd", "1234");
@@ -87,7 +87,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
 
@@ -108,7 +108,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("surName", "");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
@@ -126,7 +126,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("surName", "Doe");
         formParams.put("mail", "@this.de");
         formParams.put("pw", "1234");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
@@ -144,7 +144,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin.this.de");
         formParams.put("pw", "1234");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
@@ -162,7 +162,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
@@ -180,7 +180,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "4321");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
@@ -198,7 +198,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "abcdef");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
 
@@ -217,7 +217,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("surName", "Doey");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
@@ -227,6 +227,8 @@ public class UserHandlerTest extends NinjaTest
 
         // the returned data should now be equal to the formparams without the password
         formParams.remove("pw");
+        formParams.remove("language");
+        formParams.put("domain", "en");//TODO fix this
         TestUtils.testMapEntryEquality(formParams, returnedData);
 
         /*
@@ -239,7 +241,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("pw", "1234");
         formParams.put("pwn1", "4321");
         formParams.put("pwn2", "4321");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
@@ -268,7 +270,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("pw", "1234");
         formParams.put("pwn1", "4321");
         formParams.put("pwn2", "1234");
-
+        formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
@@ -280,6 +282,8 @@ public class UserHandlerTest extends NinjaTest
         formParams.remove("pw");
         formParams.remove("pwn1");
         formParams.remove("pwn2");
+        formParams.remove("language");
+        formParams.put("domain", "en");//TODO FIX
         TestUtils.testMapEntryEquality(formParams, returnedData);
     }
 

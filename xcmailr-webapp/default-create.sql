@@ -31,6 +31,7 @@ create table users (
   confirmation              varchar(255),
   ts_confirm                bigint,
   bad_pw_count              integer,
+  language                  varchar(255),
   constraint pk_users primary key (id))
 ;
 
