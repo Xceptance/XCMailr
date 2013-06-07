@@ -32,12 +32,14 @@ public class MbFrmDat
     @NotEmpty
     private String address;
 
-    @NotEmpty
+
     private String duration;
 
     @NotEmpty
     @Pattern(regexp = "[A-Za-z-]+(\\.[\\w-]+)+")
     private String domain;
+    
+    private String datetime;
 
     /**
      * @return the ID of an {@link MBox}
@@ -107,6 +109,16 @@ public class MbFrmDat
     public void setDomain(String domain)
     {
         this.domain = domain;
+    }
+
+    public String getDatetime()
+    {
+        return datetime;
+    }
+
+    public void setDatetime(String datetime)
+    {
+        this.datetime = datetime;
     }
 
 }

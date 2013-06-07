@@ -22,7 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import org.h2.constant.SysProperties;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import ninja.Context;
 import ninja.Result;
 import ninja.i18n.Messages;
@@ -95,6 +100,29 @@ public class HelperUtils
     }
 
     /**
+     * the input string has the format: dd.MM.yyyy hh:mm
+     * 
+     * @param s
+     * @return
+     */
+    public static Long parseTimeString(String input)
+    {
+
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm");
+        DateTime dt = fmt.parseDateTime(input);
+
+        return dt.getMillis();
+    }
+
+    public static String parseStringTs(long input)
+    {
+        DateTime dt = new DateTime(input);
+        String output = dt.getDayOfMonth() + "." + dt.getMonthOfYear() + "." + dt.getYear() + " " + dt.getHourOfDay()
+                        + ":" + dt.getMinuteOfHour();
+        return output;
+    }
+
+    /**
      * Checks if a given String is in the correct Format <br/>
      * There should be specified 1 or 2 time-values (e.g. 1d,1h or 1h,1d or 1h or 1d or 0)<br/>
      * Uppercase-Letters will be converted and Whitespaces removed <br/>
@@ -103,6 +131,7 @@ public class HelperUtils
      * @param s
      *            the String to parse
      * @return the Duration which was given by the String
+     * @deprecated
      */
     public static long parseDuration(String s)
     {
@@ -175,6 +204,7 @@ public class HelperUtils
      * @param helper
      *            the String to check
      * @return the Integer-Value of the String or -1 if the String does not match
+     * @deprecated
      */
     public static int digitsOnly(String helper)
     {
@@ -195,6 +225,7 @@ public class HelperUtils
      * @param helper
      *            the Input-String to check
      * @return true for a match, false for a mismatch
+     * @deprecated
      */
     public static boolean hasCorrectFormat(String helper)
     {
@@ -217,6 +248,7 @@ public class HelperUtils
      *            Timestamp in Milliseconds
      * @return the Duration to this Date (with the Pattern: 1h, 1d) or a Default-Value (if the given Timestamp was in
      *         the past)
+     * @deprecated
      */
     public static String parseTime(Long millis)
     {

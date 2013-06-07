@@ -129,7 +129,7 @@ public class BoxHandler
                   // stop the process and return to the mailbox-overview page
                     return Results.redirect("/mail");
                 }
-                Long ts = HelperUtils.parseDuration(mbdat.getDuration());
+                Long ts = HelperUtils.parseTimeString(mbdat.getDatetime());
                 if (ts == -1)
                 { // show an error-page if the timestamp is faulty
                     context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
@@ -236,7 +236,7 @@ public class BoxHandler
                         mb.setDomain(newDName);
                         changes = true;
                     }
-                    Long ts = HelperUtils.parseDuration(mbdat.getDuration());
+                    Long ts = HelperUtils.parseTimeString(mbdat.getDatetime());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
                         context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
@@ -296,7 +296,7 @@ public class BoxHandler
                 mbdat.setBoxId(boxId);
                 mbdat.setAddress(mb.getAddress());
                 mbdat.setDomain(mb.getDomain());
-                mbdat.setDuration(HelperUtils.parseTime(mb.getTs_Active()));
+                mbdat.setDatetime(HelperUtils.parseStringTs(mb.getTs_Active()));
                 Map<String, Object> map = xcmConf.getDomListAsMap();
                 map.put("mbFrmDat", mbdat);
                 return Results.html().render(map);
