@@ -22,11 +22,15 @@ title="Home Page">
 		<table class="table tablesorter table-hover table-condensed">
 		<thead>
 		    <tr>
-		    	<th class="header">${i18nMailbox_Address}</th>	<th class="header">${i18nMailbox_Duration}</th>
-		    	<th class="header">${i18nMailbox_Forwards}</th>	<th class="header">${i18nMailbox_Suppressions}</th>
-		    	<th class="header">${i18nMailbox_Valid}</th> <th>${i18nMailbox_Renew}</th>
-			    <th>${i18nMailbox_Delete}</th>  	<th>${i18nMailbox_Reset}</th> 
-			    <th>${i18nMailbox_Edit}</th>
+		    	<th class="header">${i18nMailbox_Address_Header}</th>	
+		    	<th class="header">${i18nMailbox_Duration_Header}</th>
+		    	<th class="header">${i18nMailbox_Forwards_Header}</th>
+		    	<th class="header">${i18nMailbox_Suppressions_Header}</th>
+		    	<th class="header">${i18nMailbox_Valid_Header}</th>
+		    	<th>${i18nMailbox_Renew_Header}</th>
+			    <th>${i18nMailbox_Delete_header}</th>  	
+			    <th>${i18nMailbox_Reset_Header}</th> 
+			    <th>${i18nMailbox_Edit_Header}</th>
 		    </tr>
 		    </thead>
 		    <tbody>
@@ -43,32 +47,32 @@ title="Home Page">
 					<#if (mBox.isActive())>
     				<td>${i18nMsg_Yes}</td>
 	    			 <td><form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
-	                    <input type="submit" class= "btn  btn-small" value="${i18nMailbox_Deactivate}"/>
+	                    <input type="submit" class= "btn  btn-small" value="${i18nMailbox_Deactivate_Button}"/>
 	                    </form>
 	                </td>
 		    	<#else>
 	    			<td>${i18nMsg_No}</td>
 	    	    	<td>
 		    	    	<form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
-		                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Activate}"/>
+		                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Activate_Button}"/>
 		                </form>
 	                </td>
 		    	</#if>
     			<td>
     			<form class="nomarg" action="/mail/delete/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Delete}"/>
+                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Delete_Button}"/>
                 </form>
                 </td>
                 
                 <td>
     			<form class="nomarg" action="/mail/reset/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Reset}"/>
+                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Reset_Button}"/>
                 </form>
                 </td>
                 
 		        <td> 
 		        <form class="nomarg" action="/mail/edit/${mBox.id}" method="get">
-		             <input type="submit" class="btn btn-small" value="${i18nMailbox_Edit}"/>
+		             <input type="submit" class="btn btn-small" value="${i18nMailbox_Edit_Button}"/>
 		         </form>
 		        </td>
 			</tr>

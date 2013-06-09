@@ -1,50 +1,50 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> 
-<@layout.xcLayout title="${i18nUser_Edit}">
+<@layout.xcLayout title="${i18nEditUser_Title}">
 <div class="row">
 <div class="span7">
 <form action="/user/edit" method="post" class="form-horizontal">
 <fieldset>
-<legend>${i18nUser_Edit}</legend>  
+<legend>${i18nEditUser_Title}</legend>  
 		<div class="control-group"> 
-			<label class="control-label" for="pw"> ${i18nUser_Pw}* </label>
+			<label class="control-label" for="pw">${i18nEditUser_CurrentPassword_Label}*</label>
 			<div class="controls">  
 				<input class="input_full" type="password" id="pw" name="pw" value="${(editUsr.pw)!}" required="required"/>
 			</div>
 		</div>	
 		<br/>	
         <div class="control-group"> 
-			<label class="control-label" for="forename"> ${i18nUser_Forename}* </label>
+			<label class="control-label" for="forename">${i18nEditUser_FirstName_Label}*</label>
 			<div class="controls">  
 				<input class="input_full" type="text" id="forename" name="forename" value="${(editUsr.forename)!}" required="required"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label" for="surName"> ${i18nUser_Surname}* </label>
+			<label class="control-label" for="surName">${i18nEditUser_Name_Label}*</label>
 			<div class="controls">  
 				<input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label" for="mail"> ${i18nUser_Mail}* </label>
+			<label class="control-label" for="mail">${i18nEditUser_Email_Label}*</label>
 			<div class="controls">  
 				<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required"/>
 			</div>
 		</div>	
 	<br/>
 		<div class="control-group"> 
-			<label class="control-label" for="pwn1"> ${i18nUser_Pw1} </label>
+			<label class="control-label" for="pwn1">${i18nEditUser_NewPassword_Label}</label>
 			<div class="controls">  
 				<input class="input_full" type="password" id="pwn1" name="pwn1" value="${(editUsr.pwn1)!}"/>
 			</div>
 		</div>		
 		<div class="control-group"> 
-			<label class="control-label" for="pwn2"> ${i18nUser_Pw2} </label>
+			<label class="control-label" for="pwn2">${i18nEditUser_NewPasswordRepeated_Label}</label>
 			<div class="controls">  
 				<input class="input_full" type="password" id="pwn2"	name="pwn2" value="${(editUsr.pwn2)!}"/>
 			</div>
 		</div>
 		<div class="control-group">
-			<label class="control-label"  for="language"> ${i18nUser_Language} </label>
+			<label class="control-label"  for="language"> ${i18nEditUser_Language_Label} </label>
 			<div class="controls">
 			<select name="language" id="language" >
 				<#if (editUsr.language)??>
@@ -68,12 +68,12 @@
 		</div>
 		
 		<div class="control-group"> 
-			<label class="control-label" >* ${i18nMsg_Required} </label>
+			<label class="control-label" >* ${i18nEditUser_RequiredDescription_Label}</label>
 		</div>
 
 		<div class="form-actions"> 
-			<input type="submit" class="btn" value="${i18nUser_Edit}"/>  
-			<input type="reset"  class="btn" value="${i18nMsg_Reset}"/>
+			<input type="reset"  class="btn" value="${i18nEditUser_Reset_Label}"/>
+			<input type="submit" class="btn btn-primary" value="${i18nEditUser_Save_Label}"/>  
 		</div>
 
 </fieldset>

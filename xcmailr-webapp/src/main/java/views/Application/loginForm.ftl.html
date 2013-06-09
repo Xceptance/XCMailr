@@ -4,23 +4,23 @@
 <div class="span7">
 <form action="/login" method="post" class="form-horizontal">
 <fieldset>
-<legend>${i18nLink_Login}</legend>  
+<legend>${i18nLogin_Title}</legend>  
         <div class="control-group"> 
-			<label class="control-label" for="mail"> ${i18nUser_Mail} </label>
+			<label class="control-label" for="mail"> ${i18nLogin_Email_Label} </label>
 			<div class="controls">  
 				<input class="input_full" type="email" id="mail" name="mail" required="required" value="${(login.mail)!}"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label" for="pwd"> ${i18nUser_Pw} </label>
+			<label class="control-label" for="pwd"> ${i18nLogin_Password_Label} </label>
 			<div class="controls"> 
 				<input class="input_full" type="password" id="pwd" name="pwd" required="required" value="${(login.pwd)!}"/>
+				<span class="help-inline"><a href="/pwresend">${i18nLogin_Link_ForgotPassword_Label}</a></span>
 			</div>
 		</div>
 		<div class="form-actions"> 
-			<input type="submit" class="btn" value="${i18nLink_Login}" /> 
-			<input type="reset" class="btn"	value="${i18nMsg_Reset}"/>
-			<br/> <a href="/pwresend">${i18nLink_ForgotPw}</a>
+			<input type="reset" class="btn"	value="${i18nLogin_Reset_Button}"/>
+			<input type="submit" class="btn btn-primary" value="${i18nLogin_Login_Button}" /> 
 		</div>
 </fieldset>
 </form>

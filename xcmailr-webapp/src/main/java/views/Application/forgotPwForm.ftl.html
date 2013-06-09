@@ -4,16 +4,16 @@
 <div class="span7">
 <form action="/pwresend" method="post" class="form-horizontal">
 <fieldset>
-<legend>${i18nLink_ForgotPw}</legend>
+	  <legend>${i18nForgotPassword_Title}</legend>
        <div class="control-group"> 
-		<label class="control-label"  for="mail"> ${i18nUser_Mail} </label>
+		<label class="control-label"  for="mail"> ${i18nForgotPassword_Email_Label} </label>
 		<div class="controls">  
 			<input class="input_full" type="email" id="mail" name="mail" required="required"/>
 		</div>
 	</div>
 	<div class="form-actions"> 
-		<input type="submit" class="btn" value="${i18nLink_ForgotPw}" /> 
-		<input type="reset" class="btn" value="${i18nMsg_Reset}"/>
+		<input type="reset" class="btn" value="${i18nForgotPassword_Reset_Button}"/>
+		<input type="submit" class="btn btn-primary" value="${i18nForgotPassword_Submit_Button}" /> 
 	</div>
 </fieldset>
 </form>
