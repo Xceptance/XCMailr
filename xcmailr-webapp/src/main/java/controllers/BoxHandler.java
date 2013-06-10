@@ -70,8 +70,6 @@ public class BoxHandler
         // use the lowercase, we handle the address as case-insensitive
         String name = HelperUtils.getRndString(7).toLowerCase();
         mbdat.setAddress(name);
-        // set a default value
-        mbdat.setDuration("1h,1d");
 
         // check that the generated mailname-proposal does not exist
         String[] domains = xcmConf.DM_LIST;
@@ -82,6 +80,11 @@ public class BoxHandler
                 name = HelperUtils.getRndString(7).toLowerCase();
             }
         }
+
+        // set a default entry for the validity-period
+        // per default now+1h
+        long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
+        mbdat.setDatetime(HelperUtils.parseStringTs(nowPlusOneHour));
         mbdat.setDomain(domains[0]);
         map.put("mbFrmDat", mbdat);
 
@@ -108,12 +111,11 @@ public class BoxHandler
         { // not all fields were filled (correctly)
 
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
-            if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDuration() == null))
+            if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
             {
                 return Results.redirect("/mail/add");
             }
             map.put("mbFrmDat", mbdat);
-
             return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
         }
         else
@@ -130,16 +132,20 @@ public class BoxHandler
                     return Results.redirect("/mail");
                 }
                 Long ts = HelperUtils.parseTimeString(mbdat.getDatetime());
-                if (ts == -1)
+                if (ts == -1L)
                 { // show an error-page if the timestamp is faulty
                     context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
                     map.put("mbFrmDat", mbdat);
 
                     return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
+                boolean expired = false;
+                if(ts <= DateTime.now().getMillis()){
+                    expired = true;
+                }
                 // create the MBox
                 User usr = (User) mcsh.get(context.getSessionCookie().getId());
-                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, usr);
+                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, expired, usr);
 
                 // creates the Box in the DB
                 mb.save();
@@ -199,7 +205,7 @@ public class BoxHandler
 
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
             Map<String, Object> map = xcmConf.getDomListAsMap();
-            if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDuration() == null))
+            if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
             {
                 return Results.redirect("/mail/edit/" + boxId.toString());
             }
@@ -296,7 +302,7 @@ public class BoxHandler
                 mbdat.setBoxId(boxId);
                 mbdat.setAddress(mb.getAddress());
                 mbdat.setDomain(mb.getDomain());
-                mbdat.setDatetime(HelperUtils.parseStringTs(mb.getTs_Active()));
+                mbdat.setDatetime(mb.getTSAsString());
                 Map<String, Object> map = xcmConf.getDomListAsMap();
                 map.put("mbFrmDat", mbdat);
                 return Results.html().render(map);

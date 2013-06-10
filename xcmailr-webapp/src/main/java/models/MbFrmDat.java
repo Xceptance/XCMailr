@@ -32,13 +32,11 @@ public class MbFrmDat
     @NotEmpty
     private String address;
 
-    @Deprecated
-    private String duration;
-
     @NotEmpty
     @Pattern(regexp = "[A-Za-z-]+(\\.[\\w-]+)+")
     private String domain;
-    
+
+    @NotEmpty
     private String datetime;
 
     /**
@@ -51,7 +49,7 @@ public class MbFrmDat
 
     /**
      * @param boxId
-     *             the {@link MBox}-ID to set
+     *            the {@link MBox}-ID to set
      */
     public void setBoxId(Long boxId)
     {
@@ -68,30 +66,11 @@ public class MbFrmDat
 
     /**
      * @param address
-     *             the Local-Part of a Mail-Address to set
+     *            the Local-Part of a Mail-Address to set
      */
     public void setAddress(String address)
     {
         this.address = address;
-    }
-
-    /**
-     * @return the Duration until the Validity-Period of this Box ends
-     * @see etc.HelperUtils#parseDuration(String) Informations about the Format of the String
-     */
-    public String getDuration()
-    {
-        return duration;
-    }
-
-    /**
-     * @param duration
-     *             the Duration until the Validity-Period ends
-     * @see etc.HelperUtils#parseDuration(String) Informations about the Format of the String
-     */
-    public void setDuration(String duration)
-    {
-        this.duration = duration;
     }
 
     /**
@@ -104,18 +83,29 @@ public class MbFrmDat
 
     /**
      * @param domain
-     *             the Domain-Part to set
+     *            the Domain-Part to set
      */
     public void setDomain(String domain)
     {
         this.domain = domain;
     }
 
+    /**
+     * The Date and Time which was set by the DateTimePicker The format used here is: "dd.MM.yyyy hh:mm"
+     * 
+     * @return
+     */
     public String getDatetime()
     {
         return datetime;
     }
 
+    /**
+     * The Date and Time which was set by the DateTimePicker The format used here is: "dd.MM.yyyy hh:mm"
+     * 
+     * @param datetime
+     *            the datetime-string to set
+     */
     public void setDatetime(String datetime)
     {
         this.datetime = datetime;

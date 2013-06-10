@@ -2,12 +2,12 @@ package etc;
 
 import static org.junit.Assert.*;
 import java.util.Map;
+
 import org.joda.time.DateTime;
 import org.junit.Test;
 import ninja.utils.NinjaProperties;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
-import controllers.TestUtils;
 
 public class HelperUtilsTest
 {
@@ -17,143 +17,6 @@ public class HelperUtilsTest
     Map<String, String> returnedData = Maps.newHashMap();
 
     String result;
-
-    @Test
-    public void testDigitsOnly()
-    {
-        int returned = HelperUtils.digitsOnly("10");
-        assertEquals(10, returned);
-
-    }
-
-    @Test
-    public void testHasFormat()
-    {
-        boolean b = HelperUtils.hasCorrectFormat("10h,2d");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("1h,20d");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("1h,2d");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("20d,10h");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("2d,10h");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("20d,1h");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("20d,10h");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("2d");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("1h");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("10h");
-        assertTrue(b);
-        b = HelperUtils.hasCorrectFormat("20d");
-        assertTrue(b);
-    }
-
-    @Test
-    public void testParseDuration()
-    {
-
-        /*
-         * TEST: check request for a unlimited mailbox
-         */
-        Long returned = HelperUtils.parseDuration("0");
-        assertEquals(new Long(0), returned);
-
-        returned = HelperUtils.parseDuration("0 ");
-        assertEquals(new Long(0), returned);
-
-        returned = HelperUtils.parseDuration(" 0");
-        assertEquals(new Long(0), returned);
-
-        returned = HelperUtils.parseDuration(" 0 ");
-        assertEquals(new Long(0), returned);
-
-        /*
-         * TEST: check input with format like "2h"
-         */
-
-        returned = HelperUtils.parseDuration("2h");
-        DateTime dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusHours(2).getMillis(), returned);
-
-        returned = HelperUtils.parseDuration("1h,20d");
-
-        dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(20).plusHours(1).getMillis(), returned);
-        returned = HelperUtils.parseDuration("10h,2d");
-
-        dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(2).plusHours(10).getMillis(), returned);
-
-        /*
-         * TEST: check input with format like "2d"
-         */
-
-        returned = HelperUtils.parseDuration("2d");
-        dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(2).getMillis(), returned);
-
-        /*
-         * TEST: check input with format like "2d,2h"
-         */
-
-        returned = HelperUtils.parseDuration("2d,2h");
-        dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(2).plusHours(2).getMillis(), returned);
-        /*
-         * TEST: check input with format like "2h,2d"
-         */
-
-        returned = HelperUtils.parseDuration("2h,2d");
-        dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(2).plusHours(2).getMillis(), returned);
-
-        /*
-         * TEST: check input with wrong formats like "2m,2d"
-         */
-
-        returned = HelperUtils.parseDuration("2m,2d");
-        assertEquals(new Long(-1), returned);
-        returned = HelperUtils.parseDuration("2md");
-        assertEquals(new Long(-1), returned);
-        returned = HelperUtils.parseDuration("2d,0");
-        assertEquals(new Long(-1), returned);
-        returned = HelperUtils.parseDuration("0,2d");
-        assertEquals(new Long(-1), returned);
-        returned = HelperUtils.parseDuration("0,2h");
-        assertEquals(new Long(-1), returned);
-        returned = HelperUtils.parseDuration("2h1d");
-        assertEquals(new Long(-1), returned);
-        returned = HelperUtils.parseDuration("2h,1m");
-        assertEquals(new Long(-1), returned);
-        returned = HelperUtils.parseDuration("0,0");
-        assertEquals(new Long(-1), returned);
-
-        /*
-         * TEST: check for ignored spaces
-         */
-        returned = HelperUtils.parseDuration("2 h,3 d");
-        dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(3).plusHours(2).getMillis(), returned);
-
-        /*
-         * TEST: check for uppercase-letters
-         */
-        returned = HelperUtils.parseDuration("2h,1D");
-        dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(1).plusHours(2).getMillis(), returned);
-        returned = HelperUtils.parseDuration("2H,1d");
-        dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(1).plusHours(2).getMillis(), returned);
-        returned = HelperUtils.parseDuration("2 H,1 D");
-        dt = new DateTime();
-        TestUtils.testTimeEqualityNearMinutes(dt.plusDays(1).plusHours(2).getMillis(), returned);
-
-    }
 
     @Test
     public void testGetRndString()
@@ -228,6 +91,55 @@ public class HelperUtilsTest
         assertTrue(returned.contains("8"));
         assertTrue(returned.contains("9"));
         assertTrue(returned.contains("0"));
+
+    }
+
+    @Test
+    public void testHasCorrectFormat()
+    {
+        boolean correctFormat = HelperUtils.hasCorrectFormat("12.12.2013 12:12");
+        assertTrue(correctFormat);
+
+        correctFormat = HelperUtils.hasCorrectFormat("12.2.2013 12:12");
+        assertTrue(correctFormat);
+
+        correctFormat = HelperUtils.hasCorrectFormat("2.12.2013 12:12");
+        assertTrue(correctFormat);
+
+        correctFormat = HelperUtils.hasCorrectFormat("2.2.2013 1:12");
+        assertTrue(correctFormat);
+
+        correctFormat = HelperUtils.hasCorrectFormat("12.12.2013 12:2");
+        assertTrue(correctFormat);
+
+        correctFormat = HelperUtils.hasCorrectFormat("12.12.13 12:21");
+        assertFalse(correctFormat);
+
+        correctFormat = HelperUtils.hasCorrectFormat("..2013 12:21");
+        assertFalse(correctFormat);
+
+        correctFormat = HelperUtils.hasCorrectFormat("12.12.2013 :21");
+        assertFalse(correctFormat);
+
+        correctFormat = HelperUtils.hasCorrectFormat("12.12.2013    12:21");
+        assertFalse(correctFormat);
+    }
+
+    @Test
+    public void testParseTimeString()
+    {
+        long ts = HelperUtils.parseTimeString("12.12.2013 12:12");
+        DateTime dt = new DateTime(2013, 12, 12, 12, 12);
+        assertEquals(dt.getMillis(), ts);
+
+        ts = HelperUtils.parseTimeString(" 12.12.2013 12:12 ");
+        assertEquals(dt.getMillis(), ts);
+
+        ts = HelperUtils.parseTimeString("12:12:12 12:12");
+        assertEquals(-1L, ts);
+
+        ts = HelperUtils.parseTimeString("12.12.2013   12:12");
+        assertEquals(-1L, ts);
 
     }
 

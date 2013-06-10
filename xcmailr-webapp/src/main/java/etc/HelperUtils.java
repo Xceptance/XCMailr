@@ -22,12 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
-import org.h2.constant.SysProperties;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
 import ninja.Context;
 import ninja.Result;
 import ninja.i18n.Messages;
@@ -102,177 +99,80 @@ public class HelperUtils
     /**
      * the input string has the format: dd.MM.yyyy hh:mm
      * 
-     * @param s
-     * @return
+     * @param input
+     *            the (hopefully correct) formatted input-string
+     * @return the timestamp as millisecs, or -1 if the String is malformed
      */
     public static Long parseTimeString(String input)
     {
-
+        if (!hasCorrectFormat(input))
+        {
+            return -1L;
+        }
+        input = input.trim();
         DateTimeFormatter fmt = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm");
-        DateTime dt = fmt.parseDateTime(input);
-
-        return dt.getMillis();
+        return fmt.parseDateTime(input).getMillis();
     }
 
-    public static String parseStringTs(long input)
+    public static String parseStringTs(long ts_Active)
     {
-        DateTime dt = new DateTime(input);
-        String output = dt.getDayOfMonth() + "." + dt.getMonthOfYear() + "." + dt.getYear() + " " + dt.getHourOfDay()
-                        + ":" + dt.getMinuteOfHour();
-        return output;
-    }
-
-    /**
-     * Checks if a given String is in the correct Format <br/>
-     * There should be specified 1 or 2 time-values (e.g. 1d,1h or 1h,1d or 1h or 1d or 0)<br/>
-     * Uppercase-Letters will be converted and Whitespaces removed <br/>
-     * The highest Time-Interval is set to 30 days, everything above will be set to 0 (unlimited)
-     * 
-     * @param s
-     *            the String to parse
-     * @return the Duration which was given by the String
-     * @deprecated
-     */
-    public static long parseDuration(String s)
-    {
-        int d = 0;
-        int h = 0;
-
-        // we want also cover cases like "2H,2D", so convert the string to lowercase
-        s = s.toLowerCase();
-        // remove the spaces to cover cases like "2 h, 2 d"
-        s = s.replace(" ", "");
-
-        if (s.equals("0"))
+        if (ts_Active == 0)
         {
-            return 0;
-        }
-
-        if (hasCorrectFormat(s))
-        {
-            // if possible: split the given String
-            String[] str = s.split(",");
-            String helper = "";
-
-            // walk through the array
-            for (int i = 0, len = str.length; i < len; i++)
-            {
-                if (str[i].contains("d"))
-                { // our string has a value for the day
-                  // try to get the number
-                    helper = str[i].substring(0, str[i].indexOf('d'));
-                    // try to parse the number
-                    d = digitsOnly(helper);
-                }
-                else if (str[i].contains("h"))
-                {
-                    helper = str[i].substring(0, str[i].indexOf('h'));
-                    h = digitsOnly(helper);
-                }
-            }
-            if ((d == -1) || (h == -1))
-            {
-                return -1;
-            }
+            return "unlimited";
         }
         else
         {
-            return -1;
+            DateTime dt = new DateTime(ts_Active);
+            String day = "";
+            String mon = "";
+            String hou = "";
+            String min = "";
+            // add a leading "0" if the value is under ten
+            if (dt.getDayOfMonth() < 10)
+            {
+                day += "0";
+            }
+            day += String.valueOf(dt.getDayOfMonth());
+
+            if (dt.getMonthOfYear() < 10)
+            {
+                mon += "0";
+            }
+            mon += String.valueOf(dt.getMonthOfYear());
+
+            if (dt.getHourOfDay() < 10)
+            {
+                hou += "0";
+            }
+            hou += String.valueOf(dt.getHourOfDay());
+
+            if (dt.getMinuteOfHour() < 10)
+            {
+                min += "0";
+            }
+            min += String.valueOf(dt.getMinuteOfHour());
+
+            return day + "." + mon + "." + dt.getYear() + " " + hou + ":" + min;
         }
 
-        // everything is okay with the String
-        // so return the milisecs
-        if (h >= 24)
-        {
-            d += h / 24;
-            h = h % 24;
-        }
-        if ((d > 30) || ((d == 30) && (h >= 0)))
-        {
-            // max 30days allowed, higher means unlimited
-            return 0;
-        }
-
-        DateTime dt = new DateTime();
-        return dt.plusDays(d).plusHours(h).getMillis();
     }
 
     /**
-     * Helper-Function for parseDuration() <br/>
-     * Checks whether a String consists only of digits
-     * 
-     * @param helper
-     *            the String to check
-     * @return the Integer-Value of the String or -1 if the String does not match
-     * @deprecated
-     */
-    public static int digitsOnly(String helper)
-    {
-        helper = helper.trim();
-        if (helper.matches("[0-9]+"))
-        {
-            return Integer.parseInt(helper);
-        }
-        else
-        {
-            return -1;
-        }
-    }
-
-    /**
-     * Checks whether the Input-String is in the Form [digit][d or h][,][digit][d or h] or [digit][d or h] or [0]
+     * Checks whether the Input-String is in the Form "dd.dd.dddd dd:dd"
      * 
      * @param helper
      *            the Input-String to check
      * @return true for a match, false for a mismatch
-     * @deprecated
+     * @TODO rewrite this for the new format :)
      */
     public static boolean hasCorrectFormat(String helper)
     {
         helper = helper.trim();
-        if (helper.matches("(\\d+)[d|h][,](\\d+)[d|h]") || helper.matches("(\\d+)[d|h]"))
+        if (helper.matches("(\\d+){1,2}[\\.](\\d+){1,2}[\\.](\\d+){4}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}"))
         {
             return true;
-
         }
-        else
-        {
-            return false;
-        }
-    }
-
-    /**
-     * Gets a Timestamp in Milliseconds and parses the Time-Interval to this Timestamp in a readable way
-     * 
-     * @param millis
-     *            Timestamp in Milliseconds
-     * @return the Duration to this Date (with the Pattern: 1h, 1d) or a Default-Value (if the given Timestamp was in
-     *         the past)
-     * @deprecated
-     */
-    public static String parseTime(Long millis)
-    {
-        if (millis == 0)
-        { // the box is "unlimited"
-            return "0";
-        }
-
-        // calculate the time from now to the given timestamp in hours
-        float times = (millis - DateTime.now().getMillis()) / 3600000.0f; // in hours
-
-        if (times < 0)
-        { // the box is expired, return a default value
-            return "1h,1d";
-        }
-        // round the hours to a full hour
-        int hours = Math.round(times);
-
-        // get the days
-        int days = hours / 24;
-        // calculate the hours of a day
-        hours = hours % 24;
-
-        return hours + "h," + days + "d";
+        return false;
     }
 
     /**
