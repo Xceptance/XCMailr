@@ -70,9 +70,9 @@ public class UserHandler
      */
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
-        //set the available languages again. in most cases this may not be necessary, 
+        // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.
-        //then you would likely get a nullpointerexception
+        // then you would likely get a nullpointerexception
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
 
         if (validation.hasViolations())
@@ -151,6 +151,7 @@ public class UserHandler
                 }
                 // update the user
                 usr.update();
+                context.getSessionCookie().put("username", edt.getMail());
                 mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
                 // user-edit was successful
                 context.getFlashCookie().success("i18nMsg_ChOk", (Object) null);
