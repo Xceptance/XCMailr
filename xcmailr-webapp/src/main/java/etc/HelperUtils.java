@@ -105,8 +105,12 @@ public class HelperUtils
      */
     public static Long parseTimeString(String input)
     {
+        if (input.equals("0"))
+        { // return the "TS" for an unlimited Box
+            return 0L;
+        }
         if (!hasCorrectFormat(input))
-        {
+        { // wrong input
             return -1L;
         }
         input = input.trim();

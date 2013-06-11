@@ -509,6 +509,16 @@ public class MBox
         }
     }
 
+    public String getTSAsStringWithNull()
+    {
+        String tsString = getTSAsString();
+        if (tsString.equals("unlimited"))
+        {
+            tsString = "0";
+        }
+        return tsString;
+    }
+
     /**
      * @return the Timestamp as String in the Format "dd.mm.yyyy hh:mm"
      */

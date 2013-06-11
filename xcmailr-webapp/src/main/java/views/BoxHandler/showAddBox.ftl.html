@@ -33,21 +33,26 @@ title="Home Page">
 				<div class="control-group">
 					<label class="control-label" for="duration">${i18nCreateEmail_Duration_Label}</label>
 					<div class="controls">
-				  <div id="datetimepicker2" class="input-append">
-				    <input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${ (mbFrmDat.datetime)!}" required="required"/>
-				    <span class="add-on">
-				      <i data-time-icon="icon-time" data-date-icon="icon-calendar">
-				      </i>
-				    </span>
+				  	<div id="datetimepicker" class="input-append">
+				    	<input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${ (mbFrmDat.datetime)!}" required="required"/>
+					    <span id="pickr_span" class="add-on">
+					      <i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar" class="group1"></i>
+					    </span>
 				    </div>
+				    <div>
+						<input type="checkbox" id="group1">unlimited
+					</div>
 				  </div>
+
 				</div>
 				<script type="text/javascript">
 				  $(function() {
-				    $('#datetimepicker2').datetimepicker({
+				    $('#datetimepicker').datetimepicker({
 				      language: '${lang}',
-				      pick12HourFormat: false
+				      pick12HourFormat: false,
 				    });
+					  enable_cb();
+					  $("#group1").click(enable_cb);
 				  });
 				</script>
 				
@@ -59,9 +64,8 @@ title="Home Page">
 		</form>
 	</div>
 </div>
-
-    <script src="/assets/js/bootstrap-datetimepicker.min.js"></script>
-    
+<script type="text/javascript" src="/assets/js/bootstrap-datetimepicker.min.js"></script> 
 <script type="text/javascript" src="/assets/js/bootstrap-datetimepicker.de.js"></script> 
+<script type="text/javascript" src="/assets/js/picker-enable.js"></script> 
     
 </@layout.xcLayout>

@@ -140,7 +140,8 @@ public class BoxHandler
                     return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
                 boolean expired = false;
-                if(ts <= DateTime.now().getMillis()){
+                if (ts <= DateTime.now().getMillis())
+                {
                     expired = true;
                 }
                 // create the MBox
@@ -200,9 +201,10 @@ public class BoxHandler
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
                           Validation validation)
     {
+        System.out.println("DURATION TIME: "+mbdat.getDatetime());
         if (validation.hasViolations())
         { // not all fields were filled
-
+            System.out.println("validation ERROR\n\n\n");
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
             Map<String, Object> map = xcmConf.getDomListAsMap();
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
@@ -226,7 +228,7 @@ public class BoxHandler
                     boolean changes = false;
                     String newLName = mbdat.getAddress().toLowerCase();
                     String newDName = mbdat.getDomain().toLowerCase();
-
+                    System.out.println("validation successful\n\n\n");
                     if (MBox.mailChanged(newLName, newDName, boxId))
                     { // this is only true when the address changed and the new address does not exist
 
@@ -302,7 +304,7 @@ public class BoxHandler
                 mbdat.setBoxId(boxId);
                 mbdat.setAddress(mb.getAddress());
                 mbdat.setDomain(mb.getDomain());
-                mbdat.setDatetime(mb.getTSAsString());
+                mbdat.setDatetime(mb.getTSAsStringWithNull());
                 Map<String, Object> map = xcmConf.getDomListAsMap();
                 map.put("mbFrmDat", mbdat);
                 return Results.html().render(map);
