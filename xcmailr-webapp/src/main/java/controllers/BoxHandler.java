@@ -141,7 +141,7 @@ public class BoxHandler
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
-                    context.getFlashCookie().error("i18nEditEmail_Past_Timestamp", (Object) null);
+                    context.getFlashCookie().error("i18nCreateMail_Past_Timestamp", (Object) null);
                     return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
 

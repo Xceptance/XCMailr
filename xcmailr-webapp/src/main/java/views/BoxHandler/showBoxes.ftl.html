@@ -41,7 +41,11 @@ title="Home Page">
 		    	<tr class="success">
 		    </#if>   
 				<td>${mBox.address}&#064;${mBox.domain}</td>
-				<td>${mBox.getTSAsString()}</td>			
+				<#if (mBox.getTSAsString()=="unlimited")>
+				<td>${i18nMailbox_Unlimited}</td>
+				<#else>
+				<td>${mBox.getTSAsString()}</td>
+				</#if>							
 				<td>${mBox.forwards}</td>
 				<td>${mBox.suppressions}</td>
 					<#if (mBox.isActive())>
