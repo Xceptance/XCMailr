@@ -17,7 +17,6 @@
 package controllers;
 
 import java.util.Arrays;
-
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -117,12 +116,8 @@ public class UserHandler
                         { // the repetition is equal to the new pw
                             if (pw1.length() < xcmConf.PW_LEN)
                             {
-                                Object[] o = new Object[]
-                                    {
-                                        xcmConf.PW_LEN.toString()
-                                    };
                                 Optional<String> opt = Optional.of(context.getAcceptLanguage());
-                                String shortPw = msg.get("i18nMsg_ShortPw", opt, o).get();
+                                String shortPw = msg.get("i18nMsg_ShortPw", opt, xcmConf.PW_LEN.toString()).get();
                                 context.getFlashCookie().error(shortPw, (Object) null);
                                 edt.setPw("");
                                 edt.setPwn1("");

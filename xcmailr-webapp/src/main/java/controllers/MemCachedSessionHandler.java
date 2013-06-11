@@ -20,9 +20,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import org.slf4j.Logger;
-
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.BinaryConnectionFactory;
 import net.spy.memcached.MemcachedClient;
@@ -69,13 +67,13 @@ public class MemCachedSessionHandler
             memHost = xcmConf.MC_HOST;
             memPort = xcmConf.MC_PORT;
             client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
-            // TODO no. of clients?
         }
         catch (Exception e)
         {
             log.error(e.getMessage());
+            instantiated = false;
         }
-
+        // indicates that the client was successfully instantiated
         instantiated = true;
     }
 

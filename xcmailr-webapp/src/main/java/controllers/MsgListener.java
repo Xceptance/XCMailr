@@ -140,7 +140,7 @@ public class MsgListener implements SimpleMessageListener
         catch (MessagingException e)
         {
             // the message-creation-process failed
-            // either the session can't be created or the inputstream was wrong
+            // either the session can't be created or the input-stream was wrong
             log.error(e.getMessage());
         }
     }

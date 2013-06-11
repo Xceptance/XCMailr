@@ -58,9 +58,6 @@ public class JobController
     NinjaProperties ninjaProp;
 
     @Inject
-    MemCachedSessionHandler mcsh;
-
-    @Inject
     XCMailrConf xcmConf;
 
     @Inject
@@ -76,9 +73,6 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
-        // create the MemcachedHandler
-        mcsh.create();
-
         log.debug("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
 
         if (!(xcmConf.ADMIN_PASS == null))
@@ -141,7 +135,6 @@ public class JobController
                     }
                 }
             }, new Long(1), new Long(xcmConf.MB_INT), TimeUnit.MINUTES);
-
         }
     }
 

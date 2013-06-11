@@ -27,7 +27,6 @@ import filters.SecureFilter;
 import org.joda.time.DateTime;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import conf.XCMailrConf;
 import models.MBox;
 import models.MbFrmDat;
@@ -291,6 +290,7 @@ public class BoxHandler
     public Result showEditBox(Context context, @PathParam("id") Long boxId)
     {
         MBox mb = MBox.getById(boxId);
+
         if (mb == null)
         { // there's no box with that id
             return Results.redirect("/mail");
@@ -298,19 +298,22 @@ public class BoxHandler
         else
         { // the box exists, go on!
             User usr = context.getAttribute("user", User.class);
+
             if (mb.belongsTo(usr.getId()))
-            { // prevent the edit of a mbox that is not belonging to the user
+            { // the MBox belongs to this user
                 MbFrmDat mbdat = new MbFrmDat();
                 mbdat.setBoxId(boxId);
                 mbdat.setAddress(mb.getAddress());
                 mbdat.setDomain(mb.getDomain());
                 mbdat.setDatetime(mb.getTSAsStringWithNull());
+
                 Map<String, Object> map = xcmConf.getDomListAsMap();
                 map.put("mbFrmDat", mbdat);
+
                 return Results.html().render(map);
             }
             else
-            {
+            { // the MBox does not belong to this user
                 return Results.redirect("/mail");
             }
         }
@@ -327,10 +330,16 @@ public class BoxHandler
     public Result showBoxes(Context context)
     {
         User usr = context.getAttribute("user", User.class);
+
+        // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
+        // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
-        Map<String, PageList<MBox>> map = new HashMap<String, PageList<MBox>>();
+
+        // generate the paged-list to get pagination in the pattern
         PageList<MBox> plist = new PageList<MBox>(MBox.allUser(usr.getId()), entries);
+
+        Map<String, Object> map = new HashMap<String, Object>();
         map.put("mboxes", plist);
 
         return Results.html().render(map);
@@ -350,6 +359,7 @@ public class BoxHandler
     {
         MBox mb = MBox.getById(id);
         User usr = context.getAttribute("user", User.class);
+
         if (mb.belongsTo(usr.getId()))
         {// check if the mailbox belongs to the current user
             if (!(mb.getTs_Active() == 0) && (mb.getTs_Active() < DateTime.now().getMillis()))
@@ -377,6 +387,7 @@ public class BoxHandler
     {
         MBox mb = MBox.getById(id);
         User usr = context.getAttribute("user", User.class);
+
         // check if the mailbox belongs to the current user
         if (mb.belongsTo(usr.getId()))
         {

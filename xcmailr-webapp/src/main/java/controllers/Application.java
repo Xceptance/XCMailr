@@ -154,13 +154,10 @@ public class Application
                 {
                     if (frdat.getPwn1().length() < xcmConf.PW_LEN)
                     { // password too short
-                        Object[] o = new Object[]
-                            {
-                                xcmConf.PW_LEN.toString()
-                            };
+
                         Optional<String> opt = Optional.of(context.getAcceptLanguage());
 
-                        String shortPw = msg.get("i18nMsg_ShortPw", opt, o).get();
+                        String shortPw = msg.get("i18nMsg_ShortPw", opt, xcmConf.PW_LEN).get();
                         context.getFlashCookie().error(shortPw, (Object) null);
                         frdat.setPw("");
                         frdat.setPwn1("");
@@ -474,12 +471,9 @@ public class Application
 
                         if (pwd.getPw().length() < xcmConf.PW_LEN)
                         { // check whether the password has the correct length
-                            Object[] o = new Object[]
-                                {
-                                    xcmConf.PW_LEN
-                                };
+
                             Optional<String> opt = Optional.of(context.getAcceptLanguage());
-                            String shortPw = msg.get("i18nMsg_ShortPw", opt, o).get();
+                            String shortPw = msg.get("i18nMsg_ShortPw", opt, xcmConf.PW_LEN).get();
                             context.getFlashCookie().error(shortPw, (Object) null);
                             pwd.setPw("");
                             pwd.setPw2("");

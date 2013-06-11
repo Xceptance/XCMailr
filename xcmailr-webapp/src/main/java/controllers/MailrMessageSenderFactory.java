@@ -14,7 +14,7 @@
  *  limitations under the License. 
  *
  */
-package controllers; 
+package controllers;
 
 import models.MBox;
 import models.MailTransaction;
@@ -74,6 +74,7 @@ public class MailrMessageSenderFactory
             prop.put("mail.smtp.debug", xcmConf.OUT_SMTP_DEBUG);
             prop.put("mail.smtp.auth", xcmConf.OUT_SMTP_AUTH);
             prop.put("mail.smtp.starttls.enable", xcmConf.OUT_SMTP_TLS);
+            
             sess = Session.getInstance(prop, new javax.mail.Authenticator()
             {
                 protected PasswordAuthentication getPasswordAuthentication()
@@ -96,13 +97,17 @@ public class MailrMessageSenderFactory
      *            the Message-Body
      * @param subject
      *            the Message Subject
-     * @return true, if the Addition to the Mail-Queue was successful
+     * @return true, if the mail had been successfully pushed to the thread
      */
     public boolean sendMail(String from, String to, String content, String subject)
     {
         Session session = getSession();
+
+        // set the debug-mode as specified in the application.conf
         session.setDebug(xcmConf.OUT_SMTP_DEBUG);
+
         MimeMessage message = new MimeMessage(session);
+
         try
         {
             message.setFrom(new InternetAddress(from));
@@ -110,6 +115,7 @@ public class MailrMessageSenderFactory
             message.setSubject(subject);
             message.setText(content);
             message.saveChanges();
+            // send the mail in an own thread
             new ThreadedMailSend(message);
         }
         catch (AddressException e)
@@ -122,6 +128,7 @@ public class MailrMessageSenderFactory
             log.error(e.getMessage());
             return false;
         }
+        
         return true;
     }
 
@@ -142,6 +149,8 @@ public class MailrMessageSenderFactory
     public void sendConfirmAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {
         String from = xcmConf.ADMIN_ADD;
+
+        // build the Verification Link
         StringBuilder strb = new StringBuilder();
         strb.append(xcmConf.APP_HOME);
         if (!xcmConf.APP_BASE.isEmpty())
@@ -150,14 +159,12 @@ public class MailrMessageSenderFactory
         }
         strb.append("/verify/" + id + "/" + token);
 
-        Object[] object = new Object[]
-            {
-                forename, strb.toString(), xcmConf.CONF_PERIOD
-            };
-
-        String body = msg.get("i18nUser_Verify_Message", lang, object).get();
+        // generate the message-body
+        String body = msg.get("i18nUser_Verify_Message", lang, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
+        // generate the message-subject
         String subj = msg.get("i18nUser_Verify_Subject", lang, (Object) null).get();
 
+        // send the Mail
         sendMail(from, to, body, subj);
 
     }
@@ -178,7 +185,10 @@ public class MailrMessageSenderFactory
      */
     public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> lang)
     {
+
         String from = xcmConf.ADMIN_ADD;
+
+        // build the PW-Reset Link
         StringBuilder strb = new StringBuilder();
         strb.append(xcmConf.APP_HOME);
         if (!xcmConf.APP_BASE.isEmpty())
@@ -187,13 +197,13 @@ public class MailrMessageSenderFactory
         }
         strb.append("/lostpw/" + id + "/" + token);
 
-        Object[] object = new Object[]
-            {
-                forename, strb.toString(), xcmConf.CONF_PERIOD
-            };
+        // generate the Message-Body
+        String body = msg.get("i18nUser_PwResend_Message", lang, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
 
-        String body = msg.get("i18nUser_PwResend_Message", lang, object).get();
+        // generate the Message-Subject
         String subj = msg.get("i18nUser_PwResend_Subject", lang, (Object) null).get();
+
+        // send the Mail
         sendMail(from, to, body, subj);
     }
 
@@ -228,8 +238,10 @@ public class MailrMessageSenderFactory
             String from = "";
             try
             {
+                // check whether the sender and recipient had been set
                 if (mail.getFrom().length > 0 && mail.getRecipients(Message.RecipientType.TO).length > 0)
                 {
+                    // extract the senders and recipients-address to log the transaction
                     recipient = mail.getRecipients(Message.RecipientType.TO)[0].toString();
                     from = mail.getFrom()[0].toString();
                 }
@@ -237,17 +249,17 @@ public class MailrMessageSenderFactory
                 {
                     Transport.send(mail);
 
+                    // log the transaction
                     mtx = new MailTransaction(300, recipient, from);
                     mtx.saveTx();
                     log.info("Message sent, From: " + from + " To:" + recipient);
+
                     if (mb != null)
-                    {
+                    { // the message belongs to one of our mailboxes
                         mb.increaseForwards();
                         mb.update();
                     }
-                    log.info("Message sent, From:" + from + " To:" + recipient);
                 }
-
             }
             catch (MessagingException e)
             {
