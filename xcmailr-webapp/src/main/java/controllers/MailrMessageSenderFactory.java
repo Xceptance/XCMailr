@@ -74,7 +74,7 @@ public class MailrMessageSenderFactory
             prop.put("mail.smtp.debug", xcmConf.OUT_SMTP_DEBUG);
             prop.put("mail.smtp.auth", xcmConf.OUT_SMTP_AUTH);
             prop.put("mail.smtp.starttls.enable", xcmConf.OUT_SMTP_TLS);
-            
+
             sess = Session.getInstance(prop, new javax.mail.Authenticator()
             {
                 protected PasswordAuthentication getPasswordAuthentication()
@@ -128,7 +128,7 @@ public class MailrMessageSenderFactory
             log.error(e.getMessage());
             return false;
         }
-        
+
         return true;
     }
 
@@ -250,7 +250,7 @@ public class MailrMessageSenderFactory
                     Transport.send(mail);
 
                     // log the transaction
-                    mtx = new MailTransaction(300, recipient, from);
+                    mtx = new MailTransaction(300, from, mb.getFullAddress(), recipient);
                     mtx.saveTx();
                     log.info("Message sent, From: " + from + " To:" + recipient);
 
@@ -265,13 +265,12 @@ public class MailrMessageSenderFactory
             {
                 // the message sending-process failed
                 // log it
-                mtx = new MailTransaction(400, recipient, from);
+                mtx = new MailTransaction(400, from, mb.getFullAddress(), recipient);
                 mtx.saveTx();
 
                 log.error(e.getMessage());
             }
         }
-
     }
 
 }

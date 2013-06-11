@@ -63,7 +63,7 @@ public class MsgListener implements SimpleMessageListener
         List<String> domainlist = Arrays.asList(xcmConf.DM_LIST);
         if ((splitaddress.length != 2) || (!domainlist.contains(splitaddress[1])))
         {
-            MailTransaction mtx = new MailTransaction(500, recipient, from);
+            MailTransaction mtx = new MailTransaction(500, from, null, recipient);
             mtx.saveTx();
             return false;
         }
@@ -90,9 +90,10 @@ public class MsgListener implements SimpleMessageListener
             MBox mb;
 
             splitAddress = recipient.split("@");
+
             if (!(splitAddress.length == 2))
             { // the mailaddress does not have the expected pattern -> do nothing, just log it
-                mtx = new MailTransaction(0, recipient, from);
+                mtx = new MailTransaction(0, from, null, recipient);
                 mtx.saveTx();
                 return;
             }
@@ -119,13 +120,13 @@ public class MsgListener implements SimpleMessageListener
                         log.error(e.getMessage());
                         // the message can't be forwarded (has not the correct format)
                         // this SHOULD never be the case...
-                        mtx = new MailTransaction(400, recipient, from);
+                        mtx = new MailTransaction(400, from, recipient, fwdTarget);
                         mtx.saveTx();
                     }
                 }
                 else
                 { // there's a mailaddress, but the forward is inactive
-                    mtx = new MailTransaction(200, recipient, from);
+                    mtx = new MailTransaction(200, from, recipient, null);
                     mtx.saveTx();
                     mb.increaseSuppressions();
                     mb.update();
@@ -133,7 +134,7 @@ public class MsgListener implements SimpleMessageListener
             }
             else
             { // mailaddress/forward does not exist
-                mtx = new MailTransaction(100, recipient, from);
+                mtx = new MailTransaction(100, from, recipient, null);
                 mtx.saveTx();
             }
         }

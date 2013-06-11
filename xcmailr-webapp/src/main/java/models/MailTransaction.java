@@ -47,6 +47,8 @@ public class MailTransaction
 
     private String sourceaddr;
 
+    private String relayaddr;
+
     private String targetaddr;
 
     /**
@@ -73,17 +75,20 @@ public class MailTransaction
      * 
      * @param stat
      *            Statuscode of the Transaction
-     * @param target
-     *            Original Recipients-Address of the Mail
      * @param source
      *            the Sender's - Address
+     * @param relay
+     *            Relay-Address of the Mail (the mail which is virtually created on this app)
+     * @param target
+     *            Original Recipients-Address of the Mail
      */
-    public MailTransaction(int stat, String target, String source)
+    public MailTransaction(int stat, String source, String relay, String target)
     {
         ts = DateTime.now().getMillis();
         this.status = stat;
         this.targetaddr = target;
         this.sourceaddr = source;
+        this.relayaddr = relay;
     }
 
     /**
@@ -226,6 +231,23 @@ public class MailTransaction
         this.sourceaddr = sourceaddr;
     }
 
+    /**
+     * @return the Relay-Address of this transaction (if existent)
+     */
+    public String getRelayaddr()
+    {
+        return relayaddr;
+    }
+
+    /**
+     * @param relayaddr
+     *            the Relay-Address of this transaction (if existent)
+     */
+    public void setRelayaddr(String relayaddr)
+    {
+        this.relayaddr = relayaddr;
+    }
+
     // -------------------------------------------------------
     // E-Bean Functions
     // -------------------------------------------------------
@@ -247,7 +269,7 @@ public class MailTransaction
 
     public static List<MailTransaction> all(String sortage)
     {
-        List<MailTransaction> list =  Ebean.find(MailTransaction.class).findList();
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).findList();
         Ebean.sort(list, sortage);
         return list;
     }

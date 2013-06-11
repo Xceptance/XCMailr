@@ -320,6 +320,15 @@ public class MBox
         this.version = version;
     }
 
+    /**
+     * @return the full address of this virtual email
+     */
+
+    public String getFullAddress()
+    {
+        return this.address + "@" + this.domain;
+    }
+
     // ---------------------------------------------
     // EBean Functions
     // ---------------------------------------------
@@ -575,7 +584,7 @@ public class MBox
     {
         DateTime dt = new DateTime();
         dt = dt.plusHours(minutes);
-        
+
         return Ebean.find(MBox.class).where().eq("expired", false).lt("ts_Active", dt.getMillis()).ne("ts_Active", 0)
                     .findList();
     }
