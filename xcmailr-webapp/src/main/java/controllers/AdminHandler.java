@@ -61,10 +61,6 @@ public class AdminHandler
     @Inject
     MailrMessageSenderFactory mmhf;
 
-    @Inject
-    MemCachedSessionHandler mcsh;
-
-    // ---------------------Functions for the Admin-Section ---------------------
     /**
      * Shows the Administration-Index-Page<br/>
      * GET site/admin
@@ -88,13 +84,21 @@ public class AdminHandler
      */
     public Result showUsers(Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
+
         Map<String, Object> map = new HashMap<String, Object>();
+
+        // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
+
+        // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 
+        // generate the paged-list to get pagination in the pattern
         PageList<User> plist = new PageList<User>(User.all(), entries);
         map.put("users", plist);
+
+        // put in the users-ID to identify the row where no buttons will be shown
         map.put("uid", usr.getId());
 
         return Results.html().render(map);
@@ -125,30 +129,37 @@ public class AdminHandler
      */
     public Result pagedMTX(Context context)
     {
-
         Map<String, Object> map = new HashMap<String, Object>();
-        PageList<MailTransaction> pl;
+
+        // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
+        // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
-        pl = new PageList<MailTransaction>(MailTransaction.all("ts desc"), entries);
+
+        // generate the paged-list to get pagination on the page
+        PageList<MailTransaction> pl = new PageList<MailTransaction>(MailTransaction.all("ts desc"), entries);
 
         map.put("plist", pl);
         return Results.html().render(map);
     }
 
     /**
+     * Delete a time-specified number of MailTransactions
+     * 
      * @param time
-     * @return
+     *            the time in days (all before will be deleted)
+     * @return to the MailTransaction-Page
      */
 
     public Result deleteMTX(@PathParam("time") Integer time)
     {
         if (time == -1)
-        {
+        { // all entries will be deleted
             MailTransaction.deleteTxInPeriod(null);
         }
         else
         {
+            // calculate the time and delete all entries before
             DateTime dt = DateTime.now().minusDays(time);
             MailTransaction.deleteTxInPeriod(dt.getMillis());
         }
@@ -168,7 +179,7 @@ public class AdminHandler
      */
     public Result activate(@PathParam("id") Long id, Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
         if (!(usr.getId() == id))
         { // the user to (de-)activate is not the user who performs this action
 
@@ -184,41 +195,27 @@ public class AdminHandler
             if (active)
             { // the account is now active
               // generate the message title
-                Object[] param = new Object[]
-                    {
-                        host
-                    };
-                String subject = msg.get("i18nUser_Activate_Title", opt, param).get();
+
+                String subject = msg.get("i18nUser_Activate_Title", opt, host).get();
                 // generate the message body
-                param = new Object[]
-                    {
-                        actusr.getForename()
-                    };
-                String content = msg.get("i18nUser_Activate_Message", opt, param).get();
+
+                String content = msg.get("i18nUser_Activate_Message", opt, actusr.getForename()).get();
                 // send the mail
                 mmhf.sendMail(from, actusr.getMail(), content, subject);
             }
             else
             {// the account is now inactive
              // generate the message title
-                Object[] param = new Object[]
-                    {
-                        host
-                    };
-                String subject = msg.get("i18nUser_Deactivate_Title", opt, param).get();
+                String subject = msg.get("i18nUser_Deactivate_Title", opt, host).get();
                 // generate the message body
-                param = new Object[]
-                    {
-                        actusr.getForename()
-                    };
-                String content = msg.get("i18nUser_Deactivate_Message", opt, param).get();
+                String content = msg.get("i18nUser_Deactivate_Message", opt, actusr.getForename()).get();
                 // send the mail
                 mmhf.sendMail(from, actusr.getMail(), content, subject);
             }
             return Results.redirect("/admin/users");
         }
         else
-        {
+        { // the admin wants to disable his own account, this is not allowed
             return Results.redirect("/admin/users");
         }
     }
@@ -235,7 +232,7 @@ public class AdminHandler
      */
     public Result promote(@PathParam("id") Long id, Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
         if (!(usr.getId() == id))
         { // the user to pro-/demote is not the user who performs this action
             User.promote(id);
@@ -255,7 +252,7 @@ public class AdminHandler
      */
     public Result deleteUser(@PathParam("id") Long id, Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
         if (!(usr.getId() == id))
         { // the user to delete is not the user who performs this action
             User.delete(id);

@@ -73,7 +73,7 @@ public class UserHandler
         // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.
         // then you would likely get a nullpointerexception
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
 
         if (validation.hasViolations())
         { // the filled form has errors
@@ -180,7 +180,7 @@ public class UserHandler
     public Result editUserForm(Context context)
     {
         Result result = Results.html();
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
         if (usr.getLanguage() == null || usr.getLanguage() == "")
         {
             Optional<Result> opt = Optional.of(result);

@@ -49,9 +49,6 @@ import ninja.Result;
 public class BoxHandler
 {
     @Inject
-    MemCachedSessionHandler mcsh;
-
-    @Inject
     XCMailrConf xcmConf;
 
     /**
@@ -146,7 +143,7 @@ public class BoxHandler
                 }
 
                 // create the MBox
-                User usr = (User) mcsh.get(context.getSessionCookie().getId());
+                User usr = context.getAttribute("user", User.class);
                 MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, usr);
 
                 // creates the Box in the DB
@@ -176,7 +173,7 @@ public class BoxHandler
      */
     public Result deleteBox(@PathParam("id") Long boxid, Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
         if (MBox.boxToUser(boxid, usr.getId()))
         {
             // deletes the box from DB
@@ -220,7 +217,7 @@ public class BoxHandler
             MBox mb = MBox.getById(boxId);
             if (!(mb == null))
             { // the box with the given id exists
-                User usr = (User) mcsh.get(context.getSessionCookie().getId());
+                User usr = context.getAttribute("user", User.class);
 
                 if (mb.belongsTo(usr.getId()))
                 { // the current user is the owner of the mailbox
@@ -300,7 +297,7 @@ public class BoxHandler
         }
         else
         { // the box exists, go on!
-            User usr = (User) mcsh.get(context.getSessionCookie().getId());
+            User usr = context.getAttribute("user", User.class);
             if (mb.belongsTo(usr.getId()))
             { // prevent the edit of a mbox that is not belonging to the user
                 MbFrmDat mbdat = new MbFrmDat();
@@ -329,7 +326,7 @@ public class BoxHandler
 
     public Result showBoxes(Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
         HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
         Map<String, PageList<MBox>> map = new HashMap<String, PageList<MBox>>();
@@ -352,7 +349,7 @@ public class BoxHandler
     public Result expireBox(@PathParam("id") Long id, Context context)
     {
         MBox mb = MBox.getById(id);
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
         if (mb.belongsTo(usr.getId()))
         {// check if the mailbox belongs to the current user
             if (!(mb.getTs_Active() == 0) && (mb.getTs_Active() < DateTime.now().getMillis()))
@@ -379,7 +376,7 @@ public class BoxHandler
     public Result resetBoxCounters(@PathParam("id") Long id, Context context)
     {
         MBox mb = MBox.getById(id);
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = context.getAttribute("user", User.class);
         // check if the mailbox belongs to the current user
         if (mb.belongsTo(usr.getId()))
         {

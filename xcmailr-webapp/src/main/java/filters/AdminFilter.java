@@ -25,11 +25,11 @@ import ninja.Filter;
 import ninja.FilterChain;
 import ninja.Result;
 import ninja.Results;
+
 /**
  * Ensures that the user is an admin, otherwise it will redirect to the index-page
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- *
  */
 public class AdminFilter implements Filter
 {
@@ -39,11 +39,12 @@ public class AdminFilter implements Filter
     @Override
     public Result filter(FilterChain chain, Context context)
     {
-        User user = (User) mcsh.get(context.getSessionCookie().getId());
+        // get the user-object from context (if we get to this point, the SecureFilter should have added the object)
+        User user = context.getAttribute("user", User.class);
+        
         if (!(user == null) && user.isActive() && user.isAdmin())
         {
             return chain.next(context);
-
         }
         else
         {

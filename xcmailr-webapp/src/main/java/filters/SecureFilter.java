@@ -39,17 +39,23 @@ public class SecureFilter implements Filter
     @Override
     public Result filter(FilterChain chain, Context context)
     {
+        // get the user-object from memcached-server
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
+
         if (!(usr == null) && usr.isActive())
         {
+            // add the user-object to the context to reduce the no. of connections to the memcached server
+            context.setAttribute("user", usr);
+            // go to the next filter (or controller-method)
             return chain.next(context);
         }
         else
         {
             if (!context.getSessionCookie().isEmpty())
-            {
+            { // delete the cookie if there's no user object but a session-cookie
                 context.getSessionCookie().clear();
             }
+
             return Results.forbidden().redirect("/login");
         }
     }
