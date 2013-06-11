@@ -24,8 +24,9 @@ title="User Administration" >
 	    <tr>
 		    <th class="header">${i18nAdmin_MtxTs}</th>
 		    <th class="header">${i18nAdmin_MtxStatus}</th>
+			<th class="header">${i18nAdmin_MtxSource}</th>
+		    <th class="header">${i18nAdmin_MtxRelay}</th>
 		    <th class="header">${i18nAdmin_MtxTarget}</th>
-		    <th class="header">${i18nAdmin_MtxSource}</th>
 	    </tr>
 	    </thead>
 	    <tbody>
@@ -49,8 +50,9 @@ title="User Administration" >
 				    		<#default> ${i18nAdmin_MtxUnknown}
 				    	</#switch>
 				    </td>
-				    <td> ${mtx.sourceaddr} </td>
-				    <td> ${mtx.targetaddr} </td>
+				    <td> ${(mtx.sourceaddr)!} </td>
+				    <td> ${(mtx.relayaddr)!} </td>
+				    <td> ${(mtx.targetaddr)!} </td>
 			    </tr>
 			</#list>
 			</tbody>
