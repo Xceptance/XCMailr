@@ -139,14 +139,15 @@ public class BoxHandler
 
                     return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
-                boolean expired = false;
-                if (ts <= DateTime.now().getMillis())
-                {
-                    expired = true;
+                if ((ts != 0) && (ts < DateTime.now().getMillis()))
+                { // the Timestamp lays in the past
+                    context.getFlashCookie().error("i18nEditEmail_Past_Timestamp", (Object) null);
+                    return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
+
                 // create the MBox
                 User usr = (User) mcsh.get(context.getSessionCookie().getId());
-                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, expired, usr);
+                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, usr);
 
                 // creates the Box in the DB
                 mb.save();
@@ -201,10 +202,8 @@ public class BoxHandler
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
                           Validation validation)
     {
-        System.out.println("DURATION TIME: "+mbdat.getDatetime());
         if (validation.hasViolations())
         { // not all fields were filled
-            System.out.println("validation ERROR\n\n\n");
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
             Map<String, Object> map = xcmConf.getDomListAsMap();
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
@@ -228,7 +227,6 @@ public class BoxHandler
                     boolean changes = false;
                     String newLName = mbdat.getAddress().toLowerCase();
                     String newDName = mbdat.getDomain().toLowerCase();
-                    System.out.println("validation successful\n\n\n");
                     if (MBox.mailChanged(newLName, newDName, boxId))
                     { // this is only true when the address changed and the new address does not exist
 
@@ -248,6 +246,11 @@ public class BoxHandler
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
                         context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
+                        return Results.redirect("/mail/edit/" + boxId.toString());
+                    }
+                    if ((ts != 0) && (ts < DateTime.now().getMillis()))
+                    { // the Timestamp lays in the past
+                        context.getFlashCookie().error("i18nEditEmail_Past_Timestamp", (Object) null);
                         return Results.redirect("/mail/edit/" + boxId.toString());
                     }
 

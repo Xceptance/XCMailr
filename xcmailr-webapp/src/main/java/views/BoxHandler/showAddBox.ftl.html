@@ -47,13 +47,17 @@ title="Home Page">
 				</div>
 				<script type="text/javascript">
 				  $(function() {
-				    $('#datetimepicker').datetimepicker({
-				      language: '${lang}',
-				      pick12HourFormat: false,
-				    });
-					  enable_cb();
-					  $("#group1").click(enable_cb);
-				  });
+					    $('#datetimepicker').datetimepicker({
+					      language: '${lang}',
+					      pick12HourFormat: false,
+					      startDate: new Date()
+					    });
+						  enable_cb();
+						  $("#group1").click(enable_cb);
+						  if("${mbFrmDat.datetime}"=="0"){
+							  $("#group1").click();
+						  }
+					  });
 				</script>
 				
 				<div class="form-actions">

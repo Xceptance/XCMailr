@@ -37,17 +37,6 @@ title="Home Page">
 					<label class="control-label" for="datetime">${i18nEditEmail_Duration_Label}</label>
 					<div class="controls">
 				  <div id="datetimepicker" class="input-append">
-				  <#if (mbFrmDat.datetime=="0")>
-				  	<input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="hidden" value="${(mbFrmDat.datetime)!}" required="required"/>
-				  	<span id="pickr_span">
-				      <i id="pickr_i"></i>
-				    </span>
-				    </div>
-				    <div>
-						<input type="checkbox" id="group1" checked="checked">unlimited
-					</div>
-					<input type="hidden" id="storDate" value="0"/>
-				  <#else>
 				    <input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required"/>
 				    <span id="pickr_span" class="add-on">
 				      <i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
@@ -56,33 +45,22 @@ title="Home Page">
 				    <div>
 						<input type="checkbox" id="group1">unlimited
 					</div>
-				  </#if>
-
 				  </div>
 				</div>
 				<script type="text/javascript">
 				  $(function() {
+
 				    $('#datetimepicker').datetimepicker({
 				      language: '${lang}',
 				      pick12HourFormat: false,
+				      startDate: new Date()
 				    });
+				    
 					  enable_cb();
-					  if($("#group1").attr("checked")){
-					  		var dateval = $("input#datetime").attr("value");
-					  		var input = document.createElement("input");
-					  		input.setAttribute("type", "hidden");
-					  		input.setAttribute("id", "storDate");
-					  		input.setAttribute("value", dateval);
-					  		document.getElementById("datetimepicker").appendChild(input);
-
-					  		$("input#datetime").attr("type", "hidden");
-					  		$("span#pickr_span").removeAttr("class");
-					  		$("i#pickr_i").removeAttr("data-date-icon");
-					  		$("i#pickr_i").removeAttr("data-time-icon");
-					  		$("i#pickr_i").removeAttr("class");
-					  		$("input#datetime").attr("value", "0");
-					  }
 					  $("#group1").click(enable_cb);
+					  if("${mbFrmDat.datetime}"=="0"){
+						  $("#group1").click();
+					  }
 				  });
 				</script>
 				<div class="form-actions">
