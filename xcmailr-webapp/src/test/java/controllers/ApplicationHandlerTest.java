@@ -632,7 +632,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(cookie.getValue().contains("___TS"));
         assertTrue(cookie.getValue().contains("username"));
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/");
-        assertTrue(result.contains("<li><a href=\"/logout\">Logout</a></li>"));
+        assertTrue(result.contains("<a href=\"/logout\">"));
 
     }
 
