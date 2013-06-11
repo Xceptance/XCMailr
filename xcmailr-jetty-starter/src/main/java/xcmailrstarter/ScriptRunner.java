@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.tools.RunScript;
 import org.mortbay.log.Log;
@@ -54,8 +55,8 @@ public class ScriptRunner
                 Log.info("Executed Drop Table.");
             }
             DatabaseMetaData md = conn.getMetaData();
-            ResultSet rs;
-            rs = md.getTables(null, null, "%", null);
+
+            ResultSet rs = md.getTables(null, null, "%", null);
             // check if the tables exist
             while (rs.next())
             {
@@ -79,22 +80,8 @@ public class ScriptRunner
                 RunScript.execute(conn, new FileReader("conf/default-create.sql"));
                 Log.info("Executed Create Table.");
             }
-
-            rs = md.getColumns(null, "PUBLIC", "USERS", null);
-
-            String columns = "";
-            while (rs.next())
-            {
-                columns += rs.getString("COLUMN_NAME");
-                columns += "; ";
-            }
-            // alter the user-table if it has no language-attribute
-            if (!columns.contains("LANGUAGE"))
-            {
-                Statement stmnt = conn.createStatement();
-                stmnt.execute("ALTER TABLE USERS ADD LANGUAGE VARCHAR");
-                Log.info("Altered table users, added language");
-            }
+            alterTable("USERS", "LANGUAGE", conn, md);
+            alterTable("MAILTRANSACTIONS", "RELAYADDR", conn, md);
 
             conn.close();
 
@@ -106,5 +93,27 @@ public class ScriptRunner
             System.exit(0);
         }
 
+    }
+
+    public void alterTable(String tableName, String columnName, Connection conn, DatabaseMetaData md)
+        throws SQLException
+    {
+        // get the user-table
+        ResultSet rs = md.getColumns(null, "PUBLIC", tableName, null);
+
+        // get all column-names of the usertable
+        String columns = "";
+        while (rs.next())
+        {
+            columns += rs.getString("COLUMN_NAME");
+            columns += "; ";
+        }
+        // alter the user-table if it has no language-attribute
+        if (!columns.contains(columnName))
+        {
+            Statement stmnt = conn.createStatement();
+            stmnt.execute("ALTER TABLE " + tableName + " ADD " + columnName + " VARCHAR");
+            Log.info("Altered table " + tableName + ", added column " + columnName);
+        }
     }
 }
