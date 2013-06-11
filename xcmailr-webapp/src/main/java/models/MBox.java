@@ -565,17 +565,17 @@ public class MBox
     }
 
     /**
-     * Generates a List of the Boxes which will expire in the next hour(s)
+     * Generates a List of the Boxes which will expire in the next minute(s)
      * 
-     * @param hours
-     *            the hour(s) to check for
+     * @param minutes
+     *            the minute(s) to check for
      * @return List of MBoxes
      */
-    public static List<MBox> getNextBoxes(int hours)
+    public static List<MBox> getNextBoxes(int minutes)
     {
         DateTime dt = new DateTime();
-        dt = dt.plusHours(hours);
-
+        dt = dt.plusHours(minutes);
+        
         return Ebean.find(MBox.class).where().eq("expired", false).lt("ts_Active", dt.getMillis()).ne("ts_Active", 0)
                     .findList();
     }

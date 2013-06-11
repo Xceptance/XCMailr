@@ -62,12 +62,13 @@ public class JobController
 
     @Inject
     XCMailrConf xcmConf;
-    
-    @Inject 
+
+    @Inject
     MsgListener msgListener;
 
     @Inject
     Lang lang;
+
     /**
      * Starts the Mailserver, creates the Admin-Account specified in application.conf and Threads to expire the
      * Mailaddresses and the Mails which have to be sent
@@ -75,21 +76,20 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
-        String pwd = xcmConf.ADMIN_PASS;
-        // interval to check for expired mailboxes
-        int interval = xcmConf.MB_INT;
-
         // create the MemcachedHandler
         mcsh.create();
+
         log.debug("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
 
-        if (!(pwd == null))
+        if (!(xcmConf.ADMIN_PASS == null))
         { // if a pw is set in application.conf..
-            String mail = xcmConf.ADMIN_ADD;
-            if (!User.mailExists(mail))
+
+            if (!User.mailExists(xcmConf.ADMIN_ADD))
             {// ...and the admin-acc doesn't exist
-             // create the adminaccount
-                User usr = new User("Site", "Admin", mail, pwd, "en");
+
+                // create the adminaccount
+                User usr = new User("Site", "Admin", xcmConf.ADMIN_ADD, xcmConf.ADMIN_PASS, "en");
+                
                 // set the status and admin flags
                 usr.setAdmin(true);
                 usr.setActive(true);
@@ -99,7 +99,7 @@ public class JobController
         // create the server for incoming mails
         smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(msgListener));
 
-        // using a dynamic port in test-mode
+        // use a dynamic port in test-mode
         int port;
         if (ninjaProp.isTest())
         {
@@ -109,9 +109,12 @@ public class JobController
         {
             port = xcmConf.MB_PORT;
         }
-        // set the port and start it
+        
+        // set the port and start the SMTP-Server
         smtpServer.setPort(port);
         smtpServer.start();
+        
+        
         if (!ninjaProp.isTest())
         {
             // create the executor-service to check the mailboxes which were expired since the last run and disable them
@@ -121,20 +124,23 @@ public class JobController
                 public void run()
                 {
                     log.debug("mbox-scheduler run");
-                    int size = xcmConf.MB_SIZE;
-                    List<MBox> mbList = MBox.getNextBoxes(size);
+                    
+                    //get the number of MBox-Elements that will expire in the next "MB_INT"-minutes
+                    List<MBox> mbList = MBox.getNextBoxes(xcmConf.MB_INT);
                     ListIterator<MBox> it = mbList.listIterator();
+                    
                     DateTime dt = new DateTime();
+                    
                     while (it.hasNext())
                     {
                         MBox mb = it.next();
                         if (dt.isAfter(mb.getTs_Active()) && !(mb.getTs_Active() == 0))
-                        { // this element is expired
+                        { // this element is now expired
                             mb.enable();
                         }
                     }
                 }
-            }, new Long(1), new Long(interval), TimeUnit.MINUTES);
+            }, new Long(1), new Long(xcmConf.MB_INT), TimeUnit.MINUTES);
 
         }
     }

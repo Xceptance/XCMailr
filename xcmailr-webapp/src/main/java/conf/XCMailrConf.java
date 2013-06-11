@@ -58,8 +58,6 @@ public class XCMailrConf
 
     public final Integer MB_PORT;
 
-    public final Integer MB_SIZE;
-
     public final String MC_HOST;
 
     public final Integer MC_PORT;
@@ -97,7 +95,6 @@ public class XCMailrConf
         MB_INT = ninjaProp.getIntegerOrDie("mbox.interval");
         D_LIST = ninjaProp.getOrDie("mbox.dlist");
         DM_LIST = ninjaProp.getStringArray("mbox.dlist");
-        MB_SIZE = ninjaProp.getIntegerOrDie("mbox.size");
         PW_LEN = ninjaProp.getIntegerOrDie("pw.length");
         CONF_PERIOD = ninjaProp.getIntegerOrDie("confirm.period");
         OUT_SMTP_HOST = ninjaProp.getOrDie("mail.smtp.host");
