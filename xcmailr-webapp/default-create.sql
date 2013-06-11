@@ -16,6 +16,7 @@ create table mailtransactions (
   ts                        bigint,
   status                    integer,
   sourceaddr                varchar(255),
+  relayaddr                 varchar(255),
   targetaddr                varchar(255),
   constraint pk_mailtransactions primary key (id))
 ;

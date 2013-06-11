@@ -60,7 +60,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
-        System.out.println("\n\n\n"+result);
+
         // check if the user has been registered successfully
         assertTrue(result.contains("class=\"success\""));
         assertNotNull(User.getUsrByMail("admin@localhost.de"));
@@ -492,7 +492,7 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("mail", "");
         formParams.put("pwd", "");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
-        System.out.println(result+"\n\n\n\n");
+
         // now there should be no session-cookie
         assertTrue(ninjaTestBrowser.getCookieWithName("XCMailr_SESSION") == null);
         // and an error message
@@ -613,7 +613,8 @@ public class ApplicationHandlerTest extends NinjaTest
          * TEST: test if the controller shows the right index-pages
          */
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/");
-        assertTrue(result.contains("<a href=\"/register\">Register</a>"));
+
+        assertTrue(result.contains("<a href=\"/register\">"));
         // register the user
         User u = new User("John", "Doe", "admin@localhost.de", "1234", "en");
         u.setActive(true);

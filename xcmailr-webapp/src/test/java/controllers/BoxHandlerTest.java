@@ -32,7 +32,6 @@ public class BoxHandlerTest extends NinjaTest
 
     User user;
 
-
     @Before
     public void setUp()
     {
@@ -72,7 +71,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.clear();
         formParams.put("address", "abox");
         formParams.put("domain", "xcmailr.test");
-        formParams.put("duration", "0");
+        formParams.put("datetime", "0");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
 
@@ -99,13 +98,13 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
         formParams.put("address", "abox");
         formParams.put("domain", "xcmailr.test");
-        formParams.put("duration", "0");
+        formParams.put("datetime", "0");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
 
         // check that the add of the mbox was successful
-        System.out.println(result+"\n\n\n\n");
-        assertTrue(result.contains("class=\"success\">"));
+
+        assertTrue(result.contains("<!--mailboxoverview-->"));
         // check that there is a mailbox with that address
         assertNotNull(MBox.getByName("abox", "xcmailr.test"));
 
@@ -116,7 +115,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
         formParams.put("address", "abox");
         formParams.put("domain", "xcmailr.test");
-        formParams.put("duration", "0");
+        formParams.put("datetime", "0");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
 
@@ -130,7 +129,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
         formParams.put("address", "");
         formParams.put("domain", "");
-        formParams.put("duration", "");
+        formParams.put("datetime", "");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
 
@@ -146,7 +145,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
         formParams.put("address", "bbox");
         formParams.put("domain", "xcmailr.test");
-        formParams.put("duration", "2x,3d");
+        formParams.put("datetime", "2x,3d");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
 
@@ -167,7 +166,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
         formParams.put("address", "abox");
         formParams.put("domain", "xcmlr.abc");
-        formParams.put("duration", "0");
+        formParams.put("datetime", "0");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
 
@@ -182,7 +181,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
         formParams.put("address", "abox");
         formParams.put("domain", "xcmlr@a.abc");
-        formParams.put("duration", "0");
+        formParams.put("datetime", "0");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
 
@@ -203,7 +202,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
         formParams.put("address", "abox");
         formParams.put("domain", "xcmailr.test");
-        formParams.put("duration", "0");
+        formParams.put("datetime", "0");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
         MBox mb = MBox.getByName("abox", "xcmailr.test");
@@ -229,7 +228,7 @@ public class BoxHandlerTest extends NinjaTest
         Map<String, String> formMap = HtmlUtils.readInputFormData(result);
         assertTrue(formMap.containsKey("address"));
         assertTrue(formMap.containsKey("domain"));
-        assertTrue(formMap.containsKey("duration"));
+        assertTrue(formMap.containsKey("datetime"));
     }
 
     @Test
@@ -264,11 +263,11 @@ public class BoxHandlerTest extends NinjaTest
         Map<String, String> formMap = HtmlUtils.readInputFormData(result);
         assertTrue(formMap.containsKey("address"));
         assertTrue(formMap.containsKey("domain"));
-        assertTrue(formMap.containsKey("duration"));
+        assertTrue(formMap.containsKey("datetime"));
         formParams.clear();
         formParams.put("address", mbox.getAddress());
         formParams.put("domain", mbox.getDomain());
-        formParams.put("duration", String.valueOf(mbox.getTs_Active()));
+        formParams.put("datetime", String.valueOf(mbox.getTs_Active()));
         TestUtils.testMapEntryEquality(formParams, formMap);
         formParams.clear();
 
@@ -297,16 +296,21 @@ public class BoxHandlerTest extends NinjaTest
         // change the local-part of the mbox and the timestamp
         formMap.put("address", "abcde");
         formMap.put("domain", "xcmailr.test");
-        formMap.put("duration", "2d, 4h");
+        DateTime dt = new DateTime().plusHours(1);
+
+        formMap.put("datetime",
+                    dt.getDayOfMonth() + "." + dt.getMonthOfYear() + "." + dt.getYear() + " " + dt.getHourOfDay() + ":"
+                        + dt.getMinuteOfHour());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + mbox.getId(),
                                                                     headers, formMap);
         expected = ninjaTestBrowser.makeRequest(getServerAddress() + "mail");
+        System.out.println("\n\n\n\n"+result+"\n"+expected);
         assertTrue(expected.equals(result));
 
         /*
          * TEST: a wrong timestamp
          */
-        formMap.put("duration", "1x,2z");
+        formMap.put("datetime", "01.01.00");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + mbox.getId(),
                                                                     headers, formMap);
         expected = ninjaTestBrowser.makeRequest(getServerAddress() + "mail");
@@ -330,7 +334,7 @@ public class BoxHandlerTest extends NinjaTest
         }
         formParams.put("address", mbox.getAddress());
         formParams.put("domain", mbox.getDomain());
-        formParams.put("duration", String.valueOf(mbox.getTs_Active()));
+        formParams.put("datetime", String.valueOf(mbox.getTs_Active()));
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + id, headers,
                                                                     formParams);
         expected = ninjaTestBrowser.makeRequest(getServerAddress() + "mail");

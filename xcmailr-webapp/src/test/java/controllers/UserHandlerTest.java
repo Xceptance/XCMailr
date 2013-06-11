@@ -253,6 +253,9 @@ public class UserHandlerTest extends NinjaTest
         formParams.remove("pw");
         formParams.remove("pwn1");
         formParams.remove("pwn2");
+        formParams.remove("language");
+        formParams.put("domain","en"); //TODO
+
         TestUtils.testMapEntryEquality(formParams, returnedData);
 
     }
