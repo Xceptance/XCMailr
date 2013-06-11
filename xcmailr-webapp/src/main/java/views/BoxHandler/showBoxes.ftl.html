@@ -36,9 +36,9 @@ title="Home Page">
 		    <tbody>
 		<#list mboxes.getPage(x) as mBox>
 		    <#if (mBox.isExpired())>
-				<tr class="error">   
+				<tr class="error" id="${mBox.id}">   
 		    <#else>
-		    	<tr class="success">
+		    	<tr class="success" id="${mBox.id}">
 		    </#if>   
 				<td>${mBox.address}&#064;${mBox.domain}</td>
 				<#if (mBox.getTSAsString()=="unlimited")>
