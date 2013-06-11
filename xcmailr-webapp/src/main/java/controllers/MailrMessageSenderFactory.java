@@ -250,7 +250,14 @@ public class MailrMessageSenderFactory
                     Transport.send(mail);
 
                     // log the transaction
-                    mtx = new MailTransaction(300, from, mb.getFullAddress(), recipient);
+                    if (mb != null)
+                    {
+                        mtx = new MailTransaction(300, from, mb.getFullAddress(), recipient);
+                    }
+                    else
+                    {
+                        mtx = new MailTransaction(300, from, null, recipient);
+                    }
                     mtx.saveTx();
                     log.info("Message sent, From: " + from + " To:" + recipient);
 
