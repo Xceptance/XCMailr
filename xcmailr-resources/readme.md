@@ -42,6 +42,18 @@ Run the Application:
  * Just edit the application.conf (see Configuration) and run the 'run.sh'-script
  * To drop and recreate all Tables (this will remove all data contained in this tables!) run the script with the parameter "-Dxcmailr.xcmstart.droptables=true"
 
+Build from Source:
+------------------
+ * If you want to build the Project from the sources, you've two options to run the webapp.
+ * First option (after you've changed sth. and want to check your changes), the development-mode:
+    * cd into the 'xcmailr-webapp' folder
+    * execute 'mvn clean jetty:run' to clean up the target-folder (if existent) and run the app in development-mode inside an embedded-jetty running on localhost:8080
+ * Second option (to create the build-folder):
+    * cd into the home-directory of the xcmailr
+    * run 'mvn clean package' to create the build-folder
+    * after that, there will be a folder called 'xcmailr-build' which contains the known files and can be executed as explained in the section "run the application"
+
+
 
 Frameworks/Librarys/Code/etc which were provided by others:
 -----------------------------------------------------------
