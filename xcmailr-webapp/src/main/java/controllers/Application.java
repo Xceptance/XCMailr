@@ -120,8 +120,8 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
     {
-        Result result = Results.noContent().template("/views/Application/registerForm.ftl.html");
-        //Result result = Results.template("/views/Application/registerForm.ftl.html");
+        
+        Result result = Results.html().template("/views/Application/registerForm.ftl.html");
         Map<String, Object> map = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
         if (validation.hasViolations())
         {
@@ -130,6 +130,7 @@ public class Application
             frdat.setPwn2("");
             map.put("editUsr", frdat);
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
+
             return result.render(map);
         }
         else
@@ -148,6 +149,7 @@ public class Application
                     frdat.setPwn1("");
                     frdat.setPwn2("");
                     map.put("editUsr", frdat);
+
                     return result.render(map);
                 }
 
@@ -165,6 +167,7 @@ public class Application
                         frdat.setPwn1("");
                         frdat.setPwn2("");
                         map.put("editUsr", frdat);
+
                         return result.render(map);
                     }
                     // create the user
@@ -179,6 +182,7 @@ public class Application
                         frdat.setPwn2("");
                         map.put("editUsr", frdat);
                         context.getFlashCookie().error("i18nMsg_WrongPw", (Object) null);
+
                         return result.render(map);
                     }
 
@@ -191,9 +195,9 @@ public class Application
                     mmhf.sendConfirmAddressMail(user.getMail(), user.getForename(), String.valueOf(user.getId()),
                                                 user.getConfirmation(), lng);
                     context.getFlashCookie().success("i18nMsg_RegOk", (Object) null);
-                    result = result.redirect("/");
+                    
                     lang.setLanguage(user.getLanguage(), result);
-                    return result;
+                    return result.redirect("/");
                 }
                 else
                 { // password mismatch
@@ -202,6 +206,7 @@ public class Application
                     frdat.setPwn2("");
                     map.put("editUsr", frdat);
                     context.getFlashCookie().error("i18nMsg_WrongPw", (Object) null);
+
                     return result.render(map);
                 }
             }
@@ -209,6 +214,7 @@ public class Application
             { // mailadress already exists
                 map.put("editUsr", frdat);
                 context.getFlashCookie().error("i18nMsg_MailEx", (Object) null);
+
                 return result.render(map);
             }
         }
