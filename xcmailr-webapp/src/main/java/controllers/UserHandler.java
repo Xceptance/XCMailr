@@ -107,7 +107,7 @@ public class UserHandler
                     usr.setMail(edt.getMail());
                 }
                 // update the fore- and surname
-                usr.setForename(edt.getForename());
+                usr.setForename(edt.getFirstName());
                 usr.setSurname(edt.getSurName());
                 if (!(pw1 == null) && !(pw2 == null))
                 {

@@ -9,7 +9,7 @@ title="User Administration">
 </form>  
 
 <div class="tab-content">  
-<#list 1..users.getPageCount() as x > 
+<#list 1..(users.getPageCount())!0 as x > 
 	<#if x = 1 >
 		<div class="tab-pane active" id="${x}">  
 	<#else>
