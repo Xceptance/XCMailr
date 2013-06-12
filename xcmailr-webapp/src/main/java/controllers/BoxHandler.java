@@ -101,7 +101,7 @@ public class BoxHandler
      */
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
-        Result result = Results.html().template("/views/BoxHandler/showAddBox.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         Map<String, Object> map = xcmConf.getDomListAsMap();
 
         if (validation.hasViolations())
@@ -110,10 +110,10 @@ public class BoxHandler
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
             {
-                return Results.redirect("/mail/add");
+                return result.redirect("/mail/add");
             }
             map.put("mbFrmDat", mbdat);
-            return result.render(map);
+            return result.template("/views/BoxHandler/showAddBox.ftl.html").render(map);
         }
         else
         {
@@ -126,7 +126,7 @@ public class BoxHandler
                 if (!Arrays.asList(dom).contains(mbdat.getDomain()))
                 { // the new domainname does not exist in the application.conf
                   // stop the process and return to the mailbox-overview page
-                    return Results.redirect("/mail");
+                    return result.redirect("/mail");
                 }
                 Long ts = HelperUtils.parseTimeString(mbdat.getDatetime());
                 if (ts == -1L)
@@ -134,12 +134,12 @@ public class BoxHandler
                     context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
                     map.put("mbFrmDat", mbdat);
 
-                    return result.render(map);
+                    return result.template("/views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
                     context.getFlashCookie().error("i18nCreateMail_Past_Timestamp", (Object) null);
-                    return result.render(map);
+                    return result.template("/views/BoxHandler/showAddBox.ftl.html").render(map);
                 }
 
                 // create the MBox
@@ -157,7 +157,7 @@ public class BoxHandler
                 context.getFlashCookie().error("i18nMsg_MailEx", (Object) null);
                 map.put("mbFrmDat", mbdat);
 
-                return result.render(map);
+                return result.template("/views/BoxHandler/showAddBox.ftl.html").render(map);
             }
         }
     }
@@ -200,7 +200,7 @@ public class BoxHandler
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
                           Validation validation)
     {
-        Result result = Results.html().template("/views/BoxHandler/showEditBox.ftl.html");
+        Result result = Results.html().template("/views/BoxHandler/showBoxes.ftl.html");
         if (validation.hasViolations())
         { // not all fields were filled
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
@@ -210,7 +210,7 @@ public class BoxHandler
                 return result.redirect("/mail/edit/" + boxId.toString());
             }
             map.put("mbFrmDat", mbdat);
-            return result.render(mbdat);
+            return result.template("/views/BoxHandler/showEditBox.ftl.html").render(mbdat);
         }
         else
         { // the form was filled correctly
@@ -245,12 +245,12 @@ public class BoxHandler
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
                         context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
-                        return result.redirect("/mail/edit/" + boxId.toString());
+                        return result.template("/views/BoxHandler/showEditBox.ftl.html").redirect("/mail/edit/" + boxId.toString());
                     }
                     if ((ts != 0) && (ts < DateTime.now().getMillis()))
                     { // the Timestamp lays in the past
                         context.getFlashCookie().error("i18nEditEmail_Past_Timestamp", (Object) null);
-                        return result.redirect("/mail/edit/" + boxId.toString());
+                        return result.template("/views/BoxHandler/showEditBox.ftl.html").redirect("/mail/edit/" + boxId.toString());
                     }
 
                     if (!(mb.getTs_Active() == ts))

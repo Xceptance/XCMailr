@@ -153,7 +153,7 @@ public class AdminHandler
 
     public Result deleteMTX(@PathParam("time") Integer time)
     {
-        Result result = Results.html().template("/views/AdminHandler/pagedMTX.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         if (time == -1)
         { // all entries will be deleted
             MailTransaction.deleteTxInPeriod(null);
@@ -180,7 +180,7 @@ public class AdminHandler
      */
     public Result activate(@PathParam("id") Long id, Context context)
     {
-        Result result = Results.html().template("/views/AdminHandler/showUsers.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         User usr = context.getAttribute("user", User.class);
         if (!(usr.getId() == id))
         { // the user to (de-)activate is not the user who performs this action
@@ -234,7 +234,7 @@ public class AdminHandler
      */
     public Result promote(@PathParam("id") Long id, Context context)
     {
-        Result result = Results.html().template("/views/AdminHandler/showUsers.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         User usr = context.getAttribute("user", User.class);
         if (!(usr.getId() == id))
         { // the user to pro-/demote is not the user who performs this action
@@ -255,7 +255,7 @@ public class AdminHandler
      */
     public Result deleteUser(@PathParam("id") Long id, Context context)
     {
-        Result result = Results.html().template("/views/AdminHandler/showUsers.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         User usr = context.getAttribute("user", User.class);
         if (!(usr.getId() == id))
         { // the user to delete is not the user who performs this action

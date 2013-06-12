@@ -197,7 +197,7 @@ public class Application
                     context.getFlashCookie().success("i18nMsg_RegOk", (Object) null);
                     
                     lang.setLanguage(user.getLanguage(), result);
-                    return result.redirect("/");
+                    return result.template("/views/Application/index.ftl.html").redirect("/");
                 }
                 else
                 { // password mismatch
@@ -243,11 +243,11 @@ public class Application
                 user.setActive(true);
                 user.update();
                 context.getFlashCookie().success("i18nUser_Verify_Success", (Object) null);
-                return result.redirect("/");
+                return result.template("/views/Application/index.ftl.html").redirect("/");
             }
         }
         // show no message when the process failed
-        return result.redirect("/");
+        return result.template("/views/Application/index.ftl.html").redirect("/");
     }
 
     // -------------------- Login/-out Functions -----------------------------------
@@ -281,7 +281,7 @@ public class Application
         context.getSessionCookie().clear();
         mcsh.delete(sessionKey);
         context.getFlashCookie().success("i18nMsg_LogOut", (Object) null);
-        return result.redirect("/");
+        return result.template("/views/Application/index.ftl.html").redirect("/");
     }
 
     /**
@@ -316,7 +316,7 @@ public class Application
                     if (!lgr.isActive())
                     {
                         context.getFlashCookie().error("i18nUser_Inactive", (Object) null);
-                        return result.redirect("/");
+                        return result.template("/views/Application/index.ftl.html").redirect("/");
                     }
 
                     // we put the username into the cookie, but use the id of the cookie for authentication
@@ -330,7 +330,7 @@ public class Application
                     lgr.setBadPwCount(0);
                     lgr.update();
                     context.getFlashCookie().success("i18nMsg_LogIn", (Object) null);
-                    return result.redirect("/");
+                    return result.template("/views/Application/index.ftl.html").redirect("/");
                 }
                 else
                 { // the authentication was not correct
@@ -344,7 +344,7 @@ public class Application
 
                         // show the disabled message and return to the forgot-pw-page
                         context.getFlashCookie().error("i18nUser_Disabled", (Object) null);
-                        return result.redirect("/pwresend");
+                        return result.template("/views/Application/index.ftl.html").redirect("/pwresend");
                     }
 
                     loginDat.setPwd("");
