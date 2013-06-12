@@ -17,8 +17,6 @@
 package controllers;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import org.joda.time.DateTime;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
@@ -100,9 +98,9 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result registerForm(Context context)
     {
-        Map<String, Object> map = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
+        Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
 
-        return Results.html().render(map);
+        return Results.html().render("available_langs",o);
     }
 
     /**
@@ -122,16 +120,18 @@ public class Application
     {
         
         Result result = Results.html().template("/views/Application/registerForm.ftl.html");
-        Map<String, Object> map = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
+
+        Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
+        result.render("available_langs", o);
         if (validation.hasViolations())
         {
             frdat.setPw("");
             frdat.setPwn1("");
             frdat.setPwn2("");
-            map.put("editUsr", frdat);
+
             context.getFlashCookie().error("msg_FormErr");
 
-            return result.render(map);
+            return result.render("editUsr", frdat);
         }
         else
         { // form was filled correctly, go on!
@@ -148,9 +148,8 @@ public class Application
                     frdat.setPw("");
                     frdat.setPwn1("");
                     frdat.setPwn2("");
-                    map.put("editUsr", frdat);
 
-                    return result.render(map);
+                    return result.render("editUsr", frdat);
                 }
 
                 // a new user, check whether the passwords are matching
@@ -166,9 +165,7 @@ public class Application
                         frdat.setPw("");
                         frdat.setPwn1("");
                         frdat.setPwn2("");
-                        map.put("editUsr", frdat);
-
-                        return result.render(map);
+                        return result.render("editUsr", frdat);
                     }
                     // create the user
                     User user = frdat.getAsUser();
@@ -180,10 +177,9 @@ public class Application
                         frdat.setPw("");
                         frdat.setPwn1("");
                         frdat.setPwn2("");
-                        map.put("editUsr", frdat);
                         context.getFlashCookie().error("msg_WrongPw");
 
-                        return result.render(map);
+                        return result.render("editUsr", frdat);
                     }
 
                     // generate the confirmation-token
@@ -204,18 +200,16 @@ public class Application
                     frdat.setPw("");
                     frdat.setPwn1("");
                     frdat.setPwn2("");
-                    map.put("editUsr", frdat);
                     context.getFlashCookie().error("msg_WrongPw");
 
-                    return result.render(map);
+                    return result.render("editUsr", frdat);
                 }
             }
             else
             { // mailadress already exists
-                map.put("editUsr", frdat);
                 context.getFlashCookie().error("msg_MailEx");
 
-                return result.render(map);
+                return result.render("editUsr", frdat);
             }
         }
     }
@@ -438,11 +432,9 @@ public class Application
         { // the user exists
             if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
             { // the token is right and the request is in time
-                Map<String, String> map = new HashMap<String, String>();
-                map.put("id", id.toString());
-                map.put("token", token);
+
                 // show the form for the new password
-                return Results.html().render(map);
+                return Results.html().render("id", id.toString()).render("token", token);
             }
         }
         // something was wrong, so redirect without any comment to the index-page

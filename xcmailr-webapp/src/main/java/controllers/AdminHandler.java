@@ -16,15 +16,10 @@
  */
 package controllers;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.joda.time.DateTime;
-
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import conf.XCMailrConf;
 import ninja.Context;
 import ninja.FilterWith;
@@ -86,8 +81,6 @@ public class AdminHandler
     {
         User usr = context.getAttribute("user", User.class);
 
-        Map<String, Object> map = new HashMap<String, Object>();
-
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
 
@@ -96,12 +89,10 @@ public class AdminHandler
 
         // generate the paged-list to get pagination in the pattern
         PageList<User> plist = new PageList<User>(User.all(), entries);
-        map.put("users", plist);
 
         // put in the users-ID to identify the row where no buttons will be shown
-        map.put("uid", usr.getId());
 
-        return Results.html().render(map);
+        return Results.html().render("uid", usr.getId()).render("users", plist);
     }
 
     /**
@@ -114,9 +105,7 @@ public class AdminHandler
      */
     public Result showSumTx(Context context)
     {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("stats", MailTransaction.getStatusList());
-        return Results.html().render(map);
+        return Results.html().render("stats", MailTransaction.getStatusList());
     }
 
     /**
@@ -129,8 +118,6 @@ public class AdminHandler
      */
     public Result pagedMTX(Context context)
     {
-        Map<String, Object> map = new HashMap<String, Object>();
-
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
@@ -139,8 +126,7 @@ public class AdminHandler
         // generate the paged-list to get pagination on the page
         PageList<MailTransaction> pl = new PageList<MailTransaction>(MailTransaction.all("ts desc"), entries);
 
-        map.put("plist", pl);
-        return Results.html().render(map);
+        return Results.html().render("plist", pl);
     }
 
     /**

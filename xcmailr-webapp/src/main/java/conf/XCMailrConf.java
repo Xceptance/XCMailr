@@ -113,16 +113,4 @@ public class XCMailrConf
                                        + "Otherwise this app will not work");
         }
     }
-
-    /**
-     * Extracts the List of Domains and returns it as a nicely renderable Map
-     * 
-     * @return a Map with a "domain"-key which contains the list of domains
-     */
-    public Map<String, Object> getDomListAsMap()
-    {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("domain", DM_LIST);
-        return map;
-    }
 }

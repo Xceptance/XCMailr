@@ -16,10 +16,7 @@
  */
 package models;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -444,20 +441,6 @@ public class MBox
     public static List<MBox> allUser(Long id)
     {
         return Ebean.find(MBox.class).where().eq("usr_id", id.toString()).findList();
-    }
-
-    /**
-     * @param userId
-     *            the ID of a User
-     * @return all Boxes in a List, wrapped in a Map with the key "mboxes"
-     */
-    public static Map<String, List<MBox>> allUserMap(Long userId)
-    {
-        List<MBox> list = Ebean.find(MBox.class).where().eq("usr_id", userId.toString()).findList();
-        Map<String, List<MBox>> map = new HashMap<String, List<MBox>>();
-        map.put("mboxes", list);
-
-        return map;
     }
 
     /**

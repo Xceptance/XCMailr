@@ -19,9 +19,7 @@ package models;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.persistence.*;
-
 import org.mindrot.jbcrypt.BCrypt;
 import com.avaje.ebean.*;
 import com.avaje.ebean.validation.Email;

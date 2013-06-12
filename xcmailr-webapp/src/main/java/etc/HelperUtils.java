@@ -18,9 +18,7 @@ package etc;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -237,20 +235,17 @@ public class HelperUtils
      * @return a map with the key "available_langs" and a String[]-object containing the localised long form of all
      *         languages
      */
-    public static Map<String, Object> geti18nPrefixedLangMap(String[] avLangs, Context context, Messages msg)
+    public static Object[] geti18nPrefixedLangMap(String[] avLangs, Context context, Messages msg)
     {
         String lng;
         Optional<Result> opt = Optional.of(Results.html());
-        Map<String, Object> map = new HashMap<String, Object>();
         List<String> avlngs = new ArrayList<String>();
         for (String s : avLangs)
         {
-            lng = msg.get("lang_" + s , context, opt, (Object) null).get();
+            lng = msg.get("lang_" + s, context, opt, (Object) null).get();
             avlngs.add(lng);
         }
-        map.put("available_langs", avlngs.toArray());
-        return map;
-
+        return avlngs.toArray();
     }
 
 }
