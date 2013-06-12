@@ -28,7 +28,7 @@ public class EditUsrTest extends NinjaTest
     {
         User u = new User("forename","surname","test@localhost.com", "1234", "en");
         EditUsr edt1 = EditUsr.prepopulate(u);
-        assertTrue(edt1.getForename().equals("forename"));
+        assertTrue(edt1.getFirstName().equals("forename"));
         assertTrue(edt1.getSurName().equals("surname"));
         assertTrue(edt1.getMail().equals("test@localhost.com"));
         
@@ -43,7 +43,7 @@ public class EditUsrTest extends NinjaTest
     {
         
         EditUsr edt1 = new EditUsr();
-        edt1.setForeName("forename");
+        edt1.setFirstName("forename");
         edt1.setSurName("surname");
         edt1.setMail("mail@localhost");
         edt1.setPw("1234");

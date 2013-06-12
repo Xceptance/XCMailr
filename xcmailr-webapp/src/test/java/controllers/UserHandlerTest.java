@@ -58,10 +58,10 @@ public class UserHandlerTest extends NinjaTest
         u.setActive(true);
         u.save();
 
-        userData.put("forename", "John");
+        userData.put("firstName", "John");
         userData.put("surName", "Doe");
         userData.put("mail", "admin@localhost.test");
-        userData.put("domain", "en");
+        userData.put("language", "en");
         formParams.clear();
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pwd", "1234");
@@ -80,10 +80,10 @@ public class UserHandlerTest extends NinjaTest
     {
 
         /*
-         * TEST: Set no forename
+         * TEST: Set no firstName
          */
         formParams.clear();
-        formParams.put("forename", "");
+        formParams.put("firstName", "");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
@@ -93,8 +93,6 @@ public class UserHandlerTest extends NinjaTest
 
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        System.out.println(returnedData);
-        System.out.println(userData);
         assertTrue(result.contains("class=\"error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -104,7 +102,7 @@ public class UserHandlerTest extends NinjaTest
          * TEST: Set no surname
          */
         formParams.clear();
-        formParams.put("forename", "John");
+        formParams.put("firstName", "John");
         formParams.put("surName", "");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
@@ -122,7 +120,7 @@ public class UserHandlerTest extends NinjaTest
          * TEST: Set a wrong formatted mail
          */
         formParams.clear();
-        formParams.put("forename", "John");
+        formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "@this.de");
         formParams.put("pw", "1234");
@@ -140,7 +138,7 @@ public class UserHandlerTest extends NinjaTest
          * TEST: Set a wrong formatted mail, again
          */
         formParams.clear();
-        formParams.put("forename", "John");
+        formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin.this.de");
         formParams.put("pw", "1234");
@@ -158,7 +156,7 @@ public class UserHandlerTest extends NinjaTest
          * TEST: set no passwd
          */
         formParams.clear();
-        formParams.put("forename", "Johnny");
+        formParams.put("firstName", "Johnny");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "");
@@ -176,7 +174,7 @@ public class UserHandlerTest extends NinjaTest
          * TEST: set wrong passwd (reversed order)
          */
         formParams.clear();
-        formParams.put("forename", "Johnny");
+        formParams.put("firstName", "Johnny");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "4321");
@@ -194,7 +192,7 @@ public class UserHandlerTest extends NinjaTest
          * TEST: set wrong passwd (completely different chars & length)
          */
         formParams.clear();
-        formParams.put("forename", "Johnny");
+        formParams.put("firstName", "Johnny");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "abcdef");
@@ -213,7 +211,7 @@ public class UserHandlerTest extends NinjaTest
          * TEST: Edit the Userdata correctly (fore- and surname only)
          */
         formParams.clear();
-        formParams.put("forename", "Johnny");
+        formParams.put("firstName", "Johnny");
         formParams.put("surName", "Doey");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
@@ -227,15 +225,14 @@ public class UserHandlerTest extends NinjaTest
 
         // the returned data should now be equal to the formparams without the password
         formParams.remove("pw");
-        formParams.remove("language");
-        formParams.put("domain", "en");//TODO fix this
+
         TestUtils.testMapEntryEquality(formParams, returnedData);
 
         /*
          * TEST: Edit the Userdata correctly (fore- and surname and passwords)
          */
         formParams.clear();
-        formParams.put("forename", "John");
+        formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
@@ -253,8 +250,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.remove("pw");
         formParams.remove("pwn1");
         formParams.remove("pwn2");
-        formParams.remove("language");
-        formParams.put("domain","en"); //TODO
+
 
         TestUtils.testMapEntryEquality(formParams, returnedData);
 
@@ -267,7 +263,7 @@ public class UserHandlerTest extends NinjaTest
          * TEST: Edit the Userdata with two new passwords which were not equal
          */
         formParams.clear();
-        formParams.put("forename", "John");
+        formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("pw", "1234");
@@ -279,14 +275,14 @@ public class UserHandlerTest extends NinjaTest
         returnedData = HtmlUtils.readInputFormData(result);
 
         // check if the userdata-edit has been successfully changed
-        assertTrue(result.contains("class=\"success\">"));
+
+        assertTrue(result.contains("class=\"error\">"));
         System.out.println(returnedData + "\n\n\n");
         // the returned data should now be equal to the formparams without the password
         formParams.remove("pw");
         formParams.remove("pwn1");
         formParams.remove("pwn2");
-        formParams.remove("language");
-        formParams.put("domain", "en");//TODO FIX
+
         TestUtils.testMapEntryEquality(formParams, returnedData);
     }
 

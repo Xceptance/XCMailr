@@ -48,6 +48,8 @@ public class HtmlUtils
     {
         public Map<String, String> map = new HashMap<String, String>();
 
+        private String lastSelect = "";
+
         public void handleSimpleTag(HTML.Tag tag, MutableAttributeSet attr, int pos)
         {
             if (tag == HTML.Tag.INPUT)
@@ -65,17 +67,26 @@ public class HtmlUtils
 
         public void handleStartTag(HTML.Tag tag, MutableAttributeSet attr, int pos)
         {
-            //TODO fix this!
+            // TODO fix this!
             if (tag == HTML.Tag.OPTION)
             { // found an option-field
                 if (!(attr.getAttribute(HTML.Attribute.SELECTED) == null))
                 {
-                    String key = "domain";
+                    String key = lastSelect;
                     String value = (String) attr.getAttribute(HTML.Attribute.VALUE);
-                    if (!(key == null) && !(value.equals("")))
+                    if (!(key.equals("")) && !(value.equals("")))
                     {
                         map.put(key, value);
                     }
+                }
+            }
+            if (tag == HTML.Tag.SELECT)
+            {
+                String key = (String) attr.getAttribute(HTML.Attribute.NAME);
+
+                if (key != null)
+                {
+                    lastSelect = key;
                 }
             }
         }
