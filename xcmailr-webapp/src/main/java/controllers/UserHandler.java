@@ -77,7 +77,7 @@ public class UserHandler
 
         if (validation.hasViolations())
         { // the filled form has errors
-            context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
+            context.getFlashCookie().error("i18nMsg_FormErr");
             return result.template("/views/UserHandler/editUserForm.ftl.html").redirect("/user/edit");
         }
         else
@@ -89,7 +89,7 @@ public class UserHandler
             String domPart = mail.split("@")[1];
             if (Arrays.asList(xcmConf.DM_LIST).contains(domPart))
             {
-                context.getFlashCookie().error("i18nMsg_NoLoop", (Object) null);
+                context.getFlashCookie().error("i18nMsg_NoLoop");
                 edt.setMail(usr.getMail());
                 edt.setPw("");
                 edt.setPwn1("");
@@ -119,7 +119,7 @@ public class UserHandler
                             {
                                 Optional<String> opt = Optional.of(context.getAcceptLanguage());
                                 String shortPw = msg.get("i18nMsg_ShortPw", opt, xcmConf.PW_LEN.toString()).get();
-                                context.getFlashCookie().error(shortPw, (Object) null);
+                                context.getFlashCookie().error(shortPw);
                                 edt.setPw("");
                                 edt.setPwn1("");
                                 edt.setPwn2("");
@@ -131,7 +131,7 @@ public class UserHandler
                         }
                         else
                         { // the passwords are not equal
-                            context.getFlashCookie().error("i18nMsg_WrongPw", (Object) null);
+                            context.getFlashCookie().error("i18nMsg_WrongPw");
                             edt.setPw("");
                             edt.setPwn1("");
                             edt.setPwn2("");
@@ -149,7 +149,7 @@ public class UserHandler
                 context.getSessionCookie().put("username", edt.getMail());
                 mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
                 // user-edit was successful
-                context.getFlashCookie().success("i18nMsg_ChOk", (Object) null);
+                context.getFlashCookie().success("i18nMsg_ChOk");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").redirect("/user/edit");
             }
             else
@@ -157,7 +157,7 @@ public class UserHandler
                 edt.setPw("");
                 edt.setPwn1("");
                 edt.setPwn2("");
-                context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
+                context.getFlashCookie().error("i18nMsg_FormErr");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").redirect("/user/edit");
             }
         }
