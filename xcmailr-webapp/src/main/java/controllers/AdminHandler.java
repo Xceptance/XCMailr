@@ -153,6 +153,7 @@ public class AdminHandler
 
     public Result deleteMTX(@PathParam("time") Integer time)
     {
+        Result result = Results.html().template("/views/AdminHandler/pagedMTX.ftl.html");
         if (time == -1)
         { // all entries will be deleted
             MailTransaction.deleteTxInPeriod(null);
@@ -164,7 +165,7 @@ public class AdminHandler
             MailTransaction.deleteTxInPeriod(dt.getMillis());
         }
 
-        return Results.redirect("/admin/mtxs");
+        return result.redirect("/admin/mtxs");
     }
 
     /**
@@ -179,6 +180,7 @@ public class AdminHandler
      */
     public Result activate(@PathParam("id") Long id, Context context)
     {
+        Result result = Results.html().template("/views/AdminHandler/showUsers.ftl.html");
         User usr = context.getAttribute("user", User.class);
         if (!(usr.getId() == id))
         { // the user to (de-)activate is not the user who performs this action
@@ -212,11 +214,11 @@ public class AdminHandler
                 // send the mail
                 mmhf.sendMail(from, actusr.getMail(), content, subject);
             }
-            return Results.redirect("/admin/users");
+            return result.redirect("/admin/users");
         }
         else
         { // the admin wants to disable his own account, this is not allowed
-            return Results.redirect("/admin/users");
+            return result.redirect("/admin/users");
         }
     }
 
@@ -232,12 +234,13 @@ public class AdminHandler
      */
     public Result promote(@PathParam("id") Long id, Context context)
     {
+        Result result = Results.html().template("/views/AdminHandler/showUsers.ftl.html");
         User usr = context.getAttribute("user", User.class);
         if (!(usr.getId() == id))
         { // the user to pro-/demote is not the user who performs this action
             User.promote(id);
         }
-        return Results.redirect("/admin/users");
+        return result.redirect("/admin/users");
     }
 
     /**
@@ -252,13 +255,14 @@ public class AdminHandler
      */
     public Result deleteUser(@PathParam("id") Long id, Context context)
     {
+        Result result = Results.html().template("/views/AdminHandler/showUsers.ftl.html");
         User usr = context.getAttribute("user", User.class);
         if (!(usr.getId() == id))
         { // the user to delete is not the user who performs this action
             User.delete(id);
         }
 
-        return Results.redirect("/admin/users");
+        return result.redirect("/admin/users");
     }
 
 }

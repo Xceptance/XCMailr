@@ -69,6 +69,7 @@ public class UserHandler
      */
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
+        Result result = Results.html().template("/views/UserHandler/editUserForm.ftl.html");
         // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.
         // then you would likely get a nullpointerexception
@@ -77,7 +78,7 @@ public class UserHandler
         if (validation.hasViolations())
         { // the filled form has errors
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
-            return Results.redirect("/user/edit");
+            return result.redirect("/user/edit");
         }
         else
         { // the form is filled correctly
@@ -93,7 +94,7 @@ public class UserHandler
                 edt.setPw("");
                 edt.setPwn1("");
                 edt.setPwn2("");
-                return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
+                return result.render(edt);
             }
 
             String pw1 = edt.getPwn1();
@@ -123,7 +124,7 @@ public class UserHandler
                                 edt.setPwn1("");
                                 edt.setPwn2("");
 
-                                return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
+                                return result.render(edt);
                             }
 
                             usr.hashPasswd(pw2);
@@ -134,11 +135,10 @@ public class UserHandler
                             edt.setPw("");
                             edt.setPwn1("");
                             edt.setPwn2("");
-                            return Results.html().template("/views/UserHandler/editUserForm.ftl.html").render(edt);
+                            return result.render(edt);
                         }
                     }
                 }
-                Result result = Results.redirect("/user/edit");
                 if (Arrays.asList(xcmConf.APP_LANGS).contains(edt.getLanguage()))
                 {
                     usr.setLanguage(edt.getLanguage());
@@ -150,7 +150,7 @@ public class UserHandler
                 mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
                 // user-edit was successful
                 context.getFlashCookie().success("i18nMsg_ChOk", (Object) null);
-                return result;
+                return result.redirect("/user/edit");
             }
             else
             { // the authorization-process failed
@@ -158,7 +158,7 @@ public class UserHandler
                 edt.setPwn1("");
                 edt.setPwn2("");
                 context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
-                return Results.redirect("/user/edit");
+                return result.redirect("/user/edit");
             }
         }
     }

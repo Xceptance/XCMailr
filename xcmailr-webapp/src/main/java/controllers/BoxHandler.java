@@ -101,6 +101,7 @@ public class BoxHandler
      */
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
+        Result result = Results.html().template("/views/BoxHandler/showAddBox.ftl.html");
         Map<String, Object> map = xcmConf.getDomListAsMap();
 
         if (validation.hasViolations())
@@ -112,7 +113,7 @@ public class BoxHandler
                 return Results.redirect("/mail/add");
             }
             map.put("mbFrmDat", mbdat);
-            return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
+            return result.render(map);
         }
         else
         {
@@ -133,12 +134,12 @@ public class BoxHandler
                     context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
                     map.put("mbFrmDat", mbdat);
 
-                    return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
+                    return result.render(map);
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
                     context.getFlashCookie().error("i18nCreateMail_Past_Timestamp", (Object) null);
-                    return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
+                    return result.render(map);
                 }
 
                 // create the MBox
@@ -148,7 +149,7 @@ public class BoxHandler
                 // creates the Box in the DB
                 mb.save();
 
-                return Results.redirect("/mail");
+                return result.redirect("/mail");
             }
             else
             {
@@ -156,7 +157,7 @@ public class BoxHandler
                 context.getFlashCookie().error("i18nMsg_MailEx", (Object) null);
                 map.put("mbFrmDat", mbdat);
 
-                return Results.html().template("/views/BoxHandler/showAddBox.ftl.html").render(map);
+                return result.render(map);
             }
         }
     }
@@ -172,13 +173,14 @@ public class BoxHandler
      */
     public Result deleteBox(@PathParam("id") Long boxid, Context context)
     {
+        Result result = Results.html().template("/views/BoxHandler/showBoxes.ftl.html");
         User usr = context.getAttribute("user", User.class);
         if (MBox.boxToUser(boxid, usr.getId()))
         {
             // deletes the box from DB
             MBox.delete(boxid);
         }
-        return Results.redirect("/mail");
+        return result.redirect("/mail");
     }
 
     /**
@@ -198,23 +200,24 @@ public class BoxHandler
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
                           Validation validation)
     {
+        Result result = Results.html().template("/views/BoxHandler/showEditBox.ftl.html");
         if (validation.hasViolations())
         { // not all fields were filled
             context.getFlashCookie().error("i18nMsg_FormErr", (Object) null);
             Map<String, Object> map = xcmConf.getDomListAsMap();
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
             {
-                return Results.redirect("/mail/edit/" + boxId.toString());
+                return result.redirect("/mail/edit/" + boxId.toString());
             }
             map.put("mbFrmDat", mbdat);
-            return Results.html().template("/views/BoxHandler/showEditBox.ftl.html").render(mbdat);
+            return result.render(mbdat);
         }
         else
         { // the form was filled correctly
 
             // we got the boxID with the POST-Request
             MBox mb = MBox.getById(boxId);
-            if (!(mb == null))
+            if (mb != null)
             { // the box with the given id exists
                 User usr = context.getAttribute("user", User.class);
 
@@ -242,12 +245,12 @@ public class BoxHandler
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
                         context.getFlashCookie().error("i18nMsg_WrongF", (Object) null);
-                        return Results.redirect("/mail/edit/" + boxId.toString());
+                        return result.redirect("/mail/edit/" + boxId.toString());
                     }
                     if ((ts != 0) && (ts < DateTime.now().getMillis()))
                     { // the Timestamp lays in the past
                         context.getFlashCookie().error("i18nEditEmail_Past_Timestamp", (Object) null);
-                        return Results.redirect("/mail/edit/" + boxId.toString());
+                        return result.redirect("/mail/edit/" + boxId.toString());
                     }
 
                     if (!(mb.getTs_Active() == ts))
@@ -263,18 +266,12 @@ public class BoxHandler
                         mb.update();
                     }
                 }
-                else
-                { // the current user is not the owner of the mailbox
-                    return Results.redirect("/mail");
-                }
             }
-            else
-            { // the given id does not exist
-                return Results.redirect("/mail");
-            }
-            return Results.redirect("/mail");
-
         }
+        // the current user is not the owner of the mailbox,
+        // the given box-id does not exist,
+        // or the editing-process was successful
+        return result.redirect("/mail");
     }
 
     /**
@@ -357,6 +354,7 @@ public class BoxHandler
 
     public Result expireBox(@PathParam("id") Long id, Context context)
     {
+        Result result = Results.html().template("/views/BoxHandler/showBoxes.ftl.html");
         MBox mb = MBox.getById(id);
         User usr = context.getAttribute("user", User.class);
 
@@ -364,14 +362,14 @@ public class BoxHandler
         {// check if the mailbox belongs to the current user
             if (!(mb.getTs_Active() == 0) && (mb.getTs_Active() < DateTime.now().getMillis()))
             { // if the validity period is over, return the Edit page
-                return Results.redirect("/mail/edit/" + id);
+                return result.redirect("/mail/edit/" + id);
             }
             else
             { // otherwise just set the new status
                 mb.enable();
             }
         }
-        return Results.redirect("/mail");
+        return result.redirect("/mail");
     }
 
     /**
@@ -385,6 +383,7 @@ public class BoxHandler
      */
     public Result resetBoxCounters(@PathParam("id") Long id, Context context)
     {
+        Result result = Results.html().template("/views/BoxHandler/showBoxes.ftl.html");
         MBox mb = MBox.getById(id);
         User usr = context.getAttribute("user", User.class);
 
@@ -395,6 +394,6 @@ public class BoxHandler
             mb.resetSuppressions();
             mb.update();
         }
-        return Results.redirect("/mail");
+        return result.redirect("/mail");
     }
 }
