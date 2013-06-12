@@ -27,6 +27,7 @@ Configuration:
  * Open and edit the application.conf in conf/ 
  * It is strongly recommended to create a new application secret. This secret ensures that the Session-Cookie of a User has not been modified. 
  * You should especially customize the following settings:
+    * **application.secret** uncomment and set this line, its used to verify session-cookies
     * **mbox.dlist**: the list of available domains
     * **mbox.host** the main-application-host 
     * ** mail.smtp.* ** the "outbound" SMTP-Server (the Server to which the Application will forward any "valid" Messages )
@@ -48,6 +49,8 @@ Build from Source:
  * First option (after you've changed sth. and want to check your changes), the development-mode:
     * cd into the 'xcmailr-webapp' folder
     * execute 'mvn clean jetty:run' to clean up the target-folder (if existent) and run the app in development-mode inside an embedded-jetty running on localhost:8080
+    * NOTE1: The webapp does not check whether the database and the tables exist. On the first run, you must set "%dev.ebean.ddl.run" and "%dev.ebean.ddl.generate" in application.conf to "true" to execute the "create table"-scripts and run the app successfully. (after that, you should set these values to "false" again, otherwise the database will be dropped and recreated after each server-reload)
+    * NOTE2 (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file and this will search for the file at first in this folder. In both cases you have to care that the .conf-files at ./xcmailr-webapp/src/main/java/conf and ./xcmailr-resources/conf are up-to-date and contain all necessary keys
  * Second option (to create the build-folder):
     * cd into the home-directory of the xcmailr
     * run 'mvn clean package' to create the build-folder
