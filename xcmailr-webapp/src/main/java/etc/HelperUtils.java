@@ -27,6 +27,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import ninja.Context;
 import ninja.Result;
+import ninja.Results;
 import ninja.i18n.Messages;
 import com.google.common.base.Optional;
 import com.google.inject.Singleton;
@@ -239,12 +240,12 @@ public class HelperUtils
     public static Map<String, Object> geti18nPrefixedLangMap(String[] avLangs, Context context, Messages msg)
     {
         String lng;
-        Optional<Result> opt = Optional.absent();
+        Optional<Result> opt = Optional.of(Results.html());
         Map<String, Object> map = new HashMap<String, Object>();
         List<String> avlngs = new ArrayList<String>();
         for (String s : avLangs)
         {
-            lng = msg.get("i18nLang_" + s, context, opt, (Object) null).get();
+            lng = msg.get("lang_" + s , context, opt, (Object) null).get();
             avlngs.add(lng);
         }
         map.put("available_langs", avlngs.toArray());

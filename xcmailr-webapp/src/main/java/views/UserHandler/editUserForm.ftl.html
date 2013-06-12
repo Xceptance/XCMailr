@@ -1,83 +1,83 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> 
-<@layout.xcLayout title="${i18nEditUser_Title}">
+<@layout.xcLayout title="m">
 <div class="row">
 <div class="span7">
-<form action="/user/edit" method="post" class="form-horizontal">
-<fieldset>
-<legend>${i18nEditUser_Title}</legend>  
-		<div class="control-group"> 
-			<label class="control-label" for="pw">${i18nEditUser_CurrentPassword_Label}*</label>
-			<div class="controls">  
-				<input class="input_full" type="password" id="pw" name="pw" value="${(editUsr.pw)!}" required="required"/>
+	<form action="/user/edit" method="post" class="form-horizontal">
+		<fieldset>
+			<legend>${i18n("editUser_Title")}</legend>  
+			<div class="control-group"> 
+				<label class="control-label" for="pw">${i18n("editUser_CurrentPassword_Label")}*</label>
+				<div class="controls">  
+					<input class="input_full" type="password" id="pw" name="pw" value="${(editUsr.pw)!}" required="required"/>
+				</div>
+			</div>	
+			<br/>	
+	        <div class="control-group"> 
+				<label class="control-label" for="firstName">${i18n("editUser_FirstName_Label")}*</label>
+				<div class="controls">  
+					<input class="input_full" type="text" id="firstName" name="firstName" value="${(editUsr.firstName)!}" required="required"/>
+				</div>
 			</div>
-		</div>	
-		<br/>	
-        <div class="control-group"> 
-			<label class="control-label" for="firstName">${i18nEditUser_FirstName_Label}*</label>
-			<div class="controls">  
-				<input class="input_full" type="text" id="firstName" name="firstName" value="${(editUsr.firstName)!}" required="required"/>
+			<div class="control-group"> 
+				<label class="control-label" for="surName">${i18n("editUser_Name_Label")}*</label>
+				<div class="controls">  
+					<input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required"/>
+				</div>
 			</div>
-		</div>
-		<div class="control-group"> 
-			<label class="control-label" for="surName">${i18nEditUser_Name_Label}*</label>
-			<div class="controls">  
-				<input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required"/>
+			<div class="control-group"> 
+				<label class="control-label" for="mail">${i18n("editUser_Email_Label")}*</label>
+				<div class="controls">  
+					<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required"/>
+				</div>
+			</div>	
+		<br/>
+			<div class="control-group"> 
+				<label class="control-label" for="pwn1">${i18n("editUser_NewPassword_Label")}</label>
+				<div class="controls">  
+					<input class="input_full" type="password" id="pwn1" name="pwn1" value="${(editUsr.pwn1)!}"/>
+				</div>
+			</div>		
+			<div class="control-group"> 
+				<label class="control-label" for="pwn2">${i18n("editUser_NewPasswordRepeated_Label")}</label>
+				<div class="controls">  
+					<input class="input_full" type="password" id="pwn2"	name="pwn2" value="${(editUsr.pwn2)!}"/>
+				</div>
 			</div>
-		</div>
-		<div class="control-group"> 
-			<label class="control-label" for="mail">${i18nEditUser_Email_Label}*</label>
-			<div class="controls">  
-				<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required"/>
+			<div class="control-group">
+				<label class="control-label"  for="language"> ${i18n("editUser_Language_Label")} </label>
+				<div class="controls">
+				<select name="language" id="language" >
+					<#if (editUsr.language)??>
+		  				
+			  			<#if editUsr.language=="de">	
+			  				<option value="de" selected="selected">Deutsch</option>
+			  			<#else>
+			  				<option value="de">Deutsch</option>
+			  			</#if>
+			  			<#if editUsr.language=="en">
+			  				<option value="en" selected="selected">English</option>
+			  			<#else>
+			  				<option value="en">English</option>
+			  			</#if>
+			  		<#else>	
+			  		    <option value="de">Deutsch</option>
+			  			<option value="en">English</option>
+			  		</#if>		
+				</select>
+				</div>
 			</div>
-		</div>	
-	<br/>
-		<div class="control-group"> 
-			<label class="control-label" for="pwn1">${i18nEditUser_NewPassword_Label}</label>
-			<div class="controls">  
-				<input class="input_full" type="password" id="pwn1" name="pwn1" value="${(editUsr.pwn1)!}"/>
+			
+			<div class="control-group"> 
+				<label class="control-label" >* ${i18n("editUser_RequiredDescription_Label")}</label>
 			</div>
-		</div>		
-		<div class="control-group"> 
-			<label class="control-label" for="pwn2">${i18nEditUser_NewPasswordRepeated_Label}</label>
-			<div class="controls">  
-				<input class="input_full" type="password" id="pwn2"	name="pwn2" value="${(editUsr.pwn2)!}"/>
+	
+			<div class="form-actions"> 
+				<input type="reset"  class="btn" value="${i18n("editUser_Reset_Label")}"/>
+				<input type="submit" class="btn btn-primary" value="${i18n("editUser_Save_Label")}"/>  
 			</div>
-		</div>
-		<div class="control-group">
-			<label class="control-label"  for="language"> ${i18nEditUser_Language_Label} </label>
-			<div class="controls">
-			<select name="language" id="language" >
-				<#if (editUsr.language)??>
-	  				
-		  			<#if editUsr.language=="de">	
-		  				<option value="de" selected="selected">Deutsch</option>
-		  			<#else>
-		  				<option value="de">Deutsch</option>
-		  			</#if>
-		  			<#if editUsr.language=="en">
-		  				<option value="en" selected="selected">English</option>
-		  			<#else>
-		  				<option value="en">English</option>
-		  			</#if>
-		  		<#else>	
-		  		    <option value="de">Deutsch</option>
-		  			<option value="en">English</option>
-		  		</#if>		
-			</select>
-			</div>
-		</div>
-		
-		<div class="control-group"> 
-			<label class="control-label" >* ${i18nEditUser_RequiredDescription_Label}</label>
-		</div>
-
-		<div class="form-actions"> 
-			<input type="reset"  class="btn" value="${i18nEditUser_Reset_Label}"/>
-			<input type="submit" class="btn btn-primary" value="${i18nEditUser_Save_Label}"/>  
-		</div>
-
-</fieldset>
-</form>
+	
+		</fieldset>
+	</form>
 </div>
 </div>
 </@layout.xcLayout>

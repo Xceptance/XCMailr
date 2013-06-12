@@ -2,7 +2,7 @@
 title="Home Page">
 <#import "../layout/macros.ftl.html" as pag/>
 <div class="row">
-	<h1 class="legendary">${i18nMailbox_Title}</h1> 
+	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<!--mailboxoverview-->
 	<div class="pagination"> 
 	<#if (mboxes.getEntryCount() > 0) >
@@ -22,15 +22,15 @@ title="Home Page">
 		<table class="table tablesorter table-hover table-condensed">
 		<thead>
 		    <tr>
-		    	<th class="header">${i18nMailbox_Address_Header}</th>	
-		    	<th class="header">${i18nMailbox_Duration_Header}</th>
-		    	<th class="header">${i18nMailbox_Forwards_Header}</th>
-		    	<th class="header">${i18nMailbox_Suppressions_Header}</th>
-		    	<th class="header">${i18nMailbox_Valid_Header}</th>
-		    	<th>${i18nMailbox_Renew_Header}</th>
-			    <th>${i18nMailbox_Delete_Header}</th>  	
-			    <th>${i18nMailbox_Reset_Header}</th> 
-			    <th>${i18nMailbox_Edit_Header}</th>
+		    	<th class="header">${i18n("mailbox_Address_Header")}</th>	
+		    	<th class="header">${i18n("mailbox_Duration_Header")}</th>
+		    	<th class="header">${i18n("mailbox_Forwards_Header")}</th>
+		    	<th class="header">${i18n("mailbox_Suppressions_Header")}</th>
+		    	<th class="header">${i18n("mailbox_Valid_Header")}</th>
+		    	<th>${i18n("mailbox_Renew_Header")}</th>
+			    <th>${i18n("mailbox_Delete_Header")}</th>  	
+			    <th>${i18n("mailbox_Reset_Header")}</th> 
+			    <th>${i18n("mailbox_Edit_Header")}</th>
 		    </tr>
 		    </thead>
 		    <tbody>
@@ -42,41 +42,41 @@ title="Home Page">
 		    </#if>   
 				<td>${mBox.address}&#064;${mBox.domain}</td>
 				<#if (mBox.getTSAsString()=="unlimited")>
-				<td>${i18nMailbox_Unlimited}</td>
+				<td>${i18n("mailbox_Unlimited")}</td>
 				<#else>
 				<td>${mBox.getTSAsString()}</td>
 				</#if>							
 				<td>${mBox.forwards}</td>
 				<td>${mBox.suppressions}</td>
 					<#if (mBox.isActive())>
-    				<td>${i18nMsg_Yes}</td>
+    				<td>${i18n("msg_Yes")}</td>
 	    			 <td><form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
-	                    <input type="submit" class= "btn  btn-small" value="${i18nMailbox_Deactivate_Button}"/>
+	                    <input type="submit" class= "btn  btn-small" value="${i18n("mailbox_Deactivate_Button")}"/>
 	                    </form>
 	                </td>
 		    	<#else>
-	    			<td>${i18nMsg_No}</td>
+	    			<td>${i18n("msg_No")}</td>
 	    	    	<td>
 		    	    	<form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
-		                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Activate_Button}"/>
+		                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Activate_Button")}"/>
 		                </form>
 	                </td>
 		    	</#if>
     			<td>
     			<form class="nomarg" action="/mail/delete/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Delete_Button}"/>
+                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Delete_Button")}"/>
                 </form>
                 </td>
                 
                 <td>
     			<form class="nomarg" action="/mail/reset/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value="${i18nMailbox_Reset_Button}"/>
+                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Reset_Button")}"/>
                 </form>
                 </td>
                 
 		        <td> 
 		        <form class="nomarg" action="/mail/edit/${mBox.id}" method="get">
-		             <input type="submit" class="btn btn-small" value="${i18nMailbox_Edit_Button}"/>
+		             <input type="submit" class="btn btn-small" value="${i18n("mailbox_Edit_Button")}"/>
 		         </form>
 		        </td>
 			</tr>
@@ -86,7 +86,7 @@ title="Home Page">
     </div> <!-- /tab pane (active) -->
   </#list>
   <#else>
-  	${i18nMsg_NoEntries}
+  	${i18n("msg_NoEntries")}
  </#if>
 </div><!-- /tab content -->
 <@pag.pager name=mboxes/>

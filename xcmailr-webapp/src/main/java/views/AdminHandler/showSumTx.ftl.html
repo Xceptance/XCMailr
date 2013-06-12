@@ -6,7 +6,7 @@ title="User Administration">
 <#if ((stats?size) > 0) > 
 	<table class="table tablesorter table-hover table-condensed">
 	<thead>
-	    <tr> <th class="header">${i18nAdmin_MtxStatus}</th> <th class="header">${i18nCount}</th> </tr>
+	    <tr> <th class="header">${i18n("admin_MtxStatus")}</th> <th class="header">${i18n("count")}</th> </tr>
 	</thead>
 	<tbody>
     	<#list stats as stat>
@@ -20,12 +20,12 @@ title="User Administration">
 	    	</#switch>
  		    	<td>
 			    	<#switch stat.statuscode>
-			    		<#case 100> ${i18nAdmin_MtxStat100}	<#break>
-			    		<#case 200> ${i18nAdmin_MtxStat200}	<#break>
-			    		<#case 300> ${i18nAdmin_MtxStat300} <#break>
-			    		<#case 400> ${i18nAdmin_MtxStat400} <#break>
-			    		<#case 500> ${i18nAdmin_MtxStat500} <#break>
-			    		<#default> 	${i18nAdmin_MtxUnknown} <#break>
+			    		<#case 100> ${i18n("admin_MtxStat100")}	<#break>
+			    		<#case 200> ${i18n("admin_MtxStat200")}	<#break>
+			    		<#case 300> ${i18n("admin_MtxStat300")} <#break>
+			    		<#case 400> ${i18n("admin_MtxStat400")} <#break>
+			    		<#case 500> ${i18n("admin_MtxStat500")} <#break>
+			    		<#default> 	${i18n("admin_MtxUnknown")} <#break>
 			    	</#switch>
 			    </td>
 	    		<td>${stat.count}</td>
@@ -37,7 +37,7 @@ title="User Administration">
  <@pag.incSorter/>
  
   <#else>
-  ${i18nMsg_NoEntries}
+  ${i18n("msg_NoEntries")}
 </#if>
 </div>
 </@layout.adminLayout>	

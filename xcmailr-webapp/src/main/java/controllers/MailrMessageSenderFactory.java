@@ -160,9 +160,9 @@ public class MailrMessageSenderFactory
         strb.append("/verify/" + id + "/" + token);
 
         // generate the message-body
-        String body = msg.get("i18nUser_Verify_Message", lang, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
+        String body = msg.get("user_Verify_Message", lang, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
         // generate the message-subject
-        String subj = msg.get("i18nUser_Verify_Subject", lang, (Object) null).get();
+        String subj = msg.get("user_Verify_Subject", lang, (Object) null).get();
 
         // send the Mail
         sendMail(from, to, body, subj);
@@ -198,10 +198,10 @@ public class MailrMessageSenderFactory
         strb.append("/lostpw/" + id + "/" + token);
 
         // generate the Message-Body
-        String body = msg.get("i18nUser_PwResend_Message", lang, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
+        String body = msg.get("user_PwResend_Message", lang, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
 
         // generate the Message-Subject
-        String subj = msg.get("i18nUser_PwResend_Subject", lang, (Object) null).get();
+        String subj = msg.get("user_PwResend_Subject", lang, (Object) null).get();
 
         // send the Mail
         sendMail(from, to, body, subj);

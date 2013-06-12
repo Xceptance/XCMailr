@@ -4,16 +4,16 @@ title="Home Page">
 	<div class="span7">
 		<form action="/mail/add" method="post" class="form-horizontal">
 			<fieldset>
-				<legend>${i18nCreateEmail_Title}</legend>
+				<legend>${i18n("createEmail_Title")}</legend>
 
 				<div class="control-group">
-					<label class="control-label" for="address">	${i18nCreateEmail_Local_Label} </label>
+					<label class="control-label" for="address">	${i18n("createEmail_Local_Label")} </label>
 					<div class="controls">
 						<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required" />
 					</div>
 				</div>
 				<div class="control-group">
-					<label class="control-label" for="domain"> ${i18nCreateEmail_Domain_Label} </label>
+					<label class="control-label" for="domain"> ${i18n("createEmail_Domain_Label")} </label>
 					<div class="controls">
 						<select name="domain"> 
 						<#list domain as String> 
@@ -31,7 +31,7 @@ title="Home Page">
 					</div>
 				</div>				
 				<div class="control-group">
-					<label class="control-label" for="duration">${i18nCreateEmail_Duration_Label}</label>
+					<label class="control-label" for="duration">${i18n("createEmail_Duration_Label")}</label>
 					<div class="controls">
 				  	<div id="datetimepicker" class="input-append">
 				    	<input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${ (mbFrmDat.datetime)!}" required="required"/>
@@ -40,7 +40,7 @@ title="Home Page">
 					    </span>
 				    </div>
 				    <div>
-						<input type="checkbox" id="group1"/> ${i18nCreateMail_Unlimited}
+						<input type="checkbox" id="group1"/> ${i18n("createMail_Unlimited")}
 					</div>
 				  </div>
 
@@ -61,8 +61,8 @@ title="Home Page">
 				</script>
 				
 				<div class="form-actions">
-					<input type="reset" class="btn" value="${i18nCreateMail_Reset_Button}"/>
-					<input type="submit" class="btn btn-primary" value="${i18nCreateMail_New_Button}" />
+					<input type="reset" class="btn" value="${i18n("createMail_Reset_Button")}"/>
+					<input type="submit" class="btn btn-primary" value="${i18n("createMail_New_Button")}" />
 				</div>
 			</fieldset>
 		</form>

@@ -4,23 +4,23 @@
 <div class="span7">
 <form action="/login" method="post" class="form-horizontal">
 <fieldset>
-<legend>${i18nLogin_Title}</legend>  
+<legend>${i18n("login_Title")}</legend>  
         <div class="control-group"> 
-			<label class="control-label" for="mail"> ${i18nLogin_Email_Label} </label>
+			<label class="control-label" for="mail"> ${i18n("login_Email_Label")} </label>
 			<div class="controls">  
 				<input class="input_full" type="email" id="mail" name="mail" required="required" value="${(login.mail)!}"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label" for="pwd"> ${i18nLogin_Password_Label} </label>
+			<label class="control-label" for="pwd"> ${i18n("login_Password_Label")} </label>
 			<div class="controls"> 
 				<input class="input_full" type="password" id="pwd" name="pwd" required="required" value="${(login.pwd)!}"/>
-				<span class="help-inline"><a href="/pwresend">${i18nLogin_Link_ForgotPassword_Label}</a></span>
+				<span class="help-inline"><a href="/pwresend">${i18n("login_Link_ForgotPassword_Label")}</a></span>
 			</div>
 		</div>
 		<div class="form-actions"> 
-			<input type="reset" class="btn"	value="${i18nLogin_Reset_Button}"/>
-			<input type="submit" class="btn btn-primary" value="${i18nLogin_Login_Button}" /> 
+			<input type="reset" class="btn"	value="${i18n("login_Reset_Button")}"/>
+			<input type="submit" class="btn btn-primary" value="${i18n("login_Login_Button")}" /> 
 		</div>
 </fieldset>
 </form>

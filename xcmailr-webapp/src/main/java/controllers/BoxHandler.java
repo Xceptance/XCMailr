@@ -17,8 +17,6 @@
 package controllers;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Results;
@@ -60,7 +58,6 @@ public class BoxHandler
      */
     public Result showAddBox(Context context)
     {
-        Map<String, Object> map = xcmConf.getDomListAsMap();
         MbFrmDat mbdat = new MbFrmDat();
         // set the value of the random-name to 7
         // use the lowercase, we handle the address as case-insensitive
@@ -82,9 +79,8 @@ public class BoxHandler
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
         mbdat.setDatetime(HelperUtils.parseStringTs(nowPlusOneHour));
         mbdat.setDomain(domains[0]);
-        map.put("mbFrmDat", mbdat);
 
-        return Results.html().render(map);
+        return Results.html().render("domain", domains).render("mbFrmDat", mbdat);
     }
 
     /**
@@ -102,18 +98,20 @@ public class BoxHandler
     public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        Map<String, Object> map = xcmConf.getDomListAsMap();
+        result.render("domain", xcmConf.DM_LIST);
+        // Map<String, Object> map = xcmConf.getDomListAsMap();
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
 
-            context.getFlashCookie().error("i18nMsg_FormErr");
+            context.getFlashCookie().error("msg_FormErr");
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
             {
                 return result.redirect("/mail/add");
             }
-            map.put("mbFrmDat", mbdat);
-            return result.template("/views/BoxHandler/showAddBox.ftl.html").render(map);
+            // map.put("mbFrmDat", mbdat);
+            result.render("mbFrmDat", mbdat);
+            return result.template("/views/BoxHandler/showAddBox.ftl.html");
         }
         else
         {
@@ -131,15 +129,16 @@ public class BoxHandler
                 Long ts = HelperUtils.parseTimeString(mbdat.getDatetime());
                 if (ts == -1L)
                 { // show an error-page if the timestamp is faulty
-                    context.getFlashCookie().error("i18nMsg_WrongF");
-                    map.put("mbFrmDat", mbdat);
-
-                    return result.template("/views/BoxHandler/showAddBox.ftl.html").render(map);
+                    context.getFlashCookie().error("msg_WrongF");
+                    // map.put("mbFrmDat", mbdat);
+                    result.render("mbFrmDat", mbdat);
+                    return result.template("/views/BoxHandler/showAddBox.ftl.html");
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
-                    context.getFlashCookie().error("i18nCreateMail_Past_Timestamp");
-                    return result.template("/views/BoxHandler/showAddBox.ftl.html").render(map);
+                    context.getFlashCookie().error("createMail_Past_Timestamp");
+                    result.render("mbFrmDat", mbdat);
+                    return result.template("/views/BoxHandler/showAddBox.ftl.html");
                 }
 
                 // create the MBox
@@ -154,10 +153,10 @@ public class BoxHandler
             else
             {
                 // the mailbox already exists
-                context.getFlashCookie().error("i18nMsg_MailEx");
-                map.put("mbFrmDat", mbdat);
+                context.getFlashCookie().error("msg_MailEx");
 
-                return result.template("/views/BoxHandler/showAddBox.ftl.html").render(map);
+                result.render("mbFrmDat", mbdat);
+                return result.template("/views/BoxHandler/showAddBox.ftl.html");
             }
         }
     }
@@ -173,7 +172,7 @@ public class BoxHandler
      */
     public Result deleteBox(@PathParam("id") Long boxid, Context context)
     {
-        Result result = Results.html().template("/views/BoxHandler/showBoxes.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         User usr = context.getAttribute("user", User.class);
         if (MBox.boxToUser(boxid, usr.getId()))
         {
@@ -200,17 +199,18 @@ public class BoxHandler
     public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
                           Validation validation)
     {
-        Result result = Results.html().template("/views/BoxHandler/showBoxes.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
+        result.render("domain", xcmConf.DM_LIST);
         if (validation.hasViolations())
         { // not all fields were filled
-            context.getFlashCookie().error("i18nMsg_FormErr");
-            Map<String, Object> map = xcmConf.getDomListAsMap();
+            context.getFlashCookie().error("msg_FormErr");
+
             if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
             {
                 return result.redirect("/mail/edit/" + boxId.toString());
             }
-            map.put("mbFrmDat", mbdat);
-            return result.template("/views/BoxHandler/showEditBox.ftl.html").render(mbdat);
+            result.render("mbFrmDat", mbdat);
+            return result.template("/views/BoxHandler/showEditBox.ftl.html");
         }
         else
         { // the form was filled correctly
@@ -235,7 +235,7 @@ public class BoxHandler
                         {
                             // the new domainname does not exist in the application.conf
                             // stop the process and return to the mailbox-overview page
-                            return Results.redirect("/mail");
+                            return result.redirect("/mail");
                         }
                         mb.setAddress(newLName);
                         mb.setDomain(newDName);
@@ -244,13 +244,13 @@ public class BoxHandler
                     Long ts = HelperUtils.parseTimeString(mbdat.getDatetime());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
-                        context.getFlashCookie().error("i18nMsg_WrongF");
-                        return result.template("/views/BoxHandler/showEditBox.ftl.html").redirect("/mail/edit/" + boxId.toString());
+                        context.getFlashCookie().error("msg_WrongF");
+                        return result.redirect("/mail/edit/" + boxId.toString());
                     }
                     if ((ts != 0) && (ts < DateTime.now().getMillis()))
                     { // the Timestamp lays in the past
-                        context.getFlashCookie().error("i18nEditEmail_Past_Timestamp");
-                        return result.template("/views/BoxHandler/showEditBox.ftl.html").redirect("/mail/edit/" + boxId.toString());
+                        context.getFlashCookie().error("editEmail_Past_Timestamp");
+                        return result.redirect("/mail/edit/" + boxId.toString());
                     }
 
                     if (!(mb.getTs_Active() == ts))
@@ -298,16 +298,13 @@ public class BoxHandler
 
             if (mb.belongsTo(usr.getId()))
             { // the MBox belongs to this user
-                MbFrmDat mbdat = new MbFrmDat();
-                mbdat.setBoxId(boxId);
-                mbdat.setAddress(mb.getAddress());
-                mbdat.setDomain(mb.getDomain());
-                mbdat.setDatetime(mb.getTSAsStringWithNull());
+                MbFrmDat mbDat = new MbFrmDat();
+                mbDat.setBoxId(boxId);
+                mbDat.setAddress(mb.getAddress());
+                mbDat.setDomain(mb.getDomain());
+                mbDat.setDatetime(mb.getTSAsStringWithNull());
 
-                Map<String, Object> map = xcmConf.getDomListAsMap();
-                map.put("mbFrmDat", mbdat);
-
-                return Results.html().render(map);
+                return Results.html().render("mbFrmDat", mbDat).render("domain", xcmConf.DM_LIST);
             }
             else
             { // the MBox does not belong to this user
@@ -327,7 +324,6 @@ public class BoxHandler
     public Result showBoxes(Context context)
     {
         User usr = context.getAttribute("user", User.class);
-
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
@@ -336,10 +332,7 @@ public class BoxHandler
         // generate the paged-list to get pagination in the pattern
         PageList<MBox> plist = new PageList<MBox>(MBox.allUser(usr.getId()), entries);
 
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("mboxes", plist);
-
-        return Results.html().render(map);
+        return Results.html().render("mboxes", plist);
     }
 
     /**

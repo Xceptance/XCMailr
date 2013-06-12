@@ -2,24 +2,24 @@
 <@layout.xcLayout title="Home page">
 
 <div class="span7">
-<form action="/lostpw/${(id)!}/${(token)!}" method="post" class="form-horizontal">
+<form action="/lostpw/${id}/${token}" method="post" class="form-horizontal">
 <fieldset>
 <legend></legend>
         <div class="control-group"> 
-			<label class="control-label" for="pw"> ${i18nUser_Pw1} </label>
+			<label class="control-label" for="pw"> ${i18n("user_Pw1")} </label>
 			<div class="controls">  
 				<input class="input_full" type="password" id="pw" name="pw" value="${(pwd.pw)!}" required="required"/>
 			</div>
 		</div>
 		<div class="control-group"> 
-			<label class="control-label"  for="pw2"> ${i18nUser_Pw2} </label>
+			<label class="control-label"  for="pw2"> ${i18n("user_Pw2")} </label>
 				<div class="controls">  
 				<input class="input_full" type="password" id="pw2" name="pw2" value="${(pwd.pw2)!}" required="required"/>
 				</div>
 		</div>
 		<div class="form-actions"> 
-		<input type="reset" class="btn" value="${i18nMsg_Reset}"/>
-		<input type="submit" class="btn btn-primary" value="${i18nLink_ForgotPw}" /> 
+		<input type="reset" class="btn" value="${i18n("msg_Reset")}"/>
+		<input type="submit" class="btn btn-primary" value="${i18n("link_ForgotPw")}" /> 
 		</div>	
 </fieldset>
 </form>

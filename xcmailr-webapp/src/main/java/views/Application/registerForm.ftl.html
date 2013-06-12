@@ -1,44 +1,44 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
 title="Home page">
 
-<div class="cpan7">
+<div class="span7">
 	<form action="/register" method="post" class="form-horizontal">
 		<fieldset>
-			<legend>${i18nRegisterUser_Title}</legend>
+			<legend>${i18n("registerUser_Title")}</legend>
 			<div class="control-group">
-				<label class="control-label" for="firstName">${i18nRegisterUser_FirstName_Label} </label>
+				<label class="control-label" for="firstName">${i18n("registerUser_FirstName_Label")} </label>
 				<div class="controls">
 					<input class="input_full" type="text" id="firstName" name="firstName" value="${(editUsr.firstName)!}" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="surname">
-					${i18nRegisterUser_Name_Label} </label>
+					${i18n("registerUser_Name_Label")} </label>
 				<div class="controls">
 					<input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label" for="mail"> ${i18nRegisterUser_Email_Label} </label>
+				<label class="control-label" for="mail"> ${i18n("registerUser_Email_Label")} </label>
 				<div class="controls">
 					<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required" />
 				</div>
 			</div>
 
 			<div class="control-group">
-				<label class="control-label" for="user_pw"> ${i18nRegisterUser_Password_Label} </label>
+				<label class="control-label" for="user_pw"> ${i18n("registerUser_Password_Label")} </label>
 				<div class="controls">
 					<input class="input_full" type="password" id="pw" name="pw" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label" for="user_pwagain">${i18nRegisterUser_Password_Repeat_Label} </label>
+				<label class="control-label" for="user_pwagain">${i18n("registerUser_Password_Repeat_Label")} </label>
 				<div class="controls">
 					<input class="input_full" type="password" id="pwn1" name="pwn1" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
-			<label class="control-label"  for="language"> ${i18nRegisterUser_Language_Label} </label>
+			<label class="control-label"  for="language"> ${i18n("registerUser_Language_Label")} </label>
 			<div class="controls">
 			<select name="language" id="language" >
 				<#if (editUsr.language)??>
@@ -62,8 +62,8 @@ title="Home page">
 		</div>
 
 			<div class="form-actions">
-				<input type="reset" class="btn" value="${i18nRegisterUser_Reset_Button}"/>
-				<input type="submit" class="btn btn-primary" value="${i18nRegisterUser_Create_Button}" /> 
+				<input type="reset" class="btn" value="${i18n("registerUser_Reset_Button")}"/>
+				<input type="submit" class="btn btn-primary" value="${i18n("registerUser_Create_Button")}" /> 
 			</div>
 		</fieldset>
 	</form>

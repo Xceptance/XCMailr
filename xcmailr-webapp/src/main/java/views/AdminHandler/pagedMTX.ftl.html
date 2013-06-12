@@ -22,11 +22,11 @@ title="User Administration" >
 	<table class="table tablesorter table-hover table-condensed">
 		<thead>
 	    <tr>
-		    <th class="header">${i18nAdmin_MtxTs}</th>
-		    <th class="header">${i18nAdmin_MtxStatus}</th>
-			<th class="header">${i18nAdmin_MtxSource}</th>
-		    <th class="header">${i18nAdmin_MtxRelay}</th>
-		    <th class="header">${i18nAdmin_MtxTarget}</th>
+		    <th class="header">${i18n("admin_MtxTs")}</th>
+		    <th class="header">${i18n("admin_MtxStatus")}</th>
+			<th class="header">${i18n("admin_MtxSource")}</th>
+		    <th class="header">${i18n("admin_MtxRelay")}</th>
+		    <th class="header">${i18n("admin_MtxTarget")}</th>
 	    </tr>
 	    </thead>
 	    <tbody>
@@ -42,12 +42,12 @@ title="User Administration" >
 					<td>${mtx.getTsAsString()}</td>
 				    <td>
 				    	<#switch mtx.status>
-				    		<#case 100> ${i18nAdmin_MtxStat100} <#break>
-				    		<#case 200>	${i18nAdmin_MtxStat200} <#break>
-				    		<#case 300> ${i18nAdmin_MtxStat300} <#break>
-				    		<#case 400> ${i18nAdmin_MtxStat400} <#break>
-							<#case 500> ${i18nAdmin_MtxStat500} <#break>
-				    		<#default> ${i18nAdmin_MtxUnknown}
+				    		<#case 100> ${i18n("admin_MtxStat100")} <#break>
+				    		<#case 200>	${i18n("admin_MtxStat200")} <#break>
+				    		<#case 300> ${i18n("admin_MtxStat300")} <#break>
+				    		<#case 400> ${i18n("admin_MtxStat400")} <#break>
+							<#case 500> ${i18n("admin_MtxStat500")} <#break>
+				    		<#default> ${i18n("admin_MtxUnknown")}
 				    	</#switch>
 				    </td>
 				    <td> ${(mtx.sourceaddr)!} </td>
@@ -64,7 +64,7 @@ title="User Administration" >
 <@pag.pager name=plist/>
 <@pag.incSorter/>
 <#else>
-  	${i18nMsg_NoEntries}
+  	${i18n("msg_NoEntries")}
 </#if>
 
 </@layout.adminLayout>	

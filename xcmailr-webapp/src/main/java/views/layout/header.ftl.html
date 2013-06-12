@@ -6,23 +6,23 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="/">${app_Name}</a>
+          <a class="brand" href="/">${i18n("app_Name")}</a>
           <div class="nav-collapse">
             <ul class="nav">
 				<#if (session.username)??>
-				  <li><a href="/mail">${i18nLink_Mb}</a></li>
-				  <li><a href="/mail/add">${i18nLink_AddMb}</a></li>                          
+				  <li><a href="/mail">${i18n("link_Mb")}</a></li>
+				  <li><a href="/mail/add">${i18n("link_AddMb")}</a></li>                          
             </ul>
             <ul class="nav pull-right">
             		<li class="navbar-text">${session.username}</li>
             	<#if (session.adm)??>
 	            	<li><a href="/admin">Admin</a></li>
             	</#if>
-			      	<li><a href="/user/edit">${i18nLink_Edit}</a></li>
-	            	<li><a href="/logout">${i18nLink_Logout}</a></li>
+			      	<li><a href="/user/edit">${i18n("link_Edit")}</a></li>
+	            	<li><a href="/logout">${i18n("link_Logout")}</a></li>
 				<#else>
-					<li><a href="/login">${i18nLink_Login}</a></li>   
-					<li><a href="/register">${i18nLink_Register}</a></li>
+					<li><a href="/login">${i18n("link_Login")}</a></li>   
+					<li><a href="/register">${i18n("link_Register")}</a></li>
 				</#if>
             </ul>
           </div><!--/.nav-collapse -->

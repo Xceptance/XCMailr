@@ -198,19 +198,19 @@ public class AdminHandler
             { // the account is now active
               // generate the message title
 
-                String subject = msg.get("i18nUser_Activate_Title", opt, host).get();
+                String subject = msg.get("user_Activate_Title", opt, host).get();
                 // generate the message body
 
-                String content = msg.get("i18nUser_Activate_Message", opt, actusr.getForename()).get();
+                String content = msg.get("user_Activate_Message", opt, actusr.getForename()).get();
                 // send the mail
                 mmhf.sendMail(from, actusr.getMail(), content, subject);
             }
             else
             {// the account is now inactive
              // generate the message title
-                String subject = msg.get("i18nUser_Deactivate_Title", opt, host).get();
+                String subject = msg.get("user_Deactivate_Title", opt, host).get();
                 // generate the message body
-                String content = msg.get("i18nUser_Deactivate_Message", opt, actusr.getForename()).get();
+                String content = msg.get("user_Deactivate_Message", opt, actusr.getForename()).get();
                 // send the mail
                 mmhf.sendMail(from, actusr.getMail(), content, subject);
             }
