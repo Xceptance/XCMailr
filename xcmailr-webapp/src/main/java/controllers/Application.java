@@ -120,7 +120,8 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
     {
-        Result result = Results.html().template("/views/Application/registerForm.ftl.html");
+        Result result = Results.noContent().template("/views/Application/registerForm.ftl.html");
+        //Result result = Results.template("/views/Application/registerForm.ftl.html");
         Map<String, Object> map = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
         if (validation.hasViolations())
         {
@@ -190,7 +191,7 @@ public class Application
                     mmhf.sendConfirmAddressMail(user.getMail(), user.getForename(), String.valueOf(user.getId()),
                                                 user.getConfirmation(), lng);
                     context.getFlashCookie().success("i18nMsg_RegOk", (Object) null);
-                    result = Results.redirect("/");
+                    result = result.redirect("/");
                     lang.setLanguage(user.getLanguage(), result);
                     return result;
                 }
