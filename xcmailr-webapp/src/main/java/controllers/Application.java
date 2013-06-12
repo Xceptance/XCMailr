@@ -120,7 +120,7 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
     {
-        Result result = Results.html().template("/views/AdminHandler/registerForm.ftl.html");
+        Result result = Results.html().template("/views/Application/registerForm.ftl.html");
         Map<String, Object> map = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
         if (validation.hasViolations())
         {
