@@ -147,7 +147,7 @@ public class BoxHandler
                 // creates the Box in the DB
                 mb.save();
 
-                return result.redirect("/mail");
+                return result.redirect(context.getContextPath()+"/mail");
             }
             else
             {
@@ -178,7 +178,7 @@ public class BoxHandler
             // deletes the box from DB
             MBox.delete(boxId);
         }
-        return result.redirect("/mail");
+        return result.redirect(context.getContextPath()+"/mail");
     }
 
     /**
@@ -206,7 +206,7 @@ public class BoxHandler
 
             if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null) || (mailboxFormData.getDatetime() == null))
             {
-                return result.redirect("/mail/edit/" + boxId.toString());
+                return result.redirect(context.getContextPath()+"/mail/edit/" + boxId.toString());
             }
             result.render("mbFrmDat", mailboxFormData);
             return result.template("/views/BoxHandler/showEditBox.ftl.html");
@@ -234,7 +234,7 @@ public class BoxHandler
                         {
                             // the new domainname does not exist in the application.conf
                             // stop the process and return to the mailbox-overview page
-                            return result.redirect("/mail");
+                            return result.redirect(context.getContextPath()+"/mail");
                         }
                         mailBox.setAddress(newLName);
                         mailBox.setDomain(newDName);
@@ -244,12 +244,12 @@ public class BoxHandler
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
                         context.getFlashCookie().error("msg_WrongF");
-                        return result.redirect("/mail/edit/" + boxId.toString());
+                        return result.redirect(context.getContextPath()+"/mail/edit/" + boxId.toString());
                     }
                     if ((ts != 0) && (ts < DateTime.now().getMillis()))
                     { // the Timestamp lays in the past
                         context.getFlashCookie().error("editEmail_Past_Timestamp");
-                        return result.redirect("/mail/edit/" + boxId.toString());
+                        return result.redirect(context.getContextPath()+"/mail/edit/" + boxId.toString());
                     }
 
                     if (!(mailBox.getTs_Active() == ts))
@@ -270,7 +270,7 @@ public class BoxHandler
         // the current user is not the owner of the mailbox,
         // the given box-id does not exist,
         // or the editing-process was successful
-        return result.redirect("/mail");
+        return result.redirect(context.getContextPath()+"/mail");
     }
 
     /**
@@ -289,7 +289,7 @@ public class BoxHandler
 
         if (mailBox == null)
         { // there's no box with that id
-            return Results.redirect("/mail");
+            return Results.redirect(context.getContextPath()+"/mail");
         }
         else
         { // the box exists, go on!
@@ -302,7 +302,7 @@ public class BoxHandler
             }
             else
             { // the MBox does not belong to this user
-                return Results.redirect("/mail");
+                return Results.redirect(context.getContextPath()+"/mail");
             }
         }
     }
@@ -349,14 +349,14 @@ public class BoxHandler
         {// check if the mailbox belongs to the current user
             if (!(mailBox.getTs_Active() == 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
             { // if the validity period is over, return the Edit page
-                return result.redirect("/mail/edit/" + boxId);
+                return result.redirect(context.getContextPath()+"/mail/edit/" + boxId);
             }
             else
             { // otherwise just set the new status
                 mailBox.enable();
             }
         }
-        return result.redirect("/mail");
+        return result.redirect(context.getContextPath()+"/mail");
     }
 
     /**
@@ -381,6 +381,6 @@ public class BoxHandler
             mailBox.resetSuppressions();
             mailBox.update();
         }
-        return result.redirect("/mail");
+        return result.redirect(context.getContextPath()+"/mail");
     }
 }

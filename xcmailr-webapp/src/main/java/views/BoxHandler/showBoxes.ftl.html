@@ -6,7 +6,7 @@ title="Home Page">
 	<!--mailboxoverview-->
 	<div class="pagination"> 
 	<#if (mboxes.getEntryCount() > 0) >
-	<form action="/mail">
+	<form action="${contextPath}/mail">
 	<@pag.entrycount/>
 	</form>
 	</#if>
@@ -50,32 +50,32 @@ title="Home Page">
 				<td>${mBox.suppressions}</td>
 					<#if (mBox.isActive())>
     				<td>${i18n("msg_Yes")}</td>
-	    			 <td><form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
+	    			 <td><form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
 	                    <input type="submit" class= "btn  btn-small" value="${i18n("mailbox_Deactivate_Button")}"/>
 	                    </form>
 	                </td>
 		    	<#else>
 	    			<td>${i18n("msg_No")}</td>
 	    	    	<td>
-		    	    	<form class="nomarg" action="/mail/expire/${mBox.id}" method="post">
+		    	    	<form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
 		                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Activate_Button")}"/>
 		                </form>
 	                </td>
 		    	</#if>
     			<td>
-    			<form class="nomarg" action="/mail/delete/${mBox.id}" method="post"> 
+    			<form class="nomarg" action="${contextPath}/mail/delete/${mBox.id}" method="post"> 
                     <input type="submit" class="btn btn-small" value="${i18n("mailbox_Delete_Button")}"/>
                 </form>
                 </td>
                 
                 <td>
-    			<form class="nomarg" action="/mail/reset/${mBox.id}" method="post"> 
+    			<form class="nomarg" action="${contextPath}/mail/reset/${mBox.id}" method="post"> 
                     <input type="submit" class="btn btn-small" value="${i18n("mailbox_Reset_Button")}"/>
                 </form>
                 </td>
                 
 		        <td> 
-		        <form class="nomarg" action="/mail/edit/${mBox.id}" method="get">
+		        <form class="nomarg" action="${contextPath}/mail/edit/${mBox.id}" method="get">
 		             <input type="submit" class="btn btn-small" value="${i18n("mailbox_Edit_Button")}"/>
 		         </form>
 		        </td>

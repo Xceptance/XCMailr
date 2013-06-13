@@ -2,7 +2,7 @@
 <@layout.xcLayout title="Home page">
 
 <div class="span7">
-<form action="/login" method="post" class="form-horizontal">
+<form action="${contextPath}/login" method="post" class="form-horizontal">
 <fieldset>
 <legend>${i18n("login_Title")}</legend>  
         <div class="control-group"> 
@@ -15,7 +15,7 @@
 			<label class="control-label" for="pwd"> ${i18n("login_Password_Label")} </label>
 			<div class="controls"> 
 				<input class="input_full" type="password" id="password" name="password" required="required" value="${(login.password)!}"/>
-				<span class="help-inline"><a href="/pwresend">${i18n("login_Link_ForgotPassword_Label")}</a></span>
+				<span class="help-inline"><a href="${contextPath}/pwresend">${i18n("login_Link_ForgotPassword_Label")}</a></span>
 			</div>
 		</div>
 		<div class="form-actions"> 

@@ -2,7 +2,7 @@
 title="Home Page">
 <div class="row">
 	<div class="span7">
-		<form action="/mail/edit/${mbFrmDat.boxId}" class="form-horizontal"
+		<form action="${contextPath}/mail/edit/${mbFrmDat.boxId}" class="form-horizontal"
 			method="post">
 			<fieldset>
 				<legend>${i18n("editEmail_Title")}</legend>
@@ -71,8 +71,8 @@ title="Home Page">
 		</form>
 	</div>
 </div>
-<script type="text/javascript" src="/assets/js/bootstrap-datetimepicker.min.js"></script>
-<script type="text/javascript" src="/assets/js/bootstrap-datetimepicker.de.js"></script>
-<script type="text/javascript" src="/assets/js/picker-enable.js"></script>  
+<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script>
+<script type="text/javascript" src="${contextPath}/assets/js/picker-enable.js"></script>  
 </@layout.xcLayout>
 

@@ -33,7 +33,7 @@
 </#macro>
 
 <#macro incSorter vals=[]>
-    <script type="text/javascript" src="/assets/js/jquery.tablesorter.js"></script> 
+    <script type="text/javascript" src="${contextPath}/assets/js/jquery.tablesorter.js"></script> 
     <script type="text/javascript" id="js">
     $(document).ready(function() 
 	    { 
@@ -56,11 +56,11 @@
 <div class="btn-group">
 	<button class="btn dropdown-toggle btn-small" data-toggle="dropdown">${i18n("admin_RemoveMtx")}<span class="caret"></span></button>
 	<ul class="dropdown-menu">
-		<li><a href="/admin/mtxs/delete/7">1 ${i18n("admin_Week")}</a></li>
-		<li><a href="/admin/mtxs/delete/14">2 ${i18n("admin_Week")}</a></li>
-		<li><a href="/admin/mtxs/delete/21">3 ${i18n("admin_Week")}</a></li>
-		<li><a href="/admin/mtxs/delete/28">4 ${i18n("admin_Week")}</a></li>
-		<li><a href="/admin/mtxs/delete/-1">All</a></li>
+		<li><a href="${contextPath}/admin/mtxs/delete/7">1 ${i18n("admin_Week")}</a></li>
+		<li><a href="${contextPath}/admin/mtxs/delete/14">2 ${i18n("admin_Week")}</a></li>
+		<li><a href="${contextPath}/admin/mtxs/delete/21">3 ${i18n("admin_Week")}</a></li>
+		<li><a href="${contextPath}/admin/mtxs/delete/28">4 ${i18n("admin_Week")}</a></li>
+		<li><a href="${contextPath}/admin/mtxs/delete/-1">All</a></li>
 	</ul>
 </div><!-- /btn-group -->
 </#macro>

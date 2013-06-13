@@ -138,7 +138,7 @@ public class AdminHandler
      * @return to the MailTransaction-Page
      */
 
-    public Result deleteMTX(@PathParam("time") Integer time)
+    public Result deleteMTX(@PathParam("time") Integer time, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         if (time == -1)
@@ -152,7 +152,7 @@ public class AdminHandler
             MailTransaction.deleteTxInPeriod(dt.getMillis());
         }
 
-        return result.redirect("/admin/mtxs");
+        return result.redirect(context.getContextPath()+"/admin/mtxs");
     }
 
     /**
@@ -201,11 +201,11 @@ public class AdminHandler
                 // send the mail
                 memCachedSessionHandler.sendMail(from, actusr.getMail(), content, subject);
             }
-            return result.redirect("/admin/users");
+            return result.redirect(context.getContextPath()+"/admin/users");
         }
         else
         { // the admin wants to disable his own account, this is not allowed
-            return result.redirect("/admin/users");
+            return result.redirect(context.getContextPath()+"/admin/users");
         }
     }
 
@@ -227,7 +227,7 @@ public class AdminHandler
         { // the user to pro-/demote is not the user who performs this action
             User.promote(userId);
         }
-        return result.redirect("/admin/users");
+        return result.redirect(context.getContextPath()+"/admin/users");
     }
 
     /**
@@ -249,7 +249,7 @@ public class AdminHandler
             User.delete(userId);
         }
 
-        return result.redirect("/admin/users");
+        return result.redirect(context.getContextPath()+"/admin/users");
     }
 
 }
