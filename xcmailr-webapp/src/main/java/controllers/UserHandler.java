@@ -70,7 +70,7 @@ public class UserHandler
      *            Form validation
      * @return the Edit-Page again
      */
-    public Result editUser(Context context, @JSR303Validation UserFormData userFormData, Validation validation)
+    public Result editUserProcess(Context context, @JSR303Validation UserFormData userFormData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
 

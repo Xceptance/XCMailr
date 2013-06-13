@@ -47,7 +47,7 @@ public class BoxHandlerTest extends NinjaTest
 
         // login
         formParams.put("mail", "admin@ccmailr.test");
-        formParams.put("pwd", "1234");
+        formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
         formParams.clear();
     }
@@ -91,7 +91,7 @@ public class BoxHandlerTest extends NinjaTest
         // log-in with the new user
         formParams.clear();
         formParams.put("mail", "admin@ccmailr.test");
-        formParams.put("pwd", "1234");
+        formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "login", headers, formParams);
         formParams.clear();
 
@@ -261,6 +261,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "mail/edit/" + mbox.getId());
         // check that the returned page contains the data of our mbox
         Map<String, String> formMap = HtmlUtils.readInputFormData(result);
+
         assertTrue(formMap.containsKey("address"));
         assertTrue(formMap.containsKey("domain"));
         assertTrue(formMap.containsKey("datetime"));
@@ -304,7 +305,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + mbox.getId(),
                                                                     headers, formMap);
         expected = ninjaTestBrowser.makeRequest(getServerAddress() + "mail");
-        System.out.println("\n\n\n\n"+result+"\n"+expected);
+
         assertTrue(expected.equals(result));
 
         /*

@@ -27,7 +27,7 @@ import conf.XCMailrConf;
 import etc.HelperUtils;
 import filters.NoLoginFilter;
 import models.UserFormData;
-import models.LoginData;
+import models.LoginFormData;
 import models.PasswordFormData;
 import ninja.Context;
 import models.User;
@@ -103,14 +103,15 @@ public class Application
      * 
      * @param context
      *            the Context of this Request
-     * @param userFormData
+     * @param registerFormData
      *            the Data of the Registration-Form
      * @param validation
      *            Form validation
      * @return the Registration-Form and an error, or - if successful - the Index-Page
      */
     @FilterWith(NoLoginFilter.class)
-    public Result postRegisterForm(Context context, @JSR303Validation UserFormData userFormData, Validation validation)
+    public Result registrationProcess(Context context, @JSR303Validation UserFormData registerFormData,
+                                      Validation validation)
     {
 
         Result result = Results.html().template("/views/Application/registerForm.ftl.html");
@@ -119,61 +120,61 @@ public class Application
         result.render("available_langs", o);
         if (validation.hasViolations())
         {
-            userFormData.setPassword("");
-            userFormData.setPasswordNew1("");
-            userFormData.setPasswordNew2("");
+            registerFormData.setPassword("");
+            registerFormData.setPasswordNew1("");
+            registerFormData.setPasswordNew2("");
 
             context.getFlashCookie().error("msg_FormErr");
 
-            return result.render("editUsr", userFormData);
+            return result.render("editUsr", registerFormData);
         }
         else
         { // form was filled correctly, go on!
-            if (!User.mailExists(userFormData.getMail()))
+            if (!User.mailExists(registerFormData.getMail()))
             {
                 // don't let the user register with one of our domains
                 // (prevent mail-loops)
-                String mail = userFormData.getMail();
+                String mail = registerFormData.getMail();
                 String domainPart = mail.split("@")[1];
                 if (Arrays.asList(xcmConfiguration.DM_LIST).contains(domainPart))
                 {
                     context.getFlashCookie().error("msg_NoLoop");
-                    userFormData.setMail("");
-                    userFormData.setPassword("");
-                    userFormData.setPasswordNew1("");
-                    userFormData.setPasswordNew2("");
+                    registerFormData.setMail("");
+                    registerFormData.setPassword("");
+                    registerFormData.setPasswordNew1("");
+                    registerFormData.setPasswordNew2("");
 
-                    return result.render("editUsr", userFormData);
+                    return result.render("editUsr", registerFormData);
                 }
 
                 // a new user, check whether the passwords are matching
-                if (userFormData.getPassword().equals(userFormData.getPasswordNew1()))
+                if (registerFormData.getPassword().equals(registerFormData.getPasswordNew1()))
                 {
-                    if (userFormData.getPasswordNew1().length() < xcmConfiguration.PW_LEN)
+                    if (registerFormData.getPasswordNew1().length() < xcmConfiguration.PW_LEN)
                     { // password too short
 
                         Optional<String> opt = Optional.of(context.getAcceptLanguage());
 
                         String shortPw = msg.get("msg_ShortPw", opt, xcmConfiguration.PW_LEN).get();
                         context.getFlashCookie().error(shortPw);
-                        userFormData.setPassword("");
-                        userFormData.setPasswordNew1("");
-                        userFormData.setPasswordNew2("");
-                        return result.render("editUsr", userFormData);
+                        registerFormData.setPassword("");
+                        registerFormData.setPasswordNew1("");
+                        registerFormData.setPasswordNew2("");
+                        return result.render("editUsr", registerFormData);
                     }
                     // create the user
-                    User user = userFormData.getAsUser();
+                    User user = registerFormData.getAsUser();
 
                     // handle the language
 
                     if (!Arrays.asList(xcmConfiguration.APP_LANGS).contains(user.getLanguage()))
                     { // the language stored in the user-object does not exist in the app
-                        userFormData.setPassword("");
-                        userFormData.setPasswordNew1("");
-                        userFormData.setPasswordNew2("");
+                        registerFormData.setPassword("");
+                        registerFormData.setPasswordNew1("");
+                        registerFormData.setPasswordNew2("");
                         context.getFlashCookie().error("msg_WrongPw");
 
-                        return result.render("editUsr", userFormData);
+                        return result.render("editUsr", registerFormData);
                     }
 
                     // generate the confirmation-token
@@ -181,9 +182,10 @@ public class Application
                     user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONF_PERIOD).getMillis());
 
                     user.save();
-                    Optional<String> lng = Optional.of(context.getAcceptLanguage());
+                    Optional<String> language = Optional.of(context.getAcceptLanguage());
                     mailrSenderFactory.sendConfirmAddressMail(user.getMail(), user.getForename(),
-                                                              String.valueOf(user.getId()), user.getConfirmation(), lng);
+                                                              String.valueOf(user.getId()), user.getConfirmation(),
+                                                              language);
                     context.getFlashCookie().success("msg_RegOk");
 
                     lang.setLanguage(user.getLanguage(), result);
@@ -192,19 +194,19 @@ public class Application
                 }
                 else
                 { // password mismatch
-                    userFormData.setPassword("");
-                    userFormData.setPasswordNew1("");
-                    userFormData.setPasswordNew2("");
+                    registerFormData.setPassword("");
+                    registerFormData.setPasswordNew1("");
+                    registerFormData.setPasswordNew2("");
                     context.getFlashCookie().error("msg_WrongPw");
 
-                    return result.render("editUsr", userFormData);
+                    return result.render("editUsr", registerFormData);
                 }
             }
             else
             { // mailadress already exists
                 context.getFlashCookie().error("msg_MailEx");
 
-                return result.render("editUsr", userFormData);
+                return result.render("editUsr", registerFormData);
             }
         }
     }
@@ -213,7 +215,7 @@ public class Application
      * Handles the Verification for the Activation-Process <br/>
      * GET /verify/{id}/{token}
      * 
-     * @param id
+     * @param userId
      *            the {@link User}-ID
      * @param token
      *            the Verification-Token
@@ -221,10 +223,10 @@ public class Application
      *            the Context of this Request
      * @return to the Index-Page
      */
-    public Result verifyActivation(@PathParam("id") Long id, @PathParam("token") String token, Context context)
+    public Result verifyActivation(@PathParam("id") Long userId, @PathParam("token") String token, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        User user = User.getById(id);
+        User user = User.getById(userId);
         if (!(user == null))
         { // the user exists
             if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
@@ -263,14 +265,18 @@ public class Application
      *            the Context of this Request
      * @return the Index-Page
      */
-    public Result logout(Context context)
+    public Result logoutProcess(Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+
+        // remove the session (memcachedServer and cookie)
         String sessionKey = context.getSessionCookie().getId();
         context.getSessionCookie().clear();
         memCachedSessionHandler.delete(sessionKey);
+
+        // show the index-page
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         context.getFlashCookie().success("msg_LogOut");
-        return result.template("/views/Application/index.ftl.html").redirect(context.getContextPath() + "/");
+        return result.redirect(context.getContextPath() + "/");
     }
 
     /**
@@ -286,7 +292,7 @@ public class Application
      * @return the Login-Form or the Index-Page
      */
     @FilterWith(NoLoginFilter.class)
-    public Result loggedInForm(Context context, @JSR303Validation LoginData loginData, Validation validation)
+    public Result logInProcess(Context context, @JSR303Validation LoginFormData loginData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/loginForm.ftl.html");
         if (validation.hasViolations())
@@ -355,11 +361,11 @@ public class Application
 
     /**
      * Shows the "Forgot Password"-Page <br/>
-     * GET /resendpw
+     * GET /pwresend
      * 
      * @return Forgot-Password-Form
      */
-    public Result forgotPwForm()
+    public Result forgotPasswordForm()
     {
         return Results.html();
     }
@@ -376,7 +382,7 @@ public class Application
      *            Form validation
      * @return the Index-Page
      */
-    public Result pwResend(Context context, @JSR303Validation LoginData loginDat, Validation validation)
+    public Result forgotPasswordProcess(Context context, @JSR303Validation LoginFormData loginDat, Validation validation)
     {
         Result result = Results.html().template("/views/Application/forgotPwForm.ftl.html");
         if (validation.hasViolations())
@@ -388,7 +394,8 @@ public class Application
         else
         {
             User user = User.getUsrByMail(loginDat.getMail());
-            if (!(user == null))
+            
+            if (user != null)
             { // mailadress was correct (exists in the DB)
               // generate a new confirmation token and send it to the given mailadress
 
@@ -412,7 +419,7 @@ public class Application
     }
 
     /**
-     * This Method handles the Confirmation-Mail-Link<br/>
+     * This Method handles the Forgot-Password-Mail-Link<br/>
      * GET /lostpw/{id}/{token}
      * 
      * @param id
@@ -423,7 +430,7 @@ public class Application
      *            the Context of this Request
      * @return the Reset-Password-Form or (on error) the Index-Page
      */
-    public Result lostPw(@PathParam("id") Long id, @PathParam("token") String token, Context context)
+    public Result lostPasswordForm(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
         User user = User.getById(id);
         if (user != null)
@@ -436,7 +443,7 @@ public class Application
             }
         }
         // something was wrong, so redirect without any comment to the index-page
-        return Results.redirect(context.getContextPath()+"/");
+        return Results.redirect(context.getContextPath() + "/");
 
     }
 
@@ -456,7 +463,7 @@ public class Application
      *            Form validation
      * @return the "Change your Password"-Site or (on Error) the Index-Page
      */
-    public Result changePw(@PathParam("id") Long id, @PathParam("token") String token, Context context,
+    public Result lostPasswordProcess(@PathParam("id") Long id, @PathParam("token") String token, Context context,
                            @JSR303Validation PasswordFormData passwordFormData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/lostPw.ftl.html");

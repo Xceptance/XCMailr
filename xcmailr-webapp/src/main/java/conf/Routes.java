@@ -33,45 +33,52 @@ public class Routes implements ApplicationRoutes
         
         router.GET().route("/").with(Application.class, "index");
         router.GET().route("/register").with(Application.class, "registerForm");
-        router.POST().route("/register").with(Application.class, "postRegisterForm");
+        router.POST().route("/register").with(Application.class, "registrationProcess");
 
         router.GET().route("/login").with(Application.class, "loginForm");
-        router.POST().route("/login").with(Application.class, "loggedInForm");
+        router.POST().route("/login").with(Application.class, "logInProcess");
 
-        router.GET().route("/pwresend").with(Application.class, "forgotPwForm");
-        router.POST().route("/pwresend").with(Application.class, "pwResend");
-        router.GET().route("/lostpw/{id}/{token}").with(Application.class, "lostPw");
-        router.POST().route("/lostpw/{id}/{token}").with(Application.class, "changePw");
+        router.GET().route("/pwresend").with(Application.class, "forgotPasswordForm");
+        router.POST().route("/pwresend").with(Application.class, "forgotPasswordProcess");
+        
+        router.GET().route("/lostpw/{id}/{token}").with(Application.class, "lostPasswordForm");
+        router.POST().route("/lostpw/{id}/{token}").with(Application.class, "lostPasswordProcess");
+        
         router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
 
-        router.GET().route("/logout").with(Application.class, "logout");
+        router.GET().route("/logout").with(Application.class, "logoutProcess");
         
         //Routes for UserHandling (after registration)
         router.GET().route("/user/edit").with(UserHandler.class, "editUserForm");
-        router.POST().route("/user/edit").with(UserHandler.class, "editUser");
+        router.POST().route("/user/edit").with(UserHandler.class, "editUserProcess");
 
         //Routes for the Mail-Handling 
-        router.GET().route("/mail").with(BoxHandler.class, "showBoxes");
-        router.POST().route("/mail").with(BoxHandler.class, "showBoxes");
-        router.GET().route("/mail/add").with(BoxHandler.class, "showAddBox");
-        router.POST().route("/mail/add").with(BoxHandler.class, "addBox");
-        router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBox");
-        router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBox");
-        router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounters");
-        router.GET().route("/mail/edit/{id}").with(BoxHandler.class, "showEditBox");
-        router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBox");
+        router.GET().route("/mail").with(BoxHandler.class, "showBoxOverview");
+        router.POST().route("/mail").with(BoxHandler.class, "showBoxOverview");
+        
+        router.GET().route("/mail/add").with(BoxHandler.class, "addBoxForm");
+        router.POST().route("/mail/add").with(BoxHandler.class, "addBoxProcess");
+        
+        router.GET().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxForm");
+        router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxProcess");
+        
+        router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBoxProcess");
+        router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxProcess");
+        router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounterProcess");
+        
+
         
         //Routes in the admin-section
-        router.POST().route("/admin/promote/{id}").with(AdminHandler.class, "promote");
-        router.POST().route("/admin/activate/{id}").with(AdminHandler.class, "activate");
-        router.POST().route("/admin/delete/{id}").with(AdminHandler.class, "deleteUser");
+        router.POST().route("/admin/promote/{id}").with(AdminHandler.class, "promoteUserProcess");
+        router.POST().route("/admin/activate/{id}").with(AdminHandler.class, "activateUserProcess");
+        router.POST().route("/admin/delete/{id}").with(AdminHandler.class, "deleteUserProcess");
         router.GET().route("/admin").with(AdminHandler.class, "showAdmin");
         router.GET().route("/admin/users").with(AdminHandler.class, "showUsers");
         router.POST().route("/admin/users").with(AdminHandler.class, "showUsers");
         router.GET().route("/admin/summedtx").with(AdminHandler.class, "showSumTx");
         router.GET().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.POST().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
-        router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler.class, "deleteMTX");
+        router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler.class, "deleteMTXProcess");
         
         //Assets-Handling
         router.GET().route("/assets/.*").with(AssetsController.class, "serve");

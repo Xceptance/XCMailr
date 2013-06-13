@@ -23,7 +23,7 @@ import org.hibernate.validator.constraints.NotEmpty;
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-public class LoginData
+public class LoginFormData
 {
     @NotEmpty
     String mail;

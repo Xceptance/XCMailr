@@ -30,14 +30,15 @@ public class AdminHandlerTest extends NinjaTest
     {
         
         // get the adminaccount and login
-
+        headers.put("Accept-Language", "en-US");
         admin = User.getUsrByMail("admin@xcmailr.test");
         formParams.put("mail", "admin@xcmailr.test");
-        formParams.put("pwd", "1234");
+        formParams.put("password", "1234");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress() + "/login",
                                                                     headers, formParams);
         // make sure that the success-page is displayed
+        
         assertTrue(result.contains("class=\"success\">"));
 
         // check the cookie

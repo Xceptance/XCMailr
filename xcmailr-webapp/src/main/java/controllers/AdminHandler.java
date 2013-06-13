@@ -138,7 +138,7 @@ public class AdminHandler
      * @return to the MailTransaction-Page
      */
 
-    public Result deleteMTX(@PathParam("time") Integer time, Context context)
+    public Result deleteMTXProcess(@PathParam("time") Integer time, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         if (time == -1)
@@ -165,7 +165,7 @@ public class AdminHandler
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
-    public Result activate(@PathParam("id") Long userId, Context context)
+    public Result activateUserProcess(@PathParam("id") Long userId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
@@ -219,7 +219,7 @@ public class AdminHandler
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
-    public Result promote(@PathParam("id") Long userId, Context context)
+    public Result promoteUserProcess(@PathParam("id") Long userId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
@@ -240,7 +240,7 @@ public class AdminHandler
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
-    public Result deleteUser(@PathParam("id") Long userId, Context context)
+    public Result deleteUserProcess(@PathParam("id") Long userId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);

@@ -55,8 +55,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -91,8 +91,8 @@ public class ApplicationHandlerTest extends NinjaTest
          formParams.put("firstName", "");
          formParams.put("surName", "");
          formParams.put("mail", "");
-         formParams.put("pw", "");
-         formParams.put("pwn1", "");
+         formParams.put("password", "");
+         formParams.put("passwordNew1", "");
          result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
          formParams);
          // check if the user couldn't be registered
@@ -105,8 +105,8 @@ public class ApplicationHandlerTest extends NinjaTest
          formParams.put("firstName", "");
          formParams.put("surName", "Doe");
          formParams.put("mail", "admin@localhost.de");
-         formParams.put("pw", "1234");
-         formParams.put("pwn1", "1234");
+         formParams.put("password", "1234");
+         formParams.put("passwordNew1", "1234");
          formParams.put("language", "en");
          result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
          formParams);
@@ -120,8 +120,8 @@ public class ApplicationHandlerTest extends NinjaTest
          formParams.put("firstName", "John");
          formParams.put("surName", "");
          formParams.put("mail", "admin@localhost.de");
-         formParams.put("pw", "1234");
-         formParams.put("pwn1", "1234");
+         formParams.put("password", "1234");
+         formParams.put("passwordNew1", "1234");
          formParams.put("language", "en");
          result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
          formParams);
@@ -140,8 +140,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -155,8 +155,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin.this.de");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -170,8 +170,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "@this.de");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
                                                                     formParams);
@@ -185,8 +185,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "@");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -200,8 +200,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "blubb@");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -220,8 +220,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pw", "");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -235,8 +235,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -250,8 +250,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "4321");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "4321");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -265,8 +265,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pw", "Cats");
-        formParams.put("pwn1", "cats");
+        formParams.put("password", "Cats");
+        formParams.put("passwordNew1", "cats");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -280,8 +280,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pw", "dogs");
-        formParams.put("pwn1", "Dogs");
+        formParams.put("password", "dogs");
+        formParams.put("passwordNew1", "Dogs");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -298,8 +298,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
@@ -353,8 +353,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -400,8 +400,8 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pw", "1234");
-        formParams.put("pwn1", "1234");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
@@ -414,7 +414,7 @@ public class ApplicationHandlerTest extends NinjaTest
          * TEST: Form-Error (new password not set)
          */
         formParams.clear();
-        formParams.put("pw2", "abc");
+        formParams.put("password2", "abc");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "lostpw/" + user.getId() + "/"
                                                                     + user.getConfirmation(), headers, formParams);
         assertTrue(result.contains("class=\"error\""));
@@ -424,8 +424,8 @@ public class ApplicationHandlerTest extends NinjaTest
          * TEST: unequal passwords
          */
         formParams.clear();
-        formParams.put("pw", "123");
-        formParams.put("pw2", "abc");
+        formParams.put("password", "123");
+        formParams.put("password2", "abc");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "lostpw/" + user.getId() + "/"
                                                                     + user.getConfirmation(), headers, formParams);
         assertTrue(result.contains("class=\"error\""));
@@ -439,8 +439,8 @@ public class ApplicationHandlerTest extends NinjaTest
          */
 
         formParams.clear();
-        formParams.put("pw", "1234");
-        formParams.put("pw2", "1234");
+        formParams.put("password", "1234");
+        formParams.put("password2", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "lostpw/" + user.getId() + "/"
                                                                     + user.getConfirmation(), headers, formParams);
         assertTrue(result.contains("class=\"success\""));
@@ -475,7 +475,7 @@ public class ApplicationHandlerTest extends NinjaTest
          */
         formParams.clear();
         formParams.put("mail", "admin00@this.de");
-        formParams.put("pwd", "1234");
+        formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
         // now there should be no session-cookie
@@ -489,7 +489,7 @@ public class ApplicationHandlerTest extends NinjaTest
          */
         formParams.clear();
         formParams.put("mail", "");
-        formParams.put("pwd", "");
+        formParams.put("password", "");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
         // now there should be no session-cookie
@@ -502,7 +502,7 @@ public class ApplicationHandlerTest extends NinjaTest
          */
         formParams.clear();
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pwd", "baum");
+        formParams.put("password", "baum");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
         // now there should be no session-cookie
         assertTrue(ninjaTestBrowser.getCookieWithName("XCMailr_SESSION") == null);
@@ -514,7 +514,7 @@ public class ApplicationHandlerTest extends NinjaTest
          */
         formParams.clear();
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pwd", "1234");
+        formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
         // make sure that the success-page is displayed
@@ -531,7 +531,7 @@ public class ApplicationHandlerTest extends NinjaTest
         user.update();
         formParams.clear();
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pwd", "1234");
+        formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
         // make sure that the success-page is displayed
@@ -556,7 +556,7 @@ public class ApplicationHandlerTest extends NinjaTest
         user.save();
         formParams.clear();
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pwd", "12");
+        formParams.put("password", "12");
         for (int i = 0; i < 7; i++)
         {
             result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers,
@@ -579,7 +579,7 @@ public class ApplicationHandlerTest extends NinjaTest
         // login
         formParams.clear();
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pwd", "1234");
+        formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
         // make sure that the success-page is displayed and the cookie was set
@@ -592,7 +592,7 @@ public class ApplicationHandlerTest extends NinjaTest
         // test logout
         formParams.clear();
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pwd", "1234");
+        formParams.put("password", "1234");
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/logout", headers);
 
         assertTrue(result.contains("class=\"success\""));
@@ -622,7 +622,7 @@ public class ApplicationHandlerTest extends NinjaTest
         // login
         formParams.clear();
         formParams.put("mail", "admin@localhost.de");
-        formParams.put("pwd", "1234");
+        formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
         // make sure that the success-page is displayed and the cookie was set
         assertTrue(result.contains("class=\"success\">"));
