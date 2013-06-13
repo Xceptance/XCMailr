@@ -45,10 +45,12 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
 
         router.GET().route("/logout").with(Application.class, "logout");
-
+        
+        //Routes for UserHandling (after registration)
         router.GET().route("/user/edit").with(UserHandler.class, "editUserForm");
         router.POST().route("/user/edit").with(UserHandler.class, "editUser");
 
+        //Routes for the Mail-Handling 
         router.GET().route("/mail").with(BoxHandler.class, "showBoxes");
         router.POST().route("/mail").with(BoxHandler.class, "showBoxes");
         router.GET().route("/mail/add").with(BoxHandler.class, "showAddBox");
@@ -58,7 +60,8 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounters");
         router.GET().route("/mail/edit/{id}").with(BoxHandler.class, "showEditBox");
         router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBox");
-
+        
+        //Routes in the admin-section
         router.POST().route("/admin/promote/{id}").with(AdminHandler.class, "promote");
         router.POST().route("/admin/activate/{id}").with(AdminHandler.class, "activate");
         router.POST().route("/admin/delete/{id}").with(AdminHandler.class, "deleteUser");
@@ -69,6 +72,8 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.POST().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler.class, "deleteMTX");
+        
+        //Assets-Handling
         router.GET().route("/assets/.*").with(AssetsController.class, "serve");
 
     }

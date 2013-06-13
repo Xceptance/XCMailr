@@ -314,11 +314,11 @@ public class ApplicationHandlerTest extends NinjaTest
         /*
          * TEST: wrong verification-data
          */
-        String random = HelperUtils.getRndString(5);
+        String random = HelperUtils.getRandomString(5);
         // generate a new random string until its not equal to the confirmation-code
         while (user.getConfirmation().equals(random))
         {
-            random = HelperUtils.getRndString(5);
+            random = HelperUtils.getRandomString(5);
         }
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "verify/" + user.getId() + "/" + random);
@@ -373,11 +373,11 @@ public class ApplicationHandlerTest extends NinjaTest
         /*
          * TEST: wrong verification-data
          */
-        String random = HelperUtils.getRndString(5);
+        String random = HelperUtils.getRandomString(5);
         // generate a new random string until its not equal to the confirmation-code
         while (user.getConfirmation().equals(random))
         {
-            random = HelperUtils.getRndString(5);
+            random = HelperUtils.getRandomString(5);
         }
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "lostpw/" + user.getId() + "/" + random);

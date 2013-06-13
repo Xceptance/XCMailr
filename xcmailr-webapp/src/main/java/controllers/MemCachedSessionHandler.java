@@ -50,7 +50,7 @@ public class MemCachedSessionHandler
 
     private int memPort;
 
-    private String NAMESPACE = "XCMAILR";
+    private String NAMESPACE = xcmConf.APP_NAME;
 
     private boolean instantiated;
 
@@ -82,14 +82,14 @@ public class MemCachedSessionHandler
      * 
      * @param key
      *            the Key to find the Object
-     * @param ttl
+     * @param timeToLive
      *            TimeToLive in Seconds
-     * @param o
+     * @param object
      *            the Object to store
      */
-    public void set(String key, int ttl, final Object o)
+    public void set(String key, int timeToLive, final Object object)
     {
-        getCache().set(NAMESPACE + key, ttl, o);
+        getCache().set(NAMESPACE + key, timeToLive, object);
 
     }
 
@@ -103,25 +103,25 @@ public class MemCachedSessionHandler
      */
     public Object get(String key)
     {
-        Object o = null;
-        Future<Object> f = getCache().asyncGet(NAMESPACE + key);
+        Object object = null;
+        Future<Object> futureObject = getCache().asyncGet(NAMESPACE + key);
         try
         {
-            o = f.get(5, TimeUnit.SECONDS);
+            object = futureObject.get(5, TimeUnit.SECONDS);
         }
         catch (TimeoutException e)
         {
-            f.cancel(false);
+            futureObject.cancel(false);
         }
         catch (InterruptedException e)
         {
-            f.cancel(false);
+            futureObject.cancel(false);
         }
         catch (ExecutionException e)
         {
-            f.cancel(false);
+            futureObject.cancel(false);
         }
-        return o;
+        return object;
     }
 
     /**

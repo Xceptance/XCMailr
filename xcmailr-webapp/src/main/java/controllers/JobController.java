@@ -55,13 +55,13 @@ public class JobController
     Logger log;
 
     @Inject
-    NinjaProperties ninjaProp;
+    NinjaProperties ninjaProperties;
 
     @Inject
-    XCMailrConf xcmConf;
+    XCMailrConf xcmConfiguration;
 
     @Inject
-    MsgListener msgListener;
+    MessageListener messageListener;
 
     @Inject
     Lang lang;
@@ -73,16 +73,16 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
-        log.debug("prod:" + ninjaProp.isProd() + " dev: " + ninjaProp.isDev() + " test: " + ninjaProp.isTest());
+        log.debug("prod:" + ninjaProperties.isProd() + " dev: " + ninjaProperties.isDev() + " test: " + ninjaProperties.isTest());
 
-        if (!(xcmConf.ADMIN_PASS == null))
+        if (!(xcmConfiguration.ADMIN_PASS == null))
         { // if a pw is set in application.conf..
 
-            if (!User.mailExists(xcmConf.ADMIN_ADD))
+            if (!User.mailExists(xcmConfiguration.ADMIN_ADD))
             {// ...and the admin-acc doesn't exist
 
                 // create the adminaccount
-                User user = new User("Site", "Admin", xcmConf.ADMIN_ADD, xcmConf.ADMIN_PASS, "en");
+                User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADD, xcmConfiguration.ADMIN_PASS, "en");
 
                 // set the status and admin flags
                 user.setAdmin(true);
@@ -91,23 +91,23 @@ public class JobController
             }
         }
         // create the server for incoming mails
-        smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(msgListener));
+        smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(messageListener));
 
         int port;
-        if (ninjaProp.isTest())
+        if (ninjaProperties.isTest())
         {// use a dynamic port in test-mode
             port = findAvailablePort(49152, 65535);
         }
         else
         {// or in dev- and prod-mode use the port which has been specified in the application.conf
-            port = xcmConf.MB_PORT;
+            port = xcmConfiguration.MB_PORT;
         }
 
         // set the port and start the SMTP-Server
         smtpServer.setPort(port);
         smtpServer.start();
 
-        if (!ninjaProp.isTest())
+        if (!ninjaProperties.isTest())
         {
             // create the executor-service to check the mailboxes which were expired since the last run and disable them
             expirationService.scheduleAtFixedRate(new Runnable()
@@ -118,7 +118,7 @@ public class JobController
                     log.debug("mbox-scheduler run");
 
                     // get the number of MBox-Elements that will expire in the next "MB_INT"-minutes
-                    List<MBox> expiringMailBoxesList = MBox.getNextBoxes(xcmConf.MB_INT);
+                    List<MBox> expiringMailBoxesList = MBox.getNextBoxes(xcmConfiguration.MB_INT);
                     ListIterator<MBox> mailBoxIterator = expiringMailBoxesList.listIterator();
 
                     DateTime dt = new DateTime();
@@ -132,7 +132,7 @@ public class JobController
                         }
                     }
                 }
-            }, new Long(1), new Long(xcmConf.MB_INT), TimeUnit.MINUTES);
+            }, new Long(1), new Long(xcmConfiguration.MB_INT), TimeUnit.MINUTES);
         }
     }
 

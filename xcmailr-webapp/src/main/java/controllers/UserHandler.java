@@ -17,6 +17,8 @@
 package controllers;
 
 import java.util.Arrays;
+import java.util.List;
+
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -45,10 +47,10 @@ import filters.SecureFilter;
 public class UserHandler
 {
     @Inject
-    MemCachedSessionHandler mcsh;
+    MemCachedSessionHandler memCachedSessionHandler;
 
     @Inject
-    XCMailrConf xcmConf;
+    XCMailrConf xcmConfiguration;
 
     @Inject
     Messages msg;
@@ -71,11 +73,11 @@ public class UserHandler
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        
+
         // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.
         // then you would likely get a NullPointerException
-        Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
+        List<String[]> o = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, msg);
         result.render("available_langs", o);
 
         User user = context.getAttribute("user", User.class);
@@ -92,7 +94,7 @@ public class UserHandler
             // (prevent mail-loops)
             String mail = edt.getMail();
             String domainPart = mail.split("@")[1];
-            if (Arrays.asList(xcmConf.DM_LIST).contains(domainPart))
+            if (Arrays.asList(xcmConfiguration.DM_LIST).contains(domainPart))
             {
                 context.getFlashCookie().error("msg_NoLoop");
                 edt.setMail(user.getMail());
@@ -120,10 +122,10 @@ public class UserHandler
                     { // new password has been entered
                         if (pw1.equals(pw2))
                         { // the repetition is equal to the new pw
-                            if (pw1.length() < xcmConf.PW_LEN)
+                            if (pw1.length() < xcmConfiguration.PW_LEN)
                             {
                                 Optional<String> opt = Optional.of(context.getAcceptLanguage());
-                                String tooShortPassword = msg.get("msg_ShortPw", opt, xcmConf.PW_LEN.toString()).get();
+                                String tooShortPassword = msg.get("msg_ShortPw", opt, xcmConfiguration.PW_LEN.toString()).get();
                                 context.getFlashCookie().error(tooShortPassword);
                                 edt.setPw("");
                                 edt.setPwn1("");
@@ -144,7 +146,7 @@ public class UserHandler
                         }
                     }
                 }
-                if (Arrays.asList(xcmConf.APP_LANGS).contains(edt.getLanguage()))
+                if (Arrays.asList(xcmConfiguration.APP_LANGS).contains(edt.getLanguage()))
                 {
                     user.setLanguage(edt.getLanguage());
                     lang.setLanguage(edt.getLanguage(), result);
@@ -152,7 +154,7 @@ public class UserHandler
                 // update the user
                 user.update();
                 context.getSessionCookie().put("username", edt.getMail());
-                mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, user);
+                memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.C_EXPIRA, user);
                 // user-edit was successful
                 context.getFlashCookie().success("msg_ChOk");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").redirect("/user/edit");
@@ -179,16 +181,16 @@ public class UserHandler
 
     public Result editUserForm(Context context)
     {
-        Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
+        List<String[]> availableLanguageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, msg);
         Result result = Results.html();
-        result.render("available_langs", o);
+        result.render("available_langs", availableLanguageList);
         User user = context.getAttribute("user", User.class);
         if (user.getLanguage() == null || user.getLanguage() == "")
         {
             Optional<Result> opt = Optional.of(result);
             user.setLanguage(lang.getLanguage(context, opt).get());
             user.update();
-            mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, user);
+            memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.C_EXPIRA, user);
         }
         EditUsr edtusr = EditUsr.prepopulate(user);
         return result.render(edtusr);

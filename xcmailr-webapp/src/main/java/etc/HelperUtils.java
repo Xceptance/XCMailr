@@ -46,7 +46,7 @@ public class HelperUtils
      * @return a randomly generated String consisting of a-z,A-Z and 0-9
      */
 
-    public static String getRndString(int length)
+    public static String getRandomString(int length)
     {
         char[] values =
             {
@@ -56,15 +56,15 @@ public class HelperUtils
                 '8', '9'
             };
 
-        Random rand = new Random();
-        StringBuffer strBuf = new StringBuffer();
+        Random random = new Random();
+        StringBuffer stringBuf = new StringBuffer();
         for (int i = 0; i < length; i++)
         {
             // generates a random number and stores it in the stringbuffer
-            strBuf.append(values[Math.abs(rand.nextInt()) % (values.length)]);
+            stringBuf.append(values[Math.abs(random.nextInt()) % (values.length)]);
 
         }
-        return strBuf.toString();
+        return stringBuf.toString();
     }
 
     /**
@@ -74,10 +74,10 @@ public class HelperUtils
      *            Length of the returned String
      * @return a secure-randomly generated String consisting of a-z,A-Z and 0-9
      */
-    public static String getRndSecureString(int length)
+    public static String getRandomSecureString(int length)
     {
-        SecureRandom srnd = new SecureRandom();
-        srnd.setSeed(srnd.generateSeed(23));
+        SecureRandom random = new SecureRandom();
+        random.setSeed(random.generateSeed(23));
         char[] values =
             {
                 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
@@ -86,13 +86,13 @@ public class HelperUtils
                 '8', '9'
             };
 
-        StringBuffer strBuf = new StringBuffer();
-        for (int i = 0; i < length; i++)
+        StringBuffer stringBuf = new StringBuffer();
+        for (int actualLength = 0; actualLength < length; actualLength++)
         {
             // generates a random number and stores it in the stringbuffer
-            strBuf.append(values[Math.abs(srnd.nextInt()) % (values.length)]);
+            stringBuf.append(values[Math.abs(random.nextInt()) % (values.length)]);
         }
-        return strBuf.toString();
+        return stringBuf.toString();
     }
 
     /**
@@ -113,8 +113,8 @@ public class HelperUtils
             return -1L;
         }
         input = input.trim();
-        DateTimeFormatter fmt = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm");
-        return fmt.parseDateTime(input).getMillis();
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm");
+        return formatter.parseDateTime(input).getMillis();
     }
 
     public static String parseStringTs(long ts_Active)
@@ -127,9 +127,9 @@ public class HelperUtils
         {
             DateTime dt = new DateTime(ts_Active);
             String day = "";
-            String mon = "";
-            String hou = "";
-            String min = "";
+            String month = "";
+            String hour = "";
+            String minute = "";
             // add a leading "0" if the value is under ten
             if (dt.getDayOfMonth() < 10)
             {
@@ -139,23 +139,23 @@ public class HelperUtils
 
             if (dt.getMonthOfYear() < 10)
             {
-                mon += "0";
+                month += "0";
             }
-            mon += String.valueOf(dt.getMonthOfYear());
+            month += String.valueOf(dt.getMonthOfYear());
 
             if (dt.getHourOfDay() < 10)
             {
-                hou += "0";
+                hour += "0";
             }
-            hou += String.valueOf(dt.getHourOfDay());
+            hour += String.valueOf(dt.getHourOfDay());
 
             if (dt.getMinuteOfHour() < 10)
             {
-                min += "0";
+                minute += "0";
             }
-            min += String.valueOf(dt.getMinuteOfHour());
+            minute += String.valueOf(dt.getMinuteOfHour());
 
-            return day + "." + mon + "." + dt.getYear() + " " + hou + ":" + min;
+            return day + "." + month + "." + dt.getYear() + " " + hour + ":" + minute;
         }
 
     }
@@ -163,15 +163,15 @@ public class HelperUtils
     /**
      * Checks whether the Input-String is in the Form "dd.dd.dddd dd:dd"
      * 
-     * @param helper
+     * @param input
      *            the Input-String to check
      * @return true for a match, false for a mismatch
      * @TODO rewrite this for the new format :)
      */
-    public static boolean hasCorrectFormat(String helper)
+    public static boolean hasCorrectFormat(String input)
     {
-        helper = helper.trim();
-        if (helper.matches("(\\d+){1,2}[\\.](\\d+){1,2}[\\.](\\d+){4}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}"))
+        input = input.trim();
+        if (input.matches("(\\d+){1,2}[\\.](\\d+){1,2}[\\.](\\d+){4}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}"))
         {
             return true;
         }
@@ -226,28 +226,28 @@ public class HelperUtils
      * Creates a Map which contains the key "available_langs" with a String[] containing the long form of all languages
      * translated to the language which is given by the context
      * 
-     * @param avLangs
+     * @param availableLanguages
      *            the short form of all languages (e.g. "en", "de")
      * @param context
      *            the current user-context
      * @param msg
      *            the Messages-object
-     * @return a map with the key "available_langs" and a String[]-object containing the localised long form of all
+     * @return a List of String[] with the key "available_langs" and a String[]-object containing the localised long form of all
      *         languages
      */
-    public static Object[] geti18nPrefixedLangMap(String[] avLangs, Context context, Messages msg)
+    public static List<String[]> getLanguageList(String[] availableLanguages, Context context, Messages msg)
     {
-        String lng;
-        Optional<Result> opt = Optional.of(Results.html());
-        List<String[]> avlngs = new ArrayList<String[]>();
-        for (String s : avLangs)
+        String languageTranslation;
+        Optional<Result> optionalResult = Optional.of(Results.html());
+        List<String[]> availableLanguageList = new ArrayList<String[]>();
+        for (String abbreviatedLanguageCode : availableLanguages)
         {
-            lng = msg.get("lang_" + s, context, opt, (Object) null).get();
-            avlngs.add(new String[]
+            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult, (Object) null).get();
+            availableLanguageList.add(new String[]
                 {
-                    s, lng
+                    abbreviatedLanguageCode, languageTranslation
                 });
         }
-        return avlngs.toArray();
+        return availableLanguageList;
     }
 }

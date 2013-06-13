@@ -41,16 +41,16 @@ import conf.XCMailrConf;
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 @Singleton
-public class MsgListener implements SimpleMessageListener
+public class MessageListener implements SimpleMessageListener
 {
     @Inject
-    XCMailrConf xcmConf;
+    XCMailrConf xcmConfiguration;
 
     @Inject
-    NinjaProperties ninjaProp;
+    NinjaProperties ninjaProperties;
 
     @Inject
-    MailrMessageSenderFactory mmhf;
+    MailrMessageSenderFactory mailrSenderFactory;
 
     @Inject
     Logger log;
@@ -60,7 +60,7 @@ public class MsgListener implements SimpleMessageListener
     {
         String[] splitaddress = recipient.split("@");
 
-        List<String> domainlist = Arrays.asList(xcmConf.DM_LIST);
+        List<String> domainlist = Arrays.asList(xcmConfiguration.DM_LIST);
         if ((splitaddress.length != 2) || (!domainlist.contains(splitaddress[1])))
         {
             MailTransaction mtx = new MailTransaction(500, from, null, recipient);
@@ -76,7 +76,7 @@ public class MsgListener implements SimpleMessageListener
     @Override
     public void deliver(String from, String recipient, InputStream data)
     {
-        Session session = mmhf.getSession();
+        Session session = mailrSenderFactory.getSession();
         session.setDebug(true);
         MimeMessage mail;
         try
@@ -85,9 +85,9 @@ public class MsgListener implements SimpleMessageListener
 
             MailTransaction mtx;
             String[] splitAddress;
-            Address fwdAddress;
-            String fwdTarget;
-            MBox mb;
+            Address forwardAddress;
+            String forwardTarget;
+            MBox mailBox;
 
             splitAddress = recipient.split("@");
 
@@ -100,27 +100,27 @@ public class MsgListener implements SimpleMessageListener
 
             if (MBox.mailExists(splitAddress[0], splitAddress[1]))
             { // the given mailaddress exists in the db
-                mb = MBox.getByName(splitAddress[0], splitAddress[1]);
+                mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
 
-                if (mb.isActive())
+                if (mailBox.isActive())
                 { // there's an existing and active mailaddress
                   // add the target-address to the list
-                    fwdTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
+                    forwardTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
                     try
                     {
-                        fwdAddress = new InternetAddress(fwdTarget);
-                        mail.setRecipient(Message.RecipientType.TO, fwdAddress);
+                        forwardAddress = new InternetAddress(forwardTarget);
+                        mail.setRecipient(Message.RecipientType.TO, forwardAddress);
                         mail.removeHeader("Cc");
                         mail.removeHeader("BCC");
                         // send the mail in a separate thread
-                        mmhf.new ThreadedMailSend(mail, mb);
+                        mailrSenderFactory.new ThreadedMailSend(mail, mailBox);
                     }
                     catch (AddressException e)
                     {
                         log.error(e.getMessage());
                         // the message can't be forwarded (has not the correct format)
                         // this SHOULD never be the case...
-                        mtx = new MailTransaction(400, from, recipient, fwdTarget);
+                        mtx = new MailTransaction(400, from, recipient, forwardTarget);
                         mtx.saveTx();
                     }
                 }
@@ -128,8 +128,8 @@ public class MsgListener implements SimpleMessageListener
                 { // there's a mailaddress, but the forward is inactive
                     mtx = new MailTransaction(200, from, recipient, null);
                     mtx.saveTx();
-                    mb.increaseSuppressions();
-                    mb.update();
+                    mailBox.increaseSuppressions();
+                    mailBox.update();
                 }
             }
             else

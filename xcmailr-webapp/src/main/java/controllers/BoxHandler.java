@@ -46,7 +46,7 @@ import ninja.Result;
 public class BoxHandler
 {
     @Inject
-    XCMailrConf xcmConf;
+    XCMailrConf xcmConfiguration;
 
     /**
      * Shows the "new Mail-Forward"-Page <br/>
@@ -61,16 +61,16 @@ public class BoxHandler
         MbFrmDat mailboxFormData = new MbFrmDat();
         // set the value of the random-name to 7
         // use the lowercase, we handle the address as case-insensitive
-        String randomName = HelperUtils.getRndString(7).toLowerCase();
+        String randomName = HelperUtils.getRandomString(7).toLowerCase();
         mailboxFormData.setAddress(randomName);
 
         // check that the generated mailname-proposal does not exist
-        String[] domains = xcmConf.DM_LIST;
+        String[] domains = xcmConfiguration.DM_LIST;
         if (domains.length > 0)
         {// prevent OutOfBoundException
             while (MBox.mailExists(randomName, domains[0]))
             {
-                randomName = HelperUtils.getRndString(7).toLowerCase();
+                randomName = HelperUtils.getRandomString(7).toLowerCase();
             }
         }
 
@@ -98,7 +98,7 @@ public class BoxHandler
     public Result addBox(Context context, @JSR303Validation MbFrmDat mailboxFormData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        result.render("domain", xcmConf.DM_LIST);
+        result.render("domain", xcmConfiguration.DM_LIST);
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
@@ -120,7 +120,7 @@ public class BoxHandler
             {
                 String mbName = mailboxFormData.getAddress().toLowerCase();
                 // set the data of the box
-                String[] dom = xcmConf.DM_LIST;
+                String[] dom = xcmConfiguration.DM_LIST;
                 if (!Arrays.asList(dom).contains(mailboxFormData.getDomain()))
                 { // the new domainname does not exist in the application.conf
                   // stop the process and return to the mailbox-overview page
@@ -199,7 +199,7 @@ public class BoxHandler
                           Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        result.render("domain", xcmConf.DM_LIST);
+        result.render("domain", xcmConfiguration.DM_LIST);
         if (validation.hasViolations())
         { // not all fields were filled
             context.getFlashCookie().error("msg_FormErr");
@@ -228,7 +228,7 @@ public class BoxHandler
                     if (MBox.mailChanged(newLName, newDName, boxId))
                     { // this is only true when the address changed and the new address does not exist
 
-                        String[] dom = xcmConf.DM_LIST;
+                        String[] dom = xcmConfiguration.DM_LIST;
                         // assume that the POST-Request was modified and the domainname does not exist in our app
                         if (!Arrays.asList(dom).contains(mailboxFormData.getDomain()))
                         {
@@ -298,7 +298,7 @@ public class BoxHandler
             if (mailBox.belongsTo(usr.getId()))
             { // the MBox belongs to this user
               // render the box-data and domains
-                return Results.html().render("mbFrmDat", MbFrmDat.prepopulate(mailBox)).render("domain", xcmConf.DM_LIST);
+                return Results.html().render("mbFrmDat", MbFrmDat.prepopulate(mailBox)).render("domain", xcmConfiguration.DM_LIST);
             }
             else
             { // the MBox does not belong to this user
@@ -319,7 +319,7 @@ public class BoxHandler
     {
         User user = context.getAttribute("user", User.class);
         // set a default number or the number which the user had chosen
-        HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
+        HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 

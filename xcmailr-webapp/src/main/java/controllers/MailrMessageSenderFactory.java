@@ -45,16 +45,16 @@ import javax.mail.internet.MimeMessage;
 public class MailrMessageSenderFactory
 {
     @Inject
-    Messages msg;
+    Messages messages;
 
     @Inject
-    XCMailrConf xcmConf;
+    XCMailrConf xcmConfiguration;
 
     @Inject
     Logger log;
 
     @Inject
-    NinjaProperties ninjaProp;
+    NinjaProperties ninjaProperties;
 
     private Session session;
 
@@ -69,17 +69,17 @@ public class MailrMessageSenderFactory
         {
             // set the data from application.conf
             Properties properties = System.getProperties();
-            properties.put("mail.smtp.host", xcmConf.OUT_SMTP_HOST);
-            properties.put("mail.smtp.port", xcmConf.OUT_SMTP_PORT);
-            properties.put("mail.smtp.debug", xcmConf.OUT_SMTP_DEBUG);
-            properties.put("mail.smtp.auth", xcmConf.OUT_SMTP_AUTH);
-            properties.put("mail.smtp.starttls.enable", xcmConf.OUT_SMTP_TLS);
+            properties.put("mail.smtp.host", xcmConfiguration.OUT_SMTP_HOST);
+            properties.put("mail.smtp.port", xcmConfiguration.OUT_SMTP_PORT);
+            properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
+            properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
+            properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
 
             session = Session.getInstance(properties, new javax.mail.Authenticator()
             {
                 protected PasswordAuthentication getPasswordAuthentication()
                 {
-                    return new PasswordAuthentication(xcmConf.OUT_SMTP_USER, xcmConf.OUT_SMTP_PASS);
+                    return new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER, xcmConfiguration.OUT_SMTP_PASS);
                 }
             });
         }
@@ -104,7 +104,7 @@ public class MailrMessageSenderFactory
         Session session = getSession();
 
         // set the debug-mode as specified in the application.conf
-        session.setDebug(xcmConf.OUT_SMTP_DEBUG);
+        session.setDebug(xcmConfiguration.OUT_SMTP_DEBUG);
 
         MimeMessage message = new MimeMessage(session);
 
@@ -148,21 +148,21 @@ public class MailrMessageSenderFactory
      */
     public void sendConfirmAddressMail(String to, String forename, String id, String token, Optional<String> language)
     {
-        String from = xcmConf.ADMIN_ADD;
+        String from = xcmConfiguration.ADMIN_ADD;
 
         // build the Verification Link
         StringBuilder strb = new StringBuilder();
-        strb.append(xcmConf.APP_HOME);
-        if (!xcmConf.APP_BASE.isEmpty())
+        strb.append(xcmConfiguration.APP_HOME);
+        if (!xcmConfiguration.APP_BASE.isEmpty())
         {
-            strb.append("/" + xcmConf.APP_BASE);
+            strb.append("/" + xcmConfiguration.APP_BASE);
         }
         strb.append("/verify/" + id + "/" + token);
 
         // generate the message-body
-        String body = msg.get("user_Verify_Message", language, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
+        String body = messages.get("user_Verify_Message", language, forename, strb.toString(), xcmConfiguration.CONF_PERIOD).get();
         // generate the message-subject
-        String subject = msg.get("user_Verify_Subject", language, (Object) null).get();
+        String subject = messages.get("user_Verify_Subject", language, (Object) null).get();
 
         // send the Mail
         sendMail(from, to, body, subject);
@@ -186,22 +186,22 @@ public class MailrMessageSenderFactory
     public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> language)
     {
 
-        String from = xcmConf.ADMIN_ADD;
+        String from = xcmConfiguration.ADMIN_ADD;
 
         // build the PW-Reset Link
         StringBuilder strb = new StringBuilder();
-        strb.append(xcmConf.APP_HOME);
-        if (!xcmConf.APP_BASE.isEmpty())
+        strb.append(xcmConfiguration.APP_HOME);
+        if (!xcmConfiguration.APP_BASE.isEmpty())
         {
-            strb.append("/" + xcmConf.APP_BASE);
+            strb.append("/" + xcmConfiguration.APP_BASE);
         }
         strb.append("/lostpw/" + id + "/" + token);
 
         // generate the Message-Body
-        String body = msg.get("user_PwResend_Message", language, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
+        String body = messages.get("user_PwResend_Message", language, forename, strb.toString(), xcmConfiguration.CONF_PERIOD).get();
 
         // generate the Message-Subject
-        String subject = msg.get("user_PwResend_Subject", language, (Object) null).get();
+        String subject = messages.get("user_PwResend_Subject", language, (Object) null).get();
 
         // send the Mail
         sendMail(from, to, body, subject);
@@ -245,7 +245,7 @@ public class MailrMessageSenderFactory
                     recipient = mail.getRecipients(Message.RecipientType.TO)[0].toString();
                     from = mail.getFrom()[0].toString();
                 }
-                if (!ninjaProp.isTest()) // no messages will be sent when running in test-mode
+                if (!ninjaProperties.isTest()) // no messages will be sent when running in test-mode
                 {
                     Transport.send(mail);
 

@@ -26,7 +26,7 @@ public class HelperUtilsTest
          * TEST: generate a random string with a length that will highly probable contain all chars and check whether
          * they are contained in the returned string
          */
-        String returned = HelperUtils.getRndString(1000);
+        String returned = HelperUtils.getRandomString(1000);
 
         assertNotNull(returned);
         assertTrue(returned.contains("a"));

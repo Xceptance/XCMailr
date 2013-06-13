@@ -48,13 +48,13 @@ import models.User;
 public class AdminHandler
 {
     @Inject
-    XCMailrConf xcmConf;
+    XCMailrConf xcmConfiguration;
 
     @Inject
     Messages msg;
 
     @Inject
-    MailrMessageSenderFactory mmhf;
+    MailrMessageSenderFactory memCachedSessionHandler;
 
     /**
      * Shows the Administration-Index-Page<br/>
@@ -82,7 +82,7 @@ public class AdminHandler
         User user = context.getAttribute("user", User.class);
 
         // set a default number or the number which the user had chosen
-        HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
+        HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
 
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
@@ -118,7 +118,7 @@ public class AdminHandler
     public Result pagedMTX(Context context)
     {
         // set a default number or the number which the user had chosen
-        HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
+        HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 
@@ -177,8 +177,8 @@ public class AdminHandler
 
             // generate the (de-)activation-information mail and send it to the user
             User actusr = User.getById(userId);
-            String from = xcmConf.ADMIN_ADD;
-            String host = xcmConf.MB_HOST;
+            String from = xcmConfiguration.ADMIN_ADD;
+            String host = xcmConfiguration.MB_HOST;
             Optional<String> opt = Optional.fromNullable(context.getAcceptLanguage());
 
             if (active)
@@ -190,7 +190,7 @@ public class AdminHandler
 
                 String content = msg.get("user_Activate_Message", opt, actusr.getForename()).get();
                 // send the mail
-                mmhf.sendMail(from, actusr.getMail(), content, subject);
+                memCachedSessionHandler.sendMail(from, actusr.getMail(), content, subject);
             }
             else
             {// the account is now inactive
@@ -199,7 +199,7 @@ public class AdminHandler
                 // generate the message body
                 String content = msg.get("user_Deactivate_Message", opt, actusr.getForename()).get();
                 // send the mail
-                mmhf.sendMail(from, actusr.getMail(), content, subject);
+                memCachedSessionHandler.sendMail(from, actusr.getMail(), content, subject);
             }
             return result.redirect("/admin/users");
         }
