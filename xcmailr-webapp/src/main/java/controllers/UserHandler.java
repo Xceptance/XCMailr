@@ -23,7 +23,7 @@ import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
-import models.EditUsr;
+import models.UserFormData;
 import models.User;
 import ninja.Context;
 import ninja.FilterWith;
@@ -70,7 +70,7 @@ public class UserHandler
      *            Form validation
      * @return the Edit-Page again
      */
-    public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
+    public Result editUser(Context context, @JSR303Validation UserFormData edt, Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
 
@@ -85,7 +85,7 @@ public class UserHandler
         if (validation.hasViolations())
         { // the filled form has errors
             context.getFlashCookie().error("msg_FormErr");
-            return result.template("/views/UserHandler/editUserForm.ftl.html").redirect("/user/edit");
+            return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
         }
         else
         { // the form is filled correctly
@@ -98,16 +98,16 @@ public class UserHandler
             {
                 context.getFlashCookie().error("msg_NoLoop");
                 edt.setMail(user.getMail());
-                edt.setPw("");
-                edt.setPwn1("");
-                edt.setPwn2("");
+                edt.setPassword("");
+                edt.setPasswordNew1("");
+                edt.setPasswordNew2("");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").render(edt);
             }
 
-            String pw1 = edt.getPwn1();
-            String pw2 = edt.getPwn2();
+            String pw1 = edt.getPasswordNew1();
+            String pw2 = edt.getPasswordNew2();
 
-            if (user.checkPasswd(edt.getPw()))
+            if (user.checkPasswd(edt.getPassword()))
             { // the user authorized himself
                 if (User.mailChanged(edt.getMail(), user.getId()))
                 { // the mailaddress changed
@@ -127,9 +127,9 @@ public class UserHandler
                                 Optional<String> opt = Optional.of(context.getAcceptLanguage());
                                 String tooShortPassword = msg.get("msg_ShortPw", opt, xcmConfiguration.PW_LEN.toString()).get();
                                 context.getFlashCookie().error(tooShortPassword);
-                                edt.setPw("");
-                                edt.setPwn1("");
-                                edt.setPwn2("");
+                                edt.setPassword("");
+                                edt.setPasswordNew1("");
+                                edt.setPasswordNew2("");
 
                                 return result.template("/views/UserHandler/editUserForm.ftl.html").render(edt);
                             }
@@ -139,9 +139,9 @@ public class UserHandler
                         else
                         { // the passwords are not equal
                             context.getFlashCookie().error("msg_WrongPw");
-                            edt.setPw("");
-                            edt.setPwn1("");
-                            edt.setPwn2("");
+                            edt.setPassword("");
+                            edt.setPasswordNew1("");
+                            edt.setPasswordNew2("");
                             return result.template("/views/UserHandler/editUserForm.ftl.html").render(edt);
                         }
                     }
@@ -157,15 +157,15 @@ public class UserHandler
                 memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.C_EXPIRA, user);
                 // user-edit was successful
                 context.getFlashCookie().success("msg_ChOk");
-                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect("/user/edit");
+                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
             }
             else
             { // the authorization-process failed
-                edt.setPw("");
-                edt.setPwn1("");
-                edt.setPwn2("");
+                edt.setPassword("");
+                edt.setPasswordNew1("");
+                edt.setPasswordNew2("");
                 context.getFlashCookie().error("msg_FormErr");
-                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect("/user/edit");
+                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
             }
         }
     }
@@ -192,7 +192,7 @@ public class UserHandler
             user.update();
             memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.C_EXPIRA, user);
         }
-        EditUsr edtusr = EditUsr.prepopulate(user);
+        UserFormData edtusr = UserFormData.prepopulate(user);
         return result.render(edtusr);
     }
 
