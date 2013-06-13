@@ -91,7 +91,7 @@ public class MessageListener implements SimpleMessageListener
 
             splitAddress = recipient.split("@");
 
-            if (!(splitAddress.length == 2))
+            if (splitAddress.length != 2)
             { // the mailaddress does not have the expected pattern -> do nothing, just log it
                 mtx = new MailTransaction(0, from, null, recipient);
                 mtx.saveTx();
@@ -101,11 +101,12 @@ public class MessageListener implements SimpleMessageListener
             if (MBox.mailExists(splitAddress[0], splitAddress[1]))
             { // the given mailaddress exists in the db
                 mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
-
+                forwardTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
+                
                 if (mailBox.isActive())
                 { // there's an existing and active mailaddress
                   // add the target-address to the list
-                    forwardTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
+
                     try
                     {
                         forwardAddress = new InternetAddress(forwardTarget);
@@ -126,7 +127,7 @@ public class MessageListener implements SimpleMessageListener
                 }
                 else
                 { // there's a mailaddress, but the forward is inactive
-                    mtx = new MailTransaction(200, from, recipient, null);
+                    mtx = new MailTransaction(200, from, recipient, forwardTarget);
                     mtx.saveTx();
                     mailBox.increaseSuppressions();
                     mailBox.update();
