@@ -78,7 +78,7 @@ public class UserHandler
         Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
         result.render("available_langs", o);
 
-        User usr = context.getAttribute("user", User.class);
+        User user = context.getAttribute("user", User.class);
 
         if (validation.hasViolations())
         { // the filled form has errors
@@ -91,11 +91,11 @@ public class UserHandler
             // don't let the user register with one of our domains
             // (prevent mail-loops)
             String mail = edt.getMail();
-            String domPart = mail.split("@")[1];
-            if (Arrays.asList(xcmConf.DM_LIST).contains(domPart))
+            String domainPart = mail.split("@")[1];
+            if (Arrays.asList(xcmConf.DM_LIST).contains(domainPart))
             {
                 context.getFlashCookie().error("msg_NoLoop");
-                edt.setMail(usr.getMail());
+                edt.setMail(user.getMail());
                 edt.setPw("");
                 edt.setPwn1("");
                 edt.setPwn2("");
@@ -105,15 +105,15 @@ public class UserHandler
             String pw1 = edt.getPwn1();
             String pw2 = edt.getPwn2();
 
-            if (usr.checkPasswd(edt.getPw()))
+            if (user.checkPasswd(edt.getPw()))
             { // the user authorized himself
-                if (User.mailChanged(edt.getMail(), usr.getId()))
+                if (User.mailChanged(edt.getMail(), user.getId()))
                 { // the mailaddress changed
-                    usr.setMail(edt.getMail());
+                    user.setMail(edt.getMail());
                 }
                 // update the fore- and surname
-                usr.setForename(edt.getFirstName());
-                usr.setSurname(edt.getSurName());
+                user.setForename(edt.getFirstName());
+                user.setSurname(edt.getSurName());
                 if (!(pw1 == null) && !(pw2 == null))
                 {
                     if (!(pw2.isEmpty()) && !(pw1.isEmpty()))
@@ -123,8 +123,8 @@ public class UserHandler
                             if (pw1.length() < xcmConf.PW_LEN)
                             {
                                 Optional<String> opt = Optional.of(context.getAcceptLanguage());
-                                String shortPw = msg.get("msg_ShortPw", opt, xcmConf.PW_LEN.toString()).get();
-                                context.getFlashCookie().error(shortPw);
+                                String tooShortPassword = msg.get("msg_ShortPw", opt, xcmConf.PW_LEN.toString()).get();
+                                context.getFlashCookie().error(tooShortPassword);
                                 edt.setPw("");
                                 edt.setPwn1("");
                                 edt.setPwn2("");
@@ -132,7 +132,7 @@ public class UserHandler
                                 return result.template("/views/UserHandler/editUserForm.ftl.html").render(edt);
                             }
 
-                            usr.hashPasswd(pw2);
+                            user.hashPasswd(pw2);
                         }
                         else
                         { // the passwords are not equal
@@ -146,13 +146,13 @@ public class UserHandler
                 }
                 if (Arrays.asList(xcmConf.APP_LANGS).contains(edt.getLanguage()))
                 {
-                    usr.setLanguage(edt.getLanguage());
+                    user.setLanguage(edt.getLanguage());
                     lang.setLanguage(edt.getLanguage(), result);
                 }
                 // update the user
-                usr.update();
+                user.update();
                 context.getSessionCookie().put("username", edt.getMail());
-                mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
+                mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, user);
                 // user-edit was successful
                 context.getFlashCookie().success("msg_ChOk");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").redirect("/user/edit");
@@ -182,15 +182,15 @@ public class UserHandler
         Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
         Result result = Results.html();
         result.render("available_langs", o);
-        User usr = context.getAttribute("user", User.class);
-        if (usr.getLanguage() == null || usr.getLanguage() == "")
+        User user = context.getAttribute("user", User.class);
+        if (user.getLanguage() == null || user.getLanguage() == "")
         {
             Optional<Result> opt = Optional.of(result);
-            usr.setLanguage(lang.getLanguage(context, opt).get());
-            usr.update();
-            mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, usr);
+            user.setLanguage(lang.getLanguage(context, opt).get());
+            user.update();
+            mcsh.set(context.getSessionCookie().getId(), xcmConf.C_EXPIRA, user);
         }
-        EditUsr edtusr = EditUsr.prepopulate(usr);
+        EditUsr edtusr = EditUsr.prepopulate(user);
         return result.render(edtusr);
     }
 

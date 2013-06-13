@@ -58,29 +58,29 @@ public class BoxHandler
      */
     public Result showAddBox(Context context)
     {
-        MbFrmDat mbdat = new MbFrmDat();
+        MbFrmDat mailboxFormData = new MbFrmDat();
         // set the value of the random-name to 7
         // use the lowercase, we handle the address as case-insensitive
-        String name = HelperUtils.getRndString(7).toLowerCase();
-        mbdat.setAddress(name);
+        String randomName = HelperUtils.getRndString(7).toLowerCase();
+        mailboxFormData.setAddress(randomName);
 
         // check that the generated mailname-proposal does not exist
         String[] domains = xcmConf.DM_LIST;
         if (domains.length > 0)
         {// prevent OutOfBoundException
-            while (MBox.mailExists(name, domains[0]))
+            while (MBox.mailExists(randomName, domains[0]))
             {
-                name = HelperUtils.getRndString(7).toLowerCase();
+                randomName = HelperUtils.getRndString(7).toLowerCase();
             }
         }
 
         // set a default entry for the validity-period
         // per default now+1h
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        mbdat.setDatetime(HelperUtils.parseStringTs(nowPlusOneHour));
-        mbdat.setDomain(domains[0]);
+        mailboxFormData.setDatetime(HelperUtils.parseStringTs(nowPlusOneHour));
+        mailboxFormData.setDomain(domains[0]);
 
-        return Results.html().render("domain", domains).render("mbFrmDat", mbdat);
+        return Results.html().render("domain", domains).render("mbFrmDat", mailboxFormData);
     }
 
     /**
@@ -95,55 +95,54 @@ public class BoxHandler
      *            Form validation
      * @return the Add-Box-Form (on Error) or the Box-Overview
      */
-    public Result addBox(Context context, @JSR303Validation MbFrmDat mbdat, Validation validation)
+    public Result addBox(Context context, @JSR303Validation MbFrmDat mailboxFormData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         result.render("domain", xcmConf.DM_LIST);
-        // Map<String, Object> map = xcmConf.getDomListAsMap();
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
 
             context.getFlashCookie().error("msg_FormErr");
-            if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
+            if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null)
+                || (mailboxFormData.getDatetime() == null))
             {
                 return result.redirect("/mail/add");
             }
             // map.put("mbFrmDat", mbdat);
-            result.render("mbFrmDat", mbdat);
+            result.render("mbFrmDat", mailboxFormData);
             return result.template("/views/BoxHandler/showAddBox.ftl.html");
         }
         else
         {
             // checks whether the Box already exists
-            if (!MBox.mailExists(mbdat.getAddress(), mbdat.getDomain()))
+            if (!MBox.mailExists(mailboxFormData.getAddress(), mailboxFormData.getDomain()))
             {
-                String mbName = mbdat.getAddress().toLowerCase();
+                String mbName = mailboxFormData.getAddress().toLowerCase();
                 // set the data of the box
                 String[] dom = xcmConf.DM_LIST;
-                if (!Arrays.asList(dom).contains(mbdat.getDomain()))
+                if (!Arrays.asList(dom).contains(mailboxFormData.getDomain()))
                 { // the new domainname does not exist in the application.conf
                   // stop the process and return to the mailbox-overview page
                     return result.redirect("/mail");
                 }
-                Long ts = HelperUtils.parseTimeString(mbdat.getDatetime());
+                Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                 if (ts == -1L)
                 { // show an error-page if the timestamp is faulty
                     context.getFlashCookie().error("msg_WrongF");
-                    // map.put("mbFrmDat", mbdat);
-                    result.render("mbFrmDat", mbdat);
+                    result.render("mbFrmDat", mailboxFormData);
                     return result.template("/views/BoxHandler/showAddBox.ftl.html");
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
                     context.getFlashCookie().error("createMail_Past_Timestamp");
-                    result.render("mbFrmDat", mbdat);
+                    result.render("mbFrmDat", mailboxFormData);
                     return result.template("/views/BoxHandler/showAddBox.ftl.html");
                 }
 
                 // create the MBox
                 User usr = context.getAttribute("user", User.class);
-                MBox mb = new MBox(mbName, mbdat.getDomain(), ts, false, usr);
+                MBox mb = new MBox(mbName, mailboxFormData.getDomain(), ts, false, usr);
 
                 // creates the Box in the DB
                 mb.save();
@@ -155,7 +154,7 @@ public class BoxHandler
                 // the mailbox already exists
                 context.getFlashCookie().error("msg_MailEx");
 
-                result.render("mbFrmDat", mbdat);
+                result.render("mbFrmDat", mailboxFormData);
                 return result.template("/views/BoxHandler/showAddBox.ftl.html");
             }
         }
@@ -170,14 +169,14 @@ public class BoxHandler
      *            the Context of this Request
      * @return the Mailbox-Overview-Page
      */
-    public Result deleteBox(@PathParam("id") Long boxid, Context context)
+    public Result deleteBox(@PathParam("id") Long boxId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        User usr = context.getAttribute("user", User.class);
-        if (MBox.boxToUser(boxid, usr.getId()))
+        User user = context.getAttribute("user", User.class);
+        if (MBox.boxToUser(boxId, user.getId()))
         {
             // deletes the box from DB
-            MBox.delete(boxid);
+            MBox.delete(boxId);
         }
         return result.redirect("/mail");
     }
@@ -196,7 +195,7 @@ public class BoxHandler
      *            Form validation
      * @return Mailbox-Overview-Page or the Mailbox-Form with an Error- or Success-Message
      */
-    public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mbdat,
+    public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mailboxFormData,
                           Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
@@ -205,43 +204,43 @@ public class BoxHandler
         { // not all fields were filled
             context.getFlashCookie().error("msg_FormErr");
 
-            if ((mbdat.getAddress() == null) || (mbdat.getDomain() == null) || (mbdat.getDatetime() == null))
+            if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null) || (mailboxFormData.getDatetime() == null))
             {
                 return result.redirect("/mail/edit/" + boxId.toString());
             }
-            result.render("mbFrmDat", mbdat);
+            result.render("mbFrmDat", mailboxFormData);
             return result.template("/views/BoxHandler/showEditBox.ftl.html");
         }
         else
         { // the form was filled correctly
 
             // we got the boxID with the POST-Request
-            MBox mb = MBox.getById(boxId);
-            if (mb != null)
+            MBox mailBox = MBox.getById(boxId);
+            if (mailBox != null)
             { // the box with the given id exists
                 User usr = context.getAttribute("user", User.class);
 
-                if (mb.belongsTo(usr.getId()))
+                if (mailBox.belongsTo(usr.getId()))
                 { // the current user is the owner of the mailbox
                     boolean changes = false;
-                    String newLName = mbdat.getAddress().toLowerCase();
-                    String newDName = mbdat.getDomain().toLowerCase();
+                    String newLName = mailboxFormData.getAddress().toLowerCase();
+                    String newDName = mailboxFormData.getDomain().toLowerCase();
                     if (MBox.mailChanged(newLName, newDName, boxId))
                     { // this is only true when the address changed and the new address does not exist
 
                         String[] dom = xcmConf.DM_LIST;
                         // assume that the POST-Request was modified and the domainname does not exist in our app
-                        if (!Arrays.asList(dom).contains(mbdat.getDomain()))
+                        if (!Arrays.asList(dom).contains(mailboxFormData.getDomain()))
                         {
                             // the new domainname does not exist in the application.conf
                             // stop the process and return to the mailbox-overview page
                             return result.redirect("/mail");
                         }
-                        mb.setAddress(newLName);
-                        mb.setDomain(newDName);
+                        mailBox.setAddress(newLName);
+                        mailBox.setDomain(newDName);
                         changes = true;
                     }
-                    Long ts = HelperUtils.parseTimeString(mbdat.getDatetime());
+                    Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
                         context.getFlashCookie().error("msg_WrongF");
@@ -253,17 +252,17 @@ public class BoxHandler
                         return result.redirect("/mail/edit/" + boxId.toString());
                     }
 
-                    if (!(mb.getTs_Active() == ts))
+                    if (!(mailBox.getTs_Active() == ts))
                     { // check if the MBox-TS is unequal to the given TS in the form
-                        mb.setTs_Active(ts);
+                        mailBox.setTs_Active(ts);
                         changes = true;
                     }
 
                     // Updates the Box if changes were made
                     if (changes)
                     {
-                        mb.setExpired(false);
-                        mb.update();
+                        mailBox.setExpired(false);
+                        mailBox.update();
                     }
                 }
             }
@@ -286,9 +285,9 @@ public class BoxHandler
      */
     public Result showEditBox(Context context, @PathParam("id") Long boxId)
     {
-        MBox mb = MBox.getById(boxId);
+        MBox mailBox = MBox.getById(boxId);
 
-        if (mb == null)
+        if (mailBox == null)
         { // there's no box with that id
             return Results.redirect("/mail");
         }
@@ -296,15 +295,10 @@ public class BoxHandler
         { // the box exists, go on!
             User usr = context.getAttribute("user", User.class);
 
-            if (mb.belongsTo(usr.getId()))
+            if (mailBox.belongsTo(usr.getId()))
             { // the MBox belongs to this user
-                MbFrmDat mbDat = new MbFrmDat();
-                mbDat.setBoxId(boxId);
-                mbDat.setAddress(mb.getAddress());
-                mbDat.setDomain(mb.getDomain());
-                mbDat.setDatetime(mb.getTSAsStringWithNull());
-
-                return Results.html().render("mbFrmDat", mbDat).render("domain", xcmConf.DM_LIST);
+              // render the box-data and domains
+                return Results.html().render("mbFrmDat", MbFrmDat.prepopulate(mailBox)).render("domain", xcmConf.DM_LIST);
             }
             else
             { // the MBox does not belong to this user
@@ -323,14 +317,14 @@ public class BoxHandler
 
     public Result showBoxes(Context context)
     {
-        User usr = context.getAttribute("user", User.class);
+        User user = context.getAttribute("user", User.class);
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 
         // generate the paged-list to get pagination in the pattern
-        PageList<MBox> plist = new PageList<MBox>(MBox.allUser(usr.getId()), entries);
+        PageList<MBox> plist = new PageList<MBox>(MBox.allUser(user.getId()), entries);
 
         return Results.html().render("mboxes", plist);
     }
@@ -338,28 +332,28 @@ public class BoxHandler
     /**
      * Sets the Box valid/invalid
      * 
-     * @param id
+     * @param boxId
      *            the ID of the Mailbox
      * @param context
      *            the Context of this Request
      * @return the rendered Mailbox-Overview-Page
      */
 
-    public Result expireBox(@PathParam("id") Long id, Context context)
+    public Result expireBox(@PathParam("id") Long boxId, Context context)
     {
         Result result = Results.html().template("/views/BoxHandler/showBoxes.ftl.html");
-        MBox mb = MBox.getById(id);
-        User usr = context.getAttribute("user", User.class);
+        MBox mailBox = MBox.getById(boxId);
+        User user = context.getAttribute("user", User.class);
 
-        if (mb.belongsTo(usr.getId()))
+        if (mailBox.belongsTo(user.getId()))
         {// check if the mailbox belongs to the current user
-            if (!(mb.getTs_Active() == 0) && (mb.getTs_Active() < DateTime.now().getMillis()))
+            if (!(mailBox.getTs_Active() == 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
             { // if the validity period is over, return the Edit page
-                return result.redirect("/mail/edit/" + id);
+                return result.redirect("/mail/edit/" + boxId);
             }
             else
             { // otherwise just set the new status
-                mb.enable();
+                mailBox.enable();
             }
         }
         return result.redirect("/mail");
@@ -368,24 +362,24 @@ public class BoxHandler
     /**
      * Sets the Values of the Counters for the Box, given by their ID, to zero
      * 
-     * @param id
+     * @param boxId
      *            the ID of the Mailbox
      * @param context
      *            the Context of this Request
      * @return the Mailbox-Overview-Page
      */
-    public Result resetBoxCounters(@PathParam("id") Long id, Context context)
+    public Result resetBoxCounters(@PathParam("id") Long boxId, Context context)
     {
         Result result = Results.html().template("/views/BoxHandler/showBoxes.ftl.html");
-        MBox mb = MBox.getById(id);
-        User usr = context.getAttribute("user", User.class);
+        MBox mailBox = MBox.getById(boxId);
+        User user = context.getAttribute("user", User.class);
 
         // check if the mailbox belongs to the current user
-        if (mb.belongsTo(usr.getId()))
+        if (mailBox.belongsTo(user.getId()))
         {
-            mb.resetForwards();
-            mb.resetSuppressions();
-            mb.update();
+            mailBox.resetForwards();
+            mailBox.resetSuppressions();
+            mailBox.update();
         }
         return result.redirect("/mail");
     }

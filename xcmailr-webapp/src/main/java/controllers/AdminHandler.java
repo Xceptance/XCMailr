@@ -79,7 +79,7 @@ public class AdminHandler
      */
     public Result showUsers(Context context)
     {
-        User usr = context.getAttribute("user", User.class);
+        User user = context.getAttribute("user", User.class);
 
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConf.APP_DEFAULT_ENTRYNO);
@@ -88,11 +88,10 @@ public class AdminHandler
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 
         // generate the paged-list to get pagination in the pattern
-        PageList<User> plist = new PageList<User>(User.all(), entries);
+        PageList<User> pagedUserList = new PageList<User>(User.all(), entries);
 
         // put in the users-ID to identify the row where no buttons will be shown
-
-        return Results.html().render("uid", usr.getId()).render("users", plist);
+        return Results.html().render("uid", user.getId()).render("users", pagedUserList);
     }
 
     /**
@@ -124,9 +123,11 @@ public class AdminHandler
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 
         // generate the paged-list to get pagination on the page
-        PageList<MailTransaction> pl = new PageList<MailTransaction>(MailTransaction.all("ts desc"), entries);
+        PageList<MailTransaction> pagedMailTransactionList = new PageList<MailTransaction>(
+                                                                                           MailTransaction.all("ts desc"),
+                                                                                           entries);
 
-        return Results.html().render("plist", pl);
+        return Results.html().render("plist", pagedMailTransactionList);
     }
 
     /**
@@ -158,24 +159,24 @@ public class AdminHandler
      * Activates or Deactivates the User with the given ID <br/>
      * POST /admin/activate/{id}
      * 
-     * @param id
+     * @param userId
      *            ID of a User
      * @param context
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
-    public Result activate(@PathParam("id") Long id, Context context)
+    public Result activate(@PathParam("id") Long userId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        User usr = context.getAttribute("user", User.class);
-        if (!(usr.getId() == id))
+        User user = context.getAttribute("user", User.class);
+        if (!(user.getId() == userId))
         { // the user to (de-)activate is not the user who performs this action
 
             // activate or deactivate the user
-            boolean active = User.activate(id);
+            boolean active = User.activate(userId);
 
             // generate the (de-)activation-information mail and send it to the user
-            User actusr = User.getById(id);
+            User actusr = User.getById(userId);
             String from = xcmConf.ADMIN_ADD;
             String host = xcmConf.MB_HOST;
             Optional<String> opt = Optional.fromNullable(context.getAcceptLanguage());
@@ -212,19 +213,19 @@ public class AdminHandler
      * Pro- or Demotes the {@link models.User User} with the given ID <br/>
      * POST /admin/promote/{id}
      * 
-     * @param id
+     * @param userId
      *            ID of a {@link models.User User}
      * @param context
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
-    public Result promote(@PathParam("id") Long id, Context context)
+    public Result promote(@PathParam("id") Long userId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        User usr = context.getAttribute("user", User.class);
-        if (!(usr.getId() == id))
+        User user = context.getAttribute("user", User.class);
+        if (!(user.getId() == userId))
         { // the user to pro-/demote is not the user who performs this action
-            User.promote(id);
+            User.promote(userId);
         }
         return result.redirect("/admin/users");
     }
@@ -233,19 +234,19 @@ public class AdminHandler
      * Handles the {@link models.User User}-Delete-Function <br/>
      * POST /admin/delete/{id}
      * 
-     * @param id
+     * @param userId
      *            the ID of a {@link models.User User}
      * @param context
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
-    public Result deleteUser(@PathParam("id") Long id, Context context)
+    public Result deleteUser(@PathParam("id") Long userId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        User usr = context.getAttribute("user", User.class);
-        if (!(usr.getId() == id))
+        User user = context.getAttribute("user", User.class);
+        if (!(user.getId() == userId))
         { // the user to delete is not the user who performs this action
-            User.delete(id);
+            User.delete(userId);
         }
 
         return result.redirect("/admin/users");

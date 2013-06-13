@@ -56,7 +56,7 @@ public class MailrMessageSenderFactory
     @Inject
     NinjaProperties ninjaProp;
 
-    private Session sess;
+    private Session session;
 
     /**
      * Reads the Configuration-File and creates the Session for the Mail-Transport
@@ -65,17 +65,17 @@ public class MailrMessageSenderFactory
      */
     public Session getSession()
     {
-        if (sess == null)
+        if (session == null)
         {
             // set the data from application.conf
-            Properties prop = System.getProperties();
-            prop.put("mail.smtp.host", xcmConf.OUT_SMTP_HOST);
-            prop.put("mail.smtp.port", xcmConf.OUT_SMTP_PORT);
-            prop.put("mail.smtp.debug", xcmConf.OUT_SMTP_DEBUG);
-            prop.put("mail.smtp.auth", xcmConf.OUT_SMTP_AUTH);
-            prop.put("mail.smtp.starttls.enable", xcmConf.OUT_SMTP_TLS);
+            Properties properties = System.getProperties();
+            properties.put("mail.smtp.host", xcmConf.OUT_SMTP_HOST);
+            properties.put("mail.smtp.port", xcmConf.OUT_SMTP_PORT);
+            properties.put("mail.smtp.debug", xcmConf.OUT_SMTP_DEBUG);
+            properties.put("mail.smtp.auth", xcmConf.OUT_SMTP_AUTH);
+            properties.put("mail.smtp.starttls.enable", xcmConf.OUT_SMTP_TLS);
 
-            sess = Session.getInstance(prop, new javax.mail.Authenticator()
+            session = Session.getInstance(properties, new javax.mail.Authenticator()
             {
                 protected PasswordAuthentication getPasswordAuthentication()
                 {
@@ -83,7 +83,7 @@ public class MailrMessageSenderFactory
                 }
             });
         }
-        return sess;
+        return session;
     }
 
     /**
@@ -143,10 +143,10 @@ public class MailrMessageSenderFactory
      *            {@link User}-ID of the Recipient
      * @param token
      *            the generated Confirmation-Token of the {@link User}
-     * @param lang
+     * @param language
      *            The Language for the Mail
      */
-    public void sendConfirmAddressMail(String to, String forename, String id, String token, Optional<String> lang)
+    public void sendConfirmAddressMail(String to, String forename, String id, String token, Optional<String> language)
     {
         String from = xcmConf.ADMIN_ADD;
 
@@ -160,12 +160,12 @@ public class MailrMessageSenderFactory
         strb.append("/verify/" + id + "/" + token);
 
         // generate the message-body
-        String body = msg.get("user_Verify_Message", lang, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
+        String body = msg.get("user_Verify_Message", language, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
         // generate the message-subject
-        String subj = msg.get("user_Verify_Subject", lang, (Object) null).get();
+        String subject = msg.get("user_Verify_Subject", language, (Object) null).get();
 
         // send the Mail
-        sendMail(from, to, body, subj);
+        sendMail(from, to, body, subject);
 
     }
 
@@ -180,10 +180,10 @@ public class MailrMessageSenderFactory
      *            {@link User}-ID of the Recipient
      * @param token
      *            The generated Confirmation-Token of the User
-     * @param lang
+     * @param language
      *            The Language for the Mail
      */
-    public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> lang)
+    public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> language)
     {
 
         String from = xcmConf.ADMIN_ADD;
@@ -198,13 +198,13 @@ public class MailrMessageSenderFactory
         strb.append("/lostpw/" + id + "/" + token);
 
         // generate the Message-Body
-        String body = msg.get("user_PwResend_Message", lang, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
+        String body = msg.get("user_PwResend_Message", language, forename, strb.toString(), xcmConf.CONF_PERIOD).get();
 
         // generate the Message-Subject
-        String subj = msg.get("user_PwResend_Subject", lang, (Object) null).get();
+        String subject = msg.get("user_PwResend_Subject", language, (Object) null).get();
 
         // send the Mail
-        sendMail(from, to, body, subj);
+        sendMail(from, to, body, subject);
     }
 
     public class ThreadedMailSend extends Thread
@@ -212,7 +212,7 @@ public class MailrMessageSenderFactory
 
         private MimeMessage mail;
 
-        private MBox mb;
+        private MBox mailBox;
 
         private MailTransaction mtx;
 
@@ -221,9 +221,9 @@ public class MailrMessageSenderFactory
             this(mail, null);
         }
 
-        public ThreadedMailSend(MimeMessage mail, MBox mb)
+        public ThreadedMailSend(MimeMessage mail, MBox mailBox)
         {
-            this.mb = mb;
+            this.mailBox = mailBox;
             this.mail = mail;
             this.run();
         }
@@ -250,9 +250,9 @@ public class MailrMessageSenderFactory
                     Transport.send(mail);
 
                     // log the transaction
-                    if (mb != null)
+                    if (mailBox != null)
                     {
-                        mtx = new MailTransaction(300, from, mb.getFullAddress(), recipient);
+                        mtx = new MailTransaction(300, from, mailBox.getFullAddress(), recipient);
                     }
                     else
                     {
@@ -261,10 +261,10 @@ public class MailrMessageSenderFactory
                     mtx.saveTx();
                     log.info("Message sent, From: " + from + " To:" + recipient);
 
-                    if (mb != null)
+                    if (mailBox != null)
                     { // the message belongs to one of our mailboxes
-                        mb.increaseForwards();
-                        mb.update();
+                        mailBox.increaseForwards();
+                        mailBox.update();
                     }
                 }
             }
@@ -272,7 +272,7 @@ public class MailrMessageSenderFactory
             {
                 // the message sending-process failed
                 // log it
-                mtx = new MailTransaction(400, from, mb.getFullAddress(), recipient);
+                mtx = new MailTransaction(400, from, mailBox.getFullAddress(), recipient);
                 mtx.saveTx();
 
                 log.error(e.getMessage());

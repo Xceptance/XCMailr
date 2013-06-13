@@ -111,4 +111,15 @@ public class MbFrmDat
         this.datetime = datetime;
     }
 
+    public static MbFrmDat prepopulate(MBox mb)
+    {
+        MbFrmDat mbDat = new MbFrmDat();
+        mbDat.setBoxId(mb.getId());
+        mbDat.setAddress(mb.getAddress());
+        mbDat.setDomain(mb.getDomain());
+        mbDat.setDatetime(mb.getTSAsStringWithNull());
+        return mbDat;
+
+    }
+
 }

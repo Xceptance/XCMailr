@@ -72,9 +72,9 @@ public class Application
     public Result index(Context context)
     {
         String uuid = context.getSessionCookie().getId();
-        User usr = (User) mcsh.get(uuid);
+        User user = (User) mcsh.get(uuid);
 
-        if (usr == null)
+        if (user == null)
         {
             // show the default index page if there's no user
             return Results.ok().html();
@@ -100,7 +100,7 @@ public class Application
     {
         Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
 
-        return Results.html().render("available_langs",o);
+        return Results.html().render("available_langs", o);
     }
 
     /**
@@ -109,77 +109,77 @@ public class Application
      * 
      * @param context
      *            the Context of this Request
-     * @param frdat
+     * @param userFormData
      *            the Data of the Registration-Form
      * @param validation
      *            Form validation
      * @return the Registration-Form and an error, or - if successful - the Index-Page
      */
     @FilterWith(NoLoginFilter.class)
-    public Result postRegisterForm(Context context, @JSR303Validation EditUsr frdat, Validation validation)
+    public Result postRegisterForm(Context context, @JSR303Validation EditUsr userFormData, Validation validation)
     {
-        
+
         Result result = Results.html().template("/views/Application/registerForm.ftl.html");
 
         Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
         result.render("available_langs", o);
         if (validation.hasViolations())
         {
-            frdat.setPw("");
-            frdat.setPwn1("");
-            frdat.setPwn2("");
+            userFormData.setPw("");
+            userFormData.setPwn1("");
+            userFormData.setPwn2("");
 
             context.getFlashCookie().error("msg_FormErr");
 
-            return result.render("editUsr", frdat);
+            return result.render("editUsr", userFormData);
         }
         else
         { // form was filled correctly, go on!
-            if (!User.mailExists(frdat.getMail()))
+            if (!User.mailExists(userFormData.getMail()))
             {
                 // don't let the user register with one of our domains
                 // (prevent mail-loops)
-                String mail = frdat.getMail();
-                String domPart = mail.split("@")[1];
-                if (Arrays.asList(xcmConf.DM_LIST).contains(domPart))
+                String mail = userFormData.getMail();
+                String domainPart = mail.split("@")[1];
+                if (Arrays.asList(xcmConf.DM_LIST).contains(domainPart))
                 {
                     context.getFlashCookie().error("msg_NoLoop");
-                    frdat.setMail("");
-                    frdat.setPw("");
-                    frdat.setPwn1("");
-                    frdat.setPwn2("");
+                    userFormData.setMail("");
+                    userFormData.setPw("");
+                    userFormData.setPwn1("");
+                    userFormData.setPwn2("");
 
-                    return result.render("editUsr", frdat);
+                    return result.render("editUsr", userFormData);
                 }
 
                 // a new user, check whether the passwords are matching
-                if (frdat.getPw().equals(frdat.getPwn1()))
+                if (userFormData.getPw().equals(userFormData.getPwn1()))
                 {
-                    if (frdat.getPwn1().length() < xcmConf.PW_LEN)
+                    if (userFormData.getPwn1().length() < xcmConf.PW_LEN)
                     { // password too short
 
                         Optional<String> opt = Optional.of(context.getAcceptLanguage());
 
                         String shortPw = msg.get("msg_ShortPw", opt, xcmConf.PW_LEN).get();
                         context.getFlashCookie().error(shortPw);
-                        frdat.setPw("");
-                        frdat.setPwn1("");
-                        frdat.setPwn2("");
-                        return result.render("editUsr", frdat);
+                        userFormData.setPw("");
+                        userFormData.setPwn1("");
+                        userFormData.setPwn2("");
+                        return result.render("editUsr", userFormData);
                     }
                     // create the user
-                    User user = frdat.getAsUser();
+                    User user = userFormData.getAsUser();
 
                     // handle the language
 
                     if (!Arrays.asList(xcmConf.APP_LANGS).contains(user.getLanguage()))
                     { // the language stored in the user-object does not exist in the app
-                        frdat.setPw("");
-                        frdat.setPwn1("");
-                        frdat.setPwn2("");
+                        userFormData.setPw("");
+                        userFormData.setPwn1("");
+                        userFormData.setPwn2("");
                         context.getFlashCookie().error("msg_WrongPw");
 
-                        return result.render("editUsr", frdat);
+                        return result.render("editUsr", userFormData);
                     }
 
                     // generate the confirmation-token
@@ -191,25 +191,25 @@ public class Application
                     mmhf.sendConfirmAddressMail(user.getMail(), user.getForename(), String.valueOf(user.getId()),
                                                 user.getConfirmation(), lng);
                     context.getFlashCookie().success("msg_RegOk");
-                    
+
                     lang.setLanguage(user.getLanguage(), result);
                     return result.template("/views/Application/index.ftl.html").redirect("/");
                 }
                 else
                 { // password mismatch
-                    frdat.setPw("");
-                    frdat.setPwn1("");
-                    frdat.setPwn2("");
+                    userFormData.setPw("");
+                    userFormData.setPwn1("");
+                    userFormData.setPwn2("");
                     context.getFlashCookie().error("msg_WrongPw");
 
-                    return result.render("editUsr", frdat);
+                    return result.render("editUsr", userFormData);
                 }
             }
             else
             { // mailadress already exists
                 context.getFlashCookie().error("msg_MailEx");
 
-                return result.render("editUsr", frdat);
+                return result.render("editUsr", userFormData);
             }
         }
     }
@@ -284,30 +284,30 @@ public class Application
      * 
      * @param context
      *            the Context of this Request
-     * @param loginDat
+     * @param loginData
      *            the Data of the Login-Form
      * @param validation
      *            Form validation
      * @return the Login-Form or the Index-Page
      */
     @FilterWith(NoLoginFilter.class)
-    public Result loggedInForm(Context context, @JSR303Validation Login loginDat, Validation validation)
+    public Result loggedInForm(Context context, @JSR303Validation Login loginData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/loginForm.ftl.html");
         if (validation.hasViolations())
         {
-            loginDat.setPwd("");
+            loginData.setPwd("");
             context.getFlashCookie().error("msg_FormErr");
-            return result.render(loginDat);
+            return result.render(loginData);
         }
         else
         {
-            User lgr = User.getUsrByMail(loginDat.getMail());
-            if (!(lgr == null))
+            User loginUser = User.getUsrByMail(loginData.getMail());
+            if (!(loginUser == null))
             {// the user exists
-                if (lgr.checkPasswd(loginDat.getPwd()))
+                if (loginUser.checkPasswd(loginData.getPwd()))
                 { // correct login
-                    if (!lgr.isActive())
+                    if (!loginUser.isActive())
                     {
                         context.getFlashCookie().error("user_Inactive");
                         return result.template("/views/Application/index.ftl.html").redirect("/");
@@ -315,42 +315,42 @@ public class Application
 
                     // we put the username into the cookie, but use the id of the cookie for authentication
                     String sessionKey = context.getSessionCookie().getId();
-                    mcsh.set(sessionKey, xcmConf.C_EXPIRA, lgr);
-                    context.getSessionCookie().put("username", lgr.getMail());
-                    if (lgr.isAdmin())
+                    mcsh.set(sessionKey, xcmConf.C_EXPIRA, loginUser);
+                    context.getSessionCookie().put("username", loginUser.getMail());
+                    if (loginUser.isAdmin())
                     {
                         context.getSessionCookie().put("adm", "1");
                     }
-                    lgr.setBadPwCount(0);
-                    lgr.update();
+                    loginUser.setBadPwCount(0);
+                    loginUser.update();
                     context.getFlashCookie().success("msg_LogIn");
                     return result.template("/views/Application/index.ftl.html").redirect("/");
                 }
                 else
                 { // the authentication was not correct
-                    lgr.setBadPwCount(lgr.getBadPwCount() + 1);
-                    lgr.update();
+                    loginUser.setBadPwCount(loginUser.getBadPwCount() + 1);
+                    loginUser.update();
 
-                    if (lgr.getBadPwCount() >= 6)
+                    if (loginUser.getBadPwCount() >= 6)
                     { // the password was six times wrong
-                        lgr.setActive(false);
-                        lgr.update();
+                        loginUser.setActive(false);
+                        loginUser.update();
 
                         // show the disabled message and return to the forgot-pw-page
                         context.getFlashCookie().error("user_Disabled");
                         return result.template("/views/Application/index.ftl.html").redirect("/pwresend");
                     }
 
-                    loginDat.setPwd("");
+                    loginData.setPwd("");
                     context.getFlashCookie().error("msg_FormErr");
-                    return result.render(loginDat);
+                    return result.render(loginData);
                 }
             }
             else
             {// the user does not exist
-                loginDat.setPwd("");
+                loginData.setPwd("");
                 context.getFlashCookie().error("msg_FormErr");
-                return result.render(loginDat);
+                return result.render(loginData);
             }
         }
     }
@@ -389,19 +389,19 @@ public class Application
         }
         else
         {
-            User usr = User.getUsrByMail(loginDat.getMail());
-            if (!(usr == null))
+            User user = User.getUsrByMail(loginDat.getMail());
+            if (!(user == null))
             { // mailadress was correct (exists in the DB)
               // generate a new confirmation token and send it to the given mailadress
 
                 // generate the confirmation-token
-                usr.setConfirmation(HelperUtils.getRndSecureString(20));
+                user.setConfirmation(HelperUtils.getRndSecureString(20));
                 // set the new validity-time
-                usr.setTs_confirm(DateTime.now().plusHours(xcmConf.CONF_PERIOD).getMillis());
-                usr.update();
+                user.setTs_confirm(DateTime.now().plusHours(xcmConf.CONF_PERIOD).getMillis());
+                user.update();
                 Optional<String> lang = Optional.of(context.getAcceptLanguage());
-                mmhf.sendPwForgotAddressMail(usr.getMail(), usr.getForename(), String.valueOf(usr.getId()),
-                                             usr.getConfirmation(), lang);
+                mmhf.sendPwForgotAddressMail(user.getMail(), user.getForename(), String.valueOf(user.getId()),
+                                             user.getConfirmation(), lang);
                 context.getFlashCookie().success("forgPw_Succ");
                 return result.redirect("/");
             }
@@ -452,14 +452,14 @@ public class Application
      *            the Token of the {@link User}
      * @param context
      *            the Context of this Request
-     * @param pwd
+     * @param passwordFormData
      *            the PwData (the Form-Entrys)
      * @param validation
      *            Form validation
      * @return the "Change your Password"-Site or (on Error) the Index-Page
      */
     public Result changePw(@PathParam("id") Long id, @PathParam("token") String token, Context context,
-                           @JSR303Validation PwData pwd, Validation validation)
+                           @JSR303Validation PwData passwordFormData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/lostPw.ftl.html");
         // check the PathParams again
@@ -470,20 +470,20 @@ public class Application
             { // the passed token is the right one
                 if (!validation.hasViolations())
                 { // the form was filled correctly
-                    if (pwd.getPw().equals(pwd.getPw2()))
+                    if (passwordFormData.getPw().equals(passwordFormData.getPw2()))
                     { // the entered PWs are equal
 
-                        if (pwd.getPw().length() < xcmConf.PW_LEN)
+                        if (passwordFormData.getPw().length() < xcmConf.PW_LEN)
                         { // check whether the password has the correct length
 
-                            Optional<String> opt = Optional.of(context.getAcceptLanguage());
-                            String shortPw = msg.get("msg_ShortPw", opt, xcmConf.PW_LEN).get();
-                            context.getFlashCookie().error(shortPw);
-                            pwd.setPw("");
-                            pwd.setPw2("");
+                            Optional<String> optionalLanguage = Optional.of(context.getAcceptLanguage());
+                            String tooShortPassword = msg.get("msg_ShortPw", optionalLanguage, xcmConf.PW_LEN).get();
+                            context.getFlashCookie().error(tooShortPassword);
+                            passwordFormData.setPw("");
+                            passwordFormData.setPw2("");
                             return result.redirect("/lostpw/" + id + "/" + token);
                         }
-                        user.hashPasswd(pwd.getPw());
+                        user.hashPasswd(passwordFormData.getPw());
                         user.setActive(true);
                         user.setBadPwCount(0);
 

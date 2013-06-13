@@ -82,33 +82,31 @@ public class JobController
             {// ...and the admin-acc doesn't exist
 
                 // create the adminaccount
-                User usr = new User("Site", "Admin", xcmConf.ADMIN_ADD, xcmConf.ADMIN_PASS, "en");
-                
+                User user = new User("Site", "Admin", xcmConf.ADMIN_ADD, xcmConf.ADMIN_PASS, "en");
+
                 // set the status and admin flags
-                usr.setAdmin(true);
-                usr.setActive(true);
-                usr.save();
+                user.setAdmin(true);
+                user.setActive(true);
+                user.save();
             }
         }
         // create the server for incoming mails
         smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(msgListener));
 
-        // use a dynamic port in test-mode
         int port;
         if (ninjaProp.isTest())
-        {
+        {// use a dynamic port in test-mode
             port = findAvailablePort(49152, 65535);
         }
         else
-        {
+        {// or in dev- and prod-mode use the port which has been specified in the application.conf
             port = xcmConf.MB_PORT;
         }
-        
+
         // set the port and start the SMTP-Server
         smtpServer.setPort(port);
         smtpServer.start();
-        
-        
+
         if (!ninjaProp.isTest())
         {
             // create the executor-service to check the mailboxes which were expired since the last run and disable them
@@ -118,19 +116,19 @@ public class JobController
                 public void run()
                 {
                     log.debug("mbox-scheduler run");
-                    
-                    //get the number of MBox-Elements that will expire in the next "MB_INT"-minutes
-                    List<MBox> mbList = MBox.getNextBoxes(xcmConf.MB_INT);
-                    ListIterator<MBox> it = mbList.listIterator();
-                    
+
+                    // get the number of MBox-Elements that will expire in the next "MB_INT"-minutes
+                    List<MBox> expiringMailBoxesList = MBox.getNextBoxes(xcmConf.MB_INT);
+                    ListIterator<MBox> mailBoxIterator = expiringMailBoxesList.listIterator();
+
                     DateTime dt = new DateTime();
-                    
-                    while (it.hasNext())
+
+                    while (mailBoxIterator.hasNext())
                     {
-                        MBox mb = it.next();
-                        if (dt.isAfter(mb.getTs_Active()) && !(mb.getTs_Active() == 0))
+                        MBox mailBox = mailBoxIterator.next();
+                        if (dt.isAfter(mailBox.getTs_Active()) && !(mailBox.getTs_Active() == 0))
                         { // this element is now expired
-                            mb.enable();
+                            mailBox.enable();
                         }
                     }
                 }
