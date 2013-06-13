@@ -6,41 +6,41 @@
 		<fieldset>
 			<legend>${i18n("editUser_Title")}</legend>  
 			<div class="control-group"> 
-				<label class="control-label" for="pw">${i18n("editUser_CurrentPassword_Label")}*</label>
+				<label class="control-label" for="password">${i18n("editUser_CurrentPassword_Label")}*</label>
 				<div class="controls">  
-					<input class="input_full" type="password" id="pw" name="pw" value="${(editUsr.pw)!}" required="required"/>
+					<input class="input_full" type="password" id="password" name="password" value="${(userFormData.password)!}" required="required"/>
 				</div>
 			</div>	
 			<br/>	
 	        <div class="control-group"> 
 				<label class="control-label" for="firstName">${i18n("editUser_FirstName_Label")}*</label>
 				<div class="controls">  
-					<input class="input_full" type="text" id="firstName" name="firstName" value="${(editUsr.firstName)!}" required="required"/>
+					<input class="input_full" type="text" id="firstName" name="firstName" value="${(userFormData.firstName)!}" required="required"/>
 				</div>
 			</div>
 			<div class="control-group"> 
 				<label class="control-label" for="surName">${i18n("editUser_Name_Label")}*</label>
 				<div class="controls">  
-					<input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required"/>
+					<input class="input_full" type="text" id="surName" name="surName" value="${(userFormData.surName)!}" required="required"/>
 				</div>
 			</div>
 			<div class="control-group"> 
 				<label class="control-label" for="mail">${i18n("editUser_Email_Label")}*</label>
 				<div class="controls">  
-					<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required"/>
+					<input class="input_full" type="email" id="mail" name="mail" value="${(userFormData.mail)!}" required="required"/>
 				</div>
 			</div>	
 		<br/>
 			<div class="control-group"> 
-				<label class="control-label" for="pwn1">${i18n("editUser_NewPassword_Label")}</label>
+				<label class="control-label" for="passwordNew1">${i18n("editUser_NewPassword_Label")}</label>
 				<div class="controls">  
-					<input class="input_full" type="password" id="pwn1" name="pwn1" value="${(editUsr.pwn1)!}"/>
+					<input class="input_full" type="password" id="passwordNew1" name="passwordNew1" value="${(userFormData.passwordNew1)!}"/>
 				</div>
 			</div>		
 			<div class="control-group"> 
-				<label class="control-label" for="pwn2">${i18n("editUser_NewPasswordRepeated_Label")}</label>
+				<label class="control-label" for="passwordNew2">${i18n("editUser_NewPasswordRepeated_Label")}</label>
 				<div class="controls">  
-					<input class="input_full" type="password" id="pwn2"	name="pwn2" value="${(editUsr.pwn2)!}"/>
+					<input class="input_full" type="password" id="passwordNew2" name="passwordNew2" value="${(userFormData.passwordNew2)!}"/>
 				</div>
 			</div>
 			<div class="control-group">
@@ -48,8 +48,8 @@
 				<div class="controls">
 				<select name="language" id="language" >
 				<#list available_langs as lng>
-					<#if (editUsr.language)??>
-			  			<#if editUsr.language==lng[0]>	
+					<#if (userFormData.language)??>
+			  			<#if userFormData.language==lng[0]>	
 			  			<option value="${lng[0]}" selected="selected">${lng[1]}</option>
 			  			<#else>
 			  			<option value="${lng[0]}" >${lng[1]}</option>

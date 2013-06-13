@@ -27,7 +27,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
 import models.MBox;
-import models.MbFrmDat;
+import models.MailBoxFormData;
 import models.PageList;
 import models.User;
 import ninja.params.PathParam;
@@ -58,7 +58,7 @@ public class BoxHandler
      */
     public Result showAddBox(Context context)
     {
-        MbFrmDat mailboxFormData = new MbFrmDat();
+        MailBoxFormData mailboxFormData = new MailBoxFormData();
         // set the value of the random-name to 7
         // use the lowercase, we handle the address as case-insensitive
         String randomName = HelperUtils.getRandomString(7).toLowerCase();
@@ -95,7 +95,7 @@ public class BoxHandler
      *            Form validation
      * @return the Add-Box-Form (on Error) or the Box-Overview
      */
-    public Result addBox(Context context, @JSR303Validation MbFrmDat mailboxFormData, Validation validation)
+    public Result addBox(Context context, @JSR303Validation MailBoxFormData mailboxFormData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         result.render("domain", xcmConfiguration.DM_LIST);
@@ -195,7 +195,7 @@ public class BoxHandler
      *            Form validation
      * @return Mailbox-Overview-Page or the Mailbox-Form with an Error- or Success-Message
      */
-    public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MbFrmDat mailboxFormData,
+    public Result editBox(Context context, @PathParam("id") Long boxId, @JSR303Validation MailBoxFormData mailboxFormData,
                           Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
@@ -298,7 +298,7 @@ public class BoxHandler
             if (mailBox.belongsTo(usr.getId()))
             { // the MBox belongs to this user
               // render the box-data and domains
-                return Results.html().render("mbFrmDat", MbFrmDat.prepopulate(mailBox)).render("domain", xcmConfiguration.DM_LIST);
+                return Results.html().render("mbFrmDat", MailBoxFormData.prepopulate(mailBox)).render("domain", xcmConfiguration.DM_LIST);
             }
             else
             { // the MBox does not belong to this user

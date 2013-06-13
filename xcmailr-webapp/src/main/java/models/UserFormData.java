@@ -25,7 +25,7 @@ import org.hibernate.validator.constraints.NotEmpty;
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 
-public class EditUsr
+public class UserFormData
 {
     @NotEmpty
     public String firstName;
@@ -38,11 +38,11 @@ public class EditUsr
     private String mail;
 
     @NotEmpty
-    private String pw;
+    private String password;
 
-    private String pwn1;
+    private String passwordNew1;
 
-    private String pwn2;
+    private String passwordNew2;
 
     private String language;
 
@@ -100,52 +100,52 @@ public class EditUsr
     /**
      * @return the Password
      */
-    public String getPw()
+    public String getPassword()
     {
-        return pw;
+        return password;
     }
 
     /**
-     * @param pw
+     * @param password
      *            the Password to set
      */
-    public void setPw(String pw)
+    public void setPassword(String password)
     {
-        this.pw = pw;
+        this.password = password;
     }
 
     /**
      * @return the new Password
      */
-    public String getPwn1()
+    public String getPasswordNew1() //TODO: alle templates mit diesem EditUsr ändern
     {
-        return pwn1;
+        return passwordNew1;
     }
 
     /**
-     * @param pwn1
+     * @param passwordNew1
      *            the new Password to set
      */
-    public void setPwn1(String pwn1)
+    public void setPasswordNew1(String passwordNew1)
     {
-        this.pwn1 = pwn1;
+        this.passwordNew1 = passwordNew1;
     }
 
     /**
      * @return the Repetition of the new Password
      */
-    public String getPwn2()
+    public String getPasswordNew2()
     {
-        return pwn2;
+        return passwordNew2;
     }
 
     /**
-     * @param pwn2
+     * @param passwordNew2
      *            the Repetition of the new Password to set
      */
-    public void setPwn2(String pwn2)
+    public void setPasswordNew2(String passwordNew2)
     {
-        this.pwn2 = pwn2;
+        this.passwordNew2 = passwordNew2;
     }
 
     /**
@@ -174,7 +174,7 @@ public class EditUsr
      */
     public User getAsUser()
     {
-        return new User(firstName, surName, mail, pwn1, language);
+        return new User(firstName, surName, mail, passwordNew1, language);
     }
 
     /**
@@ -184,14 +184,14 @@ public class EditUsr
      *            the {@link User}-Object to convert
      * @return an EditUsr-Object filled with the User-Data
      */
-    public static EditUsr prepopulate(User user)
+    public static UserFormData prepopulate(User user)
     {
-        EditUsr eDat = new EditUsr();
-        eDat.setFirstName(user.getForename());
-        eDat.setMail(user.getMail());
-        eDat.setSurName(user.getSurname());
-        eDat.setLanguage(user.getLanguage());
-        return eDat;
+        UserFormData userFormData = new UserFormData();
+        userFormData.setFirstName(user.getForename());
+        userFormData.setMail(user.getMail());
+        userFormData.setSurName(user.getSurname());
+        userFormData.setLanguage(user.getLanguage());
+        return userFormData;
     }
 
 }

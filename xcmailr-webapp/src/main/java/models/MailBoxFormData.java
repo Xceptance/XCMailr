@@ -24,7 +24,7 @@ import org.hibernate.validator.constraints.NotEmpty;
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-public class MbFrmDat
+public class MailBoxFormData
 {
 
     private Long boxId;
@@ -111,9 +111,9 @@ public class MbFrmDat
         this.datetime = datetime;
     }
 
-    public static MbFrmDat prepopulate(MBox mb)
+    public static MailBoxFormData prepopulate(MBox mb)
     {
-        MbFrmDat mbDat = new MbFrmDat();
+        MailBoxFormData mbDat = new MailBoxFormData();
         mbDat.setBoxId(mb.getId());
         mbDat.setAddress(mb.getAddress());
         mbDat.setDomain(mb.getDomain());

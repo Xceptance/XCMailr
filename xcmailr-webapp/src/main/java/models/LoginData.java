@@ -18,54 +18,50 @@ package models;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
-
-
 /**
- * The Model for the Password-Reset-Form
+ * Holds the Data for the Login Form
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- * 
  */
-public class PwData
+public class LoginData
 {
     @NotEmpty
-    private String pw;
+    String mail;
 
-    @NotEmpty
-    private String pw2;
+    String password;
 
     /**
-     * @return the new password
+     * @return the Mail-Address
      */
-    public String getPw()
+    public String getMail()
     {
-        return pw;
+        return mail;
     }
 
     /**
-     * @param pw
-     *             the new password to set
+     * @param mail
+     *            the Mail-Address to set
      */
-    public void setPw(String pw)
+    public void setMail(String mail)
     {
-        this.pw = pw;
+        this.mail = mail;
     }
 
     /**
-     * @return the repetition of the new Password
+     * @return the Password
      */
-    public String getPw2()
+    public String getPassword()
     {
-        return pw2;
+        return password;
     }
 
     /**
-     * @param pw2
-     *             the repetition of the new Password
+     * @param password
+     *            the Password to set
      */
-    public void setPw2(String pw2)
+    public void setPassword(String password)
     {
-        this.pw2 = pw2;
+        this.password = password;
     }
 
 }
