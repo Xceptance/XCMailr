@@ -28,7 +28,7 @@ public class Login
     @NotEmpty
     String mail;
 
-    String pwd;
+    String password;
 
     /**
      * @return the Mail-Address
@@ -50,18 +50,18 @@ public class Login
     /**
      * @return the Password
      */
-    public String getPwd()
+    public String getPassword()
     {
-        return pwd;
+        return password;
     }
 
     /**
-     * @param pwd
+     * @param password
      *            the Password to set
      */
-    public void setPwd(String pwd)
+    public void setPassword(String password)
     {
-        this.pwd = pwd;
+        this.password = password;
     }
 
 }

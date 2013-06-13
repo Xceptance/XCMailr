@@ -50,7 +50,7 @@ public class MemCachedSessionHandler
 
     private int memPort;
 
-    private String NAMESPACE = xcmConf.APP_NAME;
+    private String NAMESPACE = "";
 
     private boolean instantiated;
 
@@ -66,6 +66,7 @@ public class MemCachedSessionHandler
         {
             memHost = xcmConf.MC_HOST;
             memPort = xcmConf.MC_PORT;
+            NAMESPACE = xcmConf.APP_NAME;
             client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
         }
         catch (Exception e)

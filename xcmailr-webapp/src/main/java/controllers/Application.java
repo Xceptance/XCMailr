@@ -71,20 +71,9 @@ public class Application
      * @return the Index-Page
      */
     public Result index(Context context)
-    {
-        String uuid = context.getSessionCookie().getId();
-        User user = (User) memCachedSessionHandler.get(uuid);
-
-        if (user == null)
-        {
-            // show the default index page if there's no user
-            return Results.ok().html();
-        }
-        else
-        {
-            // show the logged-in-index page if the user's logged in
-            return Results.html().template("/views/Application/indexLogin.ftl.html");
-        }
+    {      
+        // show the index-page
+        return Results.ok().html();
     }
 
     // -------------------- Registration -----------------------------------
@@ -297,7 +286,7 @@ public class Application
         Result result = Results.html().template("/views/Application/loginForm.ftl.html");
         if (validation.hasViolations())
         {
-            loginData.setPwd("");
+            loginData.setPassword("");
             context.getFlashCookie().error("msg_FormErr");
             return result.render(loginData);
         }
@@ -306,7 +295,7 @@ public class Application
             User loginUser = User.getUsrByMail(loginData.getMail());
             if (!(loginUser == null))
             {// the user exists
-                if (loginUser.checkPasswd(loginData.getPwd()))
+                if (loginUser.checkPasswd(loginData.getPassword()))
                 { // correct login
                     if (!loginUser.isActive())
                     {
@@ -342,14 +331,14 @@ public class Application
                         return result.template("/views/Application/index.ftl.html").redirect("/pwresend");
                     }
 
-                    loginData.setPwd("");
+                    loginData.setPassword("");
                     context.getFlashCookie().error("msg_FormErr");
                     return result.render(loginData);
                 }
             }
             else
             {// the user does not exist
-                loginData.setPwd("");
+                loginData.setPassword("");
                 context.getFlashCookie().error("msg_FormErr");
                 return result.render(loginData);
             }
