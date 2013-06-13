@@ -62,7 +62,7 @@ public class XCMStarter
 
             // add web application
             WebAppContext webapp = new WebAppContext();
-            webapp.setContextPath("/"+config.XCM_CONTEXT_PATH); //TODO add +config.XCM_CONTEXT_PATH here after update to ninja 1.4.4
+            webapp.setContextPath("/"+config.XCM_CONTEXT_PATH); 
             webapp.setWar(warPath.toString());
 
             // create connector

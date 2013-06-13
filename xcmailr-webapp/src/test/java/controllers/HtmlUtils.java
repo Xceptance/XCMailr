@@ -27,11 +27,12 @@ public class HtmlUtils
         HTMLEditorKit.Parser parser = new ParserDelegator();
         try
         {
-            HTMLFormParser fp = new HTMLFormParser();
-            parser.parse(reader, fp, true);
+
+            HTMLFormParser formParser = new HTMLFormParser();
+            parser.parse(reader, formParser, true);
             reader.close();
 
-            return fp.map;
+            return formParser.map;
         }
         catch (IOException e)
         {
@@ -40,7 +41,7 @@ public class HtmlUtils
     }
 
     /**
-     * inner class for parsing the inputfields & selection fields
+     * inner class to parse the input & selection fields
      * 
      * @author pthum
      */
@@ -58,6 +59,7 @@ public class HtmlUtils
                 String value = (String) attr.getAttribute(HTML.Attribute.VALUE);
                 if (!(key == null) && !(value.equals("")))
                 {
+                    // store the name of an input field and its value
                     map.put(key, value);
                 }
 
@@ -67,12 +69,13 @@ public class HtmlUtils
 
         public void handleStartTag(HTML.Tag tag, MutableAttributeSet attr, int pos)
         {
-            // TODO fix this!
             if (tag == HTML.Tag.OPTION)
-            { // found an option-field
+            { // found an option-element
                 if (!(attr.getAttribute(HTML.Attribute.SELECTED) == null))
                 {
+                    // store the name of the select-field
                     String key = lastSelect;
+                    // and the value of the selected option
                     String value = (String) attr.getAttribute(HTML.Attribute.VALUE);
                     if (!(key.equals("")) && !(value.equals("")))
                     {
@@ -81,7 +84,7 @@ public class HtmlUtils
                 }
             }
             if (tag == HTML.Tag.SELECT)
-            {
+            { // found a select-element
                 String key = (String) attr.getAttribute(HTML.Attribute.NAME);
 
                 if (key != null)
