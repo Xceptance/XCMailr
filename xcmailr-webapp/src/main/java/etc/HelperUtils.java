@@ -239,13 +239,15 @@ public class HelperUtils
     {
         String lng;
         Optional<Result> opt = Optional.of(Results.html());
-        List<String> avlngs = new ArrayList<String>();
+        List<String[]> avlngs = new ArrayList<String[]>();
         for (String s : avLangs)
         {
             lng = msg.get("lang_" + s, context, opt, (Object) null).get();
-            avlngs.add(lng);
+            avlngs.add(new String[]
+                {
+                    s, lng
+                });
         }
         return avlngs.toArray();
     }
-
 }

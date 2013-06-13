@@ -31,6 +31,7 @@ import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
+import etc.HelperUtils;
 import filters.SecureFilter;
 
 /**
@@ -70,9 +71,13 @@ public class UserHandler
     public Result editUser(Context context, @JSR303Validation EditUsr edt, Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
+        
         // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.
         // then you would likely get a NullPointerException
+        Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
+        result.render("available_langs", o);
+
         User usr = context.getAttribute("user", User.class);
 
         if (validation.hasViolations())
@@ -174,7 +179,9 @@ public class UserHandler
 
     public Result editUserForm(Context context)
     {
+        Object[] o = HelperUtils.geti18nPrefixedLangMap(xcmConf.APP_LANGS, context, msg);
         Result result = Results.html();
+        result.render("available_langs", o);
         User usr = context.getAttribute("user", User.class);
         if (usr.getLanguage() == null || usr.getLanguage() == "")
         {

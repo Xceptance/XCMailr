@@ -37,34 +37,28 @@ title="Home page">
 					<input class="input_full" type="password" id="pwn1" name="pwn1" required="required" />
 				</div>
 			</div>
-			<div class="control-group">
-			<label class="control-label"  for="language"> ${i18n("registerUser_Language_Label")} </label>
+		<div class="control-group">
+			<label class="control-label"  for="language2"> ${i18n("registerUser_Language_Label")} </label>
 			<div class="controls">
 			<select name="language" id="language" >
+			<#list available_langs as lng>
 				<#if (editUsr.language)??>
-	  				
-		  			<#if editUsr.language=="de">	
-		  				<option value="de" selected="selected">Deutsch</option>
+		  			<#if editUsr.language==lng[0]>	
+		  			<option value="${lng[0]}" selected="selected">${lng[1]}</option>
 		  			<#else>
-		  				<option value="de">Deutsch</option>
+		  			<option value="${lng[0]}" >${lng[1]}</option>
 		  			</#if>
-		  			<#if editUsr.language=="en">
-		  				<option value="en" selected="selected">English</option>
-		  			<#else>
-		  				<option value="en">English</option>
-		  			</#if>
-		  		<#else>	
-		  		    <option value="de">Deutsch</option>
-		  			<option value="en">English</option>
+		  		<#else>
+		  		<option value="${lng[0]}" >${lng[1]}</option>
 		  		</#if>		
+			</#list>
 			</select>
 			</div>
 		</div>
-
-			<div class="form-actions">
-				<input type="reset" class="btn" value="${i18n("registerUser_Reset_Button")}"/>
-				<input type="submit" class="btn btn-primary" value="${i18n("registerUser_Create_Button")}" /> 
-			</div>
+		<div class="form-actions">
+			<input type="reset" class="btn" value="${i18n("registerUser_Reset_Button")}"/>
+			<input type="submit" class="btn btn-primary" value="${i18n("registerUser_Create_Button")}" /> 
+		</div>
 		</fieldset>
 	</form>
 </div>
