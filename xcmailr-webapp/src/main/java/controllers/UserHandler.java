@@ -94,7 +94,7 @@ public class UserHandler
             // (prevent mail-loops)
             String mail = userFormData.getMail();
             String domainPart = mail.split("@")[1];
-            if (Arrays.asList(xcmConfiguration.DM_LIST).contains(domainPart))
+            if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
             {
                 context.getFlashCookie().error("msg_NoLoop");
                 userFormData.setMail(user.getMail());
@@ -122,10 +122,10 @@ public class UserHandler
                     { // new password has been entered
                         if (password1.equals(password2))
                         { // the repetition is equal to the new pw
-                            if (password1.length() < xcmConfiguration.PW_LEN)
+                            if (password1.length() < xcmConfiguration.PW_LENGTH)
                             {
                                 Optional<String> opt = Optional.of(context.getAcceptLanguage());
-                                String tooShortPassword = msg.get("msg_ShortPw", opt, xcmConfiguration.PW_LEN.toString()).get();
+                                String tooShortPassword = msg.get("msg_ShortPw", opt, xcmConfiguration.PW_LENGTH.toString()).get();
                                 context.getFlashCookie().error(tooShortPassword);
                                 userFormData.setPassword("");
                                 userFormData.setPasswordNew1("");
@@ -154,7 +154,7 @@ public class UserHandler
                 // update the user
                 user.update();
                 context.getSessionCookie().put("username", userFormData.getMail());
-                memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.C_EXPIRA, user);
+                memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME, user);
                 // user-edit was successful
                 context.getFlashCookie().success("msg_ChOk");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
@@ -190,7 +190,7 @@ public class UserHandler
             Optional<Result> opt = Optional.of(result);
             user.setLanguage(lang.getLanguage(context, opt).get());
             user.update();
-            memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.C_EXPIRA, user);
+            memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME, user);
         }
         UserFormData userFormData = UserFormData.prepopulate(user);
         return result.render(userFormData);

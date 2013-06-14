@@ -26,11 +26,11 @@ import com.google.inject.Singleton;
 @Singleton
 public class XCMailrConf
 {
-    public final String ADMIN_ADD;
+    public final String ADMIN_ADDRESS;
 
-    public final String ADMIN_PASS;
+    public final String ADMIN_PASSWORD;
 
-    public final String APP_BASE;
+    public final String APP_BASEPATH;
 
     public final String APP_HOME;
 
@@ -40,25 +40,25 @@ public class XCMailrConf
     
     public final Integer APP_DEFAULT_ENTRYNO;
 
-    public final Integer C_EXPIRA;
+    public final Integer COOKIE_EXPIRETIME;
 
-    public final String C_PREFIX;
+    public final String COOKIE_PREFIX;
 
-    public final Integer CONF_PERIOD;
+    public final Integer CONFIRMATION_PERIOD;
 
     public final String D_LIST;
 
-    public final String[] DM_LIST;
+    public final String[] DOMAIN_LIST;
 
     public final String MB_HOST;
 
-    public final Integer MB_INT;
+    public final Integer MB_INTERVAL;
 
     public final Integer MB_PORT;
 
-    public final String MC_HOST;
+    public final String MEMCA_HOST;
 
-    public final Integer MC_PORT;
+    public final Integer MEMCA_PORT;
 
     public final Boolean OUT_SMTP_AUTH;
 
@@ -74,27 +74,27 @@ public class XCMailrConf
 
     public final String OUT_SMTP_USER;
 
-    public final Integer PW_LEN;
+    public final Integer PW_LENGTH;
 
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
     {
         APP_NAME = ninjaProp.getOrDie("application.name");
         APP_HOME = ninjaProp.getOrDie("application.url");
-        APP_BASE = ninjaProp.getOrDie("application.basedir");
+        APP_BASEPATH = ninjaProp.getOrDie("application.basedir");
         APP_LANGS = ninjaProp.getStringArray("application.languages");
         APP_DEFAULT_ENTRYNO = ninjaProp.getIntegerWithDefault("application.default.entriesperpage", 15);
-        ADMIN_ADD = ninjaProp.getOrDie("mbox.adminaddr");
-        ADMIN_PASS = ninjaProp.getOrDie("admin.pass");
-        C_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
-        C_EXPIRA = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
+        ADMIN_ADDRESS = ninjaProp.getOrDie("mbox.adminaddr");
+        ADMIN_PASSWORD = ninjaProp.getOrDie("admin.pass");
+        COOKIE_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
+        COOKIE_EXPIRETIME = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
-        MB_INT = ninjaProp.getIntegerOrDie("mbox.interval");
+        MB_INTERVAL = ninjaProp.getIntegerOrDie("mbox.interval");
         D_LIST = ninjaProp.getOrDie("mbox.dlist");
-        DM_LIST = ninjaProp.getStringArray("mbox.dlist");
-        PW_LEN = ninjaProp.getIntegerOrDie("pw.length");
-        CONF_PERIOD = ninjaProp.getIntegerOrDie("confirm.period");
+        DOMAIN_LIST = ninjaProp.getStringArray("mbox.dlist");
+        PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");
+        CONFIRMATION_PERIOD = ninjaProp.getIntegerOrDie("confirm.period");
         OUT_SMTP_HOST = ninjaProp.getOrDie("mail.smtp.host");
         OUT_SMTP_PORT = ninjaProp.getIntegerOrDie("mail.smtp.port");
         OUT_SMTP_USER = ninjaProp.getOrDie("mail.smtp.user");
@@ -102,10 +102,10 @@ public class XCMailrConf
         OUT_SMTP_AUTH = ninjaProp.getBooleanOrDie("mail.smtp.auth");
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
         OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", true);
-        MC_HOST = ninjaProp.getOrDie("memcached.host");
-        MC_PORT = ninjaProp.getIntegerOrDie("memcached.port");
+        MEMCA_HOST = ninjaProp.getOrDie("memcached.host");
+        MEMCA_PORT = ninjaProp.getIntegerOrDie("memcached.port");
 
-        if (DM_LIST == null)
+        if (DOMAIN_LIST == null)
         {
             throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "
                                        + "Otherwise this app will not work");

@@ -65,7 +65,7 @@ public class BoxHandler
         mailboxFormData.setAddress(randomName);
 
         // check that the generated mailname-proposal does not exist
-        String[] domains = xcmConfiguration.DM_LIST;
+        String[] domains = xcmConfiguration.DOMAIN_LIST;
         if (domains.length > 0)
         {// prevent OutOfBoundException
             while (MBox.mailExists(randomName, domains[0]))
@@ -99,7 +99,7 @@ public class BoxHandler
                                 Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        result.render("domain", xcmConfiguration.DM_LIST);
+        result.render("domain", xcmConfiguration.DOMAIN_LIST);
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
@@ -118,11 +118,11 @@ public class BoxHandler
             // checks whether the Box already exists
             if (!MBox.mailExists(mailboxFormData.getAddress(), mailboxFormData.getDomain()))
             {
-                String mbName = mailboxFormData.getAddress().toLowerCase();
+                String mailBoxName = mailboxFormData.getAddress().toLowerCase();
                 // set the data of the box
-                String[] domains = xcmConfiguration.DM_LIST;
+                String[] domains = xcmConfiguration.DOMAIN_LIST;
                 if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
-                { // the new domainname does not exist in the application.conf
+                { // the new domain-name does not exist in the application.conf
                   // stop the process and return to the mailbox-overview page
                     return result.redirect("/mail");
                 }
@@ -142,7 +142,7 @@ public class BoxHandler
 
                 // create the MBox
                 User user = context.getAttribute("user", User.class);
-                MBox mailBox = new MBox(mbName, mailboxFormData.getDomain(), ts, false, user);
+                MBox mailBox = new MBox(mailBoxName, mailboxFormData.getDomain(), ts, false, user);
 
                 // creates the Box in the DB
                 mailBox.save();
@@ -200,7 +200,7 @@ public class BoxHandler
                                  @JSR303Validation MailBoxFormData mailboxFormData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        result.render("domain", xcmConfiguration.DM_LIST);
+        result.render("domain", xcmConfiguration.DOMAIN_LIST);
         if (validation.hasViolations())
         { // not all fields were filled
             context.getFlashCookie().error("msg_FormErr");
@@ -230,7 +230,7 @@ public class BoxHandler
                     if (MBox.mailChanged(newLocalPartName, newDomainPartName, boxId))
                     { // this is only true when the address changed and the new address does not exist
 
-                        String[] domains = xcmConfiguration.DM_LIST;
+                        String[] domains = xcmConfiguration.DOMAIN_LIST;
                         // assume that the POST-Request was modified and the domainname does not exist in our app
                         if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
                         {
@@ -254,7 +254,7 @@ public class BoxHandler
                         return result.redirect(context.getContextPath() + "/mail/edit/" + boxId.toString());
                     }
 
-                    if (!(mailBox.getTs_Active() == ts))
+                    if (mailBox.getTs_Active() != ts)
                     { // check if the MBox-TS is unequal to the given TS in the form
                         mailBox.setTs_Active(ts);
                         changes = true;
@@ -301,7 +301,7 @@ public class BoxHandler
             { // the MBox belongs to this user
               // render the box-data and domains
                 return Results.html().render("mbFrmDat", MailBoxFormData.prepopulate(mailBox))
-                              .render("domain", xcmConfiguration.DM_LIST);
+                              .render("domain", xcmConfiguration.DOMAIN_LIST);
             }
             else
             { // the MBox does not belong to this user
@@ -345,7 +345,7 @@ public class BoxHandler
 
     public Result expireBoxProcess(@PathParam("id") Long boxId, Context context)
     {
-        Result result = Results.html().template("/views/BoxHandler/showBoxOverview.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
 
@@ -375,16 +375,18 @@ public class BoxHandler
      */
     public Result resetBoxCounterProcess(@PathParam("id") Long boxId, Context context)
     {
-        Result result = Results.html().template("/views/BoxHandler/showBoxOverview.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
-
+        System.out.println("resette box mit der id: "+boxId);
         // check if the mailbox belongs to the current user
         if (mailBox.belongsTo(user.getId()))
         {
+            
             mailBox.resetForwards();
             mailBox.resetSuppressions();
             mailBox.update();
+            System.out.println("boxreset erfolgreixh");
         }
         return result.redirect(context.getContextPath() + "/mail");
     }

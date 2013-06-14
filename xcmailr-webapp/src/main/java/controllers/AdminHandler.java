@@ -51,7 +51,7 @@ public class AdminHandler
     XCMailrConf xcmConfiguration;
 
     @Inject
-    Messages msg;
+    Messages messages;
 
     @Inject
     MailrMessageSenderFactory memCachedSessionHandler;
@@ -152,7 +152,7 @@ public class AdminHandler
             MailTransaction.deleteTxInPeriod(dt.getMillis());
         }
 
-        return result.redirect(context.getContextPath()+"/admin/mtxs");
+        return result.redirect(context.getContextPath() + "/admin/mtxs");
     }
 
     /**
@@ -169,7 +169,7 @@ public class AdminHandler
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
-        if (!(user.getId() == userId))
+        if (user.getId() != userId)
         { // the user to (de-)activate is not the user who performs this action
 
             // activate or deactivate the user
@@ -177,35 +177,35 @@ public class AdminHandler
 
             // generate the (de-)activation-information mail and send it to the user
             User actusr = User.getById(userId);
-            String from = xcmConfiguration.ADMIN_ADD;
+            String from = xcmConfiguration.ADMIN_ADDRESS;
             String host = xcmConfiguration.MB_HOST;
-            Optional<String> opt = Optional.fromNullable(context.getAcceptLanguage());
+            Optional<String> optLanguage = Optional.fromNullable(context.getAcceptLanguage());
 
             if (active)
             { // the account is now active
               // generate the message title
 
-                String subject = msg.get("user_Activate_Title", opt, host).get();
+                String subject = messages.get("user_Activate_Title", optLanguage, host).get();
                 // generate the message body
 
-                String content = msg.get("user_Activate_Message", opt, actusr.getForename()).get();
+                String content = messages.get("user_Activate_Message", optLanguage, actusr.getForename()).get();
                 // send the mail
                 memCachedSessionHandler.sendMail(from, actusr.getMail(), content, subject);
             }
             else
             {// the account is now inactive
              // generate the message title
-                String subject = msg.get("user_Deactivate_Title", opt, host).get();
+                String subject = messages.get("user_Deactivate_Title", optLanguage, host).get();
                 // generate the message body
-                String content = msg.get("user_Deactivate_Message", opt, actusr.getForename()).get();
+                String content = messages.get("user_Deactivate_Message", optLanguage, actusr.getForename()).get();
                 // send the mail
                 memCachedSessionHandler.sendMail(from, actusr.getMail(), content, subject);
             }
-            return result.redirect(context.getContextPath()+"/admin/users");
+            return result.redirect(context.getContextPath() + "/admin/users");
         }
         else
         { // the admin wants to disable his own account, this is not allowed
-            return result.redirect(context.getContextPath()+"/admin/users");
+            return result.redirect(context.getContextPath() + "/admin/users");
         }
     }
 
@@ -223,11 +223,11 @@ public class AdminHandler
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
-        if (!(user.getId() == userId))
+        if (user.getId() != userId)
         { // the user to pro-/demote is not the user who performs this action
             User.promote(userId);
         }
-        return result.redirect(context.getContextPath()+"/admin/users");
+        return result.redirect(context.getContextPath() + "/admin/users");
     }
 
     /**
@@ -244,12 +244,13 @@ public class AdminHandler
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
-        if (!(user.getId() == userId))
+        
+        if (user.getId() != userId)
         { // the user to delete is not the user who performs this action
             User.delete(userId);
         }
 
-        return result.redirect(context.getContextPath()+"/admin/users");
+        return result.redirect(context.getContextPath() + "/admin/users");
     }
 
 }

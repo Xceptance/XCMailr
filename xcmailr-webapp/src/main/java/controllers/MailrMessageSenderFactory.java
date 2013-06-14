@@ -148,19 +148,19 @@ public class MailrMessageSenderFactory
      */
     public void sendConfirmAddressMail(String to, String forename, String id, String token, Optional<String> language)
     {
-        String from = xcmConfiguration.ADMIN_ADD;
+        String from = xcmConfiguration.ADMIN_ADDRESS;
 
         // build the Verification Link
         StringBuilder strb = new StringBuilder();
         strb.append(xcmConfiguration.APP_HOME);
-        if (!xcmConfiguration.APP_BASE.isEmpty())
+        if (!xcmConfiguration.APP_BASEPATH.isEmpty())
         {
-            strb.append("/" + xcmConfiguration.APP_BASE);
+            strb.append("/" + xcmConfiguration.APP_BASEPATH);
         }
         strb.append("/verify/" + id + "/" + token);
 
         // generate the message-body
-        String body = messages.get("user_Verify_Message", language, forename, strb.toString(), xcmConfiguration.CONF_PERIOD).get();
+        String body = messages.get("user_Verify_Message", language, forename, strb.toString(), xcmConfiguration.CONFIRMATION_PERIOD).get();
         // generate the message-subject
         String subject = messages.get("user_Verify_Subject", language, (Object) null).get();
 
@@ -186,19 +186,19 @@ public class MailrMessageSenderFactory
     public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> language)
     {
 
-        String from = xcmConfiguration.ADMIN_ADD;
+        String from = xcmConfiguration.ADMIN_ADDRESS;
 
         // build the PW-Reset Link
         StringBuilder strb = new StringBuilder();
         strb.append(xcmConfiguration.APP_HOME);
-        if (!xcmConfiguration.APP_BASE.isEmpty())
+        if (!xcmConfiguration.APP_BASEPATH.isEmpty())
         {
-            strb.append("/" + xcmConfiguration.APP_BASE);
+            strb.append("/" + xcmConfiguration.APP_BASEPATH);
         }
         strb.append("/lostpw/" + id + "/" + token);
 
         // generate the Message-Body
-        String body = messages.get("user_PwResend_Message", language, forename, strb.toString(), xcmConfiguration.CONF_PERIOD).get();
+        String body = messages.get("user_PwResend_Message", language, forename, strb.toString(), xcmConfiguration.CONFIRMATION_PERIOD).get();
 
         // generate the Message-Subject
         String subject = messages.get("user_PwResend_Subject", language, (Object) null).get();

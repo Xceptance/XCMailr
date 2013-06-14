@@ -58,11 +58,15 @@ public class MessageListener implements SimpleMessageListener
     @Override
     public boolean accept(String from, String recipient)
     {
+        // accept the address if the domain is contained in the application.conf
         String[] splitaddress = recipient.split("@");
 
-        List<String> domainlist = Arrays.asList(xcmConfiguration.DM_LIST);
+        List<String> domainlist = Arrays.asList(xcmConfiguration.DOMAIN_LIST);
         if ((splitaddress.length != 2) || (!domainlist.contains(splitaddress[1])))
         {
+            // the mailaddress has a strange form or has an recipient with a domain-part that does not belong to our
+            // domains
+            //log status 500 (relay denied)
             MailTransaction mtx = new MailTransaction(500, from, null, recipient);
             mtx.saveTx();
             return false;
@@ -102,7 +106,7 @@ public class MessageListener implements SimpleMessageListener
             { // the given mailaddress exists in the db
                 mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
                 forwardTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
-                
+
                 if (mailBox.isActive())
                 { // there's an existing and active mailaddress
                   // add the target-address to the list

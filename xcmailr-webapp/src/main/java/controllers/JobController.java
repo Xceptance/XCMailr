@@ -75,14 +75,14 @@ public class JobController
     {
         log.debug("prod:" + ninjaProperties.isProd() + " dev: " + ninjaProperties.isDev() + " test: " + ninjaProperties.isTest());
 
-        if (!(xcmConfiguration.ADMIN_PASS == null))
+        if (!(xcmConfiguration.ADMIN_PASSWORD == null))
         { // if a pw is set in application.conf..
 
-            if (!User.mailExists(xcmConfiguration.ADMIN_ADD))
+            if (!User.mailExists(xcmConfiguration.ADMIN_ADDRESS))
             {// ...and the admin-acc doesn't exist
 
                 // create the adminaccount
-                User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADD, xcmConfiguration.ADMIN_PASS, "en");
+                User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADDRESS, xcmConfiguration.ADMIN_PASSWORD, "en");
 
                 // set the status and admin flags
                 user.setAdmin(true);
@@ -118,7 +118,7 @@ public class JobController
                     log.debug("mbox-scheduler run");
 
                     // get the number of MBox-Elements that will expire in the next "MB_INT"-minutes
-                    List<MBox> expiringMailBoxesList = MBox.getNextBoxes(xcmConfiguration.MB_INT);
+                    List<MBox> expiringMailBoxesList = MBox.getNextBoxes(xcmConfiguration.MB_INTERVAL);
                     ListIterator<MBox> mailBoxIterator = expiringMailBoxesList.listIterator();
 
                     DateTime dt = new DateTime();
@@ -132,7 +132,7 @@ public class JobController
                         }
                     }
                 }
-            }, new Long(1), new Long(xcmConfiguration.MB_INT), TimeUnit.MINUTES);
+            }, new Long(1), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
         }
     }
 

@@ -64,8 +64,8 @@ public class MemCachedSessionHandler
     {
         try
         {
-            memHost = xcmConf.MC_HOST;
-            memPort = xcmConf.MC_PORT;
+            memHost = xcmConf.MEMCA_HOST;
+            memPort = xcmConf.MEMCA_PORT;
             NAMESPACE = xcmConf.APP_NAME;
             client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
         }

@@ -58,7 +58,7 @@ public class Application
     MemCachedSessionHandler memCachedSessionHandler;
 
     @Inject
-    Messages msg;
+    Messages messages;
 
     @Inject
     Lang lang;
@@ -92,9 +92,9 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result registerForm(Context context)
     {
-        List<String[]> o = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, msg);
+        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
 
-        return Results.html().render("available_langs", o);
+        return Results.html().render("available_langs", languageList);
     }
 
     /**
@@ -116,7 +116,7 @@ public class Application
 
         Result result = Results.html().template("/views/Application/registerForm.ftl.html");
 
-        List<String[]> o = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, msg);
+        List<String[]> o = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
         result.render("available_langs", o);
         if (validation.hasViolations())
         {
@@ -136,7 +136,7 @@ public class Application
                 // (prevent mail-loops)
                 String mail = registerFormData.getMail();
                 String domainPart = mail.split("@")[1];
-                if (Arrays.asList(xcmConfiguration.DM_LIST).contains(domainPart))
+                if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
                 {
                     context.getFlashCookie().error("msg_NoLoop");
                     registerFormData.setMail("");
@@ -150,12 +150,12 @@ public class Application
                 // a new user, check whether the passwords are matching
                 if (registerFormData.getPassword().equals(registerFormData.getPasswordNew1()))
                 {
-                    if (registerFormData.getPasswordNew1().length() < xcmConfiguration.PW_LEN)
+                    if (registerFormData.getPasswordNew1().length() < xcmConfiguration.PW_LENGTH)
                     { // password too short
 
                         Optional<String> opt = Optional.of(context.getAcceptLanguage());
 
-                        String shortPw = msg.get("msg_ShortPw", opt, xcmConfiguration.PW_LEN).get();
+                        String shortPw = messages.get("msg_ShortPw", opt, xcmConfiguration.PW_LENGTH).get();
                         context.getFlashCookie().error(shortPw);
                         registerFormData.setPassword("");
                         registerFormData.setPasswordNew1("");
@@ -179,7 +179,7 @@ public class Application
 
                     // generate the confirmation-token
                     user.setConfirmation(HelperUtils.getRandomSecureString(20));
-                    user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONF_PERIOD).getMillis());
+                    user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONFIRMATION_PERIOD).getMillis());
 
                     user.save();
                     Optional<String> language = Optional.of(context.getAcceptLanguage());
@@ -317,7 +317,7 @@ public class Application
 
                     // we put the username into the cookie, but use the id of the cookie for authentication
                     String sessionKey = context.getSessionCookie().getId();
-                    memCachedSessionHandler.set(sessionKey, xcmConfiguration.C_EXPIRA, loginUser);
+                    memCachedSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, loginUser);
                     context.getSessionCookie().put("username", loginUser.getMail());
                     if (loginUser.isAdmin())
                     {
@@ -402,7 +402,7 @@ public class Application
                 // generate the confirmation-token
                 user.setConfirmation(HelperUtils.getRandomSecureString(20));
                 // set the new validity-time
-                user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONF_PERIOD).getMillis());
+                user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONFIRMATION_PERIOD).getMillis());
                 user.update();
                 Optional<String> lang = Optional.of(context.getAcceptLanguage());
                 mailrSenderFactory.sendPwForgotAddressMail(user.getMail(), user.getForename(),
@@ -478,11 +478,11 @@ public class Application
                     if (passwordFormData.getPassword().equals(passwordFormData.getPassword2()))
                     { // the entered PWs are equal
 
-                        if (passwordFormData.getPassword().length() < xcmConfiguration.PW_LEN)
+                        if (passwordFormData.getPassword().length() < xcmConfiguration.PW_LENGTH)
                         { // check whether the password has the correct length
 
                             Optional<String> optionalLanguage = Optional.of(context.getAcceptLanguage());
-                            String tooShortPassword = msg.get("msg_ShortPw", optionalLanguage, xcmConfiguration.PW_LEN)
+                            String tooShortPassword = messages.get("msg_ShortPw", optionalLanguage, xcmConfiguration.PW_LENGTH)
                                                          .get();
                             context.getFlashCookie().error(tooShortPassword);
                             passwordFormData.setPassword("");
