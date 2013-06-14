@@ -246,7 +246,7 @@ public class MBox
      */
     public void resetForwards()
     {
-        this.forwards = 0;
+        this.setForwards(0);
     }
 
     /**
@@ -280,7 +280,7 @@ public class MBox
      */
     public void resetSuppressions()
     {
-        this.suppressions = 0;
+        this.setSuppressions(0);
     }
 
     /**
