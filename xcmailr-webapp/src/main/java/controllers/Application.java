@@ -124,7 +124,7 @@ public class Application
             registerFormData.setPasswordNew1("");
             registerFormData.setPasswordNew2("");
 
-            context.getFlashCookie().error("msg_FormErr");
+            context.getFlashCookie().error("flash_FormError");
 
             return result.render("editUsr", registerFormData);
         }
@@ -138,7 +138,7 @@ public class Application
                 String domainPart = mail.split("@")[1];
                 if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
                 {
-                    context.getFlashCookie().error("msg_NoLoop");
+                    context.getFlashCookie().error("flash_NoLoop");
                     registerFormData.setMail("");
                     registerFormData.setPassword("");
                     registerFormData.setPasswordNew1("");
@@ -155,7 +155,7 @@ public class Application
 
                         Optional<String> opt = Optional.of(context.getAcceptLanguage());
 
-                        String shortPw = messages.get("msg_ShortPw", opt, xcmConfiguration.PW_LENGTH).get();
+                        String shortPw = messages.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH).get();
                         context.getFlashCookie().error(shortPw);
                         registerFormData.setPassword("");
                         registerFormData.setPasswordNew1("");
@@ -172,7 +172,7 @@ public class Application
                         registerFormData.setPassword("");
                         registerFormData.setPasswordNew1("");
                         registerFormData.setPasswordNew2("");
-                        context.getFlashCookie().error("msg_WrongPw");
+                        context.getFlashCookie().error("flash_PasswordsUnequal");
 
                         return result.render("editUsr", registerFormData);
                     }
@@ -186,7 +186,7 @@ public class Application
                     mailrSenderFactory.sendConfirmAddressMail(user.getMail(), user.getForename(),
                                                               String.valueOf(user.getId()), user.getConfirmation(),
                                                               language);
-                    context.getFlashCookie().success("msg_RegOk");
+                    context.getFlashCookie().success("flash_RegistrationSuccessful");
 
                     lang.setLanguage(user.getLanguage(), result);
                     return result.template("/views/Application/index.ftl.html")
@@ -197,14 +197,14 @@ public class Application
                     registerFormData.setPassword("");
                     registerFormData.setPasswordNew1("");
                     registerFormData.setPasswordNew2("");
-                    context.getFlashCookie().error("msg_WrongPw");
+                    context.getFlashCookie().error("flash_PasswordsUnequal");
 
                     return result.render("editUsr", registerFormData);
                 }
             }
             else
             { // mailadress already exists
-                context.getFlashCookie().error("msg_MailEx");
+                context.getFlashCookie().error("flash_MailExists");
 
                 return result.render("editUsr", registerFormData);
             }
@@ -275,7 +275,7 @@ public class Application
 
         // show the index-page
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        context.getFlashCookie().success("msg_LogOut");
+        context.getFlashCookie().success("flash_LogOut");
         return result.redirect(context.getContextPath() + "/");
     }
 
@@ -298,7 +298,7 @@ public class Application
         if (validation.hasViolations())
         {
             loginData.setPassword("");
-            context.getFlashCookie().error("msg_FormErr");
+            context.getFlashCookie().error("flash_FormError");
             return result.render(loginData);
         }
         else
@@ -325,7 +325,7 @@ public class Application
                     }
                     loginUser.setBadPwCount(0);
                     loginUser.update();
-                    context.getFlashCookie().success("msg_LogIn");
+                    context.getFlashCookie().success("flash_LogIn");
                     return result.template("/views/Application/index.ftl.html")
                                  .redirect(context.getContextPath() + "/");
                 }
@@ -346,14 +346,14 @@ public class Application
                     }
 
                     loginData.setPassword("");
-                    context.getFlashCookie().error("msg_FormErr");
+                    context.getFlashCookie().error("flash_FormError");
                     return result.render(loginData);
                 }
             }
             else
             {// the user does not exist
                 loginData.setPassword("");
-                context.getFlashCookie().error("msg_FormErr");
+                context.getFlashCookie().error("flash_FormError");
                 return result.render(loginData);
             }
         }
@@ -388,7 +388,7 @@ public class Application
         if (validation.hasViolations())
         {
             // some fields weren't filled
-            context.getFlashCookie().error("msg_FormErr");
+            context.getFlashCookie().error("flash_FormError");
             return result.redirect(context.getContextPath() + "/pwresend");
         }
         else
@@ -407,12 +407,12 @@ public class Application
                 Optional<String> lang = Optional.of(context.getAcceptLanguage());
                 mailrSenderFactory.sendPwForgotAddressMail(user.getMail(), user.getForename(),
                                                            String.valueOf(user.getId()), user.getConfirmation(), lang);
-                context.getFlashCookie().success("forgPw_Succ");
+                context.getFlashCookie().success("flash_forgotPassword_Success");
                 return result.redirect(context.getContextPath() + "/");
             }
 
             // The user doesn't exist in the db, but we show him the success-msg anyway
-            context.getFlashCookie().success("forgPw_Succ");
+            context.getFlashCookie().success("flash_forgotPassword_Success");
             return result.redirect(context.getContextPath() + "/");
         }
 
@@ -430,7 +430,7 @@ public class Application
      *            the Context of this Request
      * @return the Reset-Password-Form or (on error) the Index-Page
      */
-    public Result lostPasswordForm(@PathParam("id") Long id, @PathParam("token") String token, Context context)
+    public Result resetPasswordForm(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
         User user = User.getById(id);
         if (user != null)
@@ -463,10 +463,10 @@ public class Application
      *            Form validation
      * @return the "Change your Password"-Site or (on Error) the Index-Page
      */
-    public Result lostPasswordProcess(@PathParam("id") Long id, @PathParam("token") String token, Context context,
+    public Result resetPasswordProcess(@PathParam("id") Long id, @PathParam("token") String token, Context context,
                            @JSR303Validation PasswordFormData passwordFormData, Validation validation)
     {
-        Result result = Results.html().template("/views/Application/lostPw.ftl.html");
+        Result result = Results.html().template("/views/Application/resetPasswordForm.ftl.html");
         // check the PathParams again
         User user = User.getById(id);
         if (!(user == null))
@@ -482,7 +482,7 @@ public class Application
                         { // check whether the password has the correct length
 
                             Optional<String> optionalLanguage = Optional.of(context.getAcceptLanguage());
-                            String tooShortPassword = messages.get("msg_ShortPw", optionalLanguage, xcmConfiguration.PW_LENGTH)
+                            String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage, xcmConfiguration.PW_LENGTH)
                                                          .get();
                             context.getFlashCookie().error(tooShortPassword);
                             passwordFormData.setPassword("");
@@ -496,18 +496,18 @@ public class Application
                         // set the confirm-period-timestamp to now to prevent the reuse of the link
                         user.setTs_confirm(DateTime.now().getMillis());
                         user.update();
-                        context.getFlashCookie().success("msg_ChOk");
+                        context.getFlashCookie().success("flash_DataChangeSuccess");
                         return result.redirect(context.getContextPath() + "/");
                     }
                     else
                     { // the passwords are not equal
-                        context.getFlashCookie().error("msg_WrongPw");
+                        context.getFlashCookie().error("flash_PasswordsUnequal");
                         return result.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
                     }
                 }
                 else
                 { // the form has errors
-                    context.getFlashCookie().error("msg_FormErr");
+                    context.getFlashCookie().error("flash_FormError");
                     return result.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
                 }
             }

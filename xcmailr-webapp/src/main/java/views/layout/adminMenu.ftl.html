@@ -1,21 +1,21 @@
 <div>
 	<ul class="nav nav-pills nav-stacked">
 		<#if (users)??>
-			<li class="active"><a href="${contextPath}/admin/users">${i18n("admin_UserView")}</a></li>
+			<li class="active"><a href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a></li>
 		<#else>
-			<li><a href="${contextPath}/admin/users">${i18n("admin_UserView")}</a></li>
+			<li><a href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a></li>
 		</#if>
 		
 		<#if (stats)??>
-			<li class="active"><a href="${contextPath}/admin/summedtx">${i18n("admin_SumStat")}</a></li>
+			<li class="active"><a href="${contextPath}/admin/summedtx">${i18n("admin_Link_SumedStatistics")}</a></li>
 		<#else>
-			<li><a href="${contextPath}/admin/summedtx">${i18n("admin_SumStat")}</a></li>
+			<li><a href="${contextPath}/admin/summedtx">${i18n("admin_Link_SummedStatistics")}</a></li>
 		</#if>
 		
 		<#if (plist)??>
-			<li class="active"><a href="${contextPath}/admin/mtxs">${i18n("admin_Trans")}</a></li>
+			<li class="active"><a href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a></li>
 		<#else>
-			<li><a href="${contextPath}/admin/mtxs">${i18n("admin_Trans")}</a></li>
+			<li><a href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a></li>
 		</#if>
 	</ul>
 </div>

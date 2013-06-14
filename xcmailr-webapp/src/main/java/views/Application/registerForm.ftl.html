@@ -6,39 +6,39 @@ title="Home page">
 		<fieldset>
 			<legend>${i18n("registerUser_Title")}</legend>
 			<div class="control-group">
-				<label class="control-label" for="firstName">${i18n("registerUser_FirstName_Label")} </label>
+				<label class="control-label" for="firstName">${i18n("registerUser_Label_FirstName")} </label>
 				<div class="controls">
 					<input class="input_full" type="text" id="firstName" name="firstName" value="${(editUsr.firstName)!}" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="surname">
-					${i18n("registerUser_Name_Label")} </label>
+					${i18n("registerUser_Label_Name")} </label>
 				<div class="controls">
 					<input class="input_full" type="text" id="surName" name="surName" value="${(editUsr.surName)!}" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label" for="mail"> ${i18n("registerUser_Email_Label")} </label>
+				<label class="control-label" for="mail"> ${i18n("registerUser_Label_Email")} </label>
 				<div class="controls">
 					<input class="input_full" type="email" id="mail" name="mail" value="${(editUsr.mail)!}" required="required" />
 				</div>
 			</div>
 
 			<div class="control-group">
-				<label class="control-label" for="password"> ${i18n("registerUser_Password_Label")} </label>
+				<label class="control-label" for="password"> ${i18n("registerUser_Label_Password")} </label>
 				<div class="controls">
 					<input class="input_full" type="password" id="password" name="password" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label" for="passwordNew1">${i18n("registerUser_Password_Repeat_Label")} </label>
+				<label class="control-label" for="passwordNew1">${i18n("registerUser_Label_Password_Repeat")} </label>
 				<div class="controls">
 					<input class="input_full" type="password" id="passwordNew1" name="passwordNew1" required="required" />
 				</div>
 			</div>
 		<div class="control-group">
-			<label class="control-label"  for="language"> ${i18n("registerUser_Language_Label")} </label>
+			<label class="control-label"  for="language"> ${i18n("registerUser_Label_Language")} </label>
 			<div class="controls">
 			<select name="language" id="language" >
 			<#list available_langs as lng>
@@ -56,8 +56,8 @@ title="Home page">
 			</div>
 		</div>
 		<div class="form-actions">
-			<input type="reset" class="btn" value="${i18n("registerUser_Reset_Button")}"/>
-			<input type="submit" class="btn btn-primary" value="${i18n("registerUser_Create_Button")}" /> 
+			<input type="reset" class="btn" value="${i18n("registerUser_Button_Reset")}"/>
+			<input type="submit" class="btn btn-primary" value="${i18n("registerUser_Button_Create")}" /> 
 		</div>
 		</fieldset>
 	</form>

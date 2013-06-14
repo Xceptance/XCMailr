@@ -41,8 +41,8 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/pwresend").with(Application.class, "forgotPasswordForm");
         router.POST().route("/pwresend").with(Application.class, "forgotPasswordProcess");
         
-        router.GET().route("/lostpw/{id}/{token}").with(Application.class, "lostPasswordForm");
-        router.POST().route("/lostpw/{id}/{token}").with(Application.class, "lostPasswordProcess");
+        router.GET().route("/lostpw/{id}/{token}").with(Application.class, "resetPasswordForm");
+        router.POST().route("/lostpw/{id}/{token}").with(Application.class, "resetPasswordProcess");
         
         router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
 
@@ -75,7 +75,7 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/admin").with(AdminHandler.class, "showAdmin");
         router.GET().route("/admin/users").with(AdminHandler.class, "showUsers");
         router.POST().route("/admin/users").with(AdminHandler.class, "showUsers");
-        router.GET().route("/admin/summedtx").with(AdminHandler.class, "showSumTx");
+        router.GET().route("/admin/summedtx").with(AdminHandler.class, "showSummedTransactions");
         router.GET().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.POST().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler.class, "deleteMTXProcess");

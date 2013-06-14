@@ -19,15 +19,15 @@ title="User Administration">
 	<table class="table tablesorter table-hover table-condensed">
 		<thead>
 		    <tr>
-		    	<th class="header">${i18n("user_FirstName_Header")}</th>
-		    	<th class="header">${i18n("user_Name_Header")}</th>
+		    	<th class="header">${i18n("adminUserPage_Header_FirstName")}</th>
+		    	<th class="header">${i18n("adminUserPage_Header_Name")}</th>
 		    	<th class="header">ID</th>
-		    	<th class="header">${i18n("user_Mail_Header")}</th>
-		    	<th class="header">${i18n("user_IsAdmin_Header")}</th>
-		    	<th class="header">${i18n("user_Status_Header")}</th>
-		    	<th>${i18n("mailbox_Delete_Header")}</th>
-		    	<th>${i18n("user_Promote_Header")}</th>
-		    	<th>${i18n("user_Activate_Header")}</th>
+		    	<th class="header">${i18n("adminUserPage_Header_Mail")}</th>
+		    	<th class="header">${i18n("adminUserPage_Header_IsAdmin")}</th>
+		    	<th class="header">${i18n("adminUserPage_Header_Status")}</th>
+		    	<th>${i18n("mailbox_Header_Delete")}</th>
+		    	<th>${i18n("adminUserPage_Header_Promote")}</th>
+		    	<th>${i18n("adminUserPage_Header_Activate")}</th>
 		    </tr>
 		    </thead>
 		    <tbody>
@@ -55,25 +55,25 @@ title="User Administration">
 				<td></td><td></td><td></td>		   
 			 <#else>
 				<td>
-		   			<form class="nomarg" action="/admin/delete/${user.id}" method="post"> 
-		                   <input type="submit" class="btn btn-small btn-danger" value="${i18n("mailbox_Delete_Button")}"/>
+		   			<form class="nomarg" action="${contextPath}/admin/delete/${user.id}" method="post"> 
+		                   <input type="submit" class="btn btn-small btn-danger" value="${i18n("adminUserPage_Button_Delete")}"/>
 		        	</form>
 		        </td>
 			    <td> 
-				    <form class="nomarg" action="/admin/promote/${user.id}" method="post">
+				    <form class="nomarg" action="${contextPath}/admin/promote/${user.id}" method="post">
 				    <#if (user.isAdmin())>
-					    	<input type="submit" class= "btn btn-small btn-warning" value="${i18n("user_Demote_Button")}"/>
+					    	<input type="submit" class= "btn btn-small btn-warning" value="${i18n("adminUserPage_Button_Demote")}"/>
 					    <#else>
-				    		<input type="submit" class= "btn btn-small btn-danger" value="${i18n("user_Promote_Button")}"/>
+				    		<input type="submit" class= "btn btn-small btn-danger" value="${i18n("adminUserPage_Button_Promote")}"/>
 				    </#if>		          
 				    </form>
 			    </td>
 			    <td> 
-				    <form class="nomarg" action="/admin/activate/${user.id}" method="post">
+				    <form class="nomarg" action="${contextPath}/admin/activate/${user.id}" method="post">
 					<#if (user.isActive())>
-					   	<input type="submit" class= "btn btn-small" value="${i18n("user_Deactivate_Button")}"/>
+					   	<input type="submit" class= "btn btn-small" value="${i18n("adminUserPage_Button_Deactivate")}"/>
 					 <#else>
-				    	<input type="submit" class= "btn btn-small" value="${i18n("user_Activate_Button")}"/>
+				    	<input type="submit" class= "btn btn-small" value="${i18n("adminUserPage_Button_Activate")}"/>
 				    </#if>
 				 	</form>
 				 </td>

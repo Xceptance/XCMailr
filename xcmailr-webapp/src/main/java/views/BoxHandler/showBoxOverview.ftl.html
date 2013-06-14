@@ -22,15 +22,15 @@ title="Home Page">
 		<table class="table tablesorter table-hover table-condensed">
 		<thead>
 		    <tr>
-		    	<th class="header">${i18n("mailbox_Address_Header")}</th>	
-		    	<th class="header">${i18n("mailbox_Duration_Header")}</th>
-		    	<th class="header">${i18n("mailbox_Forwards_Header")}</th>
-		    	<th class="header">${i18n("mailbox_Suppressions_Header")}</th>
-		    	<th class="header">${i18n("mailbox_Valid_Header")}</th>
-		    	<th>${i18n("mailbox_Renew_Header")}</th>
-			    <th>${i18n("mailbox_Delete_Header")}</th>  	
-			    <th>${i18n("mailbox_Reset_Header")}</th> 
-			    <th>${i18n("mailbox_Edit_Header")}</th>
+		    	<th class="header">${i18n("mailbox_Header_Address")}</th>	
+		    	<th class="header">${i18n("mailbox_Header_Duration")}</th>
+		    	<th class="header">${i18n("mailbox_Header_Forwards")}</th>
+		    	<th class="header">${i18n("mailbox_Header_Suppressions")}</th>
+		    	<th class="header">${i18n("mailbox_Header_Valid")}</th>
+		    	<th>${i18n("mailbox_Header_Renew")}</th>
+			    <th>${i18n("mailbox_Header_Delete")}</th>  	
+			    <th>${i18n("mailbox_Header_Reset")}</th> 
+			    <th>${i18n("mailbox_Header_Edit")}</th>
 		    </tr>
 		    </thead>
 		    <tbody>
@@ -42,7 +42,7 @@ title="Home Page">
 		    </#if>   
 				<td>${mBox.address}&#064;${mBox.domain}</td>
 				<#if (mBox.getTSAsString()=="unlimited")>
-				<td>${i18n("mailbox_Unlimited")}</td>
+				<td>${i18n("mailbox_Label_Unlimited")}</td>
 				<#else>
 				<td>${mBox.getTSAsString()}</td>
 				</#if>							
@@ -51,32 +51,32 @@ title="Home Page">
 					<#if (mBox.isActive())>
     				<td>${i18n("msg_Yes")}</td>
 	    			 <td><form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
-	                    <input type="submit" class= "btn  btn-small" value="${i18n("mailbox_Deactivate_Button")}"/>
+	                    <input type="submit" class= "btn  btn-small" value="${i18n("mailbox_Button_Deactivate")}"/>
 	                    </form>
 	                </td>
 		    	<#else>
 	    			<td>${i18n("msg_No")}</td>
 	    	    	<td>
 		    	    	<form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
-		                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Activate_Button")}"/>
+		                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Button_Activate")}"/>
 		                </form>
 	                </td>
 		    	</#if>
     			<td>
     			<form class="nomarg" action="${contextPath}/mail/delete/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Delete_Button")}"/>
+                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Button_Delete")}"/>
                 </form>
                 </td>
                 
                 <td>
     			<form class="nomarg" action="${contextPath}/mail/reset/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Reset_Button")}"/>
+                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Button_Reset")}"/>
                 </form>
                 </td>
                 
 		        <td> 
 		        <form class="nomarg" action="${contextPath}/mail/edit/${mBox.id}" method="get">
-		             <input type="submit" class="btn btn-small" value="${i18n("mailbox_Edit_Button")}"/>
+		             <input type="submit" class="btn btn-small" value="${i18n("mailbox_Button_Edit")}"/>
 		         </form>
 		        </td>
 			</tr>

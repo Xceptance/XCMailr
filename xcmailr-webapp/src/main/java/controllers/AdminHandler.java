@@ -102,7 +102,7 @@ public class AdminHandler
      *            the Context of this Request
      * @return a List of all Status
      */
-    public Result showSumTx(Context context)
+    public Result showSummedTransactions(Context context)
     {
         return Results.html().render("stats", MailTransaction.getStatusList());
     }

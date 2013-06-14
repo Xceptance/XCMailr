@@ -84,7 +84,7 @@ public class UserHandler
 
         if (validation.hasViolations())
         { // the filled form has errors
-            context.getFlashCookie().error("msg_FormErr");
+            context.getFlashCookie().error("flash_FormError");
             return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
         }
         else
@@ -96,7 +96,7 @@ public class UserHandler
             String domainPart = mail.split("@")[1];
             if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
             {
-                context.getFlashCookie().error("msg_NoLoop");
+                context.getFlashCookie().error("flash_NoLoop");
                 userFormData.setMail(user.getMail());
                 userFormData.setPassword("");
                 userFormData.setPasswordNew1("");
@@ -125,7 +125,7 @@ public class UserHandler
                             if (password1.length() < xcmConfiguration.PW_LENGTH)
                             {
                                 Optional<String> opt = Optional.of(context.getAcceptLanguage());
-                                String tooShortPassword = msg.get("msg_ShortPw", opt, xcmConfiguration.PW_LENGTH.toString()).get();
+                                String tooShortPassword = msg.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH.toString()).get();
                                 context.getFlashCookie().error(tooShortPassword);
                                 userFormData.setPassword("");
                                 userFormData.setPasswordNew1("");
@@ -138,7 +138,7 @@ public class UserHandler
                         }
                         else
                         { // the passwords are not equal
-                            context.getFlashCookie().error("msg_WrongPw");
+                            context.getFlashCookie().error("flash_PasswordsUnequal");
                             userFormData.setPassword("");
                             userFormData.setPasswordNew1("");
                             userFormData.setPasswordNew2("");
@@ -156,7 +156,7 @@ public class UserHandler
                 context.getSessionCookie().put("username", userFormData.getMail());
                 memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME, user);
                 // user-edit was successful
-                context.getFlashCookie().success("msg_ChOk");
+                context.getFlashCookie().success("flash_DataChangeSuccess");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
             }
             else
@@ -164,7 +164,7 @@ public class UserHandler
                 userFormData.setPassword("");
                 userFormData.setPasswordNew1("");
                 userFormData.setPasswordNew2("");
-                context.getFlashCookie().error("msg_FormErr");
+                context.getFlashCookie().error("flash_FormError");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
             }
         }

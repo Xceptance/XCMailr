@@ -104,7 +104,7 @@ public class BoxHandler
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
 
-            context.getFlashCookie().error("msg_FormErr");
+            context.getFlashCookie().error("flash_FormError");
             if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null)
                 || (mailboxFormData.getDatetime() == null))
             {
@@ -152,7 +152,7 @@ public class BoxHandler
             else
             {
                 // the mailbox already exists
-                context.getFlashCookie().error("msg_MailEx");
+                context.getFlashCookie().error("flash_MailExists");
 
                 result.render("mbFrmDat", mailboxFormData);
                 return result.template("/views/BoxHandler/addBoxForm.ftl.html");
@@ -203,7 +203,7 @@ public class BoxHandler
         result.render("domain", xcmConfiguration.DOMAIN_LIST);
         if (validation.hasViolations())
         { // not all fields were filled
-            context.getFlashCookie().error("msg_FormErr");
+            context.getFlashCookie().error("flash_FormError");
 
             if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null)
                 || (mailboxFormData.getDatetime() == null))

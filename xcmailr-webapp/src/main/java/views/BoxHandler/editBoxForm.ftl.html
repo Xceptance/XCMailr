@@ -8,7 +8,7 @@ title="Home Page">
 				<legend>${i18n("editEmail_Title")}</legend>
 				<div class="control-group">
 					<label class="control-label" for="address">
-						${i18n("editEmail_Local_Label")} </label>
+						${i18n("editEmail_Label_Local")} </label>
 					<div class="controls">
 						<input class="input_full" type="text" id="address" name="address"
 							value="${ (mbFrmDat.address)!}" required="required" />
@@ -16,7 +16,7 @@ title="Home Page">
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="domain">
-						${i18n("editEmail_Domain_Label")} </label>
+						${i18n("editEmail_Label_Domain")} </label>
 					<div class="controls">
 						<select name="domain"> 
 						<#list domain as String> 
@@ -34,7 +34,7 @@ title="Home Page">
 					</div>
 				</div>
 				<div class="control-group">
-					<label class="control-label" for="datetime">${i18n("editEmail_Duration_Label")}</label>
+					<label class="control-label" for="datetime">${i18n("editEmail_Label_Duration")}</label>
 					<div class="controls">
 				  <div id="datetimepicker" class="input-append">
 				    <input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required"/>
@@ -64,8 +64,8 @@ title="Home Page">
 				  });
 				</script>
 				<div class="form-actions">
-					<input type="reset" class="btn" value="${i18n("editEmail_Reset_Button")}"/>
-					<input type="submit" class="btn btn-primary" value="${i18n("editEmail_Edit_Button")}" />
+					<input type="reset" class="btn" value="${i18n("editEmail_Button_Reset")}"/>
+					<input type="submit" class="btn btn-primary" value="${i18n("editEmail_Button_Edit")}" />
 				</div>
 			</fieldset>
 		</form>

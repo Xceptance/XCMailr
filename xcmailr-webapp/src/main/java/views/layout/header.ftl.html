@@ -10,19 +10,19 @@
           <div class="nav-collapse">
             <ul class="nav">
 				<#if (session.username)??>
-				  <li><a href="${contextPath}/mail">${i18n("link_Mb")}</a></li>
-				  <li><a href="${contextPath}/mail/add">${i18n("link_AddMb")}</a></li>                          
+				  <li><a href="${contextPath}/mail">${i18n("menu_Link_Mb")}</a></li>
+				  <li><a href="${contextPath}/mail/add">${i18n("menu_Link_AddMb")}</a></li>                          
             </ul>
             <ul class="nav pull-right">
             		<li class="navbar-text">${session.username}</li>
             	<#if (session.adm)??>
 	            	<li><a href="${contextPath}/admin">Admin</a></li>
             	</#if>
-			      	<li><a href="${contextPath}/user/edit">${i18n("link_Edit")}</a></li>
-	            	<li><a href="${contextPath}/logout">${i18n("link_Logout")}</a></li>
+			      	<li><a href="${contextPath}/user/edit">${i18n("menu_Link_Edit")}</a></li>
+	            	<li><a href="${contextPath}/logout">${i18n("menu_Link_Logout")}</a></li>
 				<#else>
-					<li><a href="${contextPath}/login">${i18n("link_Login")}</a></li>   
-					<li><a href="${contextPath}/register">${i18n("link_Register")}</a></li>
+					<li><a href="${contextPath}/login">${i18n("menu_Link_Login")}</a></li>   
+					<li><a href="${contextPath}/register">${i18n("menu_Link_Register")}</a></li>
 				</#if>
             </ul>
           </div><!--/.nav-collapse -->
