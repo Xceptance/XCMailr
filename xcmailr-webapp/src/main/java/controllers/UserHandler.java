@@ -85,7 +85,8 @@ public class UserHandler
         if (validation.hasViolations())
         { // the filled form has errors
             context.getFlashCookie().error("flash_FormError");
-            return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
+            return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()
+                                                                                            + "/user/edit");
         }
         else
         { // the form is filled correctly
@@ -125,7 +126,8 @@ public class UserHandler
                             if (password1.length() < xcmConfiguration.PW_LENGTH)
                             {
                                 Optional<String> opt = Optional.of(context.getAcceptLanguage());
-                                String tooShortPassword = msg.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH.toString()).get();
+                                String tooShortPassword = msg.get("flash_PasswordTooShort", opt,
+                                                                  xcmConfiguration.PW_LENGTH.toString()).get();
                                 context.getFlashCookie().error(tooShortPassword);
                                 userFormData.setPassword("");
                                 userFormData.setPasswordNew1("");
@@ -147,17 +149,19 @@ public class UserHandler
                     }
                 }
                 if (Arrays.asList(xcmConfiguration.APP_LANGS).contains(userFormData.getLanguage()))
-                {
+                { //set the selected language in the user-object and also in the application 
                     user.setLanguage(userFormData.getLanguage());
                     lang.setLanguage(userFormData.getLanguage(), result);
                 }
                 // update the user
                 user.update();
                 context.getSessionCookie().put("username", userFormData.getMail());
-                memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME, user);
+                memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME,
+                                            user);
                 // user-edit was successful
                 context.getFlashCookie().success("flash_DataChangeSuccess");
-                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
+                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()
+                                                                                                + "/user/edit");
             }
             else
             { // the authorization-process failed
@@ -165,7 +169,8 @@ public class UserHandler
                 userFormData.setPasswordNew1("");
                 userFormData.setPasswordNew2("");
                 context.getFlashCookie().error("flash_FormError");
-                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()+"/user/edit");
+                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()
+                                                                                                + "/user/edit");
             }
         }
     }

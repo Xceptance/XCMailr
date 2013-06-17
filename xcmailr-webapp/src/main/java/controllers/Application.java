@@ -304,7 +304,7 @@ public class Application
         else
         {
             User loginUser = User.getUsrByMail(loginData.getMail());
-            if (!(loginUser == null))
+            if (loginUser != null)
             {// the user exists
                 if (loginUser.checkPasswd(loginData.getPassword()))
                 { // correct login
@@ -326,6 +326,10 @@ public class Application
                     loginUser.setBadPwCount(0);
                     loginUser.update();
                     context.getFlashCookie().success("flash_LogIn");
+                    
+                    //set the language the user wants to have 
+                    lang.setLanguage(loginUser.getLanguage(), result);
+                    
                     return result.template("/views/Application/index.ftl.html")
                                  .redirect(context.getContextPath() + "/");
                 }
