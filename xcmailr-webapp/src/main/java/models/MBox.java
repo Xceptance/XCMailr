@@ -395,7 +395,16 @@ public class MBox
      */
     public static boolean boxToUser(long bId, long uId)
     {
-        return (Ebean.find(MBox.class, bId).usr.getId() == uId);
+        MBox mb = Ebean.find(MBox.class, bId);
+
+        if (mb != null)
+        { // the box exists, return true if the id belongs to the user
+            return (mb.usr.getId() == uId);
+        }
+        else
+        { // there's no box with that ID
+            return false;
+        }
     }
 
     /**
