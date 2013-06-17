@@ -64,6 +64,10 @@ Frameworks/Librarys/Code/etc which were provided by others:
     * http://www.avaje.org/
     * LGPL: http://www.gnu.org/licenses/lgpl.html
 
+ * Bootstrap Datetimepicker
+    * http://tarruda.github.io/bootstrap-datetimepicker/
+    * Apache V2.0 License: http://www.apache.org/licenses/LICENSE-2.0
+
  * H2 Database Engine
     * http://www.h2database.com/
     * Dual licensed
