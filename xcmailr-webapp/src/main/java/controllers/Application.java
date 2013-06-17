@@ -124,7 +124,7 @@ public class Application
             registerFormData.setPassword("");
             registerFormData.setPasswordNew1("");
             registerFormData.setPasswordNew2("");
-            
+
             context.getFlashCookie().error("flash_FormError");
 
             return result.render("editUsr", registerFormData);
@@ -183,7 +183,7 @@ public class Application
                     user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONFIRMATION_PERIOD).getMillis());
 
                     user.save();
-                    Optional<String> language = Optional.of(context.getAcceptLanguage());
+                    Optional<String> language = Optional.of(user.getLanguage());
                     mailrSenderFactory.sendConfirmAddressMail(user.getMail(), user.getForename(),
                                                               String.valueOf(user.getId()), user.getConfirmation(),
                                                               language);
@@ -409,7 +409,7 @@ public class Application
                 // set the new validity-time
                 user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONFIRMATION_PERIOD).getMillis());
                 user.update();
-                Optional<String> lang = Optional.of(context.getAcceptLanguage());
+                Optional<String> lang = Optional.of(user.getLanguage());
                 mailrSenderFactory.sendPwForgotAddressMail(user.getMail(), user.getForename(),
                                                            String.valueOf(user.getId()), user.getConfirmation(), lang);
                 context.getFlashCookie().success("flash_forgotPassword_Success");
@@ -474,7 +474,7 @@ public class Application
         Result result = Results.html().template("/views/Application/resetPasswordForm.ftl.html");
         // check the PathParams again
         User user = User.getById(id);
-        if (!(user == null))
+        if (user != null)
         { // the user exists
             if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
             { // the passed token is the right one
