@@ -408,16 +408,6 @@ public class MBox
     }
 
     /**
-     * @param mbId
-     *            the virtual Mailbox-ID
-     * @return the "real" Mail-Address of the Owner of this Box
-     */
-    public static String getFWD(Long mbId)
-    {
-        return Ebean.find(MBox.class, mbId).getUsr().getMail();
-    }
-
-    /**
      * Gets the "real" Mail-Address that belongs to the given virtual Mailbox
      * 
      * @param mail
@@ -428,8 +418,15 @@ public class MBox
      */
     public static String getFwdByName(String mail, String domain)
     {
-        return Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findUnique()
-                    .getUsr().getMail();
+        MBox mb = Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findUnique();
+        if (mb != null)
+        { // the requested mailaddress exists
+            return mb.getUsr().getMail();
+        }
+        else
+        {// there's no mailaddress
+            return "";
+        }
     }
 
     /**
@@ -464,11 +461,11 @@ public class MBox
     public static boolean mailExists(String mail, String domain)
     {
         if (!Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findList().isEmpty())
-        {
+        { // theres no such mailaddress registered now
             return true;
         }
         else
-        {
+        { // the mailaddress exists
             return false;
         }
     }
@@ -486,7 +483,7 @@ public class MBox
     public static boolean mailChanged(String local, String domain, Long boxId)
     {
         MBox mb = MBox.getById(boxId);
-        if (mb.equals(null))
+        if (mb == null)
         { // there's no box with that id
             return false;
         }
