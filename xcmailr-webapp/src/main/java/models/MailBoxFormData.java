@@ -32,7 +32,7 @@ public class MailBoxFormData
     private Long boxId;
 
     @NotEmpty
-    @Length(min=1, max=255)
+    @Length(min=1, max=64)
     private String address;
 
     @NotEmpty
