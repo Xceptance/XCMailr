@@ -17,6 +17,8 @@
 package models;
 
 import javax.validation.constraints.Pattern;
+
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -30,13 +32,16 @@ public class MailBoxFormData
     private Long boxId;
 
     @NotEmpty
+    @Length(min=1, max=255)
     private String address;
 
     @NotEmpty
     @Pattern(regexp = "[A-Za-z-]+(\\.[\\w-]+)+")
+    @Length(min=1, max=255)
     private String domain;
 
     @NotEmpty
+    @Length(min=1, max=255)
     private String datetime;
 
     /**

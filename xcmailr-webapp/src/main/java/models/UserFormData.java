@@ -17,6 +17,7 @@
 package models;
 
 import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -28,22 +29,29 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class UserFormData
 {
     @NotEmpty
+    @Length(min=1, max=255)
     public String firstName;
 
     @NotEmpty
+    @Length(min=1, max=255)
     private String surName;
 
     @Email
     @NotEmpty
+    @Length(min=1, max=255)
     private String mail;
 
     @NotEmpty
+    @Length(min=1, max=255)
     private String password;
 
+    @Length(min=0, max=255)
     private String passwordNew1;
 
+    @Length(min=0, max=255)
     private String passwordNew2;
-
+    
+    @Length(min=0, max=255)
     private String language;
 
     /**

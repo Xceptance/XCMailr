@@ -16,6 +16,7 @@
  */
 package models;
 
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -26,8 +27,10 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class LoginFormData
 {
     @NotEmpty
+    @Length(min = 1, max = 255)
     String mail;
 
+    @Length(min = 1, max = 255)
     String password;
 
     /**

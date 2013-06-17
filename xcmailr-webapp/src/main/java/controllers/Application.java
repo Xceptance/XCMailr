@@ -120,10 +120,11 @@ public class Application
         result.render("available_langs", o);
         if (validation.hasViolations())
         {
+
             registerFormData.setPassword("");
             registerFormData.setPasswordNew1("");
             registerFormData.setPasswordNew2("");
-
+            
             context.getFlashCookie().error("flash_FormError");
 
             return result.render("editUsr", registerFormData);
@@ -326,10 +327,10 @@ public class Application
                     loginUser.setBadPwCount(0);
                     loginUser.update();
                     context.getFlashCookie().success("flash_LogIn");
-                    
-                    //set the language the user wants to have 
+
+                    // set the language the user wants to have
                     lang.setLanguage(loginUser.getLanguage(), result);
-                    
+
                     return result.template("/views/Application/index.ftl.html")
                                  .redirect(context.getContextPath() + "/");
                 }
@@ -398,7 +399,7 @@ public class Application
         else
         {
             User user = User.getUsrByMail(loginDat.getMail());
-            
+
             if (user != null)
             { // mailadress was correct (exists in the DB)
               // generate a new confirmation token and send it to the given mailadress
@@ -468,7 +469,7 @@ public class Application
      * @return the "Change your Password"-Site or (on Error) the Index-Page
      */
     public Result resetPasswordProcess(@PathParam("id") Long id, @PathParam("token") String token, Context context,
-                           @JSR303Validation PasswordFormData passwordFormData, Validation validation)
+                                       @JSR303Validation PasswordFormData passwordFormData, Validation validation)
     {
         Result result = Results.html().template("/views/Application/resetPasswordForm.ftl.html");
         // check the PathParams again
@@ -486,8 +487,8 @@ public class Application
                         { // check whether the password has the correct length
 
                             Optional<String> optionalLanguage = Optional.of(context.getAcceptLanguage());
-                            String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage, xcmConfiguration.PW_LENGTH)
-                                                         .get();
+                            String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage,
+                                                                   xcmConfiguration.PW_LENGTH).get();
                             context.getFlashCookie().error(tooShortPassword);
                             passwordFormData.setPassword("");
                             passwordFormData.setPassword2("");
