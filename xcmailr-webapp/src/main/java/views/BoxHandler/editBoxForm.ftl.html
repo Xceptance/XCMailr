@@ -16,7 +16,7 @@
 								<select name="domain"> 
 								<#list domain as String> 
 									<#if (mbFrmDat.domain)??> 
-										<#if (mbFrmDat.domain==String)>
+										<#if (mbFrmDat.domain == String)>
 											<option value="${String}" selected="selected">${String}</option>
 										<#else>
 											<option value="${String}">${String}</option> 
@@ -33,7 +33,7 @@
 				<div class="control-group">
 					<label class="control-label" for="datetime">${i18n("editEmail_Label_Duration")}*</label>
 					<div class="controls">
-						<div id="datetimepicker" class="input-prepend input-append">
+						<div id="datetimepicker" class="input-append">
 							<input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required" /> <span id="pickr_span" class="add-on">
 								<i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
 							</span>
@@ -85,9 +85,11 @@
 						var hours = date.getHours()+1;
 						date.setHours(hours);
 						var dateString = date.getDate() + "." + date.getMonth() + "." + date.getFullYear() + " "
-											+ date.getHours() + ":" + date.getMinutes()
+											+ date.getHours() + ":" + date.getMinutes();
+						
 						$('input#chkUnlimited').attr('checked', 'checked');
 						$('input#chkUnlimited').attr('value', dateString);					
+						$('div#datetimepicker').attr('style', 'display:none');
 						$('input#datetime').attr('style', 'display:none');
 						$('span#pickr_span').attr('style', 'display:none');
 						$('i#pickr_i').attr('style', 'display:none');
