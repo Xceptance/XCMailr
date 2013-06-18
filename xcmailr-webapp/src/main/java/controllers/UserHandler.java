@@ -110,14 +110,27 @@ public class UserHandler
 
             if (user.checkPasswd(userFormData.getPassword()))
             { // the user authorized himself
-                if (User.mailChanged(userFormData.getMail(), user.getId()))
-                { // the mailaddress changed
-                    user.setMail(userFormData.getMail());
+
+                if (!userFormData.getMail().equals(user.getMail()))
+                { // the user's mail-address changed
+                    if (User.mailExists(userFormData.getMail()))
+                    {//throw mailex-error
+                        context.getFlashCookie().error("flash_MailExists");
+                        userFormData.setPassword("");
+                        userFormData.setPasswordNew1("");
+                        userFormData.setPasswordNew2("");
+
+                        return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                    }
+                    else
+                    {   //the address does not exist
+                        user.setMail(userFormData.getMail());
+                    }
                 }
                 // update the fore- and surname
                 user.setForename(userFormData.getFirstName());
                 user.setSurname(userFormData.getSurName());
-                if (!(password1 == null) && !(password2 == null))
+                if ((password1 != null) && (password2 != null))
                 {
                     if (!(password2.isEmpty()) && !(password1.isEmpty()))
                     { // new password has been entered
@@ -149,7 +162,7 @@ public class UserHandler
                     }
                 }
                 if (Arrays.asList(xcmConfiguration.APP_LANGS).contains(userFormData.getLanguage()))
-                { //set the selected language in the user-object and also in the application 
+                { // set the selected language in the user-object and also in the application
                     user.setLanguage(userFormData.getLanguage());
                     lang.setLanguage(userFormData.getLanguage(), result);
                 }
