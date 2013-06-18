@@ -8,44 +8,44 @@ title="Home Page">
 				<legend>${i18n("editEmail_Title")}</legend>
 				<div class="control-group">
 					<label class="control-label" for="address">
-						${i18n("editEmail_Label_Local")} </label>
+						${i18n("editEmail_Label_Address")}* </label>
 					<div class="controls">
-						<input class="input_full" type="text" id="address" name="address"
-							value="${ (mbFrmDat.address)!}" required="required" />
+						<div class="input-append">
+						
+							<input class="input_full" type="text" id="address" name="address"
+								value="${ (mbFrmDat.address)!}" required="required" />
+							 <span class="add-on">@</span>
+							 
+								<select name="domain"> 
+								<#list domain as String> 
+									<#if (mbFrmDat.domain)??> 
+										<#if (mbFrmDat.domain==String)>
+											<option value="${String}" selected="selected">${String}</option>
+										<#else>
+											<option value="${String}">${String}</option> 
+										</#if> 
+									<#else>
+										<option value="${String}">${String}</option> 
+									</#if> 
+								</#list>
+								</select>								 
+							</div>
 					</div>
 				</div>
 				<div class="control-group">
-					<label class="control-label" for="domain">
-						${i18n("editEmail_Label_Domain")} </label>
+					<label class="control-label" for="datetime">${i18n("editEmail_Label_Duration")}*</label>
 					<div class="controls">
-						<select name="domain"> 
-						<#list domain as String> 
-							<#if (mbFrmDat.domain)??> 
-								<#if (mbFrmDat.domain==String)>
-									<option value="${String}" selected="selected">${String}</option>
-								<#else>
-									<option value="${String}">${String}</option> 
-								</#if> 
-							<#else>
-								<option value="${String}">${String}</option> 
-							</#if> 
-						</#list>
-						</select>
-					</div>
-				</div>
-				<div class="control-group">
-					<label class="control-label" for="datetime">${i18n("editEmail_Label_Duration")}</label>
-					<div class="controls">
-				  <div id="datetimepicker" class="input-append">
+
+				  <div id="datetimepicker" class="input-prepend input-append">
 				    <input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required"/>
 				    <span id="pickr_span" class="add-on">
 				      <i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
 				    </span>
-				    </div>
-				    <div>
-						<input type="checkbox" id="group1"/> ${i18n("editEmail_Unlimited")}
+					<div>
+					    <label class="checkbox">
+							<input type="checkbox" id="group1"/> ${i18n("editEmail_Unlimited")}
+						</label>
 					</div>
-				  </div>
 				</div>
 				<script type="text/javascript">
 				  $(function() {

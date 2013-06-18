@@ -2,36 +2,34 @@
 title="Home Page">
 <div class="row">
 	<div class="span7">
-		<form action="${contextPath}/mail/add" method="post" class="form-horizontal">
+		<form action="${contextPath}/mail/add" method="post" class="form-horizontal" id="addBoxForm">
 			<fieldset>
 				<legend>${i18n("createEmail_Title")}</legend>
 
 				<div class="control-group">
-					<label class="control-label" for="address">	${i18n("createEmail_Label_Local")} </label>
+					<label class="control-label" for="address">	${i18n("createEmail_Label_Address")} </label>
 					<div class="controls">
-						<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required" />
+						<div class="input-append">
+							<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required" />
+							<span class="add-on">@</span>
+							<select name="domain"> 
+								<#list domain as String> 
+									<#if (mbFrmDat.domain)??> 
+										<#if (mbFrmDat.domain == String)>
+											<option value="${String}" selected="selected">${String}</option>
+										<#else>
+											<option value="${String}">${String}</option> 
+										</#if> 
+									<#else>
+										<option value="${String}">${String}</option> 
+									</#if> 
+								</#list>
+							</select>
+						</div>
 					</div>
-				</div>
+				</div>		
 				<div class="control-group">
-					<label class="control-label" for="domain"> ${i18n("createEmail_Label_Domain")} </label>
-					<div class="controls">
-						<select name="domain"> 
-						<#list domain as String> 
-							<#if (mbFrmDat.domain)??> 
-								<#if (mbFrmDat.domain == String)>
-									<option value="${String}" selected="selected">${String}</option>
-								<#else>
-									<option value="${String}">${String}</option> 
-								</#if> 
-							<#else>
-								<option value="${String}">${String}</option> 
-							</#if> 
-						</#list>
-						</select>
-					</div>
-				</div>				
-				<div class="control-group">
-					<label class="control-label" for="duration">${i18n("createEmail_Label_Duration")}</label>
+					<label class="control-label" for="datetime">${i18n("createEmail_Label_Duration")}</label>
 					<div class="controls">
 				  	<div id="datetimepicker" class="input-append">
 				    	<input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${ (mbFrmDat.datetime)!}" required="required"/>
@@ -58,6 +56,7 @@ title="Home Page">
 							  $("#group1").click();
 						  }
 					  });
+				  $("#addBoxForm").submit(this.checkUnlimited());
 				</script>
 				
 				<div class="form-actions">
