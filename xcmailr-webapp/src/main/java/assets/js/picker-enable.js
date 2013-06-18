@@ -4,9 +4,6 @@
  */
 
 function toggle(chkbox) {
-	var picker = $('#datetimepicker')
-			.data('datetimepicker');
-	var divDateTimePicker = chkbox.parentNode;
 	var visSetting = (chkbox.checked) ? 'display: none' : 'display: inline-block';
 	$('input#datetime').attr('style', visSetting);
 	$('div#datetimepicker').attr('style', visSetting);

@@ -1,8 +1,7 @@
-<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
-title="Home page">
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout title="">
 
 <div class="span7">
-	<form action="${contextPath}/register" method="post" class="form-horizontal">
+	<form action="${contextPath}/register" method="post" class="form-horizontal" id="registrationForm">
 		<fieldset>
 			<legend>${i18n("registerUser_Title")}</legend>
 			<div class="control-group">
@@ -25,15 +24,15 @@ title="Home page">
 				</div>
 			</div>
 
-			<div class="control-group">
+			<div class="control-group passwords">
 				<label class="control-label" for="password"> ${i18n("registerUser_Label_Password")} </label>
 				<div class="controls">
 					<input class="input_full" type="password" id="password" name="password" required="required" />
 				</div>
 			</div>
-			<div class="control-group">
+			<div class="control-group passwords" >
 				<label class="control-label" for="passwordNew1">${i18n("registerUser_Label_Password_Repeat")} </label>
-				<div class="controls">
+				<div class="controls" id="divPasswordRepeat">
 					<input class="input_full" type="password" id="passwordNew1" name="passwordNew1" required="required" />
 				</div>
 			</div>
@@ -43,7 +42,7 @@ title="Home page">
 			<select name="language" id="language" >
 			<#list available_langs as lng>
 				<#if (editUsr.language)??>
-		  			<#if editUsr.language==lng[0]>	
+		  			<#if editUsr.language == lng[0]>	
 		  			<option value="${lng[0]}" selected="selected">${lng[1]}</option>
 		  			<#else>
 		  			<option value="${lng[0]}" >${lng[1]}</option>
@@ -56,10 +55,33 @@ title="Home page">
 			</div>
 		</div>
 		<div class="form-actions">
-			<input type="reset" class="btn" value="${i18n("registerUser_Button_Reset")}"/>
-			<input type="submit" class="btn btn-primary" value="${i18n("registerUser_Button_Create")}" /> 
+			<input type="button" id="registerReset" class="btn" value="${i18n("registerUser_Button_Reset")}"/>
+			<input type="button" id="registerSubmit" class="btn btn-primary" value="${i18n("registerUser_Button_Create")}" /> 
 		</div>
 		</fieldset>
 	</form>
+	<script type="text/javascript">
+	$('#registerSubmit')
+	.click(
+			function() {
+				var pw1 = $('input#password').val();
+				var pw2 = $('input#passwordNew1').val();
+				if (pw1 != pw2) {
+					$('#divPasswordRepeat')
+							.append(
+									'<span class="help-inline" id="pwUnequalErrorSpan">${i18n("flash_PasswordsUnequal")}</span>')
+					$('.passwords').addClass("error");
+					return false;
+				} else {
+					$('#registrationForm').submit();
+				}
+			});
+	
+		$('#registerReset').click(function() {
+			$('#pwUnequalErrorSpan').remove();
+			$('.passwords').removeClass("error");
+			$('#registrationForm')[0].reset();
+		});
+	</script>
 </div>
 </@layout.xcLayout>

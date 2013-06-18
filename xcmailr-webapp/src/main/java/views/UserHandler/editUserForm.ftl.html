@@ -2,7 +2,7 @@
 <@layout.xcLayout title="m">
 <div class="row">
 <div class="span7">
-	<form action="${contextPath}/user/edit" method="post" class="form-horizontal">
+	<form action="${contextPath}/user/edit" method="post" id="editUserForm" class="form-horizontal">
 		<fieldset>
 			<legend>${i18n("editUser_Title")}</legend>  
 			<div class="control-group"> 
@@ -31,15 +31,15 @@
 				</div>
 			</div>	
 		<br/>
-			<div class="control-group"> 
+			<div class="control-group passwords"> 
 				<label class="control-label" for="passwordNew1">${i18n("editUser_Label_NewPassword")}</label>
 				<div class="controls">  
 					<input class="input_full" type="password" id="passwordNew1" name="passwordNew1" value="${(userFormData.passwordNew1)!}"/>
 				</div>
 			</div>		
-			<div class="control-group"> 
+			<div class="control-group passwords"> 
 				<label class="control-label" for="passwordNew2">${i18n("editUser_Label_NewPasswordRepeated")}</label>
-				<div class="controls">  
+				<div class="controls" id="divPasswordRepeat">  
 					<input class="input_full" type="password" id="passwordNew2" name="passwordNew2" value="${(userFormData.passwordNew2)!}"/>
 				</div>
 			</div>
@@ -66,12 +66,34 @@
 			</div>
 	
 			<div class="form-actions"> 
-				<input type="reset"  class="btn" value="${i18n("editUser_Button_Reset")}"/>
-				<input type="submit" class="btn btn-primary" value="${i18n("editUser_Button_Save")}"/>  
+				<input type="button" id="editUserReset" class="btn" value="${i18n("editUser_Button_Reset")}"/>
+				<input type="button" id="editUserSubmit" class="btn btn-primary" value="${i18n("editUser_Button_Save")}"/>  
 			</div>
 	
 		</fieldset>
 	</form>
+		<script type="text/javascript">
+	$('#editUserSubmit')
+	.click(
+			function() {
+				var pw1 = $('input#passwordNew1').val();
+				var pw2 = $('input#passwordNew2').val();
+				if (pw1 != pw2) {
+					$('#divPasswordRepeat')
+							.append(
+									'<span class="help-inline" id="pwUnequalErrorSpan">${i18n("flash_PasswordsUnequal")}</span>')
+					$('.passwords').addClass("error");
+					return false;
+				} else {
+					$('#editUserForm').submit();
+				}
+			});
+	$('#editUserReset').click(function() {
+		$('#pwUnequalErrorSpan').remove();
+		$('.passwords').removeClass("error");
+		$('#editUserForm')[0].reset();
+	});
+	</script>
 </div>
 </div>
 </@layout.xcLayout>
