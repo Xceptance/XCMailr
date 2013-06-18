@@ -397,46 +397,6 @@ public class User implements Serializable
     }
 
     /**
-     * Checks whether the Mail of the User (identified by its ID) has changed and if the new Address can be used
-     * 
-     * @param mail
-     *            the new Mail-Address of the User
-     * @param uId
-     *            the User-ID
-     * @return <b>true</b> Mail has changed and the new address does not exist <br/>
-     *         <b>false</b> Mail has not changed, User is unknown or Address already exists
-     */
-
-    public static boolean mailChanged(String mail, Long uId)
-    {
-        User usr = User.getById(uId);
-        if (usr == null)
-        { // theres no user with that id
-            return false;
-        }
-        else
-        { // theres a user with that id
-            if (usr.mail.equals(mail.toLowerCase()))
-            { // the users mail is equal to the given address -> mail not changed
-                return false;
-            }
-            else
-            { // the addresses differ
-                if (User.mailExists(mail))
-                { // the given address already exists for another user
-                    return false;
-                }
-                else
-                { // the given address is not used
-                    return true;
-                }
-
-            }
-        }
-
-    }
-
-    /**
      * @return the Number of active Admin-Accounts
      */
     public static int getActiveAdminCount()
