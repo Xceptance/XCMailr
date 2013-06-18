@@ -65,6 +65,7 @@
 				$(document).ready(function() {
 					$('input#btnReset.btn').click(function reset() {
 						var chkBxUnlimited = $('input#chkUnlimited');
+						
 						if(chkBxUnlimited.is(':checked')){
 							var dateval = $('input#chkUnlimited').attr("value");
 							//add the attribute to datetime input field 
@@ -72,12 +73,26 @@
 							//remove it from the checkbox 
 							$('input#chkUnlimited').removeAttr("value");
 						}
-						$('input#chkUnlimited').removeAttr("checked");
-						$('input#datetime').removeAttr("style");
-						$('span#pickr_span').removeAttr("style");
-						$('i#pickr_i').removeAttr("style");
+						$('input#chkUnlimited').removeAttr('checked');
+						$('input#datetime').removeAttr('style');
+						$('span#pickr_span').removeAttr('style');
+						$('i#pickr_i').removeAttr('style');
 						$('#editBoxForm')[0].reset();
 					});
+					
+					if($('input#datetime').attr('value')=="0"){
+						var date = new Date();
+						var hours = date.getHours()+1;
+						date.setHours(hours);
+						var dateString = date.getDate() + "." + date.getMonth() + "." + date.getFullYear() + " "
+											+ date.getHours() + ":" + date.getMinutes()
+						$('input#chkUnlimited').attr('checked', 'checked');
+						$('input#chkUnlimited').attr('value', dateString);					
+						$('input#datetime').attr('style', 'display:none');
+						$('span#pickr_span').attr('style', 'display:none');
+						$('i#pickr_i').attr('style', 'display:none');
+					}
+					
 				});
 </script>
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script>
