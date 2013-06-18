@@ -31,6 +31,7 @@ import models.MailBoxFormData;
 import models.PageList;
 import models.User;
 import ninja.params.PathParam;
+import ninja.validation.FieldViolation;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 import ninja.Result;
@@ -103,7 +104,6 @@ public class BoxHandler
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
-
             context.getFlashCookie().error("flash_FormError");
             if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null)
                 || (mailboxFormData.getDatetime() == null))
@@ -161,8 +161,7 @@ public class BoxHandler
     }
 
     /**
-     * Deletes a Box from the DB
-     * POST /mail/delete/{id}
+     * Deletes a Box from the DB POST /mail/delete/{id}
      * 
      * @param boxid
      *            the ID of the Mailbox
@@ -333,8 +332,7 @@ public class BoxHandler
     }
 
     /**
-     * Sets the Box valid/invalid
-     * POST /mail/expire/{id}
+     * Sets the Box valid/invalid POST /mail/expire/{id}
      * 
      * @param boxId
      *            the ID of the Mailbox
@@ -364,8 +362,7 @@ public class BoxHandler
     }
 
     /**
-     * Sets the Values of the Counters for the Box, given by their ID, to zero
-     * POST /mail/reset/{id}
+     * Sets the Values of the Counters for the Box, given by their ID, to zero POST /mail/reset/{id}
      * 
      * @param boxId
      *            the ID of the Mailbox
@@ -378,11 +375,11 @@ public class BoxHandler
         Result result = Results.html().template("/views/Application/index.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
-        System.out.println("resette box mit der id: "+boxId);
+        System.out.println("resette box mit der id: " + boxId);
         // check if the mailbox belongs to the current user
         if (mailBox.belongsTo(user.getId()))
         {
-            
+
             mailBox.resetForwards();
             mailBox.resetSuppressions();
             mailBox.update();

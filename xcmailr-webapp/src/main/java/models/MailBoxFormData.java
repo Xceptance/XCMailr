@@ -32,16 +32,17 @@ public class MailBoxFormData
     private Long boxId;
 
     @NotEmpty
-    @Length(min=1, max=64)
+    @Length(min = 1, max = 64)
+    @Pattern(regexp = "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*")
     private String address;
 
     @NotEmpty
     @Pattern(regexp = "[A-Za-z-]+(\\.[\\w-]+)+")
-    @Length(min=1, max=255)
+    @Length(min = 1, max = 255)
     private String domain;
 
     @NotEmpty
-    @Length(min=1, max=255)
+    @Length(min = 1, max = 255)
     private String datetime;
 
     /**
