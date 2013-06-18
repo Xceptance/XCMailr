@@ -194,31 +194,37 @@ public class HelperUtils
         String no = context.getParameter("no");
         String value;
         if (no == null)
-        {// no parameter
-            if (!(context.getSessionCookie().get("no") == null))
-            {
+        {// no number-param was delivered
+
+            if (context.getSessionCookie().get("no") != null)
+            { // return with no action, because there is already a value set
                 return;
             }
-            value = defaultNo.toString();
-        }
-        else
-        {
-            if (no.equals("all"))
-            {
+            else
+            { // set the default-value if no param was set and theres no value in the cookie
                 value = defaultNo.toString();
             }
+        }
+        else
+        { // there's a parameter with the key "no"
+
+            if (no.equals("all"))
+            { // all entries should be shown
+                value = "0";
+            }
             else
-            {
+            { // otherwise set the number
                 try
-                {
-                    value = no;
+                { // parse the parameter as integer to ensure that it is a number
+                    value = String.valueOf(Integer.parseInt(no));
                 }
                 catch (NumberFormatException nfe)
-                {
+                { //set to default if its not an integer
                     value = defaultNo.toString();
                 }
             }
         }
+        // set the number to the session-cookie
         context.getSessionCookie().put("no", value);
     }
 
@@ -232,8 +238,8 @@ public class HelperUtils
      *            the current user-context
      * @param msg
      *            the Messages-object
-     * @return a List of String[] with the key "available_langs" and a String[]-object containing the localised long form of all
-     *         languages
+     * @return a List of String[] with the key "available_langs" and a String[]-object containing the localised long
+     *         form of all languages
      */
     public static List<String[]> getLanguageList(String[] availableLanguages, Context context, Messages msg)
     {
@@ -242,7 +248,8 @@ public class HelperUtils
         List<String[]> availableLanguageList = new ArrayList<String[]>();
         for (String abbreviatedLanguageCode : availableLanguages)
         {
-            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult, (Object) null).get();
+            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult, (Object) null)
+                                     .get();
             availableLanguageList.add(new String[]
                 {
                     abbreviatedLanguageCode, languageTranslation

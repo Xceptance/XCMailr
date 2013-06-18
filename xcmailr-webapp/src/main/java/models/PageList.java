@@ -48,7 +48,7 @@ public class PageList<T>
      * @param in
      *            the List with Entries
      * @param size
-     *            the Size of one Page
+     *            the Size of Entries on one Page
      */
     public PageList(List<T> in, int size)
     {
@@ -76,7 +76,7 @@ public class PageList<T>
     }
 
     /**
-     * @return the Number of Entries of a Page
+     * @return the Number of Entries on a Page
      */
 
     public int getPagesize()
