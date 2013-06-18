@@ -1,21 +1,18 @@
-<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
-title="Home Page">
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout title="Home Page">
 <div class="row">
 	<div class="span7">
-		<form action="${contextPath}/mail/edit/${mbFrmDat.boxId}" class="form-horizontal"
-			method="post">
+		<form action="${contextPath}/mail/edit/${mbFrmDat.boxId}" class="form-horizontal" method="post">
 			<fieldset>
 				<legend>${i18n("editEmail_Title")}</legend>
+				<!-- row: Email address -->
 				<div class="control-group">
 					<label class="control-label" for="address">
 						${i18n("editEmail_Label_Address")}* </label>
 					<div class="controls">
 						<div class="input-append">
-						
 							<input class="input_full" type="text" id="address" name="address"
 								value="${ (mbFrmDat.address)!}" required="required" />
 							 <span class="add-on">@</span>
-							 
 								<select name="domain"> 
 								<#list domain as String> 
 									<#if (mbFrmDat.domain)??> 
@@ -32,45 +29,57 @@ title="Home Page">
 							</div>
 					</div>
 				</div>
+				<!-- row: life-time of the address -->
 				<div class="control-group">
 					<label class="control-label" for="datetime">${i18n("editEmail_Label_Duration")}*</label>
 					<div class="controls">
-
-				  <div id="datetimepicker" class="input-prepend input-append">
-				    <input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required"/>
-				    <span id="pickr_span" class="add-on">
-				      <i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
-				    </span>
-					<div>
-					    <label class="checkbox">
-							<input type="checkbox" id="group1"/> ${i18n("editEmail_Unlimited")}
-						</label>
+						<div id="datetimepicker" class="input-prepend input-append">
+							<input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required" /> <span id="pickr_span" class="add-on">
+								<i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+							</span>
+						</div>
 					</div>
-				</div>
-				<script type="text/javascript">
-				  $(function() {
-
-				    $('#datetimepicker').datetimepicker({
-				      language: '${lang}',
-				      pick12HourFormat: false,
-				      startDate: new Date()
-				    });
-				    
-					  enable_cb();
-					  $("#group1").click(enable_cb);
-					  if("${mbFrmDat.datetime}"=="0"){
-						  $("#group1").click();
-					  }
-				  });
-				</script>
-				<div class="form-actions">
-					<input type="reset" class="btn" value="${i18n("editEmail_Button_Reset")}"/>
-					<input type="submit" class="btn btn-primary" value="${i18n("editEmail_Button_Edit")}" />
-				</div>
+					<div class="controls">
+							<label class="checkbox"> 
+								<input type="checkbox"	id="chkUnlimited" onClick="toggle(this)"/> ${i18n("editEmail_Unlimited")}
+							</label>
+						</div>
+					</div>	
+					<div class="form-actions">
+						<input type="button" class="btn" id="btnReset" value="${i18n("editEmail_Button_Reset")}"/>
+						<input type="submit" class="btn btn-primary" value="${i18n("editEmail_Button_Edit")}" />
+					</div>
 			</fieldset>
 		</form>
 	</div>
 </div>
+<script type="text/javascript">
+				$(function() {
+					$('#datetimepicker').datetimepicker({
+						language : '${lang}',
+						pick12HourFormat : false,
+						startDate : new Date()
+					});
+				});
+				//handle the reset-button
+				$(document).ready(function() {
+					$('input#btnReset.btn').click(function reset() {
+						var chkBxUnlimited = $('input#chkUnlimited');
+						if(chkBxUnlimited.is(':checked')){
+							var dateval = $('input#chkUnlimited').attr("value");
+							//add the attribute to datetime input field 
+							$('input#datetime').attr("value", dateval);
+							//remove it from the checkbox 
+							$('input#chkUnlimited').removeAttr("value");
+						}
+						$('input#chkUnlimited').removeAttr("checked");
+						$('input#datetime').removeAttr("style");
+						$('span#pickr_span').removeAttr("style");
+						$('i#pickr_i').removeAttr("style");
+						$('#editBoxForm')[0].reset();
+					});
+				});
+</script>
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script>
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script>
 <script type="text/javascript" src="${contextPath}/assets/js/picker-enable.js"></script>  

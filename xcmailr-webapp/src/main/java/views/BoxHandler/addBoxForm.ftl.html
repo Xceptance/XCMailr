@@ -5,7 +5,7 @@ title="Home Page">
 		<form action="${contextPath}/mail/add" method="post" class="form-horizontal" id="addBoxForm">
 			<fieldset>
 				<legend>${i18n("createEmail_Title")}</legend>
-
+				<!-- row: email-address -->
 				<div class="control-group">
 					<label class="control-label" for="address">	${i18n("createEmail_Label_Address")} </label>
 					<div class="controls">
@@ -28,6 +28,7 @@ title="Home Page">
 						</div>
 					</div>
 				</div>		
+				<!-- row: life-time of the address -->
 				<div class="control-group">
 					<label class="control-label" for="datetime">${i18n("createEmail_Label_Duration")}</label>
 					<div class="controls">
@@ -37,30 +38,41 @@ title="Home Page">
 					      <i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar" class="group1"></i>
 					    </span>
 				    </div>
-				    <div>
-						<input type="checkbox" id="group1"/> ${i18n("createEmail_Unlimited")}
-					</div>
 				  </div>
-
+				    <div class="controls">
+				    	<input type="checkbox" id="chkUnlimited" onClick="toggle(this)" /> ${i18n("createEmail_Unlimited")}
+				    </div>
 				</div>
 				<script type="text/javascript">
-				  $(function() {
-					    $('#datetimepicker').datetimepicker({
-					      language: '${lang}',
-					      pick12HourFormat: false,
-					      startDate: new Date()
-					    });
-						  enable_cb();
-						  $("#group1").click(enable_cb);
-						  if("${mbFrmDat.datetime}"=="0"){
-							  $("#group1").click();
-						  }
-					  });
-				  $("#addBoxForm").submit(this.checkUnlimited());
+					$(function() {
+						$('#datetimepicker').datetimepicker({
+							language : '${lang}',
+							pick12HourFormat : false,
+							startDate : new Date()
+						});
+					});
+					//handle the reset-button
+					$(document).ready(function() {
+						$('input#btnReset.btn').click(function reset() {
+							var chkBxUnlimited = $('input#chkUnlimited');
+							if(chkBxUnlimited.is(':checked')){
+								var dateval = $('input#chkUnlimited').attr("value");
+								//add the attribute to datetime input field 
+								$('input#datetime').attr("value", dateval);
+								//remove it from the checkbox 
+								$('input#chkUnlimited').removeAttr("value");
+							}
+							$('input#chkUnlimited').removeAttr("checked");
+							$('input#datetime').removeAttr("style");
+							$('span#pickr_span').removeAttr("style");
+							$('i#pickr_i').removeAttr("style");
+							$('#addBoxForm')[0].reset();
+						});
+					});
 				</script>
 				
 				<div class="form-actions">
-					<input type="reset" class="btn" value="${i18n("createEmail_Button_Reset")}"/>
+					<input type="button" class="btn" id="btnReset"  value="${i18n("createEmail_Button_Reset")}" />
 					<input type="submit" class="btn btn-primary" value="${i18n("createEmail_Button_New")}" />
 				</div>
 			</fieldset>

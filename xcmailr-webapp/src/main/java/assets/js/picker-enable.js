@@ -2,30 +2,32 @@
  * Enables and disables the datetimepicker
  * Patrick Thum, Xceptance Software Technologies GmbH, 2013
  */
-  function enable_cb() {
-  	if (this.checked) {
-  		var dateval = $("input#datetime").attr("value");
-  		var input = document.createElement("input");
-  		input.setAttribute("type", "hidden");
-  		input.setAttribute("id", "storDate");
-  		input.setAttribute("value", dateval);
-  		document.getElementById("datetimepicker").appendChild(input);
 
-  		$("input#datetime").attr("type", "hidden");
-  		$("span#pickr_span").removeAttr("class");
-  		$("i#pickr_i").removeAttr("data-date-icon");
-  		$("i#pickr_i").removeAttr("data-time-icon");
-  		$("i#pickr_i").removeAttr("class");
-  		$("input#datetime").attr("value", "0");
-  	} else {
-  		var dateval = $("input#storDate").attr("value");
-  		$("input#datetime").removeAttr("disabled");
-  		$("input#datetime").attr("type", "text");
-  		$("input#datetime").attr("value", dateval);
-  		$("span#pickr_span").attr("class", "add-on");
-  		$("i#pickr_i").attr("data-date-icon","icon-calendar");
-  		$("i#pickr_i").attr("data-time-icon","icon-time");
-  		$("i#pickr_i").attr("class","icon-calendar");
-  		$('input#storDate').remove();
-  	}
-  }
+	function toggle(chkbox) {
+		var picker = $('#datetimepicker')
+				.data('datetimepicker');
+		var divDateTimePicker = chkbox.parentNode;
+		var visSetting = (chkbox.checked) ? "display: none" : "display: inline-block";
+		$('input#datetime').attr("style", visSetting);
+		$('span#pickr_span').attr("style", visSetting);
+		$('i#pickr_i').attr("style", visSetting);
+
+	/*	divDateTimePicker.getElementsByTagName('input')[0].style.display = visSetting;
+		divDateTimePicker.getElementsByTagName('span')[0].style.display = visSetting;
+		divDateTimePicker.getElementsByTagName('i')[0].style.display = visSetting;*/
+		if (chkbox.checked) {
+			var dateval = $('input#datetime').attr("value");
+			//remove the attribute from datetime input field
+			$('input#datetime').attr("value", 0);
+			//add it to the checkbox 
+			$('input#chkUnlimited').attr("value", dateval);
+
+		} else {
+			var dateval = $('input#chkUnlimited').attr("value");
+			//add the attribute to datetime input field 
+			$('input#datetime').attr("value", dateval);
+			//remove it from the checkbox 
+			$('input#chkUnlimited').removeAttr("value");
+		}
+
+	}
