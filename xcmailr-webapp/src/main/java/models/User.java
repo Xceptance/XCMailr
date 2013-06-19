@@ -397,21 +397,29 @@ public class User implements Serializable
     }
 
     /**
-     * @return the Number of active Admin-Accounts
-     */
-    public static int getActiveAdminCount()
-    {
-        return Ebean.find(User.class).where().eq("admin", true).eq("active", true).findRowCount();
-    }
-
-    /**
      * @param id
      *            the User-ID
-     * @return true if the User is an Admin
+     * @return true, if the user is the last admin-account in this app
      */
-    public static boolean isUserAdmin(long id)
+    public boolean isLastAdmin()
     {
-        return Ebean.find(User.class, id).isAdmin();
+
+        if (this.isAdmin())
+        { // this user is admin
+            if (Ebean.find(User.class).where().eq("admin", true).findList().size() == 1)
+            { // there's only one admin in the database, so he's the last one
+                return true;
+            }
+            else
+            {// there are more than one admin-accounts
+                return false;
+            }
+        }
+        else
+        { // the user is no admin
+            return false;
+        }
+
     }
 
     /**
@@ -442,7 +450,7 @@ public class User implements Serializable
         // get the user by the mailadress
         User usr = Ebean.find(User.class).where().eq("mail", mail.toLowerCase()).findUnique();
 
-        if (!(usr == null))
+        if (usr != null)
         {
             // there's a user with that address
 

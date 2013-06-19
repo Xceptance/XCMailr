@@ -114,7 +114,7 @@ public class UserHandler
                 if (!userFormData.getMail().equals(user.getMail()))
                 { // the user's mail-address changed
                     if (User.mailExists(userFormData.getMail()))
-                    {//throw mailex-error
+                    {// throw mailex-error
                         context.getFlashCookie().error("flash_MailExists");
                         userFormData.setPassword("");
                         userFormData.setPasswordNew1("");
@@ -123,7 +123,7 @@ public class UserHandler
                         return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
                     }
                     else
-                    {   //the address does not exist
+                    { // the address does not exist
                         user.setMail(userFormData.getMail());
                     }
                 }
@@ -212,6 +212,35 @@ public class UserHandler
         }
         UserFormData userFormData = UserFormData.prepopulate(user);
         return result.render(userFormData);
+    }
+
+    /**
+     * Handles the {@link models.User User}-Delete-Function <br/>
+     * POST /user/delete
+     * 
+     * @param userId
+     *            the ID of a {@link models.User User}
+     * @param context
+     *            the Context of this Request
+     * @return the User-Overview-Page (/admin/users)
+     */
+    public Result deleteUserProcess(Context context)
+    {
+        Result result = Results.html().template("/views/Application/index.ftl.html");
+        User user = context.getAttribute("user", User.class);
+        if (!user.isLastAdmin())
+        {
+            // delete the session
+            context.getSessionCookie().clear();
+            memCachedSessionHandler.delete(String.valueOf(user.getId()));
+            // delete the user-account
+            User.delete(user.getId());
+            context.getFlashCookie().success("flash_UserDeletionSuccess");
+            return result.redirect(context.getContextPath() + "/");
+        }
+
+        context.getFlashCookie().error("flash_UserDeletionFailed");
+        return result.redirect(context.getContextPath() + "/");
     }
 
 }

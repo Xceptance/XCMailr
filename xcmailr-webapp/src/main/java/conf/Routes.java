@@ -51,6 +51,9 @@ public class Routes implements ApplicationRoutes
         //Routes for UserHandling (after registration)
         router.GET().route("/user/edit").with(UserHandler.class, "editUserForm");
         router.POST().route("/user/edit").with(UserHandler.class, "editUserProcess");
+        
+        router.POST().route("/user/delete").with(UserHandler.class, "deleteUserProcess");
+        
 
         //Routes for the Mail-Handling 
         router.GET().route("/mail").with(BoxHandler.class, "showBoxOverview");
