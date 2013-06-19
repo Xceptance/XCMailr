@@ -109,6 +109,7 @@ public class BoxHandler
             {
                 return result.redirect("/mail/add");
             }
+
             result.render("mbFrmDat", mailboxFormData);
             return result.template("/views/BoxHandler/addBoxForm.ftl.html");
         }
@@ -316,7 +317,15 @@ public class BoxHandler
             if (mailBox.belongsTo(usr.getId()))
             { // the MBox belongs to this user
               // render the box-data and domains
-                return Results.html().render("mbFrmDat", MailBoxFormData.prepopulate(mailBox))
+
+                if (mailBox.getTs_Active() <= DateTime.now().getMillis())
+                {
+                    // set a new activity-timestamp if the current one is in the past
+                    DateTime dateTime = new DateTime().plusHours(1);
+                    mailBox.setTs_Active(dateTime.getMillis());
+                }
+                MailBoxFormData mailBoxFormData = MailBoxFormData.prepopulate(mailBox);
+                return Results.html().render("mbFrmDat", mailBoxFormData)
                               .render("domain", xcmConfiguration.DOMAIN_LIST);
             }
             else

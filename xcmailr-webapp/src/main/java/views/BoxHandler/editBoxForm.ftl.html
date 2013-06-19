@@ -5,11 +5,11 @@
 			<fieldset>
 				<legend>${i18n("editEmail_Title")}</legend>
 				<!-- row: Email address -->
-				<div class="control-group">
+				<div class="control-group" id="emailRow">
 					<label class="control-label" for="address">
 						${i18n("editEmail_Label_Address")}* </label>
-					<div class="controls">
-						<div class="input-append">
+					<div class="controls"  id="emailRowControl">
+						<div class="input-append" id="mailInputDiv">
 							<input class="input_full" type="text" id="address" name="address"
 								value="${ (mbFrmDat.address)!}" required="required" />
 							 <span class="add-on">@</span>
@@ -46,8 +46,9 @@
 						</div>
 					</div>	
 					<div class="form-actions">
-						<input type="button" class="btn" id="btnReset" value="${i18n("editEmail_Button_Reset")}"/>
-						<input type="submit" class="btn btn-primary" value="${i18n("editEmail_Button_Edit")}" />
+						<input type="button" class="btn" id="btnReset" value='${i18n("editEmail_Button_Reset")}'/>
+						<input type="submit" class="btn btn-primary" value='${i18n("editEmail_Button_Edit")}' />
+						
 					</div>
 			</fieldset>
 		</form>
@@ -61,8 +62,9 @@
 						startDate : new Date()
 					});
 				});
-				//handle the reset-button
+
 				$(document).ready(function() {
+					//handle the reset-button 
 					$('input#btnReset.btn').click(function reset() {
 						var chkBxUnlimited = $('input#chkUnlimited');
 						
@@ -77,9 +79,32 @@
 						$('input#datetime').removeAttr('style');
 						$('span#pickr_span').removeAttr('style');
 						$('i#pickr_i').removeAttr('style');
+						$('#mailInvalidErrorSpan').remove();
+						$('#emailRow').removeClass('error');
 						$('#editBoxForm')[0].reset();
 					});
 					
+					//handle the submit-button 
+					$('#createEmailSubmit')
+					.click(
+							function() {
+								var mailRegExp = /^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*$/m
+								var localPart = $('#address').val();
+								var match = mailRegExp.test(localPart);
+								
+								if (match) {
+									$('#editBoxForm').submit();
+									
+									return false;
+								} else {
+									$('#mailInvalidErrorSpan').remove();
+									$('#emailRow').removeClass('error');
+									$('#emailRowControl')
+									.append('<span class="help-inline" id="mailInvalidErrorSpan">${i18n("flash_MailInvalid")}</span>')
+									$('#emailRow').addClass("error");
+								}
+							});
+					//handle unlimited box 
 					if($('input#datetime').attr('value')=="0"){
 						var date = new Date();
 						var hours = date.getHours()+1;

@@ -6,10 +6,10 @@ title="Home Page">
 			<fieldset>
 				<legend>${i18n("createEmail_Title")}</legend>
 				<!-- row: email-address -->
-				<div class="control-group">
+				<div class="control-group" id="emailRow">
 					<label class="control-label" for="address">	${i18n("createEmail_Label_Address")} </label>
-					<div class="controls">
-						<div class="input-append">
+					<div class="controls" id="emailRowControl">
+						<div class="input-append" id="mailInputDiv">
 							<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required" />
 							<span class="add-on">@</span>
 							<select name="domain"> 
@@ -29,7 +29,7 @@ title="Home Page">
 					</div>
 				</div>		
 				<!-- row: life-time of the address -->
-				<div class="control-group">
+				<div class="control-group" id="validityRow">
 					<label class="control-label" for="datetime">${i18n("createEmail_Label_Duration")}</label>
 					<div class="controls">
 				  	<div id="datetimepicker" class="input-append">
@@ -51,29 +51,56 @@ title="Home Page">
 							startDate : new Date()
 						});
 					});
-					//handle the reset-button
+
 					$(document).ready(function() {
-						$('input#btnReset.btn').click(function reset() {
+						//handle the reset-button
+						$('input#createEmailReset.btn').click(function reset() {
 							var chkBxUnlimited = $('input#chkUnlimited');
 							if(chkBxUnlimited.is(':checked')){
-								var dateval = $('input#chkUnlimited').attr("value");
+								var dateval = $('input#chkUnlimited').attr('value');
 								//add the attribute to datetime input field 
 								$('input#datetime').attr("value", dateval);
 								//remove it from the checkbox 
-								$('input#chkUnlimited').removeAttr("value");
+								$('input#chkUnlimited').removeAttr('value');
 							}
-							$('input#chkUnlimited').removeAttr("checked");
-							$('input#datetime').removeAttr("style");
-							$('span#pickr_span').removeAttr("style");
-							$('i#pickr_i').removeAttr("style");
+							$('input#chkUnlimited').removeAttr('checked');
+							$('input#datetime').removeAttr('style');
+							$('span#pickr_span').removeAttr('style');
+							$('i#pickr_i').removeAttr('style');
+							$('#mailInvalidErrorSpan').remove();
+							$('#emailRow').removeClass('error');
 							$('#addBoxForm')[0].reset();
+							
 						});
+						
+						//handle the submit-button
+						$('#createEmailSubmit')
+						.click(
+								function() {
+									var mailRegExp = /^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*$/m
+									var localPart = $('#address').val();
+									var match = mailRegExp.test(localPart);
+									
+									if (match) {
+										$('#addBoxForm').submit();
+										
+										return false;
+									} else {
+										$('#mailInvalidErrorSpan').remove();
+										$('#emailRow').removeClass('error');
+										
+										$('#emailRowControl')
+										.append('<span class="help-inline" id="mailInvalidErrorSpan">${i18n("flash_MailInvalid")}</span>')
+										$('#emailRow').addClass("error");
+									}
+								});
 					});
+									
 				</script>
 				
 				<div class="form-actions">
-					<input type="button" class="btn" id="btnReset"  value="${i18n("createEmail_Button_Reset")}" />
-					<input type="submit" class="btn btn-primary" value="${i18n("createEmail_Button_New")}" />
+					<input type="button" class="btn" id="createEmailReset"  value='${i18n("createEmail_Button_Reset")}' />
+					<input type="button" class="btn btn-primary" id="createEmailSubmit" value='${i18n("createEmail_Button_New")}' />
 				</div>
 			</fieldset>
 		</form>
