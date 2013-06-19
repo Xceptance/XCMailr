@@ -16,13 +16,18 @@
  */
 package controllers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Results;
 import etc.HelperUtils;
 import filters.SecureFilter;
 import org.joda.time.DateTime;
+
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
@@ -405,12 +410,56 @@ public class BoxHandler
         // check if the mailbox belongs to the current user
         if (mailBox.belongsTo(user.getId()))
         {
-
             mailBox.resetForwards();
             mailBox.resetSuppressions();
             mailBox.update();
-            System.out.println("boxreset erfolgreixh");
         }
         return result.redirect(context.getContextPath() + "/mail");
     }
+
+    public Result boxSearch(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        PageList<MBox> plist = new PageList<MBox>(MBox.allUser(user.getId()), 5);
+        Result result = Results.html();
+        String searchString = context.getParameter("s", "");
+        if (searchString.equals(""))
+        {
+            result.render("mboxes", plist);
+        }
+        else
+        {
+            plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), 5);
+            result.render("mboxes", plist);
+        }
+
+        return result;
+    }
+
+    public Result search(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        List<MBox> boxList;
+        Result result = Results.html();
+        String searchString = context.getParameter("s", "");
+        if (searchString.equals(""))
+        {
+            boxList = new ArrayList<MBox>();
+        }
+        else
+        {
+            boxList = MBox.findBoxLike(searchString, user.getId());
+        }
+
+        List<MailBoxFormData> mbdlist = new ArrayList<MailBoxFormData>();
+        for (MBox mb : boxList)
+        {
+            MailBoxFormData mbd = MailBoxFormData.prepopulate(mb);
+            mbdlist.add(mbd);
+
+        }
+
+        return result.json().render(mbdlist);
+    }
+
 }

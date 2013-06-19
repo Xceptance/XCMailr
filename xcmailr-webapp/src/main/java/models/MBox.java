@@ -591,4 +591,11 @@ public class MBox
         return !this.isExpired();
     }
 
+    public static List<MBox> findBoxLike(String input, long userId)
+    {
+        ExpressionList <MBox> exList1 = Ebean.find(MBox.class).where().eq("usr_id", userId);
+        
+        return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%")).findList();
+    }
+
 }
