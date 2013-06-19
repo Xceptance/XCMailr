@@ -114,7 +114,7 @@ public class BoxHandler
         }
         else
         {
-            // check for rfc 5321 compliant length of email (64 chars for local and 255 in total)
+            // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (completeAddress.length() >= 255)
             {
@@ -223,7 +223,7 @@ public class BoxHandler
         }
         else
         { // the form was filled correctly
-          // check for rfc 5322 compliant length of email (64 chars for local and 255 in total)
+          // check for rfc 5322 compliant length of email (64 chars for local and 254 in total)
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (completeAddress.length() >= 255)
             {
