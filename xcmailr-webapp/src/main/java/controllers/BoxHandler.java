@@ -31,7 +31,6 @@ import models.MailBoxFormData;
 import models.PageList;
 import models.User;
 import ninja.params.PathParam;
-import ninja.validation.FieldViolation;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 import ninja.Result;
@@ -115,6 +114,16 @@ public class BoxHandler
         }
         else
         {
+            // check for rfc 5321 compliant length of email (64 chars for local and 255 in total)
+            String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
+            if (completeAddress.length() >= 255)
+            {
+                context.getFlashCookie().error("flash_MailTooLong");
+
+                result.render("mbFrmDat", mailboxFormData);
+                return result.template("/views/BoxHandler/addBoxForm.ftl.html");
+            }
+
             // checks whether the Box already exists
             if (!MBox.mailExists(mailboxFormData.getAddress(), mailboxFormData.getDomain()))
             {
@@ -214,7 +223,15 @@ public class BoxHandler
         }
         else
         { // the form was filled correctly
+          // check for rfc 5322 compliant length of email (64 chars for local and 255 in total)
+            String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
+            if (completeAddress.length() >= 255)
+            {
+                context.getFlashCookie().error("flash_MailTooLong");
 
+                result.render("mbFrmDat", mailboxFormData);
+                return result.template("/views/BoxHandler/addBoxForm.ftl.html");
+            }
             // we got the boxID with the POST-Request
             MBox mailBox = MBox.getById(boxId);
             if (mailBox != null)
