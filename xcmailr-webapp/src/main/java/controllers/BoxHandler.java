@@ -27,7 +27,6 @@ import etc.HelperUtils;
 import filters.SecureFilter;
 import org.joda.time.DateTime;
 
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
@@ -356,10 +355,22 @@ public class BoxHandler
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 
-        // generate the paged-list to get pagination in the pattern
-        PageList<MBox> plist = new PageList<MBox>(MBox.allUser(user.getId()), entries);
+        PageList<MBox> plist;
 
-        return Results.html().render("mboxes", plist);
+        Result result = Results.html();
+        String searchString = context.getParameter("s", "");
+        if (searchString.equals(""))
+        { // if theres no parameter, simply render all boxes
+            plist = new PageList<MBox>(MBox.allUser(user.getId()), entries);
+            result.render("mboxes", plist);
+        }
+        else
+        { // theres a search parameter with input, get the related boxes
+            plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
+            result.render("mboxes", plist);
+        }
+
+        return result;
     }
 
     /**
@@ -417,26 +428,13 @@ public class BoxHandler
         return result.redirect(context.getContextPath() + "/mail");
     }
 
-    public Result boxSearch(Context context)
-    {
-        User user = context.getAttribute("user", User.class);
-        PageList<MBox> plist = new PageList<MBox>(MBox.allUser(user.getId()), 5);
-        Result result = Results.html();
-        String searchString = context.getParameter("s", "");
-        if (searchString.equals(""))
-        {
-            result.render("mboxes", plist);
-        }
-        else
-        {
-            plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), 5);
-            result.render("mboxes", plist);
-        }
-
-        return result;
-    }
-
-    public Result search(Context context)
+    /**
+     * Handles JSON-Requests from the search
+     * 
+     * @param context
+     * @return a JSON-Array with the boxes
+     */
+    public Result jsonBoxSearch(Context context)
     {
         User user = context.getAttribute("user", User.class);
         List<MBox> boxList;

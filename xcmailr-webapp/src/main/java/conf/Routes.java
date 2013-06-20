@@ -69,8 +69,7 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxProcess");
         router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounterProcess");
         
-        router.GET().route("/mail/boxSearch").with(BoxHandler.class, "boxSearch");
-        router.GET().route("/mail/search").with(BoxHandler.class, "search");
+        router.GET().route("/mail/search").with(BoxHandler.class, "jsonBoxSearch");
 
         
         //Routes in the admin-section

@@ -18,7 +18,14 @@ title="Home Page">
 	<#else>
 		<div class="tab-pane" id="${x}">  
 	</#if>
-	
+	<form action="${contextPath}/mail">
+		<div class="input-append">
+			<input type="text" id="searchBox" name ="s" data-provide="typeahead" autocomplete="off"/>
+			<button class="btn" id="boxSearchButton" type="submit"><i class="icon-search"></i> ${mailbox_Button_Search}</button>
+			<span class="append"></span>
+		</div>
+	</form>
+  
 		<table class="table tablesorter table-hover table-condensed">
 		<thead>
 		    <tr>
@@ -93,6 +100,38 @@ title="Home Page">
 <@pag.pager name=mboxes/>
 </div><!-- /pagination -->
 </div><!-- /row -->
+<script>
+	
+	$(document).ready(
+	function(){
+		$('#searchBox').typeahead({
+		    source: function(q, process){
+		        return $.get('${contextPath}/mail/search', {s: q}, function(response) {
+		            var data = new Array;
+		            for(var i in response) {
+		                data.push(response[i]['boxId'] +"#"+ response[i]['address'] +"#"+ response[i]['domain'] +"#"+ response[i]['datetime']);
+		            }
+		            return process(data);
+		        });
+		    },
+		    highlighter: function(item) {
+		        var parts = item.split('#'),
+		        html = '<div class="typeahead">';
+		        html += '<div class="left">';
+			        html += '<div>'+parts[1]+'&#064;'+parts[2]+'</div>';
+			        html += '<div>'+parts[3]+'</div>';
+		        html += '</div>';
+	        html += '</div>';
+		        return html;
+		    },
+		    updater: function(item) {
+		        var parts = item.split('#');
+		        return parts[1]+'@'+parts[2];
+		    },
+		});
+	});//doc ready
+    </script> 
+
 <@pag.incSorter vals=[5,6,7,8]/>
 </@layout.xcLayout>
 
