@@ -605,7 +605,7 @@ public class MBox
                                       Expr.like("domain", "%" + split[0] + "%")).findList();
 
                 case (2): // the entry was something like "address@domain"
-                    return exList1.like("address", "%" + split[0] + "%").like("domain", "%" + split[1] + "%")
+                    return exList1.eq("address", split[0] ).like("domain", "%" + split[1] + "%")
                                   .findList();
                 default: // the entry was something else
                     return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%"))
