@@ -6,19 +6,19 @@ title=i18n("admin_Title_SummedStatistics")>
 
 <div class="span4">
 <#if ((stats?size) > 0) > 
-	<table class="table tablesorter table-hover table-condensed">
+<table class="table tablesorter table-hover table-condensed">
 	<thead>
 	    <tr> <th class="header">${i18n("admin_Header_MtxStatus")}</th> <th class="header">${i18n("admin_Header_MtxCount")}</th> </tr>
 	</thead>
 	<tbody>
     	<#list stats as stat>
    			<#switch stat.statuscode>
-	    		<#case 100><tr class="error"><#break>
-	    		<#case 200><tr class="warning"><#break>
-	    		<#case 300><tr class="success"><#break>
-	    		<#case 400><tr class="error"><#break>
-	    		<#case 500><tr class="error"><#break>
-	    		<#default><tr><#break>
+	    		<#case 100><tr class="error" id="mtxStatus100"><#break>
+	    		<#case 200><tr class="warning"  id="mtxStatus200"><#break>
+	    		<#case 300><tr class="success" id="mtxStatus300"><#break>
+	    		<#case 400><tr class="error" id="mtxStatus400"><#break>
+	    		<#case 500><tr class="error" id="mtxStatus500"><#break>
+	    		<#default><tr  id="mtxStatusDefault"><#break>
 	    	</#switch>
  		    	<td>
 			    	<#switch stat.statuscode>

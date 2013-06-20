@@ -3,16 +3,17 @@ title=i18n("adminUserPage_Title")>
 <#import "../layout/macros.ftl.html" as pag/>
 <h1 class="legendary">${i18n("adminUserPage_Title")}</h1>
 
-<form action="/admin/users">
+<form action="/admin/users" id="userPageEntryCount">
 	<@pag.entrycount/>
 </form>  
-	<form action="${contextPath}/admin/users" id="userSearchForm">
-		<div class="input-append">
-			<input type="text" id="userSearchInput" name ="s" data-provide="typeahead" autocomplete="off"/>
-			<button class="btn" id="userSearchButton" type="submit"><i class="icon-search"></i> ${adminUserPage_Button_Search}</button>
-			<span class="append"></span>
-		</div>
-	</form>
+
+<form action="${contextPath}/admin/users" id="userSearchForm">
+	<div class="input-append">
+		<input type="text" id="userSearchInput" name ="s" data-provide="typeahead" autocomplete="off"/>
+		<button class="btn" id="userSearchButton" type="submit"><i class="icon-search"></i> ${adminUserPage_Button_Search}</button>
+		<span class="append"></span>
+	</div>
+</form>
 <div class="tab-content">  
 <#list 1..(users.getPageCount())!0 as x > 
 	<#if x = 1 >
@@ -37,7 +38,7 @@ title=i18n("adminUserPage_Title")>
 		    </thead>
 		    <tbody>
 		<#list users.getPage(x)?sort_by("active") as user>
-			<tr>
+			<tr id="user${user.id}">
 			    <td>${user.forename}</td>
 			    <td>${user.surname}</td>
 			    <td>${user.id}</td>
@@ -60,25 +61,25 @@ title=i18n("adminUserPage_Title")>
 				<td></td><td></td><td></td>		   
 			 <#else>
 				<td>
-		   			<form class="nomarg" action="${contextPath}/admin/delete/${user.id}" method="post"> 
-		                   <input type="submit" class="btn btn-small btn-danger" value="${i18n("adminUserPage_Button_Delete")}"/>
+		   			<form class="nomarg" action="${contextPath}/admin/delete/${user.id}" id="formDeleteUser${user.id}" method="post"> 
+		                   <input type="submit" class="btn btn-small btn-danger" id="btnDeleteUser${user.id}" value="${i18n("adminUserPage_Button_Delete")}"/>
 		        	</form>
 		        </td>
 			    <td> 
-				    <form class="nomarg" action="${contextPath}/admin/promote/${user.id}" method="post">
+				    <form class="nomarg" action="${contextPath}/admin/promote/${user.id}" id="formPromoteUser${user.id}" method="post">
 				    <#if (user.isAdmin())>
-					    	<input type="submit" class= "btn btn-small btn-warning" value="${i18n("adminUserPage_Button_Demote")}"/>
+					    	<input type="submit" class= "btn btn-small btn-warning" id="btnDemoteUser${user.id}" value="${i18n("adminUserPage_Button_Demote")}"/>
 					    <#else>
-				    		<input type="submit" class= "btn btn-small btn-danger" value="${i18n("adminUserPage_Button_Promote")}"/>
+				    		<input type="submit" class= "btn btn-small btn-danger" id="btnPromoteUser${user.id}" value="${i18n("adminUserPage_Button_Promote")}"/>
 				    </#if>		          
 				    </form>
 			    </td>
 			    <td> 
-				    <form class="nomarg" action="${contextPath}/admin/activate/${user.id}" method="post">
+				    <form class="nomarg" action="${contextPath}/admin/activate/${user.id}" id="formActivateUser${user.id}" method="post">
 					<#if (user.isActive())>
-					   	<input type="submit" class= "btn btn-small" value="${i18n("adminUserPage_Button_Deactivate")}"/>
+					   	<input type="submit" class= "btn btn-small" id="btnDeactivateUser${user.id}" value="${i18n("adminUserPage_Button_Deactivate")}"/>
 					 <#else>
-				    	<input type="submit" class= "btn btn-small" value="${i18n("adminUserPage_Button_Activate")}"/>
+				    	<input type="submit" class= "btn btn-small" id="btnActivateUser${user.id}" value="${i18n("adminUserPage_Button_Activate")}"/>
 				    </#if>
 				 	</form>
 				 </td>

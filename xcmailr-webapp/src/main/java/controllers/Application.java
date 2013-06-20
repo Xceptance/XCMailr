@@ -389,7 +389,7 @@ public class Application
      */
     public Result forgotPasswordProcess(Context context, @JSR303Validation LoginFormData loginDat, Validation validation)
     {
-        Result result = Results.html().template("/views/Application/forgotPwForm.ftl.html");
+        Result result = Results.html().template("/views/Application/forgotPasswordForm.ftl.html");
         if (validation.hasViolations())
         {
             // some fields weren't filled

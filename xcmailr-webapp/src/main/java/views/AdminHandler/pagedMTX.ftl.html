@@ -6,16 +6,17 @@ title=i18n("admin_Title_Transactions") >
 
 <div class="btn-toolbar">
 <@pag.mtxDeleter/>
-		<form action="/admin/mtxs">
+		<form action="/admin/mtxs" id="transactionsEntryCount">
 			<@pag.entrycount/>
 		</form>
 </div><!-- /btn-toolbar -->
+
 <div class="tab-content">  
 <#list 1..plist.getPageCount() as x > 
 	<#if x = 1 >
-		<div class="tab-pane active" id="${x}">  
+		<div class="tab-pane active" id="mtxPage_${x}">  
 	<#else>
-		<div class="tab-pane" id="${x}">  
+		<div class="tab-pane" id="mtxPage_${x}">  
 	</#if>
 	
 	<table class="table tablesorter table-hover table-condensed">
@@ -31,11 +32,11 @@ title=i18n("admin_Title_Transactions") >
 	    <tbody>
 		<#list plist.getPage(x) as mtx>
 			<#switch mtx.status>
-		    		<#case 100> <tr class="error"> <#break>
-		    		<#case 200> <tr class="warning"> <#break>
-		    		<#case 300> <tr class="success"> <#break>
-		    		<#case 400> <tr class="error"> <#break>
-		    		<#case 500> <tr class="error"> <#break>
+		    		<#case 100> <tr class="error" id="$mtx{mtx.id}"> <#break>
+		    		<#case 200> <tr class="warning" id="mtx${mtx.id}"> <#break>
+		    		<#case 300> <tr class="success" id="mtx${mtx.id}"> <#break>
+		    		<#case 400> <tr class="error" id="mtx${mtx.id}"> <#break>
+		    		<#case 500> <tr class="error" id="mtx${mtx.id}"> <#break>
 		    		<#default> <tr>
 			 </#switch>
 					<td>${mtx.getTsAsString()}</td>
