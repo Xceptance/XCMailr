@@ -1,9 +1,9 @@
 <#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
-title="User Administration">
+title=i18n("adminUserPage_Title")>
 <#import "../layout/macros.ftl.html" as pag/>
 
 <div class="pagination">
-
+<h1 class="legendary">${i18n("adminUserPage_Title")}</h1>
 <form action="/admin/users">
 <@pag.entrycount/>
 </form>  

@@ -1,7 +1,9 @@
 <#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
-title="User Administration">
+title=i18n("admin_Title_SummedStatistics")>
 <#import "../layout/macros.ftl.html" as pag/>
-<div class="pagination">
+
+<h1 class="legendary">${i18n("admin_Title_SummedStatistics")}</h1>
+
 <div class="span4">
 <#if ((stats?size) > 0) > 
 	<table class="table tablesorter table-hover table-condensed">
@@ -33,11 +35,12 @@ title="User Administration">
     	</#list>
     	</tbody>
     </table>
-</div>
+</div><!-- /span4 -->
+
  <@pag.incSorter/>
  
   <#else>
   ${i18n("msg_NoEntries")}
 </#if>
-</div>
+
 </@layout.adminLayout>	

@@ -1,16 +1,15 @@
 <#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
-title="User Administration" >
+title=i18n("admin_Title_Transactions") >
 <#import "../layout/macros.ftl.html" as pag/>
-
+<h1 class="legendary">${i18n("admin_Title_Transactions")}</h1>
 <#if (plist.getEntryCount() > 0) > 
+
 <div class="btn-toolbar">
 <@pag.mtxDeleter/>
-
 		<form action="/admin/mtxs">
 			<@pag.entrycount/>
 		</form>
-
-</div>
+</div><!-- /btn-toolbar -->
 <div class="tab-content">  
 <#list 1..plist.getPageCount() as x > 
 	<#if x = 1 >

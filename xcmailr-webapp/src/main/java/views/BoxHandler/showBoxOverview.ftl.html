@@ -1,5 +1,5 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
-title="Home Page">
+title=i18n("mailbox_Title")>
 <#import "../layout/macros.ftl.html" as pag/>
 <div class="row">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
@@ -128,8 +128,8 @@ title="Home Page">
 				var fullAddress = parts[1]+'@'+parts[2];
 				fullAddress = fullAddress.replace(regex, "<strong>$1</strong>");
 				fullAddress = fullAddress.replace('@', "&#064;");
-			    html = '<div class="typeahead"  style="width:500px;">';		        
-		    	html += '<div class="left" style="width:500px;">';
+			    html = '<div class="typeahead">';		        
+		    	html += '<div class="left">';
 			        html += '<div>'+fullAddress+'</div>';
 				    html += '<div>'+parts[3]+'</div>';
 			    html += '</div>';

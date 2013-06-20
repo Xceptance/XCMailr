@@ -5,19 +5,23 @@
 	method="post" id="deleteUserForm">
 	<div id="deleteUserModal" class="modal hide fade" tabindex="-1"
 		role="dialog" aria-labelledby="deleteUserLabel" aria-hidden="true">
+		
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal"
 				aria-hidden="true">×</button>
 			<h3 id="deleteUserTitle">${i18n("editUser_Title_DeleteAccount")}</h3>
-		</div>
+		</div><!-- /modal-header -->
+		
 		<div class="modal-body">
 			<p><#noescape>${i18n("editUser_Label_DeleteAccountDescription")}</#noescape></p>
-		</div>
+		</div><!-- /modal-body -->
+		
 		<div class="modal-footer">
 			<button class="btn" data-dismiss="modal" aria-hidden="true">${i18n("editUser_Button_DeleteAccountReset")}</button>
 			<input type="submit" class="btn btn-danger" id="deleteUserSubmit"
 				value='${i18n("editUser_Button_DeleteAccountSubmit")}' />
-		</div>
-	</div>
+		</div><!-- /modal-footer -->
+		
+	</div><!-- /deleteUserModal -->
 </form>
 <!-- End Modal -->

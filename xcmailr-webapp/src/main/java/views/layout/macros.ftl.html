@@ -1,22 +1,25 @@
 <!-- Selector for the numbers of Entries per Page -->
 
 <#macro entrycount>
+<!-- begin menu entries/page -->
 <div class="pagination">
-<div class="row-fluid">
-<ul class ="pull-right">
-	  <li>${i18n("msg_EntriesPerPage")}</li>
-	<li><input type="submit" class="btn btn-link btn-small" value="5" name="no"/> </li>
-	<li> <input type="submit" class="btn btn-link btn-small" value="15" name="no"/></li>
-	<li><input type="submit" class="btn btn-link btn-small" value="25" name="no"/></li>
-	<li><input type="submit" class="btn btn-link btn-small" value="all" name="no"/></li>
-</ul>
-</div>
-</div>
+	<div class="row-fluid">
+		<ul class ="pull-right">
+			<li>${i18n("msg_EntriesPerPage")}</li>
+			<li><input type="submit" class="btn btn-link btn-small" value="5" name="no"/> </li>
+			<li> <input type="submit" class="btn btn-link btn-small" value="15" name="no"/></li>
+			<li><input type="submit" class="btn btn-link btn-small" value="25" name="no"/></li>
+			<li><input type="submit" class="btn btn-link btn-small" value="all" name="no"/></li>
+		</ul>
+	</div> <!-- /row-fluid -->
+</div><!-- /pagination -->
+<!-- end menu entries/page -->
 </#macro>
 
 <!-- Pager  -->
 
 <#macro pager name="plist">
+<!-- start pager-list -->
 <div class="pagination">
 <#if (name.getPageCount() > 1) >
 	<ul >
@@ -30,9 +33,12 @@
 	</#list>
 	</ul>  
 </#if>
+</div> <!-- /pagination -->
+<!-- end pager-list -->
 </#macro>
 
 <#macro incSorter vals=[]>
+
     <script type="text/javascript" src="${contextPath}/assets/js/jquery.tablesorter.js"></script> 
     <script type="text/javascript" id="js">
     $(document).ready(function() 
@@ -48,11 +54,12 @@
 ); 
 	    }); 
     </script>
-    </div>
+
 </#macro>
 
 <!-- Shows the delete MTX-Form -->
 <#macro mtxDeleter>
+<!-- begin delete mtx-entries -->
 <div class="btn-group">
 	<button class="btn dropdown-toggle btn-small" data-toggle="dropdown">${i18n("admin_RemoveMtx")}<span class="caret"></span></button>
 	<ul class="dropdown-menu">
@@ -63,4 +70,5 @@
 		<li><a href="${contextPath}/admin/mtxs/delete/-1">All</a></li>
 	</ul>
 </div><!-- /btn-group -->
+<!-- end delete mtx-entries -->
 </#macro>
