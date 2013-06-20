@@ -565,4 +565,16 @@ public class User implements Serializable
         return id + " " + forename + " " + " " + surname + " " + mail + " " + passwd;
     }
 
+    /**
+     * Finds all users with an email that is like the Input-String
+     * 
+     * @param input
+     *            the full email or just a part of it so search for
+     * @return a list of users
+     */
+    public static List<User> findUserLike(String input)
+    {
+        return Ebean.find(User.class).where().like("mail", "%" + input + "%").findList();
+    }
+
 }

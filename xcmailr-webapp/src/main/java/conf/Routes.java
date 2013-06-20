@@ -83,7 +83,7 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.POST().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler.class, "deleteMTXProcess");
-        
+        router.GET().route("/admin/usersearch").with(AdminHandler.class, "jsonUserSearch");
         //Assets-Handling
         router.GET().route("/assets/.*").with(AssetsController.class, "serve");
 

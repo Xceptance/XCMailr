@@ -1,13 +1,18 @@
 <#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
 title=i18n("adminUserPage_Title")>
 <#import "../layout/macros.ftl.html" as pag/>
-
-<div class="pagination">
 <h1 class="legendary">${i18n("adminUserPage_Title")}</h1>
-<form action="/admin/users">
-<@pag.entrycount/>
-</form>  
 
+<form action="/admin/users">
+	<@pag.entrycount/>
+</form>  
+	<form action="${contextPath}/admin/users" id="userSearchForm">
+		<div class="input-append">
+			<input type="text" id="userSearchInput" name ="s" data-provide="typeahead" autocomplete="off"/>
+			<button class="btn" id="userSearchButton" type="submit"><i class="icon-search"></i> ${adminUserPage_Button_Search}</button>
+			<span class="append"></span>
+		</div>
+	</form>
 <div class="tab-content">  
 <#list 1..(users.getPageCount())!0 as x > 
 	<#if x = 1 >
@@ -86,7 +91,44 @@ title=i18n("adminUserPage_Title")>
 </#list>
 </div><!-- /tab-content -->
 
+<script>
+	$(document).ready(
+	function(){
+		$('#userSearchInput').typeahead({
+		    source: function(query, process){
+		        		return $.get('${contextPath}/admin/usersearch', {s: query}, 
+		        				function(response) {
+						            var data = new Array;
+						            for(var i in response) {
+						                data.push(response[i]['userId'] +"#"+ response[i]['firstName'] +"#"+ response[i]['surName'] +"#"+ response[i]['mail']);
+						            }
+						            return process(data);
+		        				});
+		    	},
+		    matcher: function(item){
+		        var parts = item.split('#');
+		        if(parts[3].indexOf(this.query.trim().toLowerCase())!=-1){
+		        	return true;
+		        }
+		    },		    	
+		    highlighter: function(item) {
+		        var parts = item.split('#');
+		        var regex = new RegExp( '(' + this.query + ')', 'gi' );
+			    html = '<div class="typeahead">';		        
+		    	html += '<div class="left">';
+			        html += '<div>'+parts[3]+'</div>';
+				    html += '<div>'+parts[2]+", "+parts[1]+'</div>';
+			    html += '</div>';
+	        html += '</div>';
+			return html;
+		    },
+		    updater: function(item) {
+		        var parts = item.split('#');
+		        return parts[3];
+		    },
+		});
+	});//doc ready
+    </script> 
 <@pag.pager name=users/> 
-</div><!-- /pagination -->
 <@pag.incSorter vals=[6,7,8]/>
 </@layout.adminLayout>

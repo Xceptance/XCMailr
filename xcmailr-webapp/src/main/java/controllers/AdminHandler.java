@@ -16,6 +16,9 @@
  */
 package controllers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joda.time.DateTime;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
@@ -33,6 +36,7 @@ import filters.SecureFilter;
 import models.MailTransaction;
 import models.PageList;
 import models.User;
+import models.UserFormData;
 
 /**
  * Handles all Actions for the Administration-Section
@@ -88,7 +92,16 @@ public class AdminHandler
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 
         // generate the paged-list to get pagination in the pattern
-        PageList<User> pagedUserList = new PageList<User>(User.all(), entries);
+        PageList<User> pagedUserList;
+        String searchString = context.getParameter("s", "");
+        if (searchString.equals(""))
+        {
+            pagedUserList = new PageList<User>(User.all(), entries);
+        }
+        else
+        {
+            pagedUserList = new PageList<User>(User.findUserLike(searchString), entries);
+        }
 
         // put in the users-ID to identify the row where no buttons will be shown
         return Results.html().render("uid", user.getId()).render("users", pagedUserList);
@@ -244,13 +257,43 @@ public class AdminHandler
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
-        
+
         if (user.getId() != userId)
         { // the user to delete is not the user who performs this action
             User.delete(userId);
         }
 
         return result.redirect(context.getContextPath() + "/admin/users");
+    }
+
+    /**
+     * Handles JSON-Requests from the search
+     * 
+     * @param context
+     * @return a JSON-Array with the userdatalist
+     */
+    public Result jsonUserSearch(Context context)
+    {
+        List<User> userList;
+        Result result = Results.html();
+        String searchString = context.getParameter("s", "");
+        if (searchString.equals(""))
+        {
+            userList = new ArrayList<User>();
+        }
+        else
+        {
+            userList = User.findUserLike(searchString);
+        }
+
+        List<UserFormData> userDatalist = new ArrayList<UserFormData>();
+        for (User currentUser : userList)
+        {
+            UserFormData mbd = UserFormData.prepopulate(currentUser);
+            userDatalist.add(mbd);
+
+        }
+        return result.json().render(userDatalist);
     }
 
 }
