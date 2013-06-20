@@ -362,15 +362,13 @@ public class BoxHandler
         if (searchString.equals(""))
         { // if theres no parameter, simply render all boxes
             plist = new PageList<MBox>(MBox.allUser(user.getId()), entries);
-            result.render("mboxes", plist);
         }
         else
         { // theres a search parameter with input, get the related boxes
             plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
-            result.render("mboxes", plist);
         }
 
-        return result;
+        return result.render("mboxes", plist);
     }
 
     /**
@@ -446,9 +444,7 @@ public class BoxHandler
         }
         else
         {
-
             boxList = MBox.findBoxLike(searchString, user.getId());
-
         }
 
         List<MailBoxFormData> mbdlist = new ArrayList<MailBoxFormData>();
