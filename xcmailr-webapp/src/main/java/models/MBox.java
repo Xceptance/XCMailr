@@ -594,12 +594,25 @@ public class MBox
     public static List<MBox> findBoxLike(String input, long userId)
     {
         ExpressionList<MBox> exList1 = Ebean.find(MBox.class).where().eq("usr_id", userId);
-        if(input.contains("@")){
+        if (input.contains("@"))
+        {
             String[] split = input.split("@");
-            return exList1.and(Expr.like("address", "%"+split[0]+"%"),Expr.like("domain", "%"+split[1]+"%")).findList();
+
+            switch (split.length)
+            {
+                case (1): // the entry may be something like "@domain" or "address@"
+                    return exList1.or(Expr.like("address",  split[0]),
+                                      Expr.like("domain", "%" + split[0] + "%")).findList();
+
+                case (2): // the entry was something like "address@domain"
+                    return exList1.like("address", "%" + split[0] + "%").like("domain", "%" + split[1] + "%").findList();
+                default: // the entry was something else
+                    return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%"))
+                                  .findList();
+            }
+
         }
-        
+
         return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%")).findList();
     }
-
 }

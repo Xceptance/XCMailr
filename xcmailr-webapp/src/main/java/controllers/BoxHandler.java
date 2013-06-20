@@ -446,7 +446,9 @@ public class BoxHandler
         }
         else
         {
+
             boxList = MBox.findBoxLike(searchString, user.getId());
+
         }
 
         List<MailBoxFormData> mbdlist = new ArrayList<MailBoxFormData>();

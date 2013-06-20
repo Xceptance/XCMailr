@@ -18,9 +18,9 @@ title="Home Page">
 	<#else>
 		<div class="tab-pane" id="${x}">  
 	</#if>
-	<form action="${contextPath}/mail">
+	<form action="${contextPath}/mail" id="boxSearchForm">
 		<div class="input-append">
-			<input type="text" id="searchBox" name ="s" data-provide="typeahead" autocomplete="off"/>
+			<input type="text" id="boxSearchInput" name ="s" data-provide="typeahead" autocomplete="off"/>
 			<button class="btn" id="boxSearchButton" type="submit"><i class="icon-search"></i> ${mailbox_Button_Search}</button>
 			<span class="append"></span>
 		</div>
@@ -104,25 +104,37 @@ title="Home Page">
 	
 	$(document).ready(
 	function(){
-		$('#searchBox').typeahead({
-		    source: function(q, process){
-		        return $.get('${contextPath}/mail/search', {s: q}, function(response) {
-		            var data = new Array;
-		            for(var i in response) {
-		                data.push(response[i]['boxId'] +"#"+ response[i]['address'] +"#"+ response[i]['domain'] +"#"+ response[i]['datetime']);
-		            }
-		            return process(data);
-		        });
-		    },
+		$('#boxSearchInput').typeahead({
+		    source: function(query, process){
+		        		return $.get('${contextPath}/mail/search', {s: query}, 
+		        				function(response) {
+						            var data = new Array;
+						            for(var i in response) {
+						                data.push(response[i]['boxId'] +"#"+ response[i]['address'] +"#"+ response[i]['domain'] +"#"+ response[i]['datetime']);
+						            }
+						            return process(data);
+		        				});
+		    	},
+		    matcher: function(item){
+		        var parts = item.split('#');
+		        var fullAddress = parts[1]+'@'+parts[2];
+		        if(fullAddress.indexOf(this.query.trim().toLowerCase())!=-1){
+		        	return true;
+		        }
+		    },		    	
 		    highlighter: function(item) {
-		        var parts = item.split('#'),
-		        html = '<div class="typeahead">';
-		        html += '<div class="left">';
-			        html += '<div>'+parts[1]+'&#064;'+parts[2]+'</div>';
-			        html += '<div>'+parts[3]+'</div>';
-		        html += '</div>';
+		        var parts = item.split('#');
+		        var regex = new RegExp( '(' + this.query + ')', 'gi' );
+				var fullAddress = parts[1]+'@'+parts[2];
+				fullAddress = fullAddress.replace(regex, "<strong>$1</strong>");
+				fullAddress = fullAddress.replace('@', "&#064;");
+		    html = '<div class="typeahead">';		        
+		    	html += '<div class="left">';
+			        html += '<div>'+fullAddress+'</div>';
+				    html += '<div>'+parts[3]+'</div>';
+			    html += '</div>';
 	        html += '</div>';
-		        return html;
+			return html;
 		    },
 		    updater: function(item) {
 		        var parts = item.split('#');
