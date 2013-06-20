@@ -601,11 +601,12 @@ public class MBox
             switch (split.length)
             {
                 case (1): // the entry may be something like "@domain" or "address@"
-                    return exList1.or(Expr.like("address",  split[0]),
+                    return exList1.or(Expr.like("address", "%" + split[0] + "%"),
                                       Expr.like("domain", "%" + split[0] + "%")).findList();
 
                 case (2): // the entry was something like "address@domain"
-                    return exList1.like("address", "%" + split[0] + "%").like("domain", "%" + split[1] + "%").findList();
+                    return exList1.like("address", "%" + split[0] + "%").like("domain", "%" + split[1] + "%")
+                                  .findList();
                 default: // the entry was something else
                     return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%"))
                                   .findList();
