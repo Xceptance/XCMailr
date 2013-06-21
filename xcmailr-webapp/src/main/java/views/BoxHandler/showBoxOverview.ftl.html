@@ -1,6 +1,8 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
 title=i18n("mailbox_Title")>
 <#import "../layout/macros.ftl.html" as pag/>
+
+
 <div class="row">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<!--mailboxoverview-->
@@ -18,7 +20,7 @@ title=i18n("mailbox_Title")>
 			<span class="append"></span>
 		</div>
 	</form>	
-	
+
 	<div class="tab-content">  
 	<#if (mboxes.getEntryCount() > 0) >
 	<#list 1..mboxes.getPageCount() as x > 
@@ -30,6 +32,7 @@ title=i18n("mailbox_Title")>
 	<table class="table tablesorter table-hover table-condensed">
 		<thead>
 		    <tr>
+		    	<th></th>
 		    	<th class="header">${i18n("mailbox_Header_Address")}</th>	
 		    	<th class="header">${i18n("mailbox_Header_Duration")}</th>
 		    	<th class="header">${i18n("mailbox_Header_Forwards")}</th>
@@ -48,6 +51,8 @@ title=i18n("mailbox_Title")>
 		    <#else>
 		    	<tr class="success" id="${mBox.id}">
 		    </#if>   
+		    	<td><input type="checkbox" class="bulkChk${x}" id="chkbx_${x}_${mBox.id}"></td>
+		    	
 				<td>${mBox.address}&#064;${mBox.domain}</td>
 				<#if (mBox.getTSAsString()=="unlimited")>
 				<td>${i18n("mailbox_Label_Unlimited")}</td>
@@ -59,37 +64,81 @@ title=i18n("mailbox_Title")>
 					<#if (mBox.isActive())>
     				<td>${i18n("msg_Yes")}</td>
 	    			 <td><form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
-	                    <input type="submit" class= "btn  btn-small" value="${i18n("mailbox_Button_Deactivate")}"/>
+	                    <input type="submit" class= "btn  btn-small" value='${i18n("mailbox_Button_Deactivate")}'/>
 	                    </form>
 	                </td>
 		    	<#else>
 	    			<td>${i18n("msg_No")}</td>
 	    	    	<td>
 		    	    	<form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
-		                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Button_Activate")}"/>
+		                    <input type="submit" class="btn btn-small" value='${i18n("mailbox_Button_Activate")}'/>
 		                </form>
 	                </td>
 		    	</#if>
     			<td>
     			<form class="nomarg" action="${contextPath}/mail/delete/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Button_Delete")}"/>
+                    <input type="submit" class="btn btn-small" value='${i18n("mailbox_Button_Delete")}'/>
                 </form>
                 </td>
                 
                 <td>
     			<form class="nomarg" action="${contextPath}/mail/reset/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value="${i18n("mailbox_Button_Reset")}"/>
+                    <input type="submit" class="btn btn-small" value='${i18n("mailbox_Button_Reset")}'/>
                 </form>
                 </td>
                 
 		        <td> 
 		        <form class="nomarg" action="${contextPath}/mail/edit/${mBox.id}" method="get">
-		             <input type="submit" class="btn btn-small" value="${i18n("mailbox_Button_Edit")}"/>
+		             <input type="submit" class="btn btn-small" value='${i18n("mailbox_Button_Edit")}'/>
 		         </form>
 		        </td>
 			</tr>
 		</#list>
 		</tbody>
+		<tfoot>
+		<tr>
+		<td>
+    	<div class="controls">
+			<label class="checkbox"> 
+			<input type="checkbox" class="bulkChk" id="chkbx_ALL${x}" onclick="toggleAll(this,${x})"> ALL
+			</label>
+		</div>
+		</td>
+		<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+		
+		<td><!-- bulk reset -->
+			<form class="nomarg" action="${contextPath}/mail/bulkReset" id="formBulkReset${x}" method="get">
+		    	<button class="btn btn-small" id="btnBulkReset${x}" name="reset" >${i18n("mailbox_Button_Reset")}</button>
+		<script type="text/javascript">
+		$(document).ready(
+		function (){
+			$('#btnBulkReset${x}').click(function{
+			var checkBoxesThisPage = $('.bulkChk${x}');
+			var checkedBoxes=[];
+			var regEx = new RegExp('chkbx_${x}_', 'gi');
+			$(button).attr('value',idArray);
+			
+			$(checkBoxesThisPage).each(function(){
+				if(this.is(':checked')){
+					
+					checkedBoxes.push(this.attr('id').replace(regEx, ''));
+				}
+				
+			});});}
+			
+			);
+			
+			$(button).attr('value', checkedBoxes);
+			$('#formBulkReset'+page)[0].submit();
+			
+			
+		});
+		</script>
+		    </form>
+		</td>
+		<td></td>
+		</tr>
+		</tfoot>
     </table>
     </div> <!-- /tab pane (active) -->
   </#list>
@@ -140,9 +189,25 @@ title=i18n("mailbox_Title")>
 		        return parts[1]+'@'+parts[2];
 		    },
 		});
-	});//doc ready
+		
+		
+
+	});//doc ready 
+
+	function toggleAll(chkbox, page) {
+
+		if (chkbox.checked) {
+			$('.bulkChk'+page).prop("checked", true);
+
+		} else {
+			$('.bulkChk'+page).prop("checked", false);
+		}
+	}
+	
+	
+
     </script> 
 
-<@pag.incSorter vals=[5,6,7,8]/>
+<@pag.incSorter vals=[0,6,7,8,9]/>
 </@layout.xcLayout>
 
