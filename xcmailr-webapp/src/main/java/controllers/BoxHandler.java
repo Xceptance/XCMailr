@@ -34,6 +34,7 @@ import models.MBox;
 import models.MailBoxFormData;
 import models.PageList;
 import models.User;
+import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
@@ -143,13 +144,13 @@ public class BoxHandler
                 Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                 if (ts == -1L)
                 { // show an error-page if the timestamp is faulty
-                    context.getFlashCookie().error("msg_WrongF");
+                    context.getFlashCookie().error("flash_FormError");
                     result.render("mbFrmDat", mailboxFormData);
                     return result.template("/views/BoxHandler/addBoxForm.ftl.html");
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
-                    context.getFlashCookie().error("createMail_Past_Timestamp");
+                    context.getFlashCookie().error("createEmail_Past_Timestamp");
                     result.render("mbFrmDat", mailboxFormData);
                     return result.template("/views/BoxHandler/addBoxForm.ftl.html");
                 }
@@ -266,7 +267,7 @@ public class BoxHandler
                     Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
-                        context.getFlashCookie().error("msg_WrongF");
+                        context.getFlashCookie().error("flash_FormError");
                         return result.redirect(context.getContextPath() + "/mail/edit/" + boxId.toString());
                     }
                     if ((ts != 0) && (ts < DateTime.now().getMillis()))
@@ -367,8 +368,8 @@ public class BoxHandler
         { // theres a search parameter with input, get the related boxes
             plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
         }
-
-        return result.render("mboxes", plist);
+        long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
+        return result.render("mboxes", plist).render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
     }
 
     /**
@@ -415,7 +416,7 @@ public class BoxHandler
         Result result = Results.html().template("/views/Application/index.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
-        System.out.println("resette box mit der id: " + boxId);
+
         // check if the mailbox belongs to the current user
         if (mailBox.belongsTo(user.getId()))
         {
@@ -426,8 +427,143 @@ public class BoxHandler
         return result.redirect(context.getContextPath() + "/mail");
     }
 
+    public Result bulkChangeBoxes(@Param("action") String action, @Param("ids") String boxIds,
+                                  @Param("duration") String duration, Context context)
+    {
+        Result result = Results.html().template("/views/Application/index.ftl.html");
+        User user = context.getAttribute("user", User.class);
+        if (action != null && boxIds != null && !action.equals("") && !action.equals(""))
+        {
+            if (boxIds.matches("[(\\d+)][(\\,)(\\d+)]*"))
+            {// the list of boxIds have to be in the form of comma-separated-ids
+                String[] splittedIds = boxIds.split("\\,");
+
+                Long boxId;
+                if (splittedIds.length > 0)
+                {
+                    switch (Actions.valueOf(action))
+                    {
+                        case reset: // reset the list of boxes, we'll abort if there's a box with an id that does not
+                                    // belong to the user
+
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                MBox mailBox = MBox.getById(boxId);
+                                if (mailBox.belongsTo(user.getId()))
+                                { // box belongs to the user
+                                    mailBox.resetForwards();
+                                    mailBox.resetSuppressions();
+                                    mailBox.update();
+                                }
+                                else
+                                {
+                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    return result.redirect("/mail");
+                                }
+                            }
+                            return result.redirect("/mail");
+                            
+                        case delete:
+                            // delete the list of boxes, we'll abort if there's a box with an id, that does not belong
+                            // to this user
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                if (MBox.boxToUser(boxId, user.getId()))
+                                { // box belongs to the user
+                                    MBox.delete(boxId);
+                                }
+                                else
+                                {
+                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    return result.redirect("/mail");
+                                }
+                            }
+                            return result.redirect("/mail");
+
+                        case change:
+                            // change the duration of the boxes, we'll abort if there's a box with an id, that does not
+                            // belong to this user
+                            Long ts = HelperUtils.parseTimeString(duration);
+                            if (ts == -1L)
+                            { // show an error-page if the timestamp is faulty
+                                context.getFlashCookie().error("mailbox_Wrong_Timestamp");
+                                return result.redirect("/mail");
+                            }
+                            if ((ts != 0) && (ts < DateTime.now().getMillis()))
+                            { // the Timestamp lays in the past
+                                context.getFlashCookie().error("createEmail_Past_Timestamp");
+                                return result.redirect("/mail");
+                            }
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                MBox mailBox = MBox.getById(boxId);
+                                if (mailBox.belongsTo(user.getId()))
+                                { // box belongs to the user
+                                    mailBox.setTs_Active(ts);
+                                    mailBox.setExpired(false);
+
+                                    mailBox.update();
+                                }
+                                else
+                                {
+                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    return result.redirect("/mail");
+                                }
+                            }
+                            return result.redirect("/mail");
+                            
+
+                        case enable:
+                            // enable or disable the boxes
+                            // all active boxes will then be inactive and vice versa
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                MBox mailBox = MBox.getById(boxId);
+                                if (mailBox.belongsTo(user.getId()))
+                                { // box belongs to the user
+                                    if (!(mailBox.getTs_Active() == 0)
+                                        && (mailBox.getTs_Active() < DateTime.now().getMillis()))
+                                    { // if the validity period is over, return the Edit page
+                                        context.getFlashCookie().error("mailbox_Flash_NotEnabled");
+                                        return result.redirect("/mail");
+                                    }
+                                    else
+                                    { // otherwise just set the new status
+                                        mailBox.enable();
+                                    }
+                                }
+                                else
+                                { // box does not belong to the user
+                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    return result.redirect("/mail");
+                                }
+                            }
+                            return result.redirect("/mail");
+                            
+
+                        default:
+                            // we got an action that is not defined
+                            // we're ignoring it and simply redirect to the overview-page
+                            return result.redirect("/mail");
+                    }
+                }
+            }
+        }
+
+        return result.redirect("/mail");
+    }
+
+    enum Actions
+    {
+        reset, delete, change, enable
+    }
+
     /**
-     * Handles JSON-Requests from the search
+     * Handles JSON-Requests for the search
      * 
      * @param context
      * @return a JSON-Array with the boxes
