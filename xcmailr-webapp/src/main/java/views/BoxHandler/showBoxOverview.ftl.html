@@ -64,81 +64,98 @@ title=i18n("mailbox_Title")>
 					<#if (mBox.isActive())>
     				<td>${i18n("msg_Yes")}</td>
 	    			 <td><form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
-	                    <input type="submit" class= "btn  btn-small" value='${i18n("mailbox_Button_Deactivate")}'/>
+	                    <input type="submit" class="btn  btn-small"  id="btnDeactivate${mBox.id}" value='${i18n("mailbox_Button_Deactivate")}'/>
 	                    </form>
 	                </td>
 		    	<#else>
 	    			<td>${i18n("msg_No")}</td>
 	    	    	<td>
 		    	    	<form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
-		                    <input type="submit" class="btn btn-small" value='${i18n("mailbox_Button_Activate")}'/>
+		                    <input type="submit" class="btn btn-small" id="btnActivate${mBox.id}" value='${i18n("mailbox_Button_Activate")}'/>
 		                </form>
 	                </td>
 		    	</#if>
     			<td>
     			<form class="nomarg" action="${contextPath}/mail/delete/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value='${i18n("mailbox_Button_Delete")}'/>
+                    <input type="submit" class="btn btn-small" id="btnDelete${mBox.id}" value='${i18n("mailbox_Button_Delete")}'/>
                 </form>
                 </td>
                 
                 <td>
     			<form class="nomarg" action="${contextPath}/mail/reset/${mBox.id}" method="post"> 
-                    <input type="submit" class="btn btn-small" value='${i18n("mailbox_Button_Reset")}'/>
+                    <input type="submit" class="btn btn-small" id="btnReset${mBox.id}" value='${i18n("mailbox_Button_Reset")}'/>
                 </form>
                 </td>
                 
 		        <td> 
 		        <form class="nomarg" action="${contextPath}/mail/edit/${mBox.id}" method="get">
-		             <input type="submit" class="btn btn-small" value='${i18n("mailbox_Button_Edit")}'/>
+		             <input type="submit" class="btn btn-small" id="btnEdit${mBox.id}" value='${i18n("mailbox_Button_Edit")}'/>
 		         </form>
 		        </td>
 			</tr>
 		</#list>
 		</tbody>
+
 		<tfoot>
 		<tr>
-		<td>
+		<td colspan="2">
     	<div class="controls">
 			<label class="checkbox"> 
 			<input type="checkbox" class="bulkChk" id="chkbx_ALL${x}" onclick="toggleAll(this,${x})"> ALL
 			</label>
 		</div>
 		</td>
-		<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+
+		<td colspan="3"><!-- bulk change duration -->
+		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkChangeDuration${x}" method="get">
+					<div id="datetimepicker${x}" class="input-append">
+				    	<input data-format="dd.MM.yyyy hh:mm" id="bulkChangeDuration${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
+					    <span id="pickr_span${x}" class="add-on">
+					      <i id="pickr_i${x}" data-time-icon="icon-time" data-date-icon="icon-calendar" class="group1"></i>
+					    </span>
+				    </div>
+				<label class="checkbox"> 
+				<input type="checkbox" id="chkUnlimited${x}" onClick="toggle(this,${x})" /> ${i18n("createEmail_Unlimited")}
+				</label>
+				
+				<button class="btn btn-small" id="btnBulkEnable${x}" name="enable" onClick="bulkChangeDuration(this, ${x}, 'ChangeDuration')" >${i18n("mailbox_Button_BulkChange")}</button>
+		</form>
+		
+		<script type="text/javascript">
+			$(function() {
+				$('#datetimepicker${x}').datetimepicker({
+					language : '${lang}',
+					pick12HourFormat : false,
+					startDate : new Date()
+				});
+			});
+		</script>
+		</td>
+		
+		<td>${i18n("mailbox_Label_Change")}</td>
+		<td><!-- bulk enable/disable -->
+		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkEnable${x}" method="get">
+				<button class="btn btn-small" id="btnBulkEnable${x}" name="enable" onClick="bulkChange(this, ${x}, 'Enable')" >${i18n("mailbox_Button_BulkActivate")}</button>
+		</form>
+		
+		</td>
+		<td><!-- bulk delete -->
+		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkDelete${x}" method="get">
+				<button class="btn btn-small" id="btnBulkDelete${x}" name="delete" onClick="bulkChange(this, ${x}, 'Delete')" >${i18n("mailbox_Button_BulkDelete")}</button>
+		</form>
+		</td>
 		
 		<td><!-- bulk reset -->
-			<form class="nomarg" action="${contextPath}/mail/bulkReset" id="formBulkReset${x}" method="get">
-		    	<button class="btn btn-small" id="btnBulkReset${x}" name="reset" >${i18n("mailbox_Button_Reset")}</button>
-		<script type="text/javascript">
-		$(document).ready(
-		function (){
-			$('#btnBulkReset${x}').click(function{
-			var checkBoxesThisPage = $('.bulkChk${x}');
-			var checkedBoxes=[];
-			var regEx = new RegExp('chkbx_${x}_', 'gi');
-			$(button).attr('value',idArray);
-			
-			$(checkBoxesThisPage).each(function(){
-				if(this.is(':checked')){
-					
-					checkedBoxes.push(this.attr('id').replace(regEx, ''));
-				}
-				
-			});});}
-			
-			);
-			
-			$(button).attr('value', checkedBoxes);
-			$('#formBulkReset'+page)[0].submit();
-			
-			
-		});
-		</script>
-		    </form>
+		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkEdit${x}" method="get">
+				<button class="btn btn-small" id="btnBulkReset${x}" name="reset" onClick="bulkChange(this, ${x}, 'Reset')" >${i18n("mailbox_Button_BulkReset")}</button>
+		</form>
+
 		</td>
 		<td></td>
 		</tr>
+
 		</tfoot>
+
     </table>
     </div> <!-- /tab pane (active) -->
   </#list>
@@ -150,8 +167,25 @@ title=i18n("mailbox_Title")>
 <@pag.pager name=mboxes/>
 
 </div><!-- /row -->
-<script>
-	
+
+<script type="text/javascript">
+
+		function bulkChange(button, page, action){
+			var checkBoxesThisPage = $('.bulkChk'+page);
+			var checkedBoxes=[];
+			var regEx = new RegExp('chkbx_'+page+'_', 'gi');
+			$(checkBoxesThisPage).each(function(){
+				if($(this).is(':checked')){
+					checkedBoxes.push($(this).attr('id').replace(regEx, ''));
+				}
+				
+			});//checkboxes each 
+			$(button).attr('value', checkedBoxes);			
+			$('#formBulk'+action+page)[0].submit();
+			
+			
+		}
+		
 	$(document).ready(
 	function(){
 		$('#boxSearchInput').typeahead({
@@ -207,7 +241,9 @@ title=i18n("mailbox_Title")>
 	
 
     </script> 
-
+<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
+<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
+<script type="text/javascript" src="${contextPath}/assets/js/picker-enable.js"></script> 
 <@pag.incSorter vals=[0,6,7,8,9]/>
 </@layout.xcLayout>
 
