@@ -101,24 +101,24 @@ title=i18n("mailbox_Title")>
 		<td colspan="2">
     	<div class="controls">
 			<label class="checkbox"> 
-			<input type="checkbox" class="bulkChk" id="chkbx_ALL${x}" onclick="toggleAll(this,${x})"> ALL
+			<input type="checkbox" class="bulkChk" id="chkbx_ALL${x}" onclick="toggleAll(this,${x})"> ${i18n("mailbox_Label_CheckAll")}
 			</label>
 		</div>
 		</td>
 
-		<td colspan="3"><!-- bulk change duration -->
+		<td colspan="2"><!-- bulk change duration -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkChangeDuration${x}" method="get">
-					<div id="datetimepicker${x}" class="input-append">
-				    	<input data-format="dd.MM.yyyy hh:mm" id="inputBulkChangeDurationDuration${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
+					<span id="datetimepicker${x}" class="input-append">
+				    	<input data-format="dd.MM.yyyy hh:mm" class="span8" id="inputBulkChangeDurationDuration${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
 					    <span id="pickr_span${x}" class="add-on">
 					      <i id="pickr_i${x}" data-time-icon="icon-time" data-date-icon="icon-calendar" class="group1"></i>
 					    </span>
-				    </div>
-				<label class="checkbox"> 
-				<input type="checkbox" id="chkUnlimited${x}" onClick="toggle(this,${x})" /> ${i18n("createEmail_Unlimited")}
-				</label>
-				<input type="hidden" id="inputBulkChangeDuration${x}" name="ids"/>
-				<button class="btn btn-small" id="btnBulkChangeDuration${x}" name="action" value="change" onClick="bulkChange(this, ${x}, 'ChangeDuration')" >${i18n("mailbox_Button_BulkChange")}</button>
+				    </span>
+				    <label class="checkbox"> 
+						<input type="checkbox" id="chkUnlimited${x}" onClick="toggle(this,${x})" /> ${i18n("createEmail_Unlimited")}
+					</label>
+						<input type="hidden" id="inputBulkChangeDuration${x}" name="ids"/>		
+						
 			<script type="text/javascript">
 				$(function() {
 					$('#datetimepicker${x}').datetimepicker({
@@ -129,33 +129,36 @@ title=i18n("mailbox_Title")>
 				});
 			</script>
 		</form>
-		</td><!-- end bulk change duration -->
-
-		<td>${i18n("mailbox_Label_Change")}</td>
-		<td><!-- bulk enable/disable -->
-		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkEnable${x}" method="get">
-						<input type="hidden" id="inputBulkEnable${x}" name="ids"/>
-				<button class="btn btn-small" id="btnBulkEnable${x}" name="action" value="enable" onClick="bulkChange(this, ${x}, 'Enable')" >${i18n("mailbox_Button_BulkActivate")}</button>
-		</form>
 		
 		</td>
+		<td>
+		<button class="btn btn-small" id="btnBulkChangeDuration${x}" name="action" value="change" onClick="bulkChange(this, ${x}, 'ChangeDuration')" >${i18n("mailbox_Button_BulkChange")}</button>
+		</td><!-- end bulk change duration -->
+		<td>${i18n("mailbox_Label_Change")}</td>
+		
+		<td><!-- bulk enable/disable -->
+		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkEnable${x}" method="get">
+				<input type="hidden" id="inputBulkEnable${x}" name="ids"/>
+				<button class="btn btn-small" id="btnBulkEnable${x}" name="action" value="enable" onClick="bulkChange(this, ${x}, 'Enable')" >${i18n("mailbox_Button_BulkActivate")}</button>
+		</form>
+		</td><!-- end bulk enable/disable -->
+		
 		<td><!-- bulk delete -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkDelete${x}" method="get">
 				<input type="hidden" id="inputBulkDelete${x}" name="ids"/>
 				<button class="btn btn-small" id="btnBulkDelete${x}" name="action" value="delete" onClick="bulkChange(this, ${x}, 'Delete')" >${i18n("mailbox_Button_BulkDelete")}</button>
 		</form>
-		</td>
+		</td><!-- end bulk delete -->
 		
 		<td><!-- bulk reset -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkEdit${x}" method="get">
 				<input type="hidden" id="inputBulkReset${x}" name="ids"/>
 				<button class="btn btn-small" id="btnBulkReset${x}" name="action" value="reset" onClick="bulkChange(this, ${x}, 'Reset')" >${i18n("mailbox_Button_BulkReset")}</button>
-		</form>
+		</form><!-- end bulk reset -->
 
 		</td>
 		<td></td>
 		</tr>
-
 		</tfoot>
 
     </table>
@@ -184,8 +187,6 @@ title=i18n("mailbox_Title")>
 			});//checkboxes each 
 			$('#inputBulk'+action+page).attr('value', checkedBoxes);			
 			$('#formBulk'+action+page)[0].submit();
-			
-			
 		}
 		
 	$(document).ready(
@@ -225,9 +226,6 @@ title=i18n("mailbox_Title")>
 		        return parts[1]+'@'+parts[2];
 		    },
 		});
-		
-		
-
 	});//doc ready 
 
 	function toggleAll(chkbox, page) {
