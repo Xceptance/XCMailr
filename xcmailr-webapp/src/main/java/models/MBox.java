@@ -591,6 +591,12 @@ public class MBox
         return !this.isExpired();
     }
 
+    /**
+     * Searches for a given input-string over all boxes that belong to this userID
+     * @param input the search-string
+     * @param userId the user ID
+     * @return a List of all Emails of this user that match the input-string
+     */
     public static List<MBox> findBoxLike(String input, long userId)
     {
         ExpressionList<MBox> exList1 = Ebean.find(MBox.class).where().eq("usr_id", userId);
@@ -605,8 +611,7 @@ public class MBox
                                       Expr.like("domain", "%" + split[0] + "%")).findList();
 
                 case (2): // the entry was something like "address@domain"
-                    return exList1.eq("address", split[0] ).like("domain", "%" + split[1] + "%")
-                                  .findList();
+                    return exList1.eq("address", split[0]).like("domain", "%" + split[1] + "%").findList();
                 default: // the entry was something else
                     return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%"))
                                   .findList();
@@ -615,5 +620,41 @@ public class MBox
         }
 
         return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%")).findList();
+    }
+    
+    /**
+     * Returns a list of all emails of the given user
+     * @param userId the userid
+     * @return a list of emails
+     */
+
+    public static String getMailsForTxt(long userId)
+    {
+        String csvMails = "";
+        List<MBox> allBoxes = MBox.allUser(userId);
+        for (MBox mailBox : allBoxes)
+        {
+            csvMails += mailBox.getAddress()+"@"+mailBox.getDomain()+"\n";
+        }
+
+        return csvMails;
+    }
+    
+    /**
+     * Returns a list of all ACTIVE emails of the given user
+     * @param userId the userid
+     * @return a list of emails
+     */
+
+    public static String getActiveMailsForTxt(Long userId)
+    {
+        String csvMails = "";
+        List<MBox> allActiveBoxes = Ebean.find(MBox.class).where().eq("usr_id", userId.toString()).eq("expired", false).findList();
+        for (MBox mailBox : allActiveBoxes)
+        {
+            csvMails += mailBox.getAddress()+"@"+mailBox.getDomain()+"\n";
+        }
+
+        return csvMails;
     }
 }

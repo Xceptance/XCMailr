@@ -565,6 +565,7 @@ public class BoxHandler
      * Handles JSON-Requests for the search
      * 
      * @param context
+     *            the Context of this Request
      * @return a JSON-Array with the boxes
      */
     public Result jsonBoxSearch(Context context)
@@ -591,6 +592,33 @@ public class BoxHandler
         }
 
         return result.json().render(mbdlist);
+    }
+
+    /**
+     * returns a text-page with all addresses of a user
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return a text page with all addresses of a user
+     */
+    public Result showMailsAsTextList(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        return Results.contentType("text/plain").render(MBox.getMailsForTxt(user.getId()));
+    }
+    
+    /**
+     * returns a text-page with all active addresses of a user
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return a text page with all active addresses of a user
+     */
+
+    public Result showActiveMailsAsTextList(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        return Results.contentType("text/plain").render(MBox.getActiveMailsForTxt(user.getId()));
     }
 
 }
