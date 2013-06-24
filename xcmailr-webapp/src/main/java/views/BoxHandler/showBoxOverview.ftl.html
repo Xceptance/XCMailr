@@ -22,7 +22,7 @@ title=i18n("mailbox_Title")>
 	</form>	
 
 	<div class="tab-content">  
-	<#if (mboxes.getEntryCount() > 0) >
+	<#if ((mboxes.getEntryCount())??!0 > 0) >
 	<#list 1..mboxes.getPageCount() as x > 
 	<#if x = 1 >
 		<div class="tab-pane active" id="${x}">  
@@ -109,7 +109,7 @@ title=i18n("mailbox_Title")>
 		<td colspan="2"><!-- bulk change duration -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkChangeDuration${x}" method="get">
 					<span id="datetimepicker${x}" class="input-append">
-				    	<input data-format="dd.MM.yyyy hh:mm" class="span8" id="inputBulkChangeDurationDuration${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
+				    	<input data-format="dd.MM.yyyy hh:mm" class="span8" id="datetime${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
 					    <span id="pickr_span${x}" class="add-on">
 					      <i id="pickr_i${x}" data-time-icon="icon-time" data-date-icon="icon-calendar" class="group1"></i>
 					    </span>
@@ -117,8 +117,8 @@ title=i18n("mailbox_Title")>
 				    <label class="checkbox"> 
 						<input type="checkbox" id="chkUnlimited${x}" onClick="toggle(this,${x})" /> ${i18n("createEmail_Unlimited")}
 					</label>
-						<input type="hidden" id="inputBulkChangeDuration${x}" name="ids"/>		
-						
+					<input type="hidden" id="inputBulkChangeDuration${x}" name="ids"/>		
+					<input type="hidden" id="inputBulkChangeDurationAction" name="action" value="change"/>
 			<script type="text/javascript">
 				$(function() {
 					$('#datetimepicker${x}').datetimepicker({
@@ -132,8 +132,9 @@ title=i18n("mailbox_Title")>
 		
 		</td>
 		<td>
-		<button class="btn btn-small" id="btnBulkChangeDuration${x}" name="action" value="change" onClick="bulkChange(this, ${x}, 'ChangeDuration')" >${i18n("mailbox_Button_BulkChange")}</button>
+		<button class="btn btn-small" id="btnBulkChangeDuration${x}" onClick="bulkChange(this, ${x}, 'ChangeDuration')" >${i18n("mailbox_Button_BulkChange")}</button>
 		</td><!-- end bulk change duration -->
+		
 		<td>${i18n("mailbox_Label_Change")}</td>
 		
 		<td><!-- bulk enable/disable -->

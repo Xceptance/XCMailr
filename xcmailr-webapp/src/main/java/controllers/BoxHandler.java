@@ -19,14 +19,12 @@ package controllers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Results;
 import etc.HelperUtils;
 import filters.SecureFilter;
 import org.joda.time.DateTime;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
@@ -430,6 +428,7 @@ public class BoxHandler
     public Result bulkChangeBoxes(@Param("action") String action, @Param("ids") String boxIds,
                                   @Param("duration") String duration, Context context)
     {
+
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
         if (action != null && boxIds != null && !action.equals("") && !action.equals(""))
@@ -485,6 +484,8 @@ public class BoxHandler
                         case change:
                             // change the duration of the boxes, we'll abort if there's a box with an id, that does not
                             // belong to this user
+
+                            System.out.println(duration);
                             Long ts = HelperUtils.parseTimeString(duration);
                             if (ts == -1L)
                             { // show an error-page if the timestamp is faulty
