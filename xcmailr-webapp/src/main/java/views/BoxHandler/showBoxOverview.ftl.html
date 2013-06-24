@@ -109,7 +109,7 @@ title=i18n("mailbox_Title")>
 		<td colspan="3"><!-- bulk change duration -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkChangeDuration${x}" method="get">
 					<div id="datetimepicker${x}" class="input-append">
-				    	<input data-format="dd.MM.yyyy hh:mm" id="bulkChangeDuration${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
+				    	<input data-format="dd.MM.yyyy hh:mm" id="inputBulkChangeDurationDuration${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
 					    <span id="pickr_span${x}" class="add-on">
 					      <i id="pickr_i${x}" data-time-icon="icon-time" data-date-icon="icon-calendar" class="group1"></i>
 					    </span>
@@ -117,37 +117,39 @@ title=i18n("mailbox_Title")>
 				<label class="checkbox"> 
 				<input type="checkbox" id="chkUnlimited${x}" onClick="toggle(this,${x})" /> ${i18n("createEmail_Unlimited")}
 				</label>
-				
-				<button class="btn btn-small" id="btnBulkEnable${x}" name="enable" onClick="bulkChangeDuration(this, ${x}, 'ChangeDuration')" >${i18n("mailbox_Button_BulkChange")}</button>
-		</form>
-		
-		<script type="text/javascript">
-			$(function() {
-				$('#datetimepicker${x}').datetimepicker({
-					language : '${lang}',
-					pick12HourFormat : false,
-					startDate : new Date()
+				<input type="hidden" id="inputBulkChangeDuration${x}" name="ids"/>
+				<button class="btn btn-small" id="btnBulkChangeDuration${x}" name="action" value="change" onClick="bulkChange(this, ${x}, 'ChangeDuration')" >${i18n("mailbox_Button_BulkChange")}</button>
+			<script type="text/javascript">
+				$(function() {
+					$('#datetimepicker${x}').datetimepicker({
+						language : '${lang}',
+						pick12HourFormat : false,
+						startDate : new Date()
+					});
 				});
-			});
-		</script>
-		</td>
-		
+			</script>
+		</form>
+		</td><!-- end bulk change duration -->
+
 		<td>${i18n("mailbox_Label_Change")}</td>
 		<td><!-- bulk enable/disable -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkEnable${x}" method="get">
-				<button class="btn btn-small" id="btnBulkEnable${x}" name="enable" onClick="bulkChange(this, ${x}, 'Enable')" >${i18n("mailbox_Button_BulkActivate")}</button>
+						<input type="hidden" id="inputBulkEnable${x}" name="ids"/>
+				<button class="btn btn-small" id="btnBulkEnable${x}" name="action" value="enable" onClick="bulkChange(this, ${x}, 'Enable')" >${i18n("mailbox_Button_BulkActivate")}</button>
 		</form>
 		
 		</td>
 		<td><!-- bulk delete -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkDelete${x}" method="get">
-				<button class="btn btn-small" id="btnBulkDelete${x}" name="delete" onClick="bulkChange(this, ${x}, 'Delete')" >${i18n("mailbox_Button_BulkDelete")}</button>
+				<input type="hidden" id="inputBulkDelete${x}" name="ids"/>
+				<button class="btn btn-small" id="btnBulkDelete${x}" name="action" value="delete" onClick="bulkChange(this, ${x}, 'Delete')" >${i18n("mailbox_Button_BulkDelete")}</button>
 		</form>
 		</td>
 		
 		<td><!-- bulk reset -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkEdit${x}" method="get">
-				<button class="btn btn-small" id="btnBulkReset${x}" name="reset" onClick="bulkChange(this, ${x}, 'Reset')" >${i18n("mailbox_Button_BulkReset")}</button>
+				<input type="hidden" id="inputBulkReset${x}" name="ids"/>
+				<button class="btn btn-small" id="btnBulkReset${x}" name="action" value="reset" onClick="bulkChange(this, ${x}, 'Reset')" >${i18n("mailbox_Button_BulkReset")}</button>
 		</form>
 
 		</td>
@@ -180,7 +182,7 @@ title=i18n("mailbox_Title")>
 				}
 				
 			});//checkboxes each 
-			$(button).attr('value', checkedBoxes);			
+			$('#inputBulk'+action+page).attr('value', checkedBoxes);			
 			$('#formBulk'+action+page)[0].submit();
 			
 			
