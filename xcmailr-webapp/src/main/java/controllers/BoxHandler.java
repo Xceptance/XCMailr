@@ -321,7 +321,7 @@ public class BoxHandler
             { // the MBox belongs to this user
               // render the box-data and domains
 
-                if (mailBox.getTs_Active() <= DateTime.now().getMillis())
+                if ((mailBox.getTs_Active() <= DateTime.now().getMillis()) && mailBox.getTs_Active() != 0)
                 {
                     // set a new activity-timestamp if the current one is in the past
                     DateTime dateTime = new DateTime().plusHours(1);
@@ -462,7 +462,7 @@ public class BoxHandler
                                 }
                             }
                             return result.redirect("/mail");
-                            
+
                         case delete:
                             // delete the list of boxes, we'll abort if there's a box with an id, that does not belong
                             // to this user
@@ -515,7 +515,6 @@ public class BoxHandler
                                 }
                             }
                             return result.redirect("/mail");
-                            
 
                         case enable:
                             // enable or disable the boxes
@@ -544,7 +543,6 @@ public class BoxHandler
                                 }
                             }
                             return result.redirect("/mail");
-                            
 
                         default:
                             // we got an action that is not defined
