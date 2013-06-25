@@ -26,54 +26,129 @@ import com.google.inject.Singleton;
 @Singleton
 public class XCMailrConf
 {
+    /**
+     * specified with mbox.adminaddr
+     */
     public final String ADMIN_ADDRESS;
 
+    /**
+     * specified with admin.pass
+     */
     public final String ADMIN_PASSWORD;
 
+    /**
+     * specified with application.basedir
+     */
     public final String APP_BASEPATH;
 
+    /**
+     * specified with application.url
+     */
     public final String APP_HOME;
 
+    /**
+     * specified with application.languages
+     */
     public final String[] APP_LANGS;
 
+    /**
+     * specified with application.name
+     */
     public final String APP_NAME;
-    
+
+    /**
+     * specified with application.default.entriesperpage
+     */
     public final Integer APP_DEFAULT_ENTRYNO;
 
+    /**
+     * specified with application.session.expire_time_in_seconds
+     */
     public final Integer COOKIE_EXPIRETIME;
 
+    /**
+     * specified with application.cookie.prefix
+     */
     public final String COOKIE_PREFIX;
 
+    /**
+     * specified with confirm.period
+     */
     public final Integer CONFIRMATION_PERIOD;
 
+    /**
+     * specified with mbox.dlist (simple string)
+     */
     public final String D_LIST;
 
+    /**
+     * specified with mbox.dlist (stringarray)
+     */
     public final String[] DOMAIN_LIST;
 
+    /**
+     * specified with mbox.host
+     */
     public final String MB_HOST;
 
+    /**
+     * specified with mbox.interval
+     */
     public final Integer MB_INTERVAL;
 
+    /**
+     * specified with mbox.port
+     */
     public final Integer MB_PORT;
 
+    /**
+     * specified with memcached.host
+     */
     public final String MEMCA_HOST;
 
+    /**
+     * specified with memcached.port
+     */
     public final Integer MEMCA_PORT;
 
+    /**
+     * specified with mail.smtp.auth
+     */
     public final Boolean OUT_SMTP_AUTH;
 
+    /**
+     * specified with mail.smtp.debug
+     */
     public final Boolean OUT_SMTP_DEBUG;
 
+    /**
+     * specified with mail.smtp.host
+     */
     public final String OUT_SMTP_HOST;
 
+    /**
+     * specified with mail.smtp.pass
+     */
     public final String OUT_SMTP_PASS;
 
+    /**
+     * specified with mail.smtp.port
+     */
     public final Integer OUT_SMTP_PORT;
 
+    /**
+     * specified with mail.smtp.tls
+     */
     public final Boolean OUT_SMTP_TLS;
 
+    /**
+     * specified with mail.smtp.user
+     */
     public final String OUT_SMTP_USER;
 
+    /**
+     * specified with pw.length
+     */
     public final Integer PW_LENGTH;
 
     @Inject
