@@ -3,7 +3,7 @@ XCMailr
 Summary
 ------
  * Name: XCMailr
- * Version: 1.0.6
+ * Version: 1.0.7
  * Release: June 2013
  * License: Apache V2.0
  * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
