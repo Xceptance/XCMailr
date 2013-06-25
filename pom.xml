@@ -102,13 +102,13 @@
 	</build>
 
 	<scm>
-		<url>https://github.com/pthum/xcmailr</url>
-		<connection>scm:git://github.com/pthum/xcmailr.git</connection>
-		<developerConnection>scm:git:git@github.com:pthum/xcmailr.git</developerConnection>
+		<url>https://github.com/Xceptance/XCMailr</url>
+		<connection>scm:git://github.com/Xceptance/XCMailr.git</connection>
+		<developerConnection>scm:git:git@github.com:Xceptance/XCMailr.git</developerConnection>
 	</scm>
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/pthum/xcmailr/issues</url>
+		<url>https://github.com/Xceptance/XCMailr/issues</url>
 	</issueManagement>
 	
 	<licenses>
@@ -121,7 +121,7 @@
 	<distributionManagement>
 		<site>
 			<id>github-project-site</id>
-			<url>gitsite:git@github.com/pthum/xcmailr.git</url>
+			<url>gitsite:git@github.com/Xceptance/XCMailr.git</url>
 		</site>
 	</distributionManagement>
 </project>
