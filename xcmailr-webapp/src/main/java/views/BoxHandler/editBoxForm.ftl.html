@@ -14,15 +14,15 @@
 								value="${ (mbFrmDat.address)!}" required="required" />
 							 <span class="add-on">@</span>
 								<select name="domain"> 
-								<#list domain as String> 
+								<#list domain as singleDomain> 
 									<#if (mbFrmDat.domain)??> 
-										<#if (mbFrmDat.domain == String)>
-											<option value="${String}" selected="selected">${String}</option>
+										<#if (mbFrmDat.domain == singleDomain)>
+											<option value="${singleDomain}" selected="selected">${singleDomain}</option>
 										<#else>
-											<option value="${String}">${String}</option> 
+											<option value="${singleDomain}">${singleDomain}</option> 
 										</#if> 
 									<#else>
-										<option value="${String}">${String}</option> 
+										<option value="${singleDomain}">${singleDomain}</option> 
 									</#if> 
 								</#list>
 								</select>								 
