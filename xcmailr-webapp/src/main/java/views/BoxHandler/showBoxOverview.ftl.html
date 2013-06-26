@@ -11,8 +11,7 @@ title=i18n("mailbox_Title")>
 		<form action="${contextPath}/mail">
 		<@pag.entrycount/>
 		</form>
-	</#if>
-	
+
 	<form action="${contextPath}/mail" id="boxSearchForm">
 		<div class="input-append">
 			<input type="text" id="boxSearchInput" name ="s" data-provide="typeahead" autocomplete="off"/>
@@ -20,9 +19,9 @@ title=i18n("mailbox_Title")>
 			<span class="append"></span>
 		</div>
 	</form>	
-
+	</#if>
 	<div class="tab-content">  
-	<#if ((mboxes.getEntryCount())??!0 > 0) >
+	<#if (mboxes.getEntryCount() > 0) >
 	<#list 1..mboxes.getPageCount() as x > 
 	<#if x = 1 >
 		<div class="tab-pane active" id="${x}">  
@@ -174,8 +173,14 @@ title=i18n("mailbox_Title")>
  </#if>
   
 </div><!-- /tab content -->
+<#if (mboxes.getEntryCount() > 0) >
 <@pag.pager name=mboxes/>
-
+<@pag.incSorter vals=[0,6,7,8,9]/>
+<p>
+	<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
+	<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a>
+</p>
+</#if>
 </div><!-- /row -->
 
 <script type="text/javascript">
@@ -242,17 +247,10 @@ title=i18n("mailbox_Title")>
 			$('.bulkChk'+page).prop("checked", false);
 		}
 	}
-	
-	
-
-    </script> 
+</script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/picker-enable.js"></script> 
-<@pag.incSorter vals=[0,6,7,8,9]/>
-<p>
-	<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
-	<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a>
-</p>
+
 </@layout.xcLayout>
 

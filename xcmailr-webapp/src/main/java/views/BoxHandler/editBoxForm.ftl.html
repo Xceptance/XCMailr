@@ -34,7 +34,7 @@
 					<label class="control-label" for="datetime">${i18n("editEmail_Label_Duration")}*</label>
 					<div class="controls">
 						<div id="datetimepicker" class="input-append">
-							<input data-format="dd.MM.yyyy hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required" /> <span id="pickr_span" class="add-on">
+							<input data-format="yyyy-MM-dd hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required" /> <span id="pickr_span" class="add-on">
 								<i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
 							</span>
 						</div>
@@ -108,7 +108,7 @@
 						var date = new Date();
 						var hours = date.getHours()+1;
 						date.setHours(hours);
-						var dateString = date.getDate() + "." + (date.getMonth()+1) + "." + date.getFullYear() + " "
+						var dateString =  date.getFullYear() + "-" + (date.getMonth()+1) + "-" +date.getDate() + " "
 											+ date.getHours() + ":" + date.getMinutes();
 						
 						$('#chkUnlimited').attr('checked', 'checked');

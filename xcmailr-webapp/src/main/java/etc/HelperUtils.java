@@ -96,7 +96,7 @@ public class HelperUtils
     }
 
     /**
-     * the input string has the format: dd.MM.yyyy hh:mm
+     * the input string has the format: yyyy-MM-dd hh:mm
      * 
      * @param input
      *            the (hopefully correct) formatted input-string
@@ -113,7 +113,7 @@ public class HelperUtils
             return -1L;
         }
         input = input.trim();
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("dd.MM.yyyy HH:mm");
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
         return formatter.parseDateTime(input).getMillis();
     }
 
@@ -155,7 +155,7 @@ public class HelperUtils
             }
             minute += String.valueOf(dt.getMinuteOfHour());
 
-            return day + "." + month + "." + dt.getYear() + " " + hour + ":" + minute;
+            return  dt.getYear() + "-" + month + "-" + day + " " + hour + ":" + minute;
         }
 
     }
@@ -171,7 +171,7 @@ public class HelperUtils
     public static boolean hasCorrectFormat(String input)
     {
         input = input.trim();
-        if (input.matches("(\\d+){1,2}[\\.](\\d+){1,2}[\\.](\\d+){4}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}"))
+        if (input.matches("(\\d+){4}[\\-](\\d+){1,2}[\\-](\\d+){1,2}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}"))
         {
             return true;
         }
