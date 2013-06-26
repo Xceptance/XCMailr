@@ -120,7 +120,7 @@ public class BoxHandlerTest extends NinjaTest
                                                                     formParams);
 
         // check that the add of the mbox was successful
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         /*
          * TEST: try to add a box with no data
@@ -134,7 +134,7 @@ public class BoxHandlerTest extends NinjaTest
                                                                     formParams);
 
         // check that the add of the mbox was successful
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
         // check that there is a mailbox with that address
         assertNull(MBox.getByName("", ""));
 
@@ -150,7 +150,7 @@ public class BoxHandlerTest extends NinjaTest
                                                                     formParams);
 
         // check that the add of the mbox was successful
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
         // check that there is a mailbox with that address
         assertNull(MBox.getByName("bbox", "xcmailr.test"));
 
@@ -186,7 +186,7 @@ public class BoxHandlerTest extends NinjaTest
                                                                     formParams);
 
         // check that the add of the mbox has failed
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
         // check that there is no mailbox with that address
         assertNull(MBox.getByName("abox", "xcmlr@a.abc"));
 
@@ -289,7 +289,7 @@ public class BoxHandlerTest extends NinjaTest
         formMap.remove("address");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + mbox.getId(),
                                                                     headers, formMap);
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         /*
          * TEST: correct edit of a box
@@ -315,7 +315,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + mbox.getId(),
                                                                     headers, formMap);
         expected = ninjaTestBrowser.makeRequest(getServerAddress() + "mail");
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         /*
          * TEST: edit of an mbox that does not exist
@@ -383,15 +383,15 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: expire/reactivate a box with a timestamp in the past
          */
-        // create a new mailforward (mbox) to expire
+        // create a new mail address(mbox) to expire
         DateTime dt = DateTime.now().minusHours(2);
         MBox mbox2 = new MBox("abcdefg", "xcmailr.test", dt.getMillis(), false, user);
         mbox2.save();
         formParams.clear();
+        // we want to reactivate the box and expect the edit-page then (because its expired)
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/expire/" + mbox2.getId(),
                                                                     headers, formParams);
-        expected = ninjaTestBrowser.makeRequest(getServerAddress() + "mail/edit/" + mbox2.getId());
-        assertTrue(expected.equals(result));
+        assertTrue(result.contains("id=\"editBoxForm\""));
 
     }
 

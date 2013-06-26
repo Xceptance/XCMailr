@@ -93,7 +93,7 @@ public class UserHandlerTest extends NinjaTest
         System.out.println(result+"\n\n\n");
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
         TestUtils.testMapEntryEquality(userData, returnedData);
@@ -111,7 +111,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
         TestUtils.testMapEntryEquality(userData, returnedData);
@@ -129,7 +129,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
         TestUtils.testMapEntryEquality(userData, returnedData);
@@ -147,7 +147,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
         TestUtils.testMapEntryEquality(userData, returnedData);
@@ -165,7 +165,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
         TestUtils.testMapEntryEquality(userData, returnedData);
@@ -183,7 +183,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
         TestUtils.testMapEntryEquality(userData, returnedData);
@@ -202,7 +202,7 @@ public class UserHandlerTest extends NinjaTest
 
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
 
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
         TestUtils.testMapEntryEquality(userData, returnedData);
@@ -221,7 +221,7 @@ public class UserHandlerTest extends NinjaTest
         returnedData = HtmlUtils.readInputFormData(result);
 
         // check if the userdata-edit has been successfully changed
-        assertTrue(result.contains("class=\"success\">"));
+        assertTrue(result.contains("class=\"alert alert-success\">"));
 
         // the returned data should now be equal to the formparams without the password
         formParams.remove("password");
@@ -244,7 +244,7 @@ public class UserHandlerTest extends NinjaTest
         returnedData = HtmlUtils.readInputFormData(result);
 
         // check if the userdata-edit has been successfully changed
-        assertTrue(result.contains("class=\"success\">"));
+        assertTrue(result.contains("class=\"alert alert-success\">"));
 
         // the returned data should now be equal to the formparams without the password
         formParams.remove("password");
@@ -276,7 +276,7 @@ public class UserHandlerTest extends NinjaTest
 
         // check if the userdata-edit has been successfully changed
 
-        assertTrue(result.contains("class=\"error\">"));
+        assertTrue(result.contains("class=\"alert alert-error\">"));
         System.out.println(returnedData + "\n\n\n");
         // the returned data should now be equal to the formparams without the password
         formParams.remove("password");

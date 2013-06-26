@@ -39,7 +39,7 @@ public class AdminHandlerTest extends NinjaTest
                                                                     headers, formParams);
         // make sure that the success-page is displayed
         
-        assertTrue(result.contains("class=\"success\">"));
+        assertTrue(result.contains("class=\"alert alert-success\">"));
 
         // check the cookie
         Cookie cookie = ninjaTestBrowser.getCookieWithName("XCMailr_SESSION");
