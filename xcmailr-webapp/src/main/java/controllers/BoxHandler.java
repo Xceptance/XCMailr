@@ -395,7 +395,7 @@ public class BoxHandler
             if ((mailBox.getTs_Active() != 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
             { // if the validity period is over, return the Edit page and give the user a response why he gets there
                 
-                context.getFlashCookie().error("flash_expireEmail_expired");
+                context.getFlashCookie().put("info","flash_expireEmail_expired");
                 return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
             }
             else
