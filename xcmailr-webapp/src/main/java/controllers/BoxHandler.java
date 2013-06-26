@@ -174,7 +174,8 @@ public class BoxHandler
     }
 
     /**
-     * Deletes a Box from the DB POST /mail/delete/{id}
+     * Deletes a Box from the DB <br/>
+     * POST /mail/delete/{id}
      * 
      * @param boxid
      *            the ID of the Mailbox
@@ -340,7 +341,8 @@ public class BoxHandler
     }
 
     /**
-     * Generates the Mailbox-Overview-Page of a {@link User}.
+     * Generates the Mailbox-Overview-Page of a {@link User}. <br/>
+     * GET /mail
      * 
      * @param context
      *            the Context of this Request
@@ -372,7 +374,8 @@ public class BoxHandler
     }
 
     /**
-     * Sets the Box valid/invalid POST /mail/expire/{id}
+     * Sets the Box valid/invalid <br/>
+     * POST /mail/expire/{id}
      * 
      * @param boxId
      *            the ID of the Mailbox
@@ -386,11 +389,13 @@ public class BoxHandler
         Result result = Results.html().template("/views/Application/index.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
-
+        
         if (mailBox.belongsTo(user.getId()))
         {// check, whether the mailbox belongs to the current user
             if ((mailBox.getTs_Active() != 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
-            { // if the validity period is over, return the Edit page
+            { // if the validity period is over, return the Edit page and give the user a response why he gets there
+                
+                context.getFlashCookie().error("flash_expireEmail_expired");
                 return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
             }
             else
@@ -402,7 +407,8 @@ public class BoxHandler
     }
 
     /**
-     * Sets the Values of the Counters for the Box, given by their ID, to zero POST /mail/reset/{id}
+     * Sets the Values of the Counters for the Box, given by their ID, to zero <br/>
+     * POST /mail/reset/{id}
      * 
      * @param boxId
      *            the ID of the Mailbox
@@ -427,7 +433,8 @@ public class BoxHandler
     }
 
     /**
-     * Processes the given action on the given Mail-Addresses
+     * Processes the given action on the given Mail-Addresses<br/>
+     * GET /mail/bulkChange
      * 
      * @param action
      *            the action to do (may be 'reset','delete', 'change' or 'enable'
@@ -586,7 +593,8 @@ public class BoxHandler
     }
 
     /**
-     * Handles JSON-Requests for the search
+     * Handles JSON-Requests for the search <br/>
+     * GET /mail/search
      * 
      * @param context
      *            the Context of this Request
@@ -621,7 +629,8 @@ public class BoxHandler
     }
 
     /**
-     * returns a text-page with all addresses of a user
+     * returns a text-page with all addresses of a user<br/>
+     * GET /mail/mymaillist.txt
      * 
      * @param context
      *            the Context of this Request
@@ -634,7 +643,8 @@ public class BoxHandler
     }
 
     /**
-     * returns a text-page with all active addresses of a user
+     * returns a text-page with all active addresses of a user<br/>
+     * GET /mail/myactivemaillist.txt
      * 
      * @param context
      *            the Context of this Request
