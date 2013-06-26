@@ -1,7 +1,7 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout title=i18n("editEmail_Title")>
 <div class="row">
 	<div class="span7">
-		<form action="${contextPath}/mail/edit/${mbFrmDat.boxId}" class="form-horizontal" method="post">
+		<form action="${contextPath}/mail/edit/${mbFrmDat.boxId}" id="editBoxForm" class="form-horizontal" method="post">
 			<fieldset>
 				<legend>${i18n("editEmail_Title")}</legend>
 				<!-- row: Email address -->
@@ -93,8 +93,7 @@
 								var match = mailRegExp.test(localPart);
 								
 								if (match) {
-									$('#editBoxForm').submit();
-									
+									$('#editBoxForm')[0].submit();
 									return false;
 								} else {
 									$('#mailInvalidErrorSpan').remove();
@@ -105,19 +104,19 @@
 								}
 							});
 					//handle unlimited box 
-					if($('input#datetime').attr('value')=="0"){
+					if($('#datetime').attr('value')=="0"){
 						var date = new Date();
 						var hours = date.getHours()+1;
 						date.setHours(hours);
 						var dateString = date.getDate() + "." + date.getMonth() + "." + date.getFullYear() + " "
 											+ date.getHours() + ":" + date.getMinutes();
 						
-						$('input#chkUnlimited').attr('checked', 'checked');
-						$('input#chkUnlimited').attr('value', dateString);					
-						$('div#datetimepicker').attr('style', 'display:none');
-						$('input#datetime').attr('style', 'display:none');
-						$('span#pickr_span').attr('style', 'display:none');
-						$('i#pickr_i').attr('style', 'display:none');
+						$('#chkUnlimited').attr('checked', 'checked');
+						$('#chkUnlimited').attr('value', dateString);					
+						$('#datetimepicker').attr('style', 'display:none');
+						$('#datetime').attr('style', 'display:none');
+						$('#pickr_span').attr('style', 'display:none');
+						$('#pickr_i').attr('style', 'display:none');
 					}
 					
 				});

@@ -82,7 +82,7 @@ title=i18n("createEmail_Title")>
 									var match = mailRegExp.test(localPart);
 									
 									if (match) {
-										$('#addBoxForm').submit();
+										$('#addBoxForm')[0].submit();
 										
 										return false;
 									} else {

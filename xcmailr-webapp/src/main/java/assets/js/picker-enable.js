@@ -28,7 +28,7 @@ function toggle(chkbox) {
 
 
 
-function toggle(chkbox, page) {
+function toggleBatch(chkbox, page) {
 	var visSetting = (chkbox.checked) ? 'display: none' : 'display: inline-block';
 	$('#datetime'+page).attr('style', visSetting);
 	$('#datetimepicker'+page).attr('style', visSetting);
