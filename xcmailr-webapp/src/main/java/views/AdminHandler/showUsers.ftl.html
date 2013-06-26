@@ -2,11 +2,12 @@
 title=i18n("adminUserPage_Title")>
 <#import "../layout/macros.ftl.html" as pag/>
 <h1 class="legendary">${i18n("adminUserPage_Title")}</h1>
-
-<form action="/admin/users" id="userPageEntryCount">
+<!-- begin row-count -->
+<form action="${contextPath}/admin/users" id="userPageEntryCount">
 	<@pag.entrycount/>
 </form>  
-
+<!-- end row-count -->
+<!-- begin user-search -->
 <form action="${contextPath}/admin/users" id="userSearchForm">
 	<div class="input-append">
 		<input type="text" id="userSearchInput" name ="s" data-provide="typeahead" autocomplete="off"/>
@@ -14,6 +15,8 @@ title=i18n("adminUserPage_Title")>
 		<span class="append"></span>
 	</div>
 </form>
+<!-- end user-search -->
+<!-- begin user table -->
 <div class="tab-content">  
 <#list 1..(users.getPageCount())!0 as x > 
 	<#if x = 1 >
@@ -91,7 +94,7 @@ title=i18n("adminUserPage_Title")>
 	</div><!--  /tab-pane (active)-->
 </#list>
 </div><!-- /tab-content -->
-
+<!-- end user table -->
 <script>
 	$(document).ready(
 	function(){
