@@ -1,6 +1,5 @@
 package controllers;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -44,9 +43,9 @@ public class ApplicationHandlerTest extends NinjaTest
     @Test
     public void testRegistrationPart()
     {
-         // TEST: show the registration page
-         result = ninjaTestBrowser.makeRequest(getServerAddress() + "register");
-         assertTrue(result.contains("form action=\"/register\""));
+        // TEST: show the registration page
+        result = ninjaTestBrowser.makeRequest(getServerAddress() + "register");
+        assertTrue(result.contains("form action=\"/register\""));
 
         /*
          * TEST: Register a new user correctly
@@ -75,58 +74,58 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(result.contains("class=\"error\""));
         User user = User.getUsrByMail("admin@localhost.de");
         assertTrue(user.getForename().equals("John"));
-        
-         /*
+
+        /*
          * ------------------------------------------------------------------------------------------
-         *
+         * 
          * TESTBLOCK:try to register with one or all of the fields unset
-         *
+         * 
          * ------------------------------------------------------------------------------------------
          */
-        
-         /*
+
+        /*
          * TEST: All fields unset
          */
-         formParams.clear();
-         formParams.put("firstName", "");
-         formParams.put("surName", "");
-         formParams.put("mail", "");
-         formParams.put("password", "");
-         formParams.put("passwordNew1", "");
-         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
-         formParams);
-         // check if the user couldn't be registered
-         assertTrue(result.contains("class=\"error\">"));
-        
-         /*
+        formParams.clear();
+        formParams.put("firstName", "");
+        formParams.put("surName", "");
+        formParams.put("mail", "");
+        formParams.put("password", "");
+        formParams.put("passwordNew1", "");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
+                                                                    formParams);
+        // check if the user couldn't be registered
+        assertTrue(result.contains("class=\"error\">"));
+
+        /*
          * TEST: no firstName
          */
-         formParams.clear();
-         formParams.put("firstName", "");
-         formParams.put("surName", "Doe");
-         formParams.put("mail", "admin@localhost.de");
-         formParams.put("password", "1234");
-         formParams.put("passwordNew1", "1234");
-         formParams.put("language", "en");
-         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
-         formParams);
-         // check if the user couldn't be registered
-         assertTrue(result.contains("class=\"error\">"));
-        
-         /*
+        formParams.clear();
+        formParams.put("firstName", "");
+        formParams.put("surName", "Doe");
+        formParams.put("mail", "admin@localhost.de");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
+        formParams.put("language", "en");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
+                                                                    formParams);
+        // check if the user couldn't be registered
+        assertTrue(result.contains("class=\"error\">"));
+
+        /*
          * TEST: no surname
          */
-         formParams.clear();
-         formParams.put("firstName", "John");
-         formParams.put("surName", "");
-         formParams.put("mail", "admin@localhost.de");
-         formParams.put("password", "1234");
-         formParams.put("passwordNew1", "1234");
-         formParams.put("language", "en");
-         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
-         formParams);
-         // check if the user couldn't be registered
-         assertTrue(result.contains("class=\"error\">"));
+        formParams.clear();
+        formParams.put("firstName", "John");
+        formParams.put("surName", "");
+        formParams.put("mail", "admin@localhost.de");
+        formParams.put("password", "1234");
+        formParams.put("passwordNew1", "1234");
+        formParams.put("language", "en");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
+                                                                    formParams);
+        // check if the user couldn't be registered
+        assertTrue(result.contains("class=\"error\">"));
     }
 
     @Test
@@ -600,7 +599,6 @@ public class ApplicationHandlerTest extends NinjaTest
         // check whether the cookie has been deleted
         cookie = ninjaTestBrowser.getCookieWithName("XCMailr_SESSION");
         assertTrue(cookie == null);
-        assertEquals(0, ninjaTestBrowser.getCookies().size());
 
     }
 

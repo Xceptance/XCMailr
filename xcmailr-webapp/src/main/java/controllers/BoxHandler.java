@@ -19,14 +19,12 @@ package controllers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Results;
 import etc.HelperUtils;
 import filters.SecureFilter;
 import org.joda.time.DateTime;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
@@ -34,6 +32,7 @@ import models.MBox;
 import models.MailBoxFormData;
 import models.PageList;
 import models.User;
+import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
@@ -111,7 +110,7 @@ public class BoxHandler
             if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null)
                 || (mailboxFormData.getDatetime() == null))
             {
-                return result.redirect("/mail/add");
+                return result.redirect(context.getContextPath() + "/mail/add");
             }
 
             result.render("mbFrmDat", mailboxFormData);
@@ -138,18 +137,18 @@ public class BoxHandler
                 if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
                 { // the new domain-name does not exist in the application.conf
                   // stop the process and return to the mailbox-overview page
-                    return result.redirect("/mail");
+                    return result.redirect(context.getContextPath() + "/mail");
                 }
                 Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                 if (ts == -1L)
                 { // show an error-page if the timestamp is faulty
-                    context.getFlashCookie().error("msg_WrongF");
+                    context.getFlashCookie().error("flash_FormError");
                     result.render("mbFrmDat", mailboxFormData);
                     return result.template("/views/BoxHandler/addBoxForm.ftl.html");
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
-                    context.getFlashCookie().error("createMail_Past_Timestamp");
+                    context.getFlashCookie().error("createEmail_Past_Timestamp");
                     result.render("mbFrmDat", mailboxFormData);
                     return result.template("/views/BoxHandler/addBoxForm.ftl.html");
                 }
@@ -248,6 +247,7 @@ public class BoxHandler
                     boolean changes = false;
                     String newLocalPartName = mailboxFormData.getAddress().toLowerCase();
                     String newDomainPartName = mailboxFormData.getDomain().toLowerCase();
+
                     if (MBox.mailChanged(newLocalPartName, newDomainPartName, boxId))
                     { // this is only true when the address changed and the new address does not exist
 
@@ -266,7 +266,7 @@ public class BoxHandler
                     Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
-                        context.getFlashCookie().error("msg_WrongF");
+                        context.getFlashCookie().error("flash_FormError");
                         return result.redirect(context.getContextPath() + "/mail/edit/" + boxId.toString());
                     }
                     if ((ts != 0) && (ts < DateTime.now().getMillis()))
@@ -322,7 +322,7 @@ public class BoxHandler
             { // the MBox belongs to this user
               // render the box-data and domains
 
-                if (mailBox.getTs_Active() <= DateTime.now().getMillis())
+                if ((mailBox.getTs_Active() <= DateTime.now().getMillis()) && mailBox.getTs_Active() != 0)
                 {
                     // set a new activity-timestamp if the current one is in the past
                     DateTime dateTime = new DateTime().plusHours(1);
@@ -360,15 +360,15 @@ public class BoxHandler
         Result result = Results.html();
         String searchString = context.getParameter("s", "");
         if (searchString.equals(""))
-        { // if theres no parameter, simply render all boxes
+        { // if there's no parameter, simply render all boxes
             plist = new PageList<MBox>(MBox.allUser(user.getId()), entries);
         }
         else
-        { // theres a search parameter with input, get the related boxes
+        { // there's a search parameter with input, get the related boxes
             plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
         }
-
-        return result.render("mboxes", plist);
+        long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
+        return result.render("mboxes", plist).render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
     }
 
     /**
@@ -388,8 +388,8 @@ public class BoxHandler
         User user = context.getAttribute("user", User.class);
 
         if (mailBox.belongsTo(user.getId()))
-        {// check if the mailbox belongs to the current user
-            if (!(mailBox.getTs_Active() == 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
+        {// check, whether the mailbox belongs to the current user
+            if ((mailBox.getTs_Active() != 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
             { // if the validity period is over, return the Edit page
                 return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
             }
@@ -415,7 +415,7 @@ public class BoxHandler
         Result result = Results.html().template("/views/Application/index.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
-        System.out.println("resette box mit der id: " + boxId);
+
         // check if the mailbox belongs to the current user
         if (mailBox.belongsTo(user.getId()))
         {
@@ -427,9 +427,169 @@ public class BoxHandler
     }
 
     /**
-     * Handles JSON-Requests from the search
+     * Processes the given action on the given Mail-Addresses
+     * 
+     * @param action
+     *            the action to do (may be 'reset','delete', 'change' or 'enable'
+     * @param boxIds
+     *            the IDs of the mailboxes/mailaddresses to modify, separated by a colon
+     * @param duration
+     *            the new duration for the mailboxes in action 'change', must be in format "dd.MM.yyyy hh:mm"
+     * @param context
+     *            the context of this request
+     * @return to the mailbox-overview-page
+     */
+    public Result bulkChangeBoxes(@Param("action") String action, @Param("ids") String boxIds,
+                                  @Param("duration") String duration, Context context)
+    {
+
+        Result result = Results.html().template("/views/Application/index.ftl.html");
+        User user = context.getAttribute("user", User.class);
+
+        if (action != null && boxIds != null && !action.equals("") && !action.equals(""))
+        {
+            if (boxIds.matches("[(\\d+)][(\\,)(\\d+)]*"))
+            {// the list of boxIds have to be in the form of comma-separated-ids
+                String[] splittedIds = boxIds.split("\\,");
+
+                Long boxId;
+                if (splittedIds.length > 0)
+                { // the length of the IDs are at least one
+                    switch (Actions.valueOf(action))
+                    {
+                        case reset: // reset the list of boxes, we'll abort if there's a box with an id that does not
+                                    // belong to the user
+
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                MBox mailBox = MBox.getById(boxId);
+                                if (mailBox.belongsTo(user.getId()))
+                                { // box belongs to the user
+                                    mailBox.resetForwards();
+                                    mailBox.resetSuppressions();
+                                    mailBox.update();
+                                }
+                                else
+                                {
+                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    return result.redirect(context.getContextPath() + "/mail");
+                                }
+                            }
+                            return result.redirect(context.getContextPath() + "/mail");
+
+                        case delete:
+                            // delete the list of boxes, we'll abort if there's a box with an id, that does not belong
+                            // to this user
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                if (MBox.boxToUser(boxId, user.getId()))
+                                { // box belongs to the user
+                                    MBox.delete(boxId);
+                                }
+                                else
+                                {
+                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    return result.redirect(context.getContextPath() + "/mail");
+                                }
+                            }
+                            return result.redirect(context.getContextPath() + "/mail");
+
+                        case change:
+                            // change the duration of the boxes, we'll abort if there's a box with an id, that does not
+                            // belong to this user
+
+                            Long ts = HelperUtils.parseTimeString(duration);
+                            if (ts == -1L)
+                            { // show an error-page if the timestamp is faulty
+                                context.getFlashCookie().error("mailbox_Wrong_Timestamp");
+                                return result.redirect(context.getContextPath() + "/mail");
+                            }
+                            if ((ts != 0) && (ts < DateTime.now().getMillis()))
+                            { // the Timestamp lays in the past
+                                context.getFlashCookie().error("createEmail_Past_Timestamp");
+                                return result.redirect(context.getContextPath() + "/mail");
+                            }
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                MBox mailBox = MBox.getById(boxId);
+                                if (mailBox.belongsTo(user.getId()))
+                                { // box belongs to the user
+                                    mailBox.setTs_Active(ts);
+                                    mailBox.setExpired(false);
+
+                                    mailBox.update();
+                                }
+                                else
+                                {
+                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    return result.redirect(context.getContextPath() + "/mail");
+                                }
+                            }
+                            return result.redirect(context.getContextPath() + "/mail");
+
+                        case enable:
+                            // enable or disable the boxes
+                            // all active boxes will then be inactive and vice versa
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                MBox mailBox = MBox.getById(boxId);
+                                if (mailBox.belongsTo(user.getId()))
+                                { // box belongs to the user
+                                    if (!(mailBox.getTs_Active() == 0)
+                                        && (mailBox.getTs_Active() < DateTime.now().getMillis()))
+                                    { // if the validity period is over, return the Edit page
+                                        context.getFlashCookie().error("mailbox_Flash_NotEnabled");
+                                        return result.redirect(context.getContextPath() + "/mail");
+                                    }
+                                    else
+                                    { // otherwise just set the new status
+                                        mailBox.enable();
+                                    }
+                                }
+                                else
+                                { // box does not belong to the user
+                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    return result.redirect(context.getContextPath() + "/mail");
+                                }
+                            }
+                            return result.redirect(context.getContextPath() + "/mail");
+
+                        default:
+                            // we got an action that is not defined
+                            // we're ignoring it and simply redirect to the overview-page
+                            return result.redirect(context.getContextPath() + "/mail");
+                    }// end switch
+                }
+                else
+                { // the IDs have a wrong separator
+                    return result.redirect(context.getContextPath() + "/mail");
+                }
+            }
+            else
+            { // the IDs are not in the expected pattern
+                return result.redirect(context.getContextPath() + "/mail");
+            }
+        }
+        else
+        { // the action or IDs-parameter is empty or null
+            return result.redirect(context.getContextPath() + "/mail");
+        }
+    }
+
+    enum Actions
+    {
+        reset, delete, change, enable
+    }
+
+    /**
+     * Handles JSON-Requests for the search
      * 
      * @param context
+     *            the Context of this Request
      * @return a JSON-Array with the boxes
      */
     public Result jsonBoxSearch(Context context)
@@ -439,14 +599,16 @@ public class BoxHandler
         Result result = Results.html();
         String searchString = context.getParameter("s", "");
         if (searchString.equals(""))
-        {
+        { // the parameter is empty or missing, return an empty list
             boxList = new ArrayList<MBox>();
         }
         else
-        {
+        { // there is a parameter, search for a box with an address that is like the search-string
             boxList = MBox.findBoxLike(searchString, user.getId());
         }
 
+        // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
+        // so we need to transform the data which does not contain the reference
         List<MailBoxFormData> mbdlist = new ArrayList<MailBoxFormData>();
         for (MBox mb : boxList)
         {
@@ -456,6 +618,33 @@ public class BoxHandler
         }
 
         return result.json().render(mbdlist);
+    }
+
+    /**
+     * returns a text-page with all addresses of a user
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return a text page with all addresses of a user
+     */
+    public Result showMailsAsTextList(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        return Results.contentType("text/plain").render(MBox.getMailsForTxt(user.getId()));
+    }
+
+    /**
+     * returns a text-page with all active addresses of a user
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return a text page with all active addresses of a user
+     */
+
+    public Result showActiveMailsAsTextList(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        return Results.contentType("text/plain").render(MBox.getActiveMailsForTxt(user.getId()));
     }
 
 }

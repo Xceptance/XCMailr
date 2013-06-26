@@ -36,6 +36,7 @@ import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Lang;
 import ninja.i18n.Messages;
+import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
@@ -74,10 +75,19 @@ public class Application
      *            the Context of this Request
      * @return the Index-Page
      */
-    public Result index(Context context)
+    public Result index(Context context, @Param("lang") String languageParam)
     {
+        Result result = Results.ok().html();
+        //set the wanted language
+        if (languageParam != null && !languageParam.equals(""))
+        {
+            lang.setLanguage(languageParam, result);
+        }
+
         // show the index-page
-        return Results.ok().html();
+        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
+        
+        return result.render("available_langs", languageList);
     }
 
     // -------------------- Registration -----------------------------------

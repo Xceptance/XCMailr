@@ -6,11 +6,15 @@ title=i18n("admin_Title_Transactions") >
 
 <div class="btn-toolbar">
 <@pag.mtxDeleter/>
-		<form action="/admin/mtxs" id="transactionsEntryCount">
-			<@pag.entrycount/>
-		</form>
+
+<!-- begin rowcount -->
+<form action="${contextPath}/admin/mtxs" id="transactionsEntryCount">
+	<@pag.entrycount/>
+</form>
+<!-- end rowcount -->
 </div><!-- /btn-toolbar -->
 
+<!-- begin mailtransaction-list -->
 <div class="tab-content">  
 <#list 1..plist.getPageCount() as x > 
 	<#if x = 1 >
@@ -59,6 +63,7 @@ title=i18n("admin_Title_Transactions") >
 	    </table>
 	</div> <!-- /tab pane (active) --> 
 </#list>
+<!-- end mailtransaction-list -->
 
 </div>  <!-- tab-content -->
 <@pag.pager name=plist/>

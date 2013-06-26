@@ -55,8 +55,8 @@
 			</div>
 		</div>
 		<div class="form-actions">
-			<input type="button" id="btnRegisterReset" class="btn" value="${i18n("registerUser_Button_Reset")}"/>
-			<input type="button" id="btnRegisterSubmit" class="btn btn-primary" value="${i18n("registerUser_Button_Create")}" /> 
+			<input type="button" id="btnRegisterReset" class="btn" value='${i18n("registerUser_Button_Reset")}'/>
+			<input type="button" id="btnRegisterSubmit" class="btn btn-primary" value='${i18n("registerUser_Button_Create")}' /> 
 		</div>
 		</fieldset>
 	</form>
@@ -73,7 +73,7 @@
 					$('.passwords').addClass("error");
 					return false;
 				} else {
-					$('#registrationForm').submit();
+					$('#formRegistration')[0].submit();
 				}
 			});
 	

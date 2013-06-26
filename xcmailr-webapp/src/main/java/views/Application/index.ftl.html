@@ -6,6 +6,15 @@
 			<i class="icon-thumbs-up"> </i>
 			${i18n("app_Description")}
 		</p>
+		<p>
+		<#if (available_langs)??>
+			<ul> ${i18n("app_Label_AvailableLang")}
+			<#list available_langs as lng>
+				<li><a href="?lang=${lng[0]}">${lng[1]}</a></li>
+			</#list>
+			</ul>
+		</#if>
+		</p>
 
 	</div>
 </div>
