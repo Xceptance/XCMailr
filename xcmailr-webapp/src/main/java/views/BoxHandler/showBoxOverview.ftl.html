@@ -61,14 +61,18 @@ title=i18n("mailbox_Title")>
 				</#if>							
 				<td>${mBox.forwards}</td>
 				<td>${mBox.suppressions}</td>
-					<#if (mBox.isActive())>
+				<#if (mBox.isActive())>
     				<td>${i18n("mailbox_Label_MailActive")}</td>
 	    			 <td><form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
 	                    <input type="submit" class="btn  btn-small"  id="btnDeactivate${mBox.id}" value='${i18n("mailbox_Button_Deactivate")}'/>
 	                    </form>
 	                </td>
 		    	<#else>
+		    		<#if (mBox.isExpiredByTimestamp())>
+	    			<td>${i18n("mailbox_Label_MailExpired")}</td>
+	    			<#else>
 	    			<td>${i18n("mailbox_Label_MailInactive")}</td>
+	    			</#if>
 	    	    	<td>
 		    	    	<form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
 		                    <input type="submit" class="btn btn-small" id="btnActivate${mBox.id}" value='${i18n("mailbox_Button_Activate")}'/>
