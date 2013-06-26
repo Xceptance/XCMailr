@@ -167,7 +167,7 @@ public class MBox
      */
     public boolean isExpiredByTimestamp()
     {
-        if (expired && (DateTime.now().isAfter(ts_Active)))
+        if (expired && (ts_Active != 0) && (DateTime.now().isAfter(ts_Active)))
         {
             return true;
         }
