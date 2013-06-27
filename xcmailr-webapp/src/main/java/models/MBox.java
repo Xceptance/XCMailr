@@ -546,9 +546,9 @@ public class MBox
         {
             DateTime dt = new DateTime(this.ts_Active);
             String day = "";
-            String mon = "";
-            String hou = "";
-            String min = "";
+            String month = "";
+            String hour = "";
+            String minute = "";
             // add a leading "0" if the value is under ten
             if (dt.getDayOfMonth() < 10)
             {
@@ -558,23 +558,23 @@ public class MBox
 
             if (dt.getMonthOfYear() < 10)
             {
-                mon += "0";
+                month += "0";
             }
-            mon += String.valueOf(dt.getMonthOfYear());
+            month += String.valueOf(dt.getMonthOfYear());
 
             if (dt.getHourOfDay() < 10)
             {
-                hou += "0";
+                hour += "0";
             }
-            hou += String.valueOf(dt.getHourOfDay());
+            hour += String.valueOf(dt.getHourOfDay());
 
             if (dt.getMinuteOfHour() < 10)
             {
-                min += "0";
+                minute += "0";
             }
-            min += String.valueOf(dt.getMinuteOfHour());
+            minute += String.valueOf(dt.getMinuteOfHour());
 
-            return day + "." + mon + "." + dt.getYear() + " " + hou + ":" + min;
+            return  dt.getYear() + "-" + month + "-" + day + " " + hour + ":" + minute;
         }
     }
 
