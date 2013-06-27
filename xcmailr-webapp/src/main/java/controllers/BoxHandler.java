@@ -351,6 +351,7 @@ public class BoxHandler
 
     public Result showBoxOverview(Context context)
     {
+        Result result = Results.html();
         User user = context.getAttribute("user", User.class);
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
@@ -359,7 +360,6 @@ public class BoxHandler
 
         PageList<MBox> plist;
 
-        Result result = Results.html();
         String searchString = context.getParameter("s", "");
         if (searchString.equals(""))
         { // if there's no parameter, simply render all boxes
@@ -367,10 +367,14 @@ public class BoxHandler
         }
         else
         { // there's a search parameter with input, get the related boxes
+            result.render("searchValue", searchString);
             plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
         }
+        result.render("mboxes", plist);
+        
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        return result.render("mboxes", plist).render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
+        result.render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
+        return result;
     }
 
     /**

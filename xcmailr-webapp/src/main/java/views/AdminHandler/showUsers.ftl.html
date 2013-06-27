@@ -10,7 +10,7 @@ title=i18n("adminUserPage_Title")>
 <!-- begin user-search -->
 <form action="${contextPath}/admin/users" id="userSearchForm">
 	<div class="input-append">
-		<input type="text" id="userSearchInput" name ="s" data-provide="typeahead" autocomplete="off"/>
+		<input type="text" id="userSearchInput" name ="s" data-provide="typeahead" value="${(searchValue)!}" onClick="this.select();" autocomplete="off"/>
 		<button class="btn" id="userSearchButton" type="submit"><i class="icon-search"></i> ${adminUserPage_Button_Search}</button>
 		<span class="append"></span>
 	</div>

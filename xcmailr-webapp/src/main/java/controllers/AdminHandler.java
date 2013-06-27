@@ -83,8 +83,10 @@ public class AdminHandler
      */
     public Result showUsers(Context context)
     {
+        Result result = Results.html();
         User user = context.getAttribute("user", User.class);
-
+        // render the userID in the result to identify the row where no buttons will be shown
+        result.render("uid", user.getId());
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
 
@@ -95,16 +97,18 @@ public class AdminHandler
         PageList<User> pagedUserList;
         String searchString = context.getParameter("s", "");
         if (searchString.equals(""))
-        {
+        { // there is no searchString
             pagedUserList = new PageList<User>(User.all(), entries);
         }
         else
-        {
+        { // there is a searchString, search the related users
             pagedUserList = new PageList<User>(User.findUserLike(searchString), entries);
+            result.render("searchValue", searchString);
         }
+        // add the user-list
+        result.render("users", pagedUserList);
 
-        // put in the users-ID to identify the row where no buttons will be shown
-        return Results.html().render("uid", user.getId()).render("users", pagedUserList);
+        return result;
     }
 
     /**
