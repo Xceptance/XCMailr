@@ -228,10 +228,15 @@ title=i18n("mailbox_Title")>
 				var fullAddress = parts[1]+'@'+parts[2];
 				fullAddress = fullAddress.replace(regex, "<strong>$1</strong>");
 				fullAddress = fullAddress.replace('@', "&#064;");
-
 			        html = fullAddress+'<br/>';
-				    html += parts[3];
-
+			        if(parts[3]=='0')
+			        {
+			        	html+= ${i18n("mailbox_Label_Unlimited")};
+			        }
+			        else
+			        {
+				    	html += parts[3];
+			        }
 			return html;
 		    },
 		    updater: function(item) {

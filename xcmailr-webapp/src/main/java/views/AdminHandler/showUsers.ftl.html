@@ -119,13 +119,10 @@ title=i18n("adminUserPage_Title")>
 		    },		    	
 		    highlighter: function(item) {
 		        var parts = item.split('#');
-		        var regex = new RegExp( '(' + this.query + ')', 'gi' );
-			    html = '<div class="typeahead">';		        
-		    	html += '<div class="left">';
-			        html += '<div>'+parts[3]+'</div>';
-				    html += '<div>'+parts[2]+", "+parts[1]+'</div>';
-			    html += '</div>';
-	        html += '</div>';
+		        var regex = new RegExp( '(' + this.query + ')', 'gi' );		  
+				var emailAddress = parts[3].replace(regex, "<strong>$1</strong>");
+			        html = emailAddress+'<br/>';
+				    html += parts[2]+", "+parts[1];
 			return html;
 		    },
 		    updater: function(item) {
