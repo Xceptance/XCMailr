@@ -97,48 +97,48 @@ public class HelperUtilsTest
     @Test
     public void testHasCorrectFormat()
     {
-        boolean correctFormat = HelperUtils.hasCorrectFormat("12.12.2013 12:12");
+        boolean correctFormat = HelperUtils.hasCorrectFormat("2013-12-12 12:12");
         assertTrue(correctFormat);
 
-        correctFormat = HelperUtils.hasCorrectFormat("12.2.2013 12:12");
+        correctFormat = HelperUtils.hasCorrectFormat("2013-2-12 12:12");
         assertTrue(correctFormat);
 
-        correctFormat = HelperUtils.hasCorrectFormat("2.12.2013 12:12");
+        correctFormat = HelperUtils.hasCorrectFormat("2013-12-2 12:12");
         assertTrue(correctFormat);
 
-        correctFormat = HelperUtils.hasCorrectFormat("2.2.2013 1:12");
+        correctFormat = HelperUtils.hasCorrectFormat("2013-2-2 1:12");
         assertTrue(correctFormat);
 
-        correctFormat = HelperUtils.hasCorrectFormat("12.12.2013 12:2");
+        correctFormat = HelperUtils.hasCorrectFormat("2013-12-12 12:2");
         assertTrue(correctFormat);
 
-        correctFormat = HelperUtils.hasCorrectFormat("12.12.13 12:21");
+        correctFormat = HelperUtils.hasCorrectFormat("13-12-12 12:21");
         assertFalse(correctFormat);
 
-        correctFormat = HelperUtils.hasCorrectFormat("..2013 12:21");
+        correctFormat = HelperUtils.hasCorrectFormat("2013-- 12:21");
         assertFalse(correctFormat);
 
-        correctFormat = HelperUtils.hasCorrectFormat("12.12.2013 :21");
+        correctFormat = HelperUtils.hasCorrectFormat("2013-12-12 :21");
         assertFalse(correctFormat);
 
-        correctFormat = HelperUtils.hasCorrectFormat("12.12.2013    12:21");
+        correctFormat = HelperUtils.hasCorrectFormat("2013-12-12    12:21");
         assertFalse(correctFormat);
     }
 
     @Test
     public void testParseTimeString()
     {
-        long ts = HelperUtils.parseTimeString("12.12.2013 12:12");
+        long ts = HelperUtils.parseTimeString("2013-12-12 12:12");
         DateTime dt = new DateTime(2013, 12, 12, 12, 12);
         assertEquals(dt.getMillis(), ts);
 
-        ts = HelperUtils.parseTimeString(" 12.12.2013 12:12 ");
+        ts = HelperUtils.parseTimeString(" 2013-12-12 12:12 ");
         assertEquals(dt.getMillis(), ts);
 
         ts = HelperUtils.parseTimeString("12:12:12 12:12");
         assertEquals(-1L, ts);
 
-        ts = HelperUtils.parseTimeString("12.12.2013   12:12");
+        ts = HelperUtils.parseTimeString("2013-12-12   12:12");
         assertEquals(-1L, ts);
 
     }

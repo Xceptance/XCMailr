@@ -1,22 +1,26 @@
 package controllers;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 import models.MBox;
 import models.User;
 import ninja.NinjaTest;
-import ninja.utils.NinjaTestBrowser;
-
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import com.google.common.collect.Maps;
+
+import etc.HelperUtils;
 
 public class BoxHandlerTest extends NinjaTest
 {
@@ -65,9 +69,8 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: Try adding a box without having logged in
          */
-
-        // create a new instance of the testbrowser, because theres no other way to clear the cookies...
-        ninjaTestBrowser = new NinjaTestBrowser();
+        // logout
+        ninjaTestBrowser.makeRequest(getServerAddress() + "/logout");
         formParams.clear();
         formParams.put("address", "abox");
         formParams.put("domain", "xcmailr.test");
@@ -153,6 +156,79 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.contains("class=\"alert alert-error\">"));
         // check that there is a mailbox with that address
         assertNull(MBox.getByName("bbox", "xcmailr.test"));
+
+        /*
+         * TEST: try to add a box with an expired timestamp
+         */
+
+        // add the box
+        formParams.put("address", "bbbcbox");
+        formParams.put("domain", "xcmailr.test");
+        String ts = HelperUtils.parseStringTs(DateTime.now().minusHours(3).getMillis());
+        formParams.put("datetime", ts);
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
+                                                                    formParams);
+
+        // check that the add of the mbox was successful
+        assertTrue(result.contains("class=\"alert alert-error\">"));
+        // check that there is a mailbox with that address
+        assertNull(MBox.getByName("bbox", "xcmailr.test"));
+    }
+
+    @Test
+    public void testAddBoxAddressField()
+    {
+        /*
+         * TEST: Try to add a Box with an invalid local part
+         */
+        // add the box
+        formParams.put("address", "$$³@@@..");
+        formParams.put("domain", "xcmailr.test");
+        formParams.put("datetime", "0");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
+                                                                    formParams);
+
+        // check that the add of the mbox failed and the overview-page is shown
+        assertTrue(result.contains("class=\"alert alert-error\">"));
+        // check that there is a mailbox with that address
+        assertNull(MBox.getByName("$$³@@@..", "xcmailr.test"));
+
+        /*
+         * TEST: Try to add a Box with a local part that is more than 64chars long
+         */
+        // add the box
+        formParams.put("address", "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a");
+        formParams.put("domain", "xcmailr.test");
+        formParams.put("datetime", "0");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
+                                                                    formParams);
+
+        // check that the add of the mbox failed and the overview-page is shown
+        assertTrue(result.contains("class=\"alert alert-error\">"));
+        // check that there is a mailbox with that address
+        assertNull(MBox.getByName("a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
+                                  "xcmailr.test"));
+
+        /*
+         * TEST: Try to add a Box which has more than 254 chars
+         */
+        // add the box
+        formParams.put("address", "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a");
+        formParams.put("domain",
+                       "a12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                           + "aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa"
+                           + "12345678901234567890123456789012345678901234567890123456789012345678901234567890a.test");
+        formParams.put("datetime", "0");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
+                                                                    formParams);
+
+        // check that the add of the mbox failed and the overview-page is shown
+        assertTrue(result.contains("class=\"alert alert-error\">"));
+        // check that there is a mailbox with that address
+        assertNull(MBox.getByName("a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
+                                  "a12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                                      + "aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa"
+                                      + "12345678901234567890123456789012345678901234567890123456789012345678901234567890a.test"));
 
     }
 
@@ -300,7 +376,7 @@ public class BoxHandlerTest extends NinjaTest
         DateTime dt = new DateTime().plusHours(1);
 
         formMap.put("datetime",
-                    dt.getDayOfMonth() + "." + dt.getMonthOfYear() + "." + dt.getYear() + " " + dt.getHourOfDay() + ":"
+                    dt.getYear() + "-" + dt.getMonthOfYear() + "-" + dt.getDayOfMonth() + " " + dt.getHourOfDay() + ":"
                         + dt.getMinuteOfHour());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + mbox.getId(),
                                                                     headers, formMap);
@@ -311,7 +387,7 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: a wrong timestamp
          */
-        formMap.put("datetime", "01.01.00");
+        formMap.put("datetime", "01-01-00");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + mbox.getId(),
                                                                     headers, formMap);
         expected = ninjaTestBrowser.makeRequest(getServerAddress() + "mail");
@@ -324,7 +400,7 @@ public class BoxHandlerTest extends NinjaTest
         id = mbox.getId() + 1;
 
         // increase the id until we found a "free" id or reached 1000000 (prevent an endless loop)
-        while (!(MBox.getById(id) == null) && (id <= 1000000))
+        while ((MBox.getById(id) != null) && (id <= 1000000))
         {
             id += 1;
         }
@@ -347,7 +423,7 @@ public class BoxHandlerTest extends NinjaTest
 
         User user2 = new User("fName", "sName", "eMail@xcmailr.test", "1234", "en");
         user2.save();
-        MBox mbox2 = new MBox("mbox2", "xcmailr.test", 0, false, user2);
+        MBox mbox2 = new MBox("mbox2", "xcmailr.test", 0L, false, user2);
         mbox2.save();
 
         // display the edit-page
@@ -395,4 +471,142 @@ public class BoxHandlerTest extends NinjaTest
 
     }
 
+    @Test
+    public void testResetBoxCounters()
+    {
+        MBox mbox = new MBox("abcdefg", "xcmailr.test", 0L, false, user);
+        mbox.save();
+        // increase the suppressions and forwards
+        mbox.increaseForwards();
+        mbox.increaseForwards();
+        mbox.increaseForwards();
+        mbox.increaseSuppressions();
+        mbox.increaseSuppressions();
+        mbox.increaseSuppressions();
+        mbox.update();
+        assertEquals(3, mbox.getSuppressions());
+        assertEquals(3, mbox.getForwards());
+
+        formParams.clear();
+        // try to reset the box via controller method
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/reset/" + mbox.getId(),
+                                                                    headers, formParams);
+
+        MBox mbox2 = MBox.getById(mbox.getId());
+
+        assertEquals(0, mbox2.getSuppressions());
+        assertEquals(0, mbox2.getForwards());
+
+    }
+
+    @Test
+    public void testBulkChange()
+    {
+        MBox mbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
+        mbox1.setForwards(3);
+        mbox1.setSuppressions(3);
+        mbox1.save();
+        MBox mbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
+        mbox2.setForwards(2);
+        mbox2.setSuppressions(2);
+        mbox2.save();
+
+        MBox mbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
+        mbox3.setForwards(1);
+        mbox3.setSuppressions(1);
+        mbox3.save();
+
+        // check the correct numbers
+        assertEquals(3, mbox1.getSuppressions());
+        assertEquals(3, mbox1.getForwards());
+        assertEquals(2, mbox2.getSuppressions());
+        assertEquals(2, mbox2.getForwards());
+        assertEquals(1, mbox3.getSuppressions());
+        assertEquals(1, mbox3.getForwards());
+
+        // check that the boxes are active
+        assertTrue(mbox1.isActive());
+        assertTrue(mbox2.isActive());
+        assertTrue(mbox3.isActive());
+
+        formParams.clear();
+        // try to reset the boxes via controller method
+        result = ninjaTestBrowser.makeRequest(getServerAddress() + "mail/bulkChange?action=reset&ids=" + mbox1.getId()
+                                              + "," + mbox2.getId() + "," + mbox3.getId());
+
+        // update the boxes
+        MBox mbox1new = MBox.getById(mbox1.getId());
+        MBox mbox2new = MBox.getById(mbox2.getId());
+        MBox mbox3new = MBox.getById(mbox3.getId());
+        // check that the boxes are disabled
+        assertEquals(0, mbox1new.getSuppressions());
+        assertEquals(0, mbox1new.getForwards());
+        assertEquals(0, mbox2new.getSuppressions());
+        assertEquals(0, mbox2new.getForwards());
+        assertEquals(0, mbox3new.getSuppressions());
+        assertEquals(0, mbox3new.getForwards());
+
+        mbox3new.enable();
+        mbox3new.update();
+        // try to disable the boxes via controller method
+        result = ninjaTestBrowser.makeRequest(getServerAddress() + "mail/bulkChange?action=enable&ids=" + mbox1.getId()
+                                              + "," + mbox2.getId() + "," + mbox3.getId());
+
+        // update the boxes
+        mbox1 = MBox.getById(mbox1.getId());
+        mbox2 = MBox.getById(mbox2.getId());
+        mbox3 = MBox.getById(mbox3.getId());
+        // check that the boxes are active
+        assertFalse(mbox1.isActive());
+        assertFalse(mbox2.isActive());
+        assertTrue(mbox3.isActive());
+
+        // check the original timestamp
+        assertEquals(0L, mbox1.getTs_Active());
+        assertEquals(0L, mbox2.getTs_Active());
+        assertEquals(0L, mbox3.getTs_Active());
+        DateTime dt = DateTime.now().plusHours(3);
+        String duration = HelperUtils.parseStringTs(dt.getMillis());
+
+        URI uri;
+        try
+        {
+            URI uriServer = getServerAddressAsUri();
+            uri = new URI(uriServer.getScheme(), uriServer.getHost() + ":" + uriServer.getPort(), "/mail/bulkChange",
+                          "action=change&ids=" + mbox1.getId() + "," + mbox2.getId() + "," + mbox3.getId()
+                              + "&duration=" + duration, null);
+
+            String request = uri.toASCIIString();
+
+            // try to change the validity-period of the boxes via controller method
+            result = ninjaTestBrowser.makeRequest(request);
+        }
+        catch (URISyntaxException e)
+        {
+            e.printStackTrace();
+        }
+        // update the boxes
+        mbox1 = MBox.getById(mbox1.getId());
+        mbox2 = MBox.getById(mbox2.getId());
+        mbox3 = MBox.getById(mbox3.getId());
+
+        // check the new timestamp
+        long timeStamp = HelperUtils.parseTimeString(duration);
+
+        assertEquals(timeStamp, mbox1.getTs_Active());
+        assertEquals(timeStamp, mbox2.getTs_Active());
+        assertEquals(timeStamp, mbox3.getTs_Active());
+
+        // try to delete the boxes via controller method
+        result = ninjaTestBrowser.makeRequest(getServerAddress() + "mail/bulkChange?action=delete&ids=" + mbox1.getId()
+                                              + "," + mbox2.getId() + "," + mbox3.getId());
+
+        mbox1 = MBox.getById(mbox1.getId());
+        mbox2 = MBox.getById(mbox2.getId());
+        mbox3 = MBox.getById(mbox3.getId());
+
+        assertNull(mbox1);
+        assertNull(mbox2);
+        assertNull(mbox3);
+    }
 }

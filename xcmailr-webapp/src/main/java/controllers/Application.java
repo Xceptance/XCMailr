@@ -78,7 +78,7 @@ public class Application
     public Result index(Context context, @Param("lang") String languageParam)
     {
         Result result = Results.ok().html();
-        //set the wanted language
+        // set the wanted language
         if (languageParam != null && !languageParam.equals(""))
         {
             lang.setLanguage(languageParam, result);
@@ -86,7 +86,6 @@ public class Application
 
         // show the index-page
         List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
-        
         return result.render("available_langs", languageList);
     }
 
@@ -102,8 +101,8 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result registerForm(Context context)
     {
+        // render the available languages
         List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
-
         return Results.html().render("available_langs", languageList);
     }
 
@@ -126,10 +125,11 @@ public class Application
 
         Result result = Results.html().template("/views/Application/registerForm.ftl.html");
 
-        List<String[]> o = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
-        result.render("available_langs", o);
+        List<String[]> availableLanguageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context,
+                                                                           messages);
+        result.render("available_langs", availableLanguageList);
         if (validation.hasViolations())
-        {
+        { // the form contains errors
 
             registerFormData.setPassword("");
             registerFormData.setPasswordNew1("");
@@ -142,7 +142,8 @@ public class Application
         else
         { // form was filled correctly, go on!
             if (!User.mailExists(registerFormData.getMail()))
-            {
+            {// the user's mailaddress does not exist already in the database
+
                 // don't let the user register with one of our domains
                 // (prevent mail-loops)
                 String mail = registerFormData.getMail();
@@ -162,7 +163,7 @@ public class Application
                 if (registerFormData.getPassword().equals(registerFormData.getPasswordNew1()))
                 {
                     if (registerFormData.getPasswordNew1().length() < xcmConfiguration.PW_LENGTH)
-                    { // password too short
+                    { // password is too short
 
                         Optional<String> opt = Optional.of(context.getAcceptLanguage());
 
@@ -200,8 +201,7 @@ public class Application
                     context.getFlashCookie().success("flash_RegistrationSuccessful");
 
                     lang.setLanguage(user.getLanguage(), result);
-                    return result.template("/views/Application/index.ftl.html")
-                                 .redirect(context.getContextPath() + "/");
+                    return result.redirect(context.getContextPath() + "/");
                 }
                 else
                 { // password mismatch
@@ -216,7 +216,6 @@ public class Application
             else
             { // mailadress already exists
                 context.getFlashCookie().error("flash_MailExists");
-
                 return result.render("editUsr", registerFormData);
             }
         }
@@ -238,18 +237,18 @@ public class Application
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = User.getById(userId);
-        if (!(user == null))
+        if (user != null)
         { // the user exists
             if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
             { // the passed token is the right one -> activate the user
                 user.setActive(true);
                 user.update();
                 context.getFlashCookie().success("user_Verify_Success");
-                return result.template("/views/Application/index.ftl.html").redirect(context.getContextPath() + "/");
+                return result.redirect(context.getContextPath() + "/login");
             }
         }
         // show no message when the process failed
-        return result.template("/views/Application/index.ftl.html").redirect(context.getContextPath() + "/");
+        return result.redirect(context.getContextPath() + "/login");
     }
 
     // -------------------- Login/-out Functions -----------------------------------
@@ -322,8 +321,7 @@ public class Application
                     if (!loginUser.isActive())
                     {
                         context.getFlashCookie().error("user_Inactive");
-                        return result.template("/views/Application/index.ftl.html").redirect(context.getContextPath()
-                                                                                                 + "/");
+                        return result.redirect(context.getContextPath() + "/");
                     }
 
                     // we put the username into the cookie, but use the id of the cookie for authentication
@@ -341,8 +339,7 @@ public class Application
                     // set the language the user wants to have
                     lang.setLanguage(loginUser.getLanguage(), result);
 
-                    return result.template("/views/Application/index.ftl.html")
-                                 .redirect(context.getContextPath() + "/");
+                    return result.redirect(context.getContextPath() + "/");
                 }
                 else
                 { // the authentication was not correct
@@ -356,8 +353,7 @@ public class Application
 
                         // show the disabled message and return to the forgot-pw-page
                         context.getFlashCookie().error("user_Disabled");
-                        return result.template("/views/Application/index.ftl.html").redirect(context.getContextPath()
-                                                                                                 + "/pwresend");
+                        return result.redirect(context.getContextPath() + "/pwresend");
                     }
 
                     loginData.setPassword("");
@@ -458,7 +454,8 @@ public class Application
             }
         }
         // something was wrong, so redirect without any comment to the index-page
-        return Results.redirect(context.getContextPath() + "/");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
+        return result.redirect(context.getContextPath() + "/");
 
     }
 
@@ -481,7 +478,7 @@ public class Application
     public Result resetPasswordProcess(@PathParam("id") Long id, @PathParam("token") String token, Context context,
                                        @JSR303Validation PasswordFormData passwordFormData, Validation validation)
     {
-        Result result = Results.html().template("/views/Application/resetPasswordForm.ftl.html");
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         // check the PathParams again
         User user = User.getById(id);
         if (user != null)

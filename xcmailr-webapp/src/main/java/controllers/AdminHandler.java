@@ -149,7 +149,7 @@ public class AdminHandler
 
     /**
      * Delete a time-specified number of MailTransactions
-     * 
+     * GET /admin/mtxs/delete/{time}
      * @param time
      *            the time in days (all before will be deleted)
      * @return to the MailTransaction-Page
@@ -158,6 +158,9 @@ public class AdminHandler
     public Result deleteMTXProcess(@PathParam("time") Integer time, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
+        if(time==null){
+            return result.redirect(context.getContextPath() + "/admin/mtxs");
+        }
         if (time == -1)
         { // all entries will be deleted
             MailTransaction.deleteTxInPeriod(null);

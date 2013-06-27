@@ -1,17 +1,14 @@
 package controllers;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import java.util.Map;
 
 import models.User;
 import ninja.NinjaTest;
 import ninja.utils.NinjaProperties;
-import ninja.utils.NinjaTestServer;
-
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
@@ -32,20 +29,7 @@ public class UserHandlerTest extends NinjaTest
 
     String result;
 
-    private static NinjaTestServer ninjaTestServer;
-
-    @BeforeClass
-    public static void beforeClass()
-    {
-        ninjaTestServer = new NinjaTestServer();
-
-    }
-
-    @AfterClass
-    public static void afterClass()
-    {
-        ninjaTestServer.shutdown();
-    }
+    User u;
 
     @Before
     public void setUp()
@@ -54,7 +38,7 @@ public class UserHandlerTest extends NinjaTest
         headers.clear();
         returnedData.clear();
 
-        User u = new User("John", "Doe", "admin@localhost.test", "1234", "en");
+        u = new User("John", "Doe", "admin@localhost.test", "1234", "en");
         u.setActive(true);
         u.save();
 
@@ -90,7 +74,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
                                                                     formParams);
-        System.out.println(result+"\n\n\n");
+
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
         assertTrue(result.contains("class=\"alert alert-error\">"));
@@ -123,6 +107,24 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "@this.de");
+        formParams.put("password", "1234");
+        formParams.put("language", "en");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
+                                                                    formParams);
+        returnedData = HtmlUtils.readInputFormData(result);
+        // check that the user-data-edit had failed
+        assertTrue(result.contains("class=\"alert alert-error\">"));
+
+        // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
+        TestUtils.testMapEntryEquality(userData, returnedData);
+
+        /*
+         * TEST: Set a domain that belongs to this domains
+         */
+        formParams.clear();
+        formParams.put("firstName", "John");
+        formParams.put("surName", "Doe");
+        formParams.put("mail", "abc@xcmailr.test");
         formParams.put("password", "1234");
         formParams.put("language", "en");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
@@ -208,6 +210,24 @@ public class UserHandlerTest extends NinjaTest
         TestUtils.testMapEntryEquality(userData, returnedData);
 
         /*
+         * TEST: set too short passwd
+         */
+        formParams.clear();
+        formParams.put("firstName", "Johnny");
+        formParams.put("surName", "Doe");
+        formParams.put("mail", "admin@localhost.test");
+        formParams.put("password", "f");
+        formParams.put("language", "en");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/edit", headers,
+                                                                    formParams);
+
+        returnedData = HtmlUtils.readInputFormData(result);
+        // check that the user-data-edit had failed
+        assertTrue(result.contains("class=\"alert alert-error\">"));
+
+        // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
+        TestUtils.testMapEntryEquality(userData, returnedData);
+        /*
          * TEST: Edit the Userdata correctly (fore- and surname only)
          */
         formParams.clear();
@@ -251,7 +271,6 @@ public class UserHandlerTest extends NinjaTest
         formParams.remove("passwordNew1");
         formParams.remove("passwordNew2");
 
-
         TestUtils.testMapEntryEquality(formParams, returnedData);
 
     }
@@ -277,13 +296,24 @@ public class UserHandlerTest extends NinjaTest
         // check if the userdata-edit has been successfully changed
 
         assertTrue(result.contains("class=\"alert alert-error\">"));
-        System.out.println(returnedData + "\n\n\n");
+
         // the returned data should now be equal to the formparams without the password
         formParams.remove("password");
         formParams.remove("passwordNew1");
         formParams.remove("passwordNew2");
 
         TestUtils.testMapEntryEquality(formParams, returnedData);
+    }
+
+    @Test
+    public void testDeleteUser()
+    {
+        formParams.clear();
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/delete", headers,
+                                                                    formParams);
+        User user = User.getById(u.getId());
+
+        assertNull(user);
     }
 
 }

@@ -316,4 +316,7 @@ public class MailTransaction
         Ebean.delete(MailTransaction.class, ids);
     }
 
+    public static MailTransaction getById(long id){
+        return Ebean.find(MailTransaction.class, id);
+    }
 }
