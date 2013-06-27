@@ -11,8 +11,10 @@ title=i18n("adminUserPage_Title")>
 <form action="${contextPath}/admin/users" id="userSearchForm">
 	<div class="input-append">
 		<input type="text" id="userSearchInput" name ="s" data-provide="typeahead" value="${(searchValue)!}" onClick="this.select();" autocomplete="off"/>
+		<#if (searchValue)??>
+			<a class="btn" id="userSearchResetButton" href="${contextPath}/admin/users"><i class="icon-remove-circle"></i></a>
+		</#if>
 		<button class="btn" id="userSearchButton" type="submit"><i class="icon-search"></i> ${adminUserPage_Button_Search}</button>
-		<span class="append"></span>
 	</div>
 </form>
 <!-- end user-search -->
