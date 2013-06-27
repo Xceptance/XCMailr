@@ -56,7 +56,7 @@ public class SecureFilter implements Filter
                 context.getSessionCookie().clear();
             }
 
-            return Results.forbidden().redirect("/login");
+            return Results.forbidden().redirect(context.getContextPath()+"/login");
         }
     }
 }

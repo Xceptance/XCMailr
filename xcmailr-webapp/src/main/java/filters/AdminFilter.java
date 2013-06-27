@@ -48,7 +48,7 @@ public class AdminFilter implements Filter
         }
         else
         {
-            return Results.redirect("/");
+            return Results.redirect(context.getContextPath()+"/");
         }
     }
 }
