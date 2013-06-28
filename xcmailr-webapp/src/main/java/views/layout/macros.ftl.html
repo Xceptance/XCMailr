@@ -46,12 +46,11 @@
 	        $("table").tablesorter(
 	        		{
 	                	headers: { 
-                			<#list vals as x>
-                				${x}: { sorter: false }<#if x_has_next>,</#if>
+                			<#list vals as columnNo>
+                				${columnNo}: { sorter: false }<#if columnNo_has_next>,</#if>
                 			</#list>
                 			}
-	        		}
-); 
+	        		}); 
 	    }); 
     </script>
 

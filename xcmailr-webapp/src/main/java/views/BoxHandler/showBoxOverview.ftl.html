@@ -1,12 +1,12 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
 title=i18n("mailbox_Title")>
 <#import "../layout/macros.ftl.html" as pag/>
-
+<@pag.incSorter vals=[0,6,7,8,9]/>	
 
 <div class="row">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<!--mailboxoverview-->
-	
+
 	<#if (mboxes.getEntryCount() > 0) >
 		<form action="${contextPath}/mail">
 		<@pag.entrycount/>
@@ -114,17 +114,12 @@ title=i18n("mailbox_Title")>
 
 		<td colspan="2"><!-- bulk change duration -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkChangeDuration${x}" method="get">
-					<span id="datetimepicker${x}" class="input-append">
-				    	<input data-format="dd.MM.yyyy hh:mm" class="span8" id="datetime${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
+			<div id="datetimepicker${x}" class="input-append">
+				    	<input data-format="yyyy-MM-dd hh:mm" class="span8" id="datetime${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
 					    <span id="pickr_span${x}" class="add-on">
 					      <i id="pickr_i${x}" data-time-icon="icon-time" data-date-icon="icon-calendar" class="group1"></i>
 					    </span>
-				    </span>
-				    <label class="checkbox"> 
-						<input type="checkbox" id="chkUnlimited${x}" onClick="toggleBatch(this,${x})" /> ${i18n("mailbox_Label_Unlimited")}
-					</label>
-					<input type="hidden" id="inputBulkChangeDuration${x}" name="ids"/>		
-					<input type="hidden" id="inputBulkChangeDurationAction" name="action" value="change"/>
+				    </div>
 			<script type="text/javascript">
 				$(function() {
 					$('#datetimepicker${x}').datetimepicker({
@@ -134,6 +129,12 @@ title=i18n("mailbox_Title")>
 					});
 				});
 			</script>
+				    <label class="checkbox"> 
+						<input type="checkbox" id="chkUnlimited${x}" onClick="toggleBatch(this,${x})" /> ${i18n("mailbox_Label_Unlimited")}
+					</label>
+					<input type="hidden" id="inputBulkChangeDuration${x}" name="ids"/>		
+					<input type="hidden" id="inputBulkChangeDurationAction" name="action" value="change"/>
+
 		</form>
 		
 		</td>
@@ -178,12 +179,13 @@ title=i18n("mailbox_Title")>
 </div><!-- /tab content -->
 <#if (mboxes.getEntryCount() > 0) >
 <@pag.pager name=mboxes/>
-<@pag.incSorter vals=[0,6,7,8,9]/>
+
 <p>
 	<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
 	<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a>
 </p>
 </#if>
+
 </div><!-- /row -->
 
 <script type="text/javascript">
@@ -255,11 +257,33 @@ title=i18n("mailbox_Title")>
 			$('.bulkChk'+page).prop("checked", false);
 		}
 	}
+	function toggleBatch(chkbox, page) {
+		var visSetting = (chkbox.checked) ? 'display: none' : 'display: inline-block';
+		var picker = $('#datetimepicker'+page).data('datetimepicker');
+		$('#datetime'+page).attr('style', visSetting);
+		$('#datetimepicker'+page).attr('style', visSetting);
+		$('#pickr_span'+page).attr('style', visSetting);
+		$('#pickr_i'+page).attr('style', visSetting);
+
+		if (chkbox.checked) {
+			var dateval = $('#datetime'+page).attr("value");
+			//remove the attribute from datetime input field
+			$('#datetime'+page).attr("value", 0);
+			//add it to the checkbox 
+			$('#chkUnlimited'+page).attr("value", dateval);
+
+		} else {
+			var dateval = $('#chkUnlimited'+page).attr("value");
+			//add the attribute to datetime input field 
+			$('#datetime'+page).attr("value", dateval);
+			//remove it from the checkbox 
+			$('#chkUnlimited'+page).removeAttr("value");
+		}
+	}
 </script> 
 <script type="text/javascript" src="${contextPath}/assets/js/typeaheadpreventautoselect.js"></script>
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
-<script type="text/javascript" src="${contextPath}/assets/js/picker-enable.js"></script> 
 
 </@layout.xcLayout>
 
