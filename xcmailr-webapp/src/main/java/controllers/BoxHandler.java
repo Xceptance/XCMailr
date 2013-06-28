@@ -122,7 +122,7 @@ public class BoxHandler
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (completeAddress.length() >= 255)
             {
-                context.getFlashCookie().error("flash_MailTooLong");
+                context.getFlashCookie().error("createEmail_Flash_MailTooLong");
 
                 result.render("mbFrmDat", mailboxFormData);
                 return result.template("/views/BoxHandler/addBoxForm.ftl.html");
@@ -232,7 +232,7 @@ public class BoxHandler
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (completeAddress.length() >= 255)
             {
-                context.getFlashCookie().error("flash_MailTooLong");
+                context.getFlashCookie().error("editEmail_Flash_MailTooLong");
 
                 result.render("mbFrmDat", mailboxFormData);
                 return result.template("/views/BoxHandler/addBoxForm.ftl.html");
@@ -401,7 +401,7 @@ public class BoxHandler
             if ((mailBox.getTs_Active() != 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
             { // if the validity period is over, return the Edit page and give the user a response why he gets there
 
-                context.getFlashCookie().put("info", "flash_expireEmail_expired");
+                context.getFlashCookie().put("info", "expireEmail_Flash_Expired");
                 return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
             }
             else
@@ -485,7 +485,7 @@ public class BoxHandler
                                 }
                                 else
                                 {
-                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                     return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
@@ -503,7 +503,7 @@ public class BoxHandler
                                 }
                                 else
                                 {
-                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                     return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
@@ -537,7 +537,7 @@ public class BoxHandler
                                 }
                                 else
                                 {
-                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                     return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
@@ -565,7 +565,7 @@ public class BoxHandler
                                 }
                                 else
                                 { // box does not belong to the user
-                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                     return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }

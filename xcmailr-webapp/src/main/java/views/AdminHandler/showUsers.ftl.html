@@ -50,16 +50,16 @@ title=i18n("adminUserPage_Title")>
 			    <td>${user.mail}</td>
 			    <td>
 				    <#if (user.isAdmin())>
-				    	${i18n("msg_Yes")}
+				    	${i18n("adminUserPage_Label_Yes")}
 				    <#else>
-				    	${i18n("msg_No")}
+				    	${i18n("adminUserPage_Label_No")}
 				    </#if>
 				</td>
 			    <td>
 				    <#if (user.isActive())>
-				    	${i18n("msg_Yes")}
+				    	${i18n("adminUserPage_Label_Active")}
 				    <#else>
-				    	${i18n("msg_No")}
+				    	${i18n("adminUserPage_Label_Inactive")}
 				    </#if>
 			    </td>
 			<#if uid = user.id>	

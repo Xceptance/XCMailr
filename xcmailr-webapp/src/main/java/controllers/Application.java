@@ -198,7 +198,7 @@ public class Application
                     mailrSenderFactory.sendConfirmAddressMail(user.getMail(), user.getForename(),
                                                               String.valueOf(user.getId()), user.getConfirmation(),
                                                               language);
-                    context.getFlashCookie().success("flash_RegistrationSuccessful");
+                    context.getFlashCookie().success("registerUser_Flash_Successful");
 
                     lang.setLanguage(user.getLanguage(), result);
                     return result.redirect(context.getContextPath() + "/");
@@ -286,7 +286,7 @@ public class Application
 
         // show the index-page
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        context.getFlashCookie().success("flash_LogOut");
+        context.getFlashCookie().success("logout_Flash_LogOut");
         return result.redirect(context.getContextPath() + "/");
     }
 
@@ -335,7 +335,7 @@ public class Application
                     }
                     loginUser.setBadPwCount(0);
                     loginUser.update();
-                    context.getFlashCookie().success("flash_LogIn");
+                    context.getFlashCookie().success("login_Flash_LogIn");
 
                     // set the language the user wants to have
                     lang.setLanguage(loginUser.getLanguage(), result);
@@ -353,7 +353,7 @@ public class Application
                         loginUser.update();
 
                         // show the disabled message and return to the forgot-pw-page
-                        context.getFlashCookie().error("user_Disabled");
+                        context.getFlashCookie().error("login_Flash_UserDisabled");
                         return result.redirect(context.getContextPath() + "/pwresend");
                     }
 
@@ -419,12 +419,12 @@ public class Application
                 Optional<String> lang = Optional.of(user.getLanguage());
                 mailrSenderFactory.sendPwForgotAddressMail(user.getMail(), user.getForename(),
                                                            String.valueOf(user.getId()), user.getConfirmation(), lang);
-                context.getFlashCookie().success("flash_forgotPassword_Success");
+                context.getFlashCookie().success("forgotPassword_Flash_Success");
                 return result.redirect(context.getContextPath() + "/");
             }
 
             // The user doesn't exist in the db, but we show him the success-msg anyway
-            context.getFlashCookie().success("flash_forgotPassword_Success");
+            context.getFlashCookie().success("forgotPassword_Flash_Success");
             return result.redirect(context.getContextPath() + "/");
         }
 
