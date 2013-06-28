@@ -25,7 +25,7 @@ Requirements
 Configuration:
 --------------
  * Open and edit the application.conf in conf/ 
- * It is strongly recommended to create a new application secret. This secret ensures that the Session-Cookie of a User has not been modified. 
+ * It is strongly recommended to create a new application secret. This secret ensures that the session-cookie of a user has not been modified. 
  * You should especially customize the following settings:
     * **application.secret** uncomment and set this line, its used to verify session-cookies
     * **mbox.dlist**: the list of available domains
@@ -41,16 +41,16 @@ Run the Application:
 --------------------
  * Just edit the application.conf (see Configuration) and run the 'run.sh'-script
  * If you set a value for "application.basedir", the server will use that value as contextpath for your application. That means, when you specify the value "xcmailr" for the basedir and "http://localhost:8080" as "application.url", then your application can be locally reached at "http://localhost:8080/xcmailr". If you want to run the application behind a reverse proxy, have a look at the section below.
- * To drop and recreate all Tables (this will remove all data contained in this tables!) run the script with the parameter "-Dxcmailr.xcmstart.droptables=true"
+ * To drop and recreate all tables (which will remove all data contained in this tables!) run the script with the parameter "-Dxcmailr.xcmstart.droptables=true"
 
 Build from Source:
 ------------------
  * If you want to build the Project from the sources, you've two options to run the webapp.
  * First option (after you've changed sth. and want to check your changes), the development-mode:
     * cd into the 'xcmailr-webapp' folder
-    * execute 'mvn clean jetty:run' to clean up the target-folder (if existent) and run the app in development-mode inside an embedded-jetty running on localhost:8080
+    * execute 'mvn clean jetty:run' to clean up the target-folder (if existent) and run the app in development-mode inside an embedded-jetty running on localhost:8080 (the "basedir" will be ignored here)
     * NOTE1: The webapp does not check whether the database and the tables exist. On the first run, you must set "%dev.ebean.ddl.run" and "%dev.ebean.ddl.generate" in application.conf to "true" to execute the "create table"-scripts and run the app successfully. (after that, you should set these values to "false" again, otherwise the database will be dropped and recreated after each server-reload)
-    * NOTE2 (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby, you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file. It will search for the file at first in this folder. In both cases you have to care that the .conf-files at ./xcmailr-webapp/src/main/java/conf and ./xcmailr-resources/conf are up-to-date and contain all necessary keys
+    * NOTE2 (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby, you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file. It will search for the configuration-file at first in this folder. In both cases you have to care that the .conf-files at ./xcmailr-webapp/src/main/java/conf and ./xcmailr-resources/conf are up-to-date and contain all necessary keys
  * Second option (to create the build-folder):
     * cd into the home-directory of the xcmailr
     * run 'mvn clean package' to create the build-folder
@@ -131,8 +131,6 @@ Frameworks/Librarys/Code/etc which were provided by others:
     * Copyright 2011 Twitter, Inc.
     * http://twitter.github.io/bootstrap/
     * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
-
-
 
 
 License:
