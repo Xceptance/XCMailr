@@ -244,6 +244,7 @@ public class Application
                 user.setActive(true);
                 user.update();
                 context.getFlashCookie().success("user_Verify_Success");
+                lang.setLanguage(user.getLanguage(), result);
                 return result.redirect(context.getContextPath() + "/login");
             }
         }
@@ -443,18 +444,20 @@ public class Application
      */
     public Result resetPasswordForm(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
+        Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = User.getById(id);
         if (user != null)
         { // the user exists
             if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
             { // the token is right and the request is in time
-
+                lang.setLanguage(user.getLanguage(), result);
                 // show the form for the new password
-                return Results.html().render("id", id.toString()).render("token", token);
+                result = Results.html();
+                return result.render("id", id.toString()).render("token", token);
             }
         }
         // something was wrong, so redirect without any comment to the index-page
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+
         return result.redirect(context.getContextPath() + "/");
 
     }
