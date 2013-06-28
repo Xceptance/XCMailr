@@ -30,9 +30,9 @@ Configuration:
     * **application.secret** uncomment and set this line, its used to verify session-cookies
     * **mbox.dlist**: the list of available domains
     * **mbox.host** the main-application-host 
-    * ** mail.smtp.* ** the "outbound" SMTP-Server (the Server to which the Application will forward any "valid" Messages )
-    * ** memcached.* ** the MemCached-Server (host and port)
-    * ** ebean.* ** the Ebean-Configuration
+    * ** mail.smtp.&#42; ** the "outbound" SMTP-Server (the Server to which the Application will forward any "valid" Messages )
+    * ** memcached.&#42; ** the MemCached-Server (host and port)
+    * ** ebean.&#42; ** the Ebean-Configuration
 
  * You can configure the logging by editing conf/logback.xml, see http://logback.qos.ch/manual/ for documentation
  * HTTPS Support, Edit conf/jetty.xml-file as shown here: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
