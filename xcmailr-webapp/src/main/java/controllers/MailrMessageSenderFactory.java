@@ -160,7 +160,8 @@ public class MailrMessageSenderFactory
         strb.append("/verify/" + id + "/" + token);
 
         // generate the message-body
-        String body = messages.get("user_Verify_Message", language, forename, strb.toString(), xcmConfiguration.CONFIRMATION_PERIOD).get();
+        String body = messages.get("user_Verify_Message", language, forename, strb.toString(),
+                                   xcmConfiguration.CONFIRMATION_PERIOD).get();
         // generate the message-subject
         String subject = messages.get("user_Verify_Subject", language, (Object) null).get();
 
@@ -198,7 +199,8 @@ public class MailrMessageSenderFactory
         strb.append("/lostpw/" + id + "/" + token);
 
         // generate the Message-Body
-        String body = messages.get("user_PwResend_Message", language, forename, strb.toString(), xcmConfiguration.CONFIRMATION_PERIOD).get();
+        String body = messages.get("user_PwResend_Message", language, forename, strb.toString(),
+                                   xcmConfiguration.CONFIRMATION_PERIOD).get();
 
         // generate the Message-Subject
         String subject = messages.get("user_PwResend_Subject", language, (Object) null).get();

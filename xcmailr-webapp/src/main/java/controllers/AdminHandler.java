@@ -58,7 +58,7 @@ public class AdminHandler
     Messages messages;
 
     @Inject
-    MailrMessageSenderFactory memCachedSessionHandler;
+    MailrMessageSenderFactory mailSender;
 
     /**
      * Shows the Administration-Index-Page<br/>
@@ -148,8 +148,8 @@ public class AdminHandler
     }
 
     /**
-     * Delete a time-specified number of MailTransactions
-     * GET /admin/mtxs/delete/{time}
+     * Delete a time-specified number of MailTransactions GET /admin/mtxs/delete/{time}
+     * 
      * @param time
      *            the time in days (all before will be deleted)
      * @return to the MailTransaction-Page
@@ -158,7 +158,8 @@ public class AdminHandler
     public Result deleteMTXProcess(@PathParam("time") Integer time, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        if(time==null){
+        if (time == null)
+        {
             return result.redirect(context.getContextPath() + "/admin/mtxs");
         }
         if (time == -1)
@@ -188,18 +189,21 @@ public class AdminHandler
     public Result activateUserProcess(@PathParam("id") Long userId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
-        User user = context.getAttribute("user", User.class);
-        if (user.getId() != userId)
+
+        // get the user who executes this action
+        User executingUser = context.getAttribute("user", User.class);
+        if (executingUser.getId() != userId)
         { // the user to (de-)activate is not the user who performs this action
 
             // activate or deactivate the user
             boolean active = User.activate(userId);
 
             // generate the (de-)activation-information mail and send it to the user
-            User actusr = User.getById(userId);
+            User user = User.getById(userId);
             String from = xcmConfiguration.ADMIN_ADDRESS;
             String host = xcmConfiguration.MB_HOST;
-            Optional<String> optLanguage = Optional.fromNullable(context.getAcceptLanguage());
+
+            Optional<String> optLanguage = Optional.of(user.getLanguage());
 
             if (active)
             { // the account is now active
@@ -208,18 +212,18 @@ public class AdminHandler
                 String subject = messages.get("user_Activate_Title", optLanguage, host).get();
                 // generate the message body
 
-                String content = messages.get("user_Activate_Message", optLanguage, actusr.getForename()).get();
+                String content = messages.get("user_Activate_Message", optLanguage, user.getForename()).get();
                 // send the mail
-                memCachedSessionHandler.sendMail(from, actusr.getMail(), content, subject);
+                mailSender.sendMail(from, user.getMail(), content, subject);
             }
             else
             {// the account is now inactive
              // generate the message title
                 String subject = messages.get("user_Deactivate_Title", optLanguage, host).get();
                 // generate the message body
-                String content = messages.get("user_Deactivate_Message", optLanguage, actusr.getForename()).get();
+                String content = messages.get("user_Deactivate_Message", optLanguage, user.getForename()).get();
                 // send the mail
-                memCachedSessionHandler.sendMail(from, actusr.getMail(), content, subject);
+                mailSender.sendMail(from, user.getMail(), content, subject);
             }
             return result.redirect(context.getContextPath() + "/admin/users");
         }
