@@ -39,7 +39,7 @@ Configuration:
 
 Run the Application:
 --------------------
- * Just edit the application.conf (see Configuration) and run the 'run.sh'-script
+ * Just rename the application.conf.template to application.conf and edit the application.conf (see Configuration). Then run the 'run.sh'-script.
  * If you set a value for "application.basedir", the server will use that value as contextpath for your application. That means, when you specify the value "xcmailr" for the basedir and "http://localhost:8080" as "application.url", then your application can be locally reached at "http://localhost:8080/xcmailr". If you want to run the application behind a reverse proxy, have a look at the section below.
  * To drop and recreate all tables (which will remove all data contained in this tables!) run the script with the parameter "-Dxcmailr.xcmstart.droptables=true"
 
