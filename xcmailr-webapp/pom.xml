@@ -26,7 +26,7 @@
 	<parent>
 		<groupId>org.xcmailr</groupId>
 		<artifactId>xcmailr</artifactId>
-		<version>1.0.8-SNAPSHOT</version>
+		<version>1.0.9-SNAPSHOT</version>
 	</parent>
 		<build>
 		<plugins>
