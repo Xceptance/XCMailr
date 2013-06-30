@@ -40,9 +40,19 @@ title=i18n("createEmail_Title")>
 				    </div>
 				  </div>
 				    <div class="controls">
+				    <label class="checkbox"> 
 				    	<input type="checkbox" id="chkUnlimited" onClick="toggle(this)" /> ${i18n("createEmail_Unlimited")}
+				    </label>
 				    </div>
+				</div>				
+				<div class="form-actions">
+					<input type="button" class="btn" id="createEmailReset"  value='${i18n("createEmail_Button_Reset")}' />
+					<input type="button" class="btn btn-primary" id="createEmailSubmit" value='${i18n("createEmail_Button_New")}' />
 				</div>
+			</fieldset>
+		</form>
+	</div>
+</div>
 				<script type="text/javascript">
 					$(function() {
 						$('#datetimepicker').datetimepicker({
@@ -54,19 +64,13 @@ title=i18n("createEmail_Title")>
 
 					$(document).ready(function() {
 						//handle the reset-button
-						$('input#createEmailReset.btn').click(function reset() {
-							var chkBxUnlimited = $('input#chkUnlimited');
+						$('#createEmailReset.btn').click(function reset() {
+							var chkBxUnlimited = $('#chkUnlimited');
+
 							if(chkBxUnlimited.is(':checked')){
-								var dateval = $('input#chkUnlimited').attr('value');
-								//add the attribute to datetime input field 
-								$('input#datetime').attr("value", dateval);
-								//remove it from the checkbox 
-								$('input#chkUnlimited').removeAttr('value');
+								toggle(chkBxUnlimited);
 							}
-							$('input#chkUnlimited').removeAttr('checked');
-							$('input#datetime').removeAttr('style');
-							$('span#pickr_span').removeAttr('style');
-							$('i#pickr_i').removeAttr('style');
+
 							$('#mailInvalidErrorSpan').remove();
 							$('#emailRow').removeClass('error');
 							$('#addBoxForm')[0].reset();
@@ -97,15 +101,6 @@ title=i18n("createEmail_Title")>
 					});
 									
 				</script>
-				
-				<div class="form-actions">
-					<input type="button" class="btn" id="createEmailReset"  value='${i18n("createEmail_Button_Reset")}' />
-					<input type="button" class="btn btn-primary" id="createEmailSubmit" value='${i18n("createEmail_Button_New")}' />
-				</div>
-			</fieldset>
-		</form>
-	</div>
-</div>
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/picker-enable.js"></script> 
