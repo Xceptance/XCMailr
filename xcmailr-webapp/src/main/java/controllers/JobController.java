@@ -107,8 +107,7 @@ public class JobController
         smtpServer.setPort(port);
         smtpServer.start();
 
-        if (!ninjaProperties.isTest())
-        {
+
             // create the executor-service to check the mailboxes which were expired since the last run and disable them
             expirationService.scheduleAtFixedRate(new Runnable()
             {
@@ -133,7 +132,7 @@ public class JobController
                     }
                 }
             }, new Long(1), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
-        }
+        
     }
 
     /**

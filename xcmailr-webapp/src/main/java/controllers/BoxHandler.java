@@ -122,7 +122,7 @@ public class BoxHandler
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (completeAddress.length() >= 255)
             {
-                context.getFlashCookie().error("flash_MailTooLong");
+                context.getFlashCookie().error("createEmail_Flash_MailTooLong");
 
                 result.render("mbFrmDat", mailboxFormData);
                 return result.template("/views/BoxHandler/addBoxForm.ftl.html");
@@ -174,7 +174,8 @@ public class BoxHandler
     }
 
     /**
-     * Deletes a Box from the DB POST /mail/delete/{id}
+     * Deletes a Box from the DB <br/>
+     * POST /mail/delete/{id}
      * 
      * @param boxid
      *            the ID of the Mailbox
@@ -231,7 +232,7 @@ public class BoxHandler
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (completeAddress.length() >= 255)
             {
-                context.getFlashCookie().error("flash_MailTooLong");
+                context.getFlashCookie().error("editEmail_Flash_MailTooLong");
 
                 result.render("mbFrmDat", mailboxFormData);
                 return result.template("/views/BoxHandler/addBoxForm.ftl.html");
@@ -308,11 +309,13 @@ public class BoxHandler
      */
     public Result editBoxForm(Context context, @PathParam("id") Long boxId)
     {
+        Result result = Results.html().template("/views/Application/index.ftl.html");
+
         MBox mailBox = MBox.getById(boxId);
 
         if (mailBox == null)
         { // there's no box with that id
-            return Results.redirect(context.getContextPath() + "/mail");
+            return result.redirect(context.getContextPath() + "/mail");
         }
         else
         { // the box exists, go on!
@@ -329,18 +332,19 @@ public class BoxHandler
                     mailBox.setTs_Active(dateTime.getMillis());
                 }
                 MailBoxFormData mailBoxFormData = MailBoxFormData.prepopulate(mailBox);
-                return Results.html().render("mbFrmDat", mailBoxFormData)
-                              .render("domain", xcmConfiguration.DOMAIN_LIST);
+                return result.template("/views/BoxHandler/editBoxForm.ftl.html").render("mbFrmDat", mailBoxFormData)
+                             .render("domain", xcmConfiguration.DOMAIN_LIST);
             }
             else
             { // the MBox does not belong to this user
-                return Results.redirect(context.getContextPath() + "/mail");
+                return result.redirect(context.getContextPath() + "/mail");
             }
         }
     }
 
     /**
-     * Generates the Mailbox-Overview-Page of a {@link User}.
+     * Generates the Mailbox-Overview-Page of a {@link User}. <br/>
+     * GET /mail
      * 
      * @param context
      *            the Context of this Request
@@ -349,6 +353,7 @@ public class BoxHandler
 
     public Result showBoxOverview(Context context)
     {
+        Result result = Results.html();
         User user = context.getAttribute("user", User.class);
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
@@ -357,7 +362,6 @@ public class BoxHandler
 
         PageList<MBox> plist;
 
-        Result result = Results.html();
         String searchString = context.getParameter("s", "");
         if (searchString.equals(""))
         { // if there's no parameter, simply render all boxes
@@ -365,14 +369,19 @@ public class BoxHandler
         }
         else
         { // there's a search parameter with input, get the related boxes
+            result.render("searchValue", searchString);
             plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
         }
+        result.render("mboxes", plist);
+
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        return result.render("mboxes", plist).render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
+        result.render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
+        return result;
     }
 
     /**
-     * Sets the Box valid/invalid POST /mail/expire/{id}
+     * Sets the Box valid/invalid <br/>
+     * POST /mail/expire/{id}
      * 
      * @param boxId
      *            the ID of the Mailbox
@@ -390,7 +399,9 @@ public class BoxHandler
         if (mailBox.belongsTo(user.getId()))
         {// check, whether the mailbox belongs to the current user
             if ((mailBox.getTs_Active() != 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
-            { // if the validity period is over, return the Edit page
+            { // if the validity period is over, return the Edit page and give the user a response why he gets there
+
+                context.getFlashCookie().put("info", "expireEmail_Flash_Expired");
                 return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
             }
             else
@@ -402,7 +413,8 @@ public class BoxHandler
     }
 
     /**
-     * Sets the Values of the Counters for the Box, given by their ID, to zero POST /mail/reset/{id}
+     * Sets the Values of the Counters for the Box, given by their ID, to zero <br/>
+     * POST /mail/reset/{id}
      * 
      * @param boxId
      *            the ID of the Mailbox
@@ -427,7 +439,8 @@ public class BoxHandler
     }
 
     /**
-     * Processes the given action on the given Mail-Addresses
+     * Processes the given action on the given Mail-Addresses<br/>
+     * GET /mail/bulkChange
      * 
      * @param action
      *            the action to do (may be 'reset','delete', 'change' or 'enable'
@@ -472,7 +485,7 @@ public class BoxHandler
                                 }
                                 else
                                 {
-                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                     return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
@@ -490,7 +503,7 @@ public class BoxHandler
                                 }
                                 else
                                 {
-                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                     return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
@@ -524,7 +537,7 @@ public class BoxHandler
                                 }
                                 else
                                 {
-                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                     return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
@@ -552,7 +565,7 @@ public class BoxHandler
                                 }
                                 else
                                 { // box does not belong to the user
-                                    context.getFlashCookie().error("flash_BoxToUser");
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                     return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
@@ -586,7 +599,8 @@ public class BoxHandler
     }
 
     /**
-     * Handles JSON-Requests for the search
+     * Handles JSON-Requests for the search <br/>
+     * GET /mail/search
      * 
      * @param context
      *            the Context of this Request
@@ -621,7 +635,8 @@ public class BoxHandler
     }
 
     /**
-     * returns a text-page with all addresses of a user
+     * returns a text-page with all addresses of a user<br/>
+     * GET /mail/mymaillist.txt
      * 
      * @param context
      *            the Context of this Request
@@ -634,7 +649,8 @@ public class BoxHandler
     }
 
     /**
-     * returns a text-page with all active addresses of a user
+     * returns a text-page with all active addresses of a user<br/>
+     * GET /mail/myactivemaillist.txt
      * 
      * @param context
      *            the Context of this Request

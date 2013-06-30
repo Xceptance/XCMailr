@@ -22,7 +22,7 @@
 	<groupId>org.xcmailr</groupId>	
 	<packaging>pom</packaging>
 	<name>XCMailr</name>
-	<version>1.0.7-SNAPSHOT</version>
+	<version>1.0.8-SNAPSHOT</version>
 
 	<modules>
 		<module>xcmailr-webapp</module>
@@ -31,7 +31,7 @@
 	<parent>
 		<groupId>org.ninjaframework</groupId>
 		<artifactId>ninja</artifactId>
-		<version>1.4.3</version>
+		<version>1.4.4</version>
 	</parent>
 	<!-- pin encoding to utf-8 -->
 	<properties>

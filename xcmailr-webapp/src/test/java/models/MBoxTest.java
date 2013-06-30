@@ -90,15 +90,15 @@ public class MBoxTest extends NinjaTest
         // year, month, day, hour, minute
         DateTime dt = new DateTime(2013, 1, 1, 1, 1);
         mb.setTs_Active(dt.getMillis());
-        assertTrue(mb.getTSAsString().equals("01.01.2013 01:01"));
+        assertTrue(mb.getTSAsString().equals("2013-01-01 01:01"));
 
         dt = new DateTime(2013, 1, 12, 11, 1);
         mb.setTs_Active(dt.getMillis());
-        assertTrue(mb.getTSAsString().equals("12.01.2013 11:01"));
+        assertTrue(mb.getTSAsString().equals("2013-01-12 11:01"));
 
         dt = new DateTime(2013, 11, 11, 11, 11);
         mb.setTs_Active(dt.getMillis());
-        assertTrue(mb.getTSAsString().equals("11.11.2013 11:11"));
+        assertTrue(mb.getTSAsString().equals("2013-11-11 11:11"));
 
     }
 
@@ -113,6 +113,23 @@ public class MBoxTest extends NinjaTest
 
         assertTrue(MBox.boxToUser(mb.getId(), u.getId()));
         assertFalse(MBox.boxToUser(mb.getId(), u2.getId()));
+    }
+
+    @Test
+    public void expiredByTimeStampTest()
+    {
+        // in this moment, the box should be active and unlimited
+        assertFalse(mb.isExpiredByTimestamp());
+
+        //box active and expiring in 2h
+        mb.setTs_Active(DateTime.now().plusHours(2).getMillis());
+        assertFalse(mb.isExpiredByTimestamp());
+        
+        
+        //expired and ts in the past
+        mb.setTs_Active(DateTime.now().minusHours(2).getMillis());
+        mb.enable();
+        assertTrue(mb.isExpiredByTimestamp());
     }
 
 }

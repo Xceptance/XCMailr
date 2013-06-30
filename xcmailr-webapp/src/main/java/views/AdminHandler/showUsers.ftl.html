@@ -10,9 +10,11 @@ title=i18n("adminUserPage_Title")>
 <!-- begin user-search -->
 <form action="${contextPath}/admin/users" id="userSearchForm">
 	<div class="input-append">
-		<input type="text" id="userSearchInput" name ="s" data-provide="typeahead" autocomplete="off"/>
+		<input type="text" id="userSearchInput" name ="s" data-provide="typeahead" value="${(searchValue)!}" onClick="this.select();" autocomplete="off"/>
+		<#if (searchValue)??>
+			<a class="btn" id="userSearchResetButton" href="${contextPath}/admin/users"><i class="icon-remove-circle"></i></a>
+		</#if>
 		<button class="btn" id="userSearchButton" type="submit"><i class="icon-search"></i> ${adminUserPage_Button_Search}</button>
-		<span class="append"></span>
 	</div>
 </form>
 <!-- end user-search -->
@@ -34,7 +36,7 @@ title=i18n("adminUserPage_Title")>
 		    	<th class="header">${i18n("adminUserPage_Header_Mail")}</th>
 		    	<th class="header">${i18n("adminUserPage_Header_IsAdmin")}</th>
 		    	<th class="header">${i18n("adminUserPage_Header_Status")}</th>
-		    	<th>${i18n("mailbox_Header_Delete")}</th>
+		    	<th>${i18n("adminUserPage_Header_Delete")}</th>
 		    	<th>${i18n("adminUserPage_Header_Promote")}</th>
 		    	<th>${i18n("adminUserPage_Header_Activate")}</th>
 		    </tr>
@@ -48,16 +50,16 @@ title=i18n("adminUserPage_Title")>
 			    <td>${user.mail}</td>
 			    <td>
 				    <#if (user.isAdmin())>
-				    	${i18n("msg_Yes")}
+				    	${i18n("adminUserPage_Label_Yes")}
 				    <#else>
-				    	${i18n("msg_No")}
+				    	${i18n("adminUserPage_Label_No")}
 				    </#if>
 				</td>
 			    <td>
 				    <#if (user.isActive())>
-				    	${i18n("msg_Yes")}
+				    	${i18n("adminUserPage_Label_Active")}
 				    <#else>
-				    	${i18n("msg_No")}
+				    	${i18n("adminUserPage_Label_Inactive")}
 				    </#if>
 			    </td>
 			<#if uid = user.id>	
@@ -117,13 +119,10 @@ title=i18n("adminUserPage_Title")>
 		    },		    	
 		    highlighter: function(item) {
 		        var parts = item.split('#');
-		        var regex = new RegExp( '(' + this.query + ')', 'gi' );
-			    html = '<div class="typeahead">';		        
-		    	html += '<div class="left">';
-			        html += '<div>'+parts[3]+'</div>';
-				    html += '<div>'+parts[2]+", "+parts[1]+'</div>';
-			    html += '</div>';
-	        html += '</div>';
+		        var regex = new RegExp( '(' + this.query + ')', 'gi' );		  
+				var emailAddress = parts[3].replace(regex, "<strong>$1</strong>");
+			        html = emailAddress+'<br/>';
+				    html += parts[2]+", "+parts[1];
 			return html;
 		    },
 		    updater: function(item) {
@@ -132,7 +131,8 @@ title=i18n("adminUserPage_Title")>
 		    },
 		});
 	});//doc ready
-    </script> 
+</script> 
+<script type="text/javascript" src="${contextPath}/assets/js/typeaheadpreventautoselect.js"></script>
 <@pag.pager name=users/> 
 <@pag.incSorter vals=[6,7,8]/>
 </@layout.adminLayout>

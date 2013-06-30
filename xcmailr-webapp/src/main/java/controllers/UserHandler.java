@@ -235,11 +235,11 @@ public class UserHandler
             memCachedSessionHandler.delete(String.valueOf(user.getId()));
             // delete the user-account
             User.delete(user.getId());
-            context.getFlashCookie().success("flash_UserDeletionSuccess");
+            context.getFlashCookie().success("deleteUser_Flash_Success");
             return result.redirect(context.getContextPath() + "/");
         }
 
-        context.getFlashCookie().error("flash_UserDeletionFailed");
+        context.getFlashCookie().error("deleteUser_Flash_Failed");
         return result.redirect(context.getContextPath() + "/");
     }
 

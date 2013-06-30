@@ -85,6 +85,8 @@
 				var pw1 = $('input#passwordNew1').val();
 				var pw2 = $('input#passwordNew2').val();
 				if (pw1 != pw2) {
+					$('#pwUnequalErrorSpan').remove();
+					$('.passwords').removeClass("error");
 					$('#divPasswordRepeat')
 							.append(
 									'<span class="help-inline" id="pwUnequalErrorSpan">${i18n("flash_PasswordsUnequal")}</span>')

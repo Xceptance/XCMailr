@@ -42,7 +42,7 @@ public class SecureFilter implements Filter
         // get the user-object from memcached-server
         User usr = (User) mcsh.get(context.getSessionCookie().getId());
 
-        if (!(usr == null) && usr.isActive())
+        if ((usr != null) && usr.isActive())
         {
             // add the user-object to the context to reduce the no. of connections to the memcached server
             context.setAttribute("user", usr);
@@ -55,8 +55,8 @@ public class SecureFilter implements Filter
             { // delete the cookie if there's no user object but a session-cookie
                 context.getSessionCookie().clear();
             }
-
-            return Results.forbidden().redirect("/login");
+            Result result = Results.forbidden().template("/views/Application/index.ftl.html");
+            return result.redirect(context.getContextPath() + "/login");
         }
     }
 }

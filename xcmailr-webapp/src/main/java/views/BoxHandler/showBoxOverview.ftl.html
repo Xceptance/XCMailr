@@ -1,28 +1,30 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout
 title=i18n("mailbox_Title")>
 <#import "../layout/macros.ftl.html" as pag/>
-
+<@pag.incSorter vals=[0,6,7,8,9]/>	
 
 <div class="row">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<!--mailboxoverview-->
-	
+
 	<#if (mboxes.getEntryCount() > 0) >
 		<form action="${contextPath}/mail">
 		<@pag.entrycount/>
 		</form>
-	</#if>
-	
-	<form action="${contextPath}/mail" id="boxSearchForm">
-		<div class="input-append">
-			<input type="text" id="boxSearchInput" name ="s" data-provide="typeahead" autocomplete="off"/>
-			<button class="btn" id="boxSearchButton" type="submit"><i class="icon-search"></i> ${mailbox_Button_Search}</button>
-			<span class="append"></span>
-		</div>
-	</form>	
 
+
+		<div class="input-append input-prepend">
+		<form action="${contextPath}/mail" id="boxSearchForm">
+			<input type="text" id="boxSearchInput" name ="s" data-provide="typeahead" value="${(searchValue)!}" onClick="this.select();" autocomplete="off"/>
+			<#if (searchValue)??>
+				<a class="btn" id="boxSearchResetButton" href="${contextPath}/mail"><i class="icon-remove-circle"></i></a>
+			</#if>
+			<button class="btn" id="boxSearchButton" type="submit"><i class="icon-search"></i> ${mailbox_Button_Search}</button>
+		</form>
+		</div>
+	</#if>
 	<div class="tab-content">  
-	<#if ((mboxes.getEntryCount())??!0 > 0) >
+	<#if (mboxes.getEntryCount() > 0) >
 	<#list 1..mboxes.getPageCount() as x > 
 	<#if x = 1 >
 		<div class="tab-pane active" id="${x}">  
@@ -61,14 +63,18 @@ title=i18n("mailbox_Title")>
 				</#if>							
 				<td>${mBox.forwards}</td>
 				<td>${mBox.suppressions}</td>
-					<#if (mBox.isActive())>
-    				<td>${i18n("msg_Yes")}</td>
+				<#if (mBox.isActive())>
+    				<td>${i18n("mailbox_Label_MailActive")}</td>
 	    			 <td><form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
 	                    <input type="submit" class="btn  btn-small"  id="btnDeactivate${mBox.id}" value='${i18n("mailbox_Button_Deactivate")}'/>
 	                    </form>
 	                </td>
 		    	<#else>
-	    			<td>${i18n("msg_No")}</td>
+		    		<#if (mBox.isExpiredByTimestamp())>
+	    			<td>${i18n("mailbox_Label_MailExpired")}</td>
+	    			<#else>
+	    			<td>${i18n("mailbox_Label_MailInactive")}</td>
+	    			</#if>
 	    	    	<td>
 		    	    	<form class="nomarg" action="${contextPath}/mail/expire/${mBox.id}" method="post">
 		                    <input type="submit" class="btn btn-small" id="btnActivate${mBox.id}" value='${i18n("mailbox_Button_Activate")}'/>
@@ -108,17 +114,12 @@ title=i18n("mailbox_Title")>
 
 		<td colspan="2"><!-- bulk change duration -->
 		<form class="nomarg" action="${contextPath}/mail/bulkChange" id="formBulkChangeDuration${x}" method="get">
-					<span id="datetimepicker${x}" class="input-append">
-				    	<input data-format="dd.MM.yyyy hh:mm" class="span8" id="datetime${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
+			<div id="datetimepicker${x}" class="input-append">
+				    	<input data-format="yyyy-MM-dd hh:mm" class="span8" id="datetime${x}" name="duration" type="text" value="${(datetime)!}" required="required"/>
 					    <span id="pickr_span${x}" class="add-on">
 					      <i id="pickr_i${x}" data-time-icon="icon-time" data-date-icon="icon-calendar" class="group1"></i>
 					    </span>
-				    </span>
-				    <label class="checkbox"> 
-						<input type="checkbox" id="chkUnlimited${x}" onClick="toggle(this,${x})" /> ${i18n("createEmail_Unlimited")}
-					</label>
-					<input type="hidden" id="inputBulkChangeDuration${x}" name="ids"/>		
-					<input type="hidden" id="inputBulkChangeDurationAction" name="action" value="change"/>
+				    </div>
 			<script type="text/javascript">
 				$(function() {
 					$('#datetimepicker${x}').datetimepicker({
@@ -128,6 +129,12 @@ title=i18n("mailbox_Title")>
 					});
 				});
 			</script>
+				    <label class="checkbox"> 
+						<input type="checkbox" id="chkUnlimited${x}" onClick="toggleBatch(this,${x})" /> ${i18n("mailbox_Label_Unlimited")}
+					</label>
+					<input type="hidden" id="inputBulkChangeDuration${x}" name="ids"/>		
+					<input type="hidden" id="inputBulkChangeDurationAction" name="action" value="change"/>
+
 		</form>
 		
 		</td>
@@ -166,11 +173,18 @@ title=i18n("mailbox_Title")>
     </div> <!-- /tab pane (active) -->
   </#list>
   <#else>
-  	${i18n("msg_NoEntries")}
+  	${i18n("mailbox_Label_NoEntries")}
  </#if>
   
 </div><!-- /tab content -->
+<#if (mboxes.getEntryCount() > 0) >
 <@pag.pager name=mboxes/>
+
+<p>
+	<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
+	<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a>
+</p>
+</#if>
 
 </div><!-- /row -->
 
@@ -216,10 +230,15 @@ title=i18n("mailbox_Title")>
 				var fullAddress = parts[1]+'@'+parts[2];
 				fullAddress = fullAddress.replace(regex, "<strong>$1</strong>");
 				fullAddress = fullAddress.replace('@', "&#064;");
-
 			        html = fullAddress+'<br/>';
-				    html += parts[3];
-
+			        if(parts[3]=='0')
+			        {
+			        	html+= ${i18n("mailbox_Label_Unlimited")};
+			        }
+			        else
+			        {
+				    	html += parts[3];
+			        }
 			return html;
 		    },
 		    updater: function(item) {
@@ -238,17 +257,33 @@ title=i18n("mailbox_Title")>
 			$('.bulkChk'+page).prop("checked", false);
 		}
 	}
-	
-	
+	function toggleBatch(chkbox, page) {
+		var visSetting = (chkbox.checked) ? 'display: none' : 'display: inline-block';
+		var picker = $('#datetimepicker'+page).data('datetimepicker');
+		$('#datetime'+page).attr('style', visSetting);
+		$('#datetimepicker'+page).attr('style', visSetting);
+		$('#pickr_span'+page).attr('style', visSetting);
+		$('#pickr_i'+page).attr('style', visSetting);
 
-    </script> 
+		if (chkbox.checked) {
+			var dateval = $('#datetime'+page).attr("value");
+			//remove the attribute from datetime input field
+			$('#datetime'+page).attr("value", 0);
+			//add it to the checkbox 
+			$('#chkUnlimited'+page).attr("value", dateval);
+
+		} else {
+			var dateval = $('#chkUnlimited'+page).attr("value");
+			//add the attribute to datetime input field 
+			$('#datetime'+page).attr("value", dateval);
+			//remove it from the checkbox 
+			$('#chkUnlimited'+page).removeAttr("value");
+		}
+	}
+</script> 
+<script type="text/javascript" src="${contextPath}/assets/js/typeaheadpreventautoselect.js"></script>
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
-<script type="text/javascript" src="${contextPath}/assets/js/picker-enable.js"></script> 
-<@pag.incSorter vals=[0,6,7,8,9]/>
-<p>
-	<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
-	<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a>
-</p>
+
 </@layout.xcLayout>
 

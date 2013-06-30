@@ -47,7 +47,7 @@ public class NoLoginFilter implements Filter
         }
         else
         {
-            return Results.redirect("/");
+            return Results.redirect(context.getContextPath()+"/");
         }
     }
 }

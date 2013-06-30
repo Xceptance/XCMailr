@@ -162,6 +162,22 @@ public class MBox
     }
 
     /**
+     * @return true, if the mail is inactive and the TS has a value in the past<br/>
+     *         false, else
+     */
+    public boolean isExpiredByTimestamp()
+    {
+        if (expired && (ts_Active != 0) && (DateTime.now().isAfter(ts_Active)))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
      * if true, the Box will be expired/inactive
      * 
      * @param expired
@@ -530,9 +546,9 @@ public class MBox
         {
             DateTime dt = new DateTime(this.ts_Active);
             String day = "";
-            String mon = "";
-            String hou = "";
-            String min = "";
+            String month = "";
+            String hour = "";
+            String minute = "";
             // add a leading "0" if the value is under ten
             if (dt.getDayOfMonth() < 10)
             {
@@ -542,23 +558,23 @@ public class MBox
 
             if (dt.getMonthOfYear() < 10)
             {
-                mon += "0";
+                month += "0";
             }
-            mon += String.valueOf(dt.getMonthOfYear());
+            month += String.valueOf(dt.getMonthOfYear());
 
             if (dt.getHourOfDay() < 10)
             {
-                hou += "0";
+                hour += "0";
             }
-            hou += String.valueOf(dt.getHourOfDay());
+            hour += String.valueOf(dt.getHourOfDay());
 
             if (dt.getMinuteOfHour() < 10)
             {
-                min += "0";
+                minute += "0";
             }
-            min += String.valueOf(dt.getMinuteOfHour());
+            minute += String.valueOf(dt.getMinuteOfHour());
 
-            return day + "." + mon + "." + dt.getYear() + " " + hou + ":" + min;
+            return  dt.getYear() + "-" + month + "-" + day + " " + hour + ":" + minute;
         }
     }
 
@@ -593,8 +609,11 @@ public class MBox
 
     /**
      * Searches for a given input-string over all boxes that belong to this userID
-     * @param input the search-string
-     * @param userId the user ID
+     * 
+     * @param input
+     *            the search-string
+     * @param userId
+     *            the user ID
      * @return a List of all Emails of this user that match the input-string
      */
     public static List<MBox> findBoxLike(String input, long userId)
@@ -621,10 +640,12 @@ public class MBox
 
         return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%")).findList();
     }
-    
+
     /**
      * Returns a list of all emails of the given user
-     * @param userId the userid
+     * 
+     * @param userId
+     *            the userid
      * @return a list of emails
      */
 
@@ -634,27 +655,31 @@ public class MBox
         List<MBox> allBoxes = MBox.allUser(userId);
         for (MBox mailBox : allBoxes)
         {
-            csvMails += mailBox.getAddress()+"@"+mailBox.getDomain()+"\n";
+            csvMails += mailBox.getAddress() + "@" + mailBox.getDomain() + "\n";
         }
 
         return csvMails;
     }
-    
+
     /**
      * Returns a list of all ACTIVE emails of the given user
-     * @param userId the userid
+     * 
+     * @param userId
+     *            the userid
      * @return a list of emails
      */
 
     public static String getActiveMailsForTxt(Long userId)
     {
         String csvMails = "";
-        List<MBox> allActiveBoxes = Ebean.find(MBox.class).where().eq("usr_id", userId.toString()).eq("expired", false).findList();
+        List<MBox> allActiveBoxes = Ebean.find(MBox.class).where().eq("usr_id", userId.toString()).eq("expired", false)
+                                         .findList();
         for (MBox mailBox : allActiveBoxes)
         {
-            csvMails += mailBox.getAddress()+"@"+mailBox.getDomain()+"\n";
+            csvMails += mailBox.getAddress() + "@" + mailBox.getDomain() + "\n";
         }
 
         return csvMails;
     }
+
 }

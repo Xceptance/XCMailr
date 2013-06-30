@@ -5,7 +5,7 @@
 <div class="pagination">
 	<div class="row-fluid">
 		<ul class ="pull-right">
-			<li>${i18n("msg_EntriesPerPage")}</li>
+			<li>${i18n("macro_EntriesPerPage")}</li>
 			<li><input type="submit" class="btn btn-link btn-small" value="5" name="no"/> </li>
 			<li> <input type="submit" class="btn btn-link btn-small" value="15" name="no"/></li>
 			<li><input type="submit" class="btn btn-link btn-small" value="25" name="no"/></li>
@@ -23,7 +23,7 @@
 <div class="pagination">
 <#if (name.getPageCount() > 1) >
 	<ul >
-	<li class="disabled"><a>${i18n("msg_Page")}: </a></li>
+	<li class="disabled"><a>${i18n("macro_Page")}: </a></li>
 	<#list 1..name.getPageCount() as x >  
 		<#if x = 1 >
 			<li class="active"><a href="#${x}" data-toggle="tab">${x}</a></li>
@@ -46,12 +46,11 @@
 	        $("table").tablesorter(
 	        		{
 	                	headers: { 
-                			<#list vals as x>
-                				${x}: { sorter: false }<#if x_has_next>,</#if>
+                			<#list vals as columnNo>
+                				${columnNo}: { sorter: false }<#if columnNo_has_next>,</#if>
                 			</#list>
                 			}
-	        		}
-); 
+	        		}); 
 	    }); 
     </script>
 

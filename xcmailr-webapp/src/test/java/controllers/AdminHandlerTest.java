@@ -12,6 +12,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import com.google.common.collect.Maps;
+
+import models.MailTransaction;
 import models.User;
 import ninja.NinjaTest;
 
@@ -28,7 +30,7 @@ public class AdminHandlerTest extends NinjaTest
     @Before
     public void setUp()
     {
-        
+
         // get the adminaccount and login
         headers.put("Accept-Language", "en-US");
         admin = User.getUsrByMail("admin@xcmailr.test");
@@ -38,8 +40,8 @@ public class AdminHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress() + "/login",
                                                                     headers, formParams);
         // make sure that the success-page is displayed
-        
-        assertTrue(result.contains("class=\"success\">"));
+
+        assertTrue(result.contains("class=\"alert alert-success\">"));
 
         // check the cookie
         Cookie cookie = ninjaTestBrowser.getCookieWithName("XCMailr_SESSION");
@@ -153,6 +155,32 @@ public class AdminHandlerTest extends NinjaTest
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs");
         assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtxs\">"));
+
+    }
+
+    @Test
+    public void testShowAdmin()
+    {
+        result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/");
+        assertTrue(!result.contains("<li class=\"active\">"));
+    }
+
+    @Test
+    public void testDeleteMTX()
+    {
+        // create some transactions
+        MailTransaction mtx1 = new MailTransaction(200, "test@abc", "", "somewhere");
+        MailTransaction mtx2 = new MailTransaction(100, "tsest@abc", "", "somewhere");
+        mtx1.saveTx();
+        mtx2.saveTx();
+        //delete all entries
+        result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs/delete/-1");
+        //check if they're gone
+        mtx1 = MailTransaction.getById(mtx1.getId());
+        mtx2 = MailTransaction.getById(mtx2.getId());
+
+        assertNull(mtx1);
+        assertNull(mtx2);
 
     }
 
