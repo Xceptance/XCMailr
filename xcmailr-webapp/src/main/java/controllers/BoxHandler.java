@@ -92,7 +92,7 @@ public class BoxHandler
      * 
      * @param context
      *            the Context of this Request
-     * @param mbdat
+     * @param mailboxFormData
      *            the Data of the Mailbox-Add-Form
      * @param validation
      *            Form validation
@@ -177,7 +177,7 @@ public class BoxHandler
      * Deletes a Box from the DB <br/>
      * POST /mail/delete/{id}
      * 
-     * @param boxid
+     * @param boxId
      *            the ID of the Mailbox
      * @param context
      *            the Context of this Request
@@ -203,7 +203,7 @@ public class BoxHandler
      *            the Context of this Request
      * @param boxId
      *            the ID of a Mailbox
-     * @param mbdat
+     * @param mailboxFormData
      *            the Data of the Mailbox-Edit-Form
      * @param validation
      *            Form validation

@@ -397,13 +397,10 @@ public class User implements Serializable
     }
 
     /**
-     * @param id
-     *            the User-ID
      * @return true, if the user is the last admin-account in this app
      */
     public boolean isLastAdmin()
     {
-
         if (this.isAdmin())
         { // this user is admin
             if (Ebean.find(User.class).where().eq("admin", true).findList().size() == 1)

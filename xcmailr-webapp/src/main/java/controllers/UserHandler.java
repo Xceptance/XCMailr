@@ -217,8 +217,6 @@ public class UserHandler
      * Handles the {@link models.User User}-Delete-Function <br/>
      * POST /user/delete
      * 
-     * @param userId
-     *            the ID of a {@link models.User User}
      * @param context
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)

@@ -55,7 +55,7 @@ public class UserFormData
     private String language;
 
     /**
-     * @return the Forename
+     * @return the first name 
      */
     public String getFirstName()
     {
@@ -63,7 +63,7 @@ public class UserFormData
     }
 
     /**
-     * @param foreName
+     * @param firstName
      *            the Forename to set
      */
     public void setFirstName(String firstName)
