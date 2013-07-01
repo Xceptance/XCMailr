@@ -114,7 +114,7 @@ public class JobController
                 @Override
                 public void run()
                 {
-                    log.debug("mbox-scheduler run");
+                    log.debug("Emailaddress Expiration Task run");
 
                     // get the number of MBox-Elements that will expire in the next "MB_INT"-minutes
                     List<MBox> expiringMailBoxesList = MBox.getNextBoxes(xcmConfiguration.MB_INTERVAL);
