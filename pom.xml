@@ -83,6 +83,33 @@
 			  </execution>
 			</executions>
 		      </plugin> 
+		  <plugin>
+		    <artifactId>maven-clean-plugin</artifactId>
+		    <version>2.5</version>
+		    <configuration>
+		      <filesets>
+			<fileset>
+			  <directory>${basedir}/xcmailr-build</directory>
+			</fileset>
+		      </filesets>
+		    </configuration>
+		  </plugin>
+		      <plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>license-maven-plugin</artifactId>
+			<version>1.5</version>
+			<executions>
+			  <execution>
+			    <id>aggregate-add-third-party</id>
+			    <goals>
+			      <goal>aggregate-add-third-party</goal>
+			    </goals>
+			      <configuration>
+				<outputDirectory>${basedir}/xcmailr-build/third-party-licenses</outputDirectory>
+			      </configuration>
+			  </execution>
+			</executions>
+		      </plugin>
 		</plugins>
 
 		<resources>
