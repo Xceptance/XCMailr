@@ -101,6 +101,7 @@
 			<executions>
 			  <execution>
 			    <id>aggregate-add-third-party</id>
+			    <phase>package</phase>
 			    <goals>
 			      <goal>aggregate-add-third-party</goal>
 			    </goals>
