@@ -15,7 +15,7 @@ Summary
 
 Description:
 ------------
-XCMailr helps you to reduce the amount of spam in your email account. Create temporary email addresses, set a lifetime if needed, and XCMailr will forward all incoming email to your real email account. XCMailr does not store any email content, it does not notify the sender if the email address is not longer valid or inactive, and all incoming email that does not have any matching forward email, will be silently dropped. 
+ XCMailr lets you quickly and easily reduce spam in your email account. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming email will be silently dropped. XCMailr doesnt store any email content and and wont notify the sender if the address is no longer valid. 
 
 Requirements
 -------------

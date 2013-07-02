@@ -137,7 +137,7 @@ public class UserHandler
                         { // the repetition is equal to the new pw
                             if (password1.length() < xcmConfiguration.PW_LENGTH)
                             {
-                                Optional<String> opt = Optional.of(context.getAcceptLanguage());
+                                Optional<String> opt = Optional.of(user.getLanguage());
                                 String tooShortPassword = msg.get("flash_PasswordTooShort", opt,
                                                                   xcmConfiguration.PW_LENGTH.toString()).get();
                                 context.getFlashCookie().error(tooShortPassword);

@@ -223,10 +223,10 @@ public class UserHandlerTest extends NinjaTest
         TestUtils.testMapEntryEquality(userData, returnedData);
 
         /*
-         * TEST: set too short passwd
+         * TEST: set too short new password
          */
         formParams.clear();
-        formParams.put("firstName", "Johnny");
+        formParams.put("firstName", "John");
         formParams.put("surName", "Doe");
         formParams.put("mail", "admin@localhost.test");
         formParams.put("password", "1234");
@@ -238,6 +238,7 @@ public class UserHandlerTest extends NinjaTest
 
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
+
         assertTrue(result.contains("class=\"alert alert-error\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));

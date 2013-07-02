@@ -496,7 +496,7 @@ public class Application
                         if (passwordFormData.getPassword().length() < xcmConfiguration.PW_LENGTH)
                         { // check whether the password has the correct length
 
-                            Optional<String> optionalLanguage = Optional.of(context.getAcceptLanguage());
+                            Optional<String> optionalLanguage = Optional.of(user.getLanguage());
                             String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage,
                                                                    xcmConfiguration.PW_LENGTH).get();
                             context.getFlashCookie().error(tooShortPassword);
