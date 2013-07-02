@@ -34,7 +34,8 @@ public class XCMStarter
 {
 
     /**
-     * @param args
+     * @param config
+     *            the configuration object that belongs to this instance
      */
     public static void XCMStart(StarterConf config)
     {
@@ -62,7 +63,7 @@ public class XCMStarter
 
             // add web application
             WebAppContext webapp = new WebAppContext();
-            webapp.setContextPath("/"+config.XCM_CONTEXT_PATH); 
+            webapp.setContextPath("/" + config.XCM_CONTEXT_PATH);
             webapp.setWar(warPath.toString());
 
             // create connector

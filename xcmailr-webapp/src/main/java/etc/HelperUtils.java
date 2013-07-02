@@ -155,22 +155,23 @@ public class HelperUtils
             }
             minute += String.valueOf(dt.getMinuteOfHour());
 
-            return  dt.getYear() + "-" + month + "-" + day + " " + hour + ":" + minute;
+            return dt.getYear() + "-" + month + "-" + day + " " + hour + ":" + minute;
         }
 
     }
 
     /**
-     * Checks whether the Input-String is in the Form "dd.dd.dddd dd:dd"
+     * Checks whether the Input-String is in the Form "dddd-dd-dd dd:dd"<br/>
+     * (where "d" stands for digit)
      * 
      * @param input
      *            the Input-String to check
      * @return true for a match, false for a mismatch
-     * @TODO rewrite this for the new format :)
      */
     public static boolean hasCorrectFormat(String input)
     {
         input = input.trim();
+
         if (input.matches("(\\d+){4}[\\-](\\d+){1,2}[\\-](\\d+){1,2}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}"))
         {
             return true;
@@ -219,7 +220,7 @@ public class HelperUtils
                     value = String.valueOf(Integer.parseInt(no));
                 }
                 catch (NumberFormatException nfe)
-                { //set to default if its not an integer
+                { // set to default if its not an integer
                     value = defaultNo.toString();
                 }
             }

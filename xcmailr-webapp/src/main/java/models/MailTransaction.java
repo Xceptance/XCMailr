@@ -265,6 +265,12 @@ public class MailTransaction
         return Ebean.find(MailTransaction.class).findList();
     }
 
+    /**
+     * @param sortage
+     *            a String which indicates the sortage of the returned list, the string should be in the form
+     *            "fieldname asc" or "fieldname desc"
+     * @return a sorted list of all MailTransactions
+     */
     public static List<MailTransaction> all(String sortage)
     {
         List<MailTransaction> list = Ebean.find(MailTransaction.class).findList();
@@ -292,7 +298,7 @@ public class MailTransaction
      */
     public static List<Status> getStatusList()
     {
-
+        // create a sql-query that contains the statuscode and their number of occurences
         String sql = "SELECT mtx.status, COUNT(mtx.status) AS count  FROM mailtransactions mtx GROUP BY mtx.status";
         RawSql rawSql = RawSqlBuilder.parse(sql).columnMapping("mtx.status", "statuscode").create();
         Query<Status> query = Ebean.find(Status.class);
@@ -302,11 +308,17 @@ public class MailTransaction
         return list;
     }
 
+    /**
+     * Deletes all Transactions that have been stored before the given Timestamp
+     * 
+     * @param ts
+     *            the Timestamp in milliseconds
+     */
     public static void deleteTxInPeriod(Long ts)
     {
         List<Object> ids;
         if (ts == null)
-        {
+        { // delete all transactions if no timestamp is given
             ids = Ebean.find(MailTransaction.class).findIds();
         }
         else
@@ -316,7 +328,16 @@ public class MailTransaction
         Ebean.delete(MailTransaction.class, ids);
     }
 
-    public static MailTransaction getById(long id){
+    /**
+     * returns a specific MailTransaction that belongs to the ID
+     * 
+     * @param id
+     *            the ID of an MailTransaction
+     * @return a MailTransaction
+     */
+    public static MailTransaction getById(long id)
+    {
         return Ebean.find(MailTransaction.class, id);
     }
+
 }

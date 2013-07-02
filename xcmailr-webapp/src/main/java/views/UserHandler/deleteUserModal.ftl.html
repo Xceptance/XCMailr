@@ -9,17 +9,26 @@
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal"
 				aria-hidden="true">×</button>
-			<h3 id="deleteUserTitle">${i18n("editUser_Title_DeleteAccount")}</h3>
+			<h3 id="deleteUserTitle">${i18n("deleteUser_Title")}</h3>
 		</div><!-- /modal-header -->
 		
 		<div class="modal-body">
-			<p><#noescape>${i18n("editUser_Label_DeleteAccountDescription")}</#noescape></p>
+			<p><#noescape>${i18n("deleteUser_Label_Description")}</#noescape></p>
+			 <div class="control-group"> 
+				<label class="control-label" for="password">${i18n("deleteUser_Label_CurrentPassword")}*</label>
+				<div class="controls">  
+					<input class="input_full" type="password" id="password" name="password" autocomplete="off" required="required"/>
+				</div>
+			</div>	
+			<div class="control-group"> 
+				<label class="control-label" >* ${i18n("deleteUser_Label_RequiredDescription")}</label>
+			</div>
 		</div><!-- /modal-body -->
 		
 		<div class="modal-footer">
-			<button class="btn" data-dismiss="modal" aria-hidden="true">${i18n("editUser_Button_DeleteAccountReset")}</button>
+			<button class="btn" data-dismiss="modal" aria-hidden="true">${i18n("deleteUser_Button_Reset")}</button>
 			<input type="submit" class="btn btn-danger" id="deleteUserSubmit"
-				value='${i18n("editUser_Button_DeleteAccountSubmit")}' />
+				value='${i18n("deleteUser_Button_Submit")}' />
 		</div><!-- /modal-footer -->
 		
 	</div><!-- /deleteUserModal -->

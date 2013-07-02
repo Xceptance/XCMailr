@@ -165,7 +165,7 @@ public class Application
                     if (registerFormData.getPasswordNew1().length() < xcmConfiguration.PW_LENGTH)
                     { // password is too short
 
-                        Optional<String> opt = Optional.of(context.getAcceptLanguage());
+                        Optional<String> opt = Optional.of(registerFormData.getLanguage());
 
                         String shortPw = messages.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH).get();
                         context.getFlashCookie().error(shortPw);

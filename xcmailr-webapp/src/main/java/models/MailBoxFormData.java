@@ -97,9 +97,9 @@ public class MailBoxFormData
     }
 
     /**
-     * The Date and Time which was set by the DateTimePicker The format used here is: "dd.MM.yyyy hh:mm"
+     * The Date and Time which was set by the DateTimePicker The format used here is: "yyyy-MM-dd hh:mm"
      * 
-     * @return
+     * @return the set datetime string in the form "yyyy-MM-dd hh:mm"
      */
     public String getDatetime()
     {
@@ -107,7 +107,7 @@ public class MailBoxFormData
     }
 
     /**
-     * The Date and Time which was set by the DateTimePicker The format used here is: "dd.MM.yyyy hh:mm"
+     * The Date and Time which was set by the DateTimePicker The format used here is: "yyyy-MM-dd hh:mm"
      * 
      * @param datetime
      *            the datetime-string to set

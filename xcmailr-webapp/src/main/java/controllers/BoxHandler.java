@@ -92,7 +92,7 @@ public class BoxHandler
      * 
      * @param context
      *            the Context of this Request
-     * @param mbdat
+     * @param mailboxFormData
      *            the Data of the Mailbox-Add-Form
      * @param validation
      *            Form validation
@@ -177,7 +177,7 @@ public class BoxHandler
      * Deletes a Box from the DB <br/>
      * POST /mail/delete/{id}
      * 
-     * @param boxid
+     * @param boxId
      *            the ID of the Mailbox
      * @param context
      *            the Context of this Request
@@ -203,7 +203,7 @@ public class BoxHandler
      *            the Context of this Request
      * @param boxId
      *            the ID of a Mailbox
-     * @param mbdat
+     * @param mailboxFormData
      *            the Data of the Mailbox-Edit-Form
      * @param validation
      *            Form validation
@@ -486,7 +486,6 @@ public class BoxHandler
                                 else
                                 {
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-                                    return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
                             return result.redirect(context.getContextPath() + "/mail");
@@ -504,7 +503,6 @@ public class BoxHandler
                                 else
                                 {
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-                                    return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
                             return result.redirect(context.getContextPath() + "/mail");
@@ -538,7 +536,7 @@ public class BoxHandler
                                 else
                                 {
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-                                    return result.redirect(context.getContextPath() + "/mail");
+
                                 }
                             }
                             return result.redirect(context.getContextPath() + "/mail");
@@ -552,11 +550,10 @@ public class BoxHandler
                                 MBox mailBox = MBox.getById(boxId);
                                 if (mailBox.belongsTo(user.getId()))
                                 { // box belongs to the user
-                                    if (!(mailBox.getTs_Active() == 0)
+                                    if ((mailBox.getTs_Active() != 0)
                                         && (mailBox.getTs_Active() < DateTime.now().getMillis()))
                                     { // if the validity period is over, return the Edit page
                                         context.getFlashCookie().error("mailbox_Flash_NotEnabled");
-                                        return result.redirect(context.getContextPath() + "/mail");
                                     }
                                     else
                                     { // otherwise just set the new status
@@ -566,7 +563,6 @@ public class BoxHandler
                                 else
                                 { // box does not belong to the user
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-                                    return result.redirect(context.getContextPath() + "/mail");
                                 }
                             }
                             return result.redirect(context.getContextPath() + "/mail");

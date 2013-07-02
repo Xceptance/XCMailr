@@ -65,23 +65,8 @@
 
 				$(document).ready(function() {
 					//handle the reset-button 
-					$('input#btnReset.btn').click(function reset() {
-						var chkBxUnlimited = $('input#chkUnlimited');
-						
-						if(chkBxUnlimited.is(':checked')){
-							var dateval = $('input#chkUnlimited').attr("value");
-							//add the attribute to datetime input field 
-							$('input#datetime').attr("value", dateval);
-							//remove it from the checkbox 
-							$('input#chkUnlimited').removeAttr("value");
-						}
-						$('input#chkUnlimited').removeAttr('checked');
-						$('input#datetime').removeAttr('style');
-						$('span#pickr_span').removeAttr('style');
-						$('i#pickr_i').removeAttr('style');
-						$('#mailInvalidErrorSpan').remove();
-						$('#emailRow').removeClass('error');
-						$('#editBoxForm')[0].reset();
+					$('#btnReset.btn').click(function reset() {
+						location.reload();
 					});
 					
 					//handle the submit-button 

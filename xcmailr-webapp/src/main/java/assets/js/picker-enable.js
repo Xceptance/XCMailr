@@ -5,24 +5,24 @@
 
 function toggle(chkbox) {
 	var visSetting = (chkbox.checked) ? 'display: none' : 'display: inline-block';
-	$('input#datetime').attr('style', visSetting);
-	$('div#datetimepicker').attr('style', visSetting);
-	$('span#pickr_span').attr('style', visSetting);
-	$('i#pickr_i').attr('style', visSetting);
+	$('#datetime').attr('style', visSetting);
+	$('#datetimepicker').attr('style', visSetting);
+	$('#pickr_span').attr('style', visSetting);
+	$('#pickr_i').attr('style', visSetting);
 
 	if (chkbox.checked) {
-		var dateval = $('input#datetime').attr("value");
+		var dateval = $('#datetime').attr("value");
 		//remove the attribute from datetime input field
-		$('input#datetime').attr("value", 0);
+		$('#datetime').attr("value", 0);
 		//add it to the checkbox 
-		$('input#chkUnlimited').attr("value", dateval);
+		$('#chkUnlimited').attr("value", dateval);
 
 	} else {
-		var dateval = $('input#chkUnlimited').attr("value");
+		var dateval = $('#chkUnlimited').attr("value");
 		//add the attribute to datetime input field 
-		$('input#datetime').attr("value", dateval);
+		$('#datetime').attr("value", dateval);
 		//remove it from the checkbox 
-		$('input#chkUnlimited').removeAttr("value");
+		$('#chkUnlimited').removeAttr("value");
 	}
 }
 

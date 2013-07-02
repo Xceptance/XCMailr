@@ -309,6 +309,7 @@ public class UserHandlerTest extends NinjaTest
     public void testDeleteUser()
     {
         formParams.clear();
+        formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/delete", headers,
                                                                     formParams);
         User user = User.getById(u.getId());

@@ -18,7 +18,6 @@ package controllers;
 
 import java.util.Arrays;
 import java.util.List;
-
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -218,29 +217,45 @@ public class UserHandler
      * Handles the {@link models.User User}-Delete-Function <br/>
      * POST /user/delete
      * 
-     * @param userId
-     *            the ID of a {@link models.User User}
      * @param context
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
     public Result deleteUserProcess(Context context)
     {
+        String password = context.getParameter("password");
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
-        if (!user.isLastAdmin())
+        if (password != null && !password.isEmpty())
         {
-            // delete the session
-            context.getSessionCookie().clear();
-            memCachedSessionHandler.delete(String.valueOf(user.getId()));
-            // delete the user-account
-            User.delete(user.getId());
-            context.getFlashCookie().success("deleteUser_Flash_Success");
-            return result.redirect(context.getContextPath() + "/");
+            if (user.checkPasswd(password))
+            {
+                if (!user.isLastAdmin())
+                {
+                    // delete the session
+                    context.getSessionCookie().clear();
+                    memCachedSessionHandler.delete(String.valueOf(user.getId()));
+                    // delete the user-account
+                    User.delete(user.getId());
+                    context.getFlashCookie().success("deleteUser_Flash_Success");
+                    return result.redirect(context.getContextPath() + "/");
+                }
+                else
+                { //can't delete the user, because he's the last admin
+                    context.getFlashCookie().error("deleteUser_Flash_Failed");
+                    return result.redirect(context.getContextPath() + "/user/edit");
+                }
+            }
+            else
+            { //the entered password was wrong
+                context.getFlashCookie().error("deleteUser_Flash_WrongPassword");
+                return result.redirect(context.getContextPath() + "/user/edit");
+            }
         }
-
-        context.getFlashCookie().error("deleteUser_Flash_Failed");
-        return result.redirect(context.getContextPath() + "/");
+        else
+        { // no password entered
+            return result.redirect(context.getContextPath() + "/user/edit");
+        }
     }
 
 }
