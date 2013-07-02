@@ -380,14 +380,14 @@ public class ApplicationHandlerTest extends NinjaTest
         }
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "lostpw/" + user.getId() + "/" + random);
-        // // the verification must not be successful
-        // // we expect the index-page
-        // String expected = ninjaTestBrowser.makeRequest(getServerAddress() + "/");
-        // assertTrue(result.equals(expected));
-        //
-        // User updateduser = User.getById(user.getId());
-        // // the user should not be active
-        // assertFalse(updateduser.isActive());
+        // the verification must not be successful
+        // we expect the index-page
+        String expected = ninjaTestBrowser.makeRequest(getServerAddress() + "/");
+        assertTrue(result.equals(expected));
+
+        User updatedUser = User.getById(user.getId());
+        // the user should not be active
+        assertFalse(updatedUser.isActive());
 
     }
 
@@ -571,9 +571,9 @@ public class ApplicationHandlerTest extends NinjaTest
     @Test
     public void testLogout()
     {
-        User u = new User("John", "Doe", "admin@localhost.de", "1234", "en");
-        u.setActive(true);
-        u.save();
+        User user = new User("John", "Doe", "admin@localhost.de", "1234", "en");
+        user.setActive(true);
+        user.save();
 
         // login
         formParams.clear();
@@ -613,9 +613,9 @@ public class ApplicationHandlerTest extends NinjaTest
 
         assertTrue(result.contains("<a href=\"/register\">"));
         // register the user
-        User u = new User("John", "Doe", "admin@localhost.de", "1234", "en");
-        u.setActive(true);
-        u.save();
+        User user = new User("John", "Doe", "admin@localhost.de", "1234", "en");
+        user.setActive(true);
+        user.save();
 
         // login
         formParams.clear();

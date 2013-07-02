@@ -30,7 +30,7 @@ public class Routes implements ApplicationRoutes
     @Override
     public void init(Router router)
     {
-        
+
         router.GET().route("/").with(Application.class, "index");
         router.GET().route("/register").with(Application.class, "registerForm");
         router.POST().route("/register").with(Application.class, "registrationProcess");
@@ -40,41 +40,40 @@ public class Routes implements ApplicationRoutes
 
         router.GET().route("/pwresend").with(Application.class, "forgotPasswordForm");
         router.POST().route("/pwresend").with(Application.class, "forgotPasswordProcess");
-        
+
         router.GET().route("/lostpw/{id}/{token}").with(Application.class, "resetPasswordForm");
         router.POST().route("/lostpw/{id}/{token}").with(Application.class, "resetPasswordProcess");
-        
+
         router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
 
         router.GET().route("/logout").with(Application.class, "logoutProcess");
-        
-        //Routes for UserHandling (after registration)
+
+        // Routes for UserHandling (after registration)
         router.GET().route("/user/edit").with(UserHandler.class, "editUserForm");
         router.POST().route("/user/edit").with(UserHandler.class, "editUserProcess");
-        
-        router.POST().route("/user/delete").with(UserHandler.class, "deleteUserProcess");
-        
 
-        //Routes for the Mail-Handling 
+        router.POST().route("/user/delete").with(UserHandler.class, "deleteUserProcess");
+
+        // Routes for the Mail-Handling
         router.GET().route("/mail").with(BoxHandler.class, "showBoxOverview");
         router.POST().route("/mail").with(BoxHandler.class, "showBoxOverview");
-        
+
         router.GET().route("/mail/add").with(BoxHandler.class, "addBoxForm");
         router.POST().route("/mail/add").with(BoxHandler.class, "addBoxProcess");
-        
+
         router.GET().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxForm");
         router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxProcess");
-        
+
         router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBoxProcess");
         router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxProcess");
         router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounterProcess");
-        
+
         router.GET().route("/mail/search").with(BoxHandler.class, "jsonBoxSearch");
         router.GET().route("/mail/bulkChange").with(BoxHandler.class, "bulkChangeBoxes");
         router.GET().route("/mail/mymaillist.txt").with(BoxHandler.class, "showMailsAsTextList");
         router.GET().route("/mail/myactivemaillist.txt").with(BoxHandler.class, "showActiveMailsAsTextList");
-        
-        //Routes in the admin-section
+
+        // Routes in the admin-section
         router.POST().route("/admin/promote/{id}").with(AdminHandler.class, "promoteUserProcess");
         router.POST().route("/admin/activate/{id}").with(AdminHandler.class, "activateUserProcess");
         router.POST().route("/admin/delete/{id}").with(AdminHandler.class, "deleteUserProcess");
@@ -86,7 +85,7 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
         router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler.class, "deleteMTXProcess");
         router.GET().route("/admin/usersearch").with(AdminHandler.class, "jsonUserSearch");
-        //Assets-Handling
+        // Assets-Handling
         router.GET().route("/assets/.*").with(AssetsController.class, "serve");
 
     }

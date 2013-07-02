@@ -29,8 +29,14 @@ import java.util.List;
 
 public class PageList<T>
 {
+    /**
+     * the complete list with all entries
+     */
     private List<T> allEntrys;
 
+    /**
+     * number of entries per page
+     */
     private int pagesize;
 
     /**
@@ -110,45 +116,49 @@ public class PageList<T>
     public int getPageCount()
     {
         if (pagesize <= 0)
-        {
+        { // return 1 if the number of entries on a page is below 1
             return 1;
         }
+
         int entrys = allEntrys.size();
         if (entrys < pagesize)
-        {
+        { // return 1 if the number of entries in the list is below the number of entries on a page
             return 1;
         }
         else
-        {
+        { // calculate the number of pages
             return (int) Math.ceil((entrys / new Double(pagesize)));
         }
     }
 
     /**
-     * @param page the Page-number
+     * @param page
+     *            the Page-number
      * @return a List which contains all Entries of the specified Page
      */
     public List<T> getPage(int page)
     {
         if (pagesize <= 0)
-        {
+        { // the number of entries is less than 0, return all
             return allEntrys;
         }
         if (page > getPageCount())
-        {
+        { // the page-number which is called is greater than the number of existing pages, return nothing
             return new ArrayList<T>();
         }
-        int endIdx = (page * pagesize) - 1;
+        // get the index-number of the last entry on the page
+        int endIndex = (page * pagesize) - 1;
+        // get the index-number of the first entry on the page
+        int startIndex = endIndex - pagesize + 1;
 
-        int startIdx = endIdx - pagesize + 1;
-        if (endIdx >= getEntryCount())
-        {
-            endIdx = getEntryCount();
+        if (endIndex >= getEntryCount())
+        { // the calculated last entry is greater than the number of existing entries
+            endIndex = getEntryCount();
         }
         else
-        {
-            endIdx += 1;
+        { // the last entry exists, but the sublist takes the endIndex as EXCLUSIVE value
+            endIndex += 1;
         }
-        return allEntrys.subList(startIdx, endIdx);
+        return allEntrys.subList(startIndex, endIndex);
     }
 }

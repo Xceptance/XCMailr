@@ -64,7 +64,7 @@ public class Status
 
     /**
      * @param count
-     *             the number of occurences of this status
+     *            the number of occurences of this status
      */
     public void setCount(int count)
     {
@@ -81,7 +81,7 @@ public class Status
 
     /**
      * @param mtx
-     *             the Mailtransaction to which this belongs
+     *            the Mailtransaction to which this belongs
      */
     public void setMtx(MailTransaction mtx)
     {

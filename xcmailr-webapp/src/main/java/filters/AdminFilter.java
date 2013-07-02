@@ -41,14 +41,14 @@ public class AdminFilter implements Filter
     {
         // get the user-object from context (if we get to this point, the SecureFilter should have added the object)
         User user = context.getAttribute("user", User.class);
-        
+
         if (!(user == null) && user.isActive() && user.isAdmin())
         {
             return chain.next(context);
         }
         else
         {
-            return Results.redirect(context.getContextPath()+"/");
+            return Results.redirect(context.getContextPath() + "/");
         }
     }
 }

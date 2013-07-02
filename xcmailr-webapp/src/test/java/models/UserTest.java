@@ -32,11 +32,11 @@ public class UserTest extends NinjaTest
         /*
          * TEST: create, persist and find a user-object
          */
-        User u = new User("forename", "surname", "test@localhost.com", "1234", "en");
-        u.save();
-        User u2 = User.getById(u.getId());
-        assertNotNull(u);
-        assertNotNull(u2);
+        User user = new User("forename", "surname", "test@localhost.com", "1234", "en");
+        user.save();
+        User user2 = User.getById(user.getId());
+        assertNotNull(user);
+        assertNotNull(user2);
 
         /*
          * TEST: Auth-Methods
@@ -44,14 +44,14 @@ public class UserTest extends NinjaTest
         assertNull(User.auth("test@localhost.com", "4321"));
         assertNotNull(User.auth("test@localhost.com", "1234"));
 
-        assertNull(User.authById(u.getId(), "4321"));
-        assertNotNull(User.authById(u.getId(), "1234"));
+        assertNull(User.authById(user.getId(), "4321"));
+        assertNotNull(User.authById(user.getId(), "1234"));
 
         /*
          * TEST: Get the Userlist
          */
-        User u3 = new User("forename", "surname", "test2@localhost.com", "1234", "en");
-        u3.save();
+        User user3 = new User("forename", "surname", "test2@localhost.com", "1234", "en");
+        user3.save();
         List<User> list = User.all();
 
         // Remark: we've 3 accounts now, because there is an adminaccount, too
@@ -60,20 +60,20 @@ public class UserTest extends NinjaTest
         /*
          * TEST: change the users values
          */
-        u3.setActive(true);
-        u3.setForename("foo");
-        u3.update();
-        User u4 = User.getById(u3.getId());
-        assertTrue(u3.getForename().equals(u4.getForename()));
-        assertTrue(u3.isActive() == u4.isActive());
-        assertTrue(u3.getId() == u4.getId());
-        assertTrue(u3.getMail().equals(u4.getMail()));
+        user3.setActive(true);
+        user3.setForename("foo");
+        user3.update();
+        User user4 = User.getById(user3.getId());
+        assertTrue(user3.getForename().equals(user4.getForename()));
+        assertTrue(user3.isActive() == user4.isActive());
+        assertTrue(user3.getId() == user4.getId());
+        assertTrue(user3.getMail().equals(user4.getMail()));
 
         /*
          * TEST: Delete a persisted User
          */
-        User.delete(u2.getId());
-        assertNull(User.getById(u2.getId()));
+        User.delete(user2.getId());
+        assertNull(User.getById(user2.getId()));
 
     }
 }

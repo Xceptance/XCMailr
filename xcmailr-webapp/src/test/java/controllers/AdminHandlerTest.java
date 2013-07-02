@@ -65,52 +65,52 @@ public class AdminHandlerTest extends NinjaTest
     {
 
         // "register" a new user
-        User testuser = new User("test", "user", "testuser@xcmailr.test", "1234", "en");
-        testuser.save();
+        User testUser = new User("test", "user", "testuser@xcmailr.test", "1234", "en");
+        testUser.save();
 
         /*
          * TEST: first, the user is not active, then we activate him via the admin-menu and he's active then
          */
 
-        assertFalse(testuser.isActive());
+        assertFalse(testUser.isActive());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/activate/" + testuser.getId(),
+                                                                        + "admin/activate/" + testUser.getId(),
                                                                     headers,
                                                                     formParams);
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
-        assertTrue(testuser.isActive());
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
+        assertTrue(testUser.isActive());
         // deactivate
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/activate/" + testuser.getId(),
+                                                                        + "admin/activate/" + testUser.getId(),
                                                                     headers,
                                                                     formParams);
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
 
-        assertFalse(testuser.isActive());
+        assertFalse(testUser.isActive());
 
         /*
          * TEST: promote and demote the testuser
          */
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/promote/" + testuser.getId(), headers,
+                                                                        + "admin/promote/" + testUser.getId(), headers,
                                                                     formParams);
 
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
-        assertTrue(testuser.isAdmin());
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
+        assertTrue(testUser.isAdmin());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/promote/" + testuser.getId(), headers,
+                                                                        + "admin/promote/" + testUser.getId(), headers,
                                                                     formParams);
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
-        assertFalse(testuser.isAdmin());
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
+        assertFalse(testUser.isAdmin());
 
         /*
          * TEST: delete the testuser
          */
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/delete/" + testuser.getId(), headers,
+                                                                        + "admin/delete/" + testUser.getId(), headers,
                                                                     formParams);
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
-        assertNull(testuser);
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
+        assertNull(testUser);
         /*
          * TEST: We should not be able to deactivate our own account
          */
@@ -173,9 +173,9 @@ public class AdminHandlerTest extends NinjaTest
         MailTransaction mtx2 = new MailTransaction(100, "tsest@abc", "", "somewhere");
         mtx1.saveTx();
         mtx2.saveTx();
-        //delete all entries
+        // delete all entries
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs/delete/-1");
-        //check if they're gone
+        // check if they're gone
         mtx1 = MailTransaction.getById(mtx1.getId());
         mtx2 = MailTransaction.getById(mtx2.getId());
 

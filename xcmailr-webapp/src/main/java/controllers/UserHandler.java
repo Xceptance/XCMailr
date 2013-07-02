@@ -241,13 +241,13 @@ public class UserHandler
                     return result.redirect(context.getContextPath() + "/");
                 }
                 else
-                { //can't delete the user, because he's the last admin
+                { // can't delete the user, because he's the last admin
                     context.getFlashCookie().error("deleteUser_Flash_Failed");
                     return result.redirect(context.getContextPath() + "/user/edit");
                 }
             }
             else
-            { //the entered password was wrong
+            { // the entered password was wrong
                 context.getFlashCookie().error("deleteUser_Flash_WrongPassword");
                 return result.redirect(context.getContextPath() + "/user/edit");
             }

@@ -25,11 +25,11 @@ import ninja.Filter;
 import ninja.FilterChain;
 import ninja.Result;
 import ninja.Results;
+
 /**
  * Ensures that the user is NOT logged in, otherwise it will redirect to the index-page
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- *
  */
 public class NoLoginFilter implements Filter
 {
@@ -47,7 +47,7 @@ public class NoLoginFilter implements Filter
         }
         else
         {
-            return Results.redirect(context.getContextPath()+"/");
+            return Results.redirect(context.getContextPath() + "/");
         }
     }
 }

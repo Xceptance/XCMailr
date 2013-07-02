@@ -29,7 +29,7 @@ public class UserHandlerTest extends NinjaTest
 
     String result;
 
-    User u;
+    User user;
 
     @Before
     public void setUp()
@@ -38,9 +38,9 @@ public class UserHandlerTest extends NinjaTest
         headers.clear();
         returnedData.clear();
 
-        u = new User("John", "Doe", "admin@localhost.test", "1234", "en");
-        u.setActive(true);
-        u.save();
+        user = new User("John", "Doe", "admin@localhost.test", "1234", "en");
+        user.setActive(true);
+        user.save();
 
         userData.put("firstName", "John");
         userData.put("surName", "Doe");
@@ -312,9 +312,9 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/user/delete", headers,
                                                                     formParams);
-        User user = User.getById(u.getId());
+        User user2 = User.getById(user.getId());
 
-        assertNull(user);
+        assertNull(user2);
     }
 
 }

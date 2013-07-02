@@ -66,7 +66,7 @@ public class MessageListener implements SimpleMessageListener
         {
             // the mailaddress has a strange form or has an recipient with a domain-part that does not belong to our
             // domains
-            //log status 500 (relay denied)
+            // log status 500 (relay denied)
             MailTransaction mtx = new MailTransaction(500, from, null, recipient);
             mtx.saveTx();
             return false;

@@ -19,22 +19,25 @@ package models;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 
-
-
 /**
  * The Model for the Password-Reset-Form
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
- * 
  */
 public class PasswordFormData
 {
+    /**
+     * the new password
+     */
     @NotEmpty
-    @Length(min=1, max=255)
+    @Length(min = 1, max = 255)
     private String password;
 
+    /**
+     * the repetition of the new password
+     */
     @NotEmpty
-    @Length(min=1, max=255)
+    @Length(min = 1, max = 255)
     private String password2;
 
     /**
@@ -47,7 +50,7 @@ public class PasswordFormData
 
     /**
      * @param password
-     *             the new password to set
+     *            the new password to set
      */
     public void setPassword(String password)
     {
@@ -64,7 +67,7 @@ public class PasswordFormData
 
     /**
      * @param password2
-     *             the repetition of the new Password
+     *            the repetition of the new Password
      */
     public void setPassword2(String password2)
     {
