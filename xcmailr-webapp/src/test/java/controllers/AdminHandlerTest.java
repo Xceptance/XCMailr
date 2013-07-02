@@ -30,7 +30,6 @@ public class AdminHandlerTest extends NinjaTest
     @Before
     public void setUp()
     {
-
         // get the adminaccount and login
         headers.put("Accept-Language", "en-US");
         admin = User.getUsrByMail("admin@xcmailr.test");
@@ -42,7 +41,8 @@ public class AdminHandlerTest extends NinjaTest
         // make sure that the success-page is displayed
 
         assertTrue(result.contains("class=\"alert alert-success\">"));
-
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
         // check the cookie
         Cookie cookie = ninjaTestBrowser.getCookieWithName("XCMailr_SESSION");
 
@@ -65,52 +65,56 @@ public class AdminHandlerTest extends NinjaTest
     {
 
         // "register" a new user
-        User testuser = new User("test", "user", "testuser@xcmailr.test", "1234", "en");
-        testuser.save();
+        User testUser = new User("test", "user", "testuser@xcmailr.test", "1234", "en");
+        testUser.save();
 
         /*
          * TEST: first, the user is not active, then we activate him via the admin-menu and he's active then
          */
 
-        assertFalse(testuser.isActive());
+        assertFalse(testUser.isActive());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/activate/" + testuser.getId(),
+                                                                        + "admin/activate/" + testUser.getId(),
                                                                     headers,
                                                                     formParams);
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
-        assertTrue(testuser.isActive());
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
+        assertTrue(testUser.isActive());
         // deactivate
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/activate/" + testuser.getId(),
+                                                                        + "admin/activate/" + testUser.getId(),
                                                                     headers,
                                                                     formParams);
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
 
-        assertFalse(testuser.isActive());
-
+        assertFalse(testUser.isActive());
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
         /*
          * TEST: promote and demote the testuser
          */
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/promote/" + testuser.getId(), headers,
+                                                                        + "admin/promote/" + testUser.getId(), headers,
                                                                     formParams);
 
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
-        assertTrue(testuser.isAdmin());
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
+        assertTrue(testUser.isAdmin());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/promote/" + testuser.getId(), headers,
+                                                                        + "admin/promote/" + testUser.getId(), headers,
                                                                     formParams);
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
-        assertFalse(testuser.isAdmin());
-
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
+        assertFalse(testUser.isAdmin());
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
         /*
          * TEST: delete the testuser
          */
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/delete/" + testuser.getId(), headers,
+                                                                        + "admin/delete/" + testUser.getId(), headers,
                                                                     formParams);
-        testuser = User.getUsrByMail("testuser@xcmailr.test");
-        assertNull(testuser);
+        testUser = User.getUsrByMail("testuser@xcmailr.test");
+        assertNull(testUser);
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
         /*
          * TEST: We should not be able to deactivate our own account
          */
@@ -120,7 +124,8 @@ public class AdminHandlerTest extends NinjaTest
                                                                     formParams);
         admin = User.getById(admin.getId());
         assertTrue(admin.isActive());
-
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
         /*
          * TEST: We should not be able to delete our own account
          */
@@ -130,7 +135,8 @@ public class AdminHandlerTest extends NinjaTest
                                                                     formParams);
         admin = User.getById(admin.getId());
         assertNotNull(admin);
-
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
         /*
          * TEST: We should not be able to demote our own account (as last admin)
          */
@@ -140,7 +146,8 @@ public class AdminHandlerTest extends NinjaTest
                                                                     formParams);
         admin = User.getById(admin.getId());
         assertTrue(admin.isAdmin());
-
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
     }
 
     @Test
@@ -149,20 +156,27 @@ public class AdminHandlerTest extends NinjaTest
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/users");
         assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/users\">"));
-
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/summedtx");
         assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/summedtx\">"));
-
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs");
         assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtxs\">"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
 
     }
 
     @Test
     public void testShowAdmin()
     {
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/");
+        result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin");
+        System.out.println(result);
         assertTrue(!result.contains("<li class=\"active\">"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
     }
 
     @Test
@@ -173,15 +187,43 @@ public class AdminHandlerTest extends NinjaTest
         MailTransaction mtx2 = new MailTransaction(100, "tsest@abc", "", "somewhere");
         mtx1.saveTx();
         mtx2.saveTx();
-        //delete all entries
+        // delete all entries
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs/delete/-1");
-        //check if they're gone
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+        // check if they're gone
         mtx1 = MailTransaction.getById(mtx1.getId());
         mtx2 = MailTransaction.getById(mtx2.getId());
 
         assertNull(mtx1);
         assertNull(mtx2);
 
+    }
+
+    @Test
+    public void testJsonUserSearch()
+    {
+        /*
+         * TEST: no search string
+         */
+        formParams.clear();
+        formParams.put("s", "");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "admin/usersearch?s=");
+        // if no search-string was delivered, then the result should be empty
+        assertTrue(result.equals("[]"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+        
+        /*
+         * TEST: one search string
+         */
+        formParams.clear();
+        formParams.put("s", "");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "admin/usersearch?s=admi");
+        // if no search-string was delivered, then the result should be empty
+        assertTrue(result.contains("admin@xcmailr.test"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
     }
 
 }

@@ -37,31 +37,53 @@ import com.avaje.ebean.validation.NotEmpty;
 @Table(name = "mailboxes")
 public class MBox
 {
-    // Mailbox ID
+    /**
+     * Mailbox ID
+     */
     @Id
     private long id;
 
+    /**
+     * Mailaddress of the Box
+     */
     @NotEmpty
-    // Mailaddress of the Box
     private String address;
 
-    // Timestamp for the end of the validity period
+    /**
+     * Timestamp for the end of the validity period
+     */
     private long ts_Active;
 
-    // Flag for the validity
+    /**
+     * Flag for the validity
+     */
     private boolean expired;
 
+    /**
+     * the domain-part of an address
+     */
     @NotEmpty
     private String domain;
 
+    /**
+     * the number of forwards for this box
+     */
     private int forwards;
 
+    /**
+     * the number of suppressions for this box
+     */
     private int suppressions;
 
+    /**
+     * the version of this box (used for optimisticLock)
+     */
     @Version
     private Long version;
 
-    // Owner of the Box
+    /**
+     * the owner of the address/box
+     */
     @ManyToOne
     @JoinColumn(name = "usr_id", nullable = false)
     private User usr;
@@ -506,7 +528,7 @@ public class MBox
         else
         { // there is a mbox with that id
             if (mb.address.equals(local) && mb.address.equals(domain))
-            { // mbox-mailaddr is equal to the given address -> nothing changed
+            { // mbox-email-address is equal to the given address -> nothing changed
                 return false;
             }
             else
@@ -523,24 +545,15 @@ public class MBox
         }
     }
 
-    public String getTSAsStringWithNull()
-    {
-        String tsString = getTSAsString();
-        if (tsString.equals("unlimited"))
-        {
-            tsString = "0";
-        }
-        return tsString;
-    }
-
     /**
-     * @return the Timestamp as String in the Format "dd.mm.yyyy hh:mm"
+     * @return the timestamp as string in the format "yyyy-MM-dd hh:mm" <br/>
+     *         if its 0, then also 0 is returned
      */
-    public String getTSAsString()
+    public String getTSAsStringWithNull()
     {
         if (this.ts_Active == 0)
         {
-            return "unlimited";
+            return "0";
         }
         else
         {
@@ -574,8 +587,23 @@ public class MBox
             }
             minute += String.valueOf(dt.getMinuteOfHour());
 
-            return  dt.getYear() + "-" + month + "-" + day + " " + hour + ":" + minute;
+            return dt.getYear() + "-" + month + "-" + day + " " + hour + ":" + minute;
         }
+
+    }
+
+    /**
+     * @return the timestamp as string in the format "yyyy-MM-dd hh:mm"<br/>
+     *         if its 0, then "unlimited" is returned
+     */
+    public String getTSAsString()
+    {
+        String tsString = getTSAsStringWithNull();
+        if (tsString.equals("0"))
+        {
+            tsString = "unlimited";
+        }
+        return tsString;
     }
 
     /**
@@ -587,9 +615,11 @@ public class MBox
      */
     public static List<MBox> getNextBoxes(int minutes)
     {
+        // get the time to check for
         DateTime dt = new DateTime();
         dt = dt.plusHours(minutes);
-
+        // get a list of boxes, that are active, have a timestamp that is lower than the time to check for and not
+        // unlimited
         return Ebean.find(MBox.class).where().eq("expired", false).lt("ts_Active", dt.getMillis()).ne("ts_Active", 0)
                     .findList();
     }
@@ -620,7 +650,7 @@ public class MBox
     {
         ExpressionList<MBox> exList1 = Ebean.find(MBox.class).where().eq("usr_id", userId);
         if (input.contains("@"))
-        {
+        { //check for a correct format of a box
             String[] split = input.split("@");
 
             switch (split.length)
@@ -637,16 +667,16 @@ public class MBox
             }
 
         }
-
+        //the entry may be something like "addr" or "doma" (just a part of the address) 
         return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%")).findList();
     }
 
     /**
-     * Returns a list of all emails of the given user
+     * Returns a list of all email-addresses of the given user
      * 
      * @param userId
-     *            the userid
-     * @return a list of emails
+     *            the user-ID
+     * @return a list of email-addresses
      */
 
     public static String getMailsForTxt(long userId)
@@ -678,8 +708,9 @@ public class MBox
         {
             csvMails += mailBox.getAddress() + "@" + mailBox.getDomain() + "\n";
         }
-
         return csvMails;
     }
+    
+    
 
 }

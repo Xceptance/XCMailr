@@ -29,33 +29,33 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class UserFormData
 {
     @NotEmpty
-    @Length(min=1, max=255)
+    @Length(min = 1, max = 255)
     public String firstName;
 
     @NotEmpty
-    @Length(min=1, max=255)
+    @Length(min = 1, max = 255)
     private String surName;
 
     @Email
     @NotEmpty
-    @Length(min=1, max=255)
+    @Length(min = 1, max = 255)
     private String mail;
 
     @NotEmpty
-    @Length(min=1, max=255)
+    @Length(min = 1, max = 255)
     private String password;
 
-    @Length(min=0, max=255)
+    @Length(min = 0, max = 255)
     private String passwordNew1;
 
-    @Length(min=0, max=255)
+    @Length(min = 0, max = 255)
     private String passwordNew2;
-    
-    @Length(min=0, max=255)
+
+    @Length(min = 0, max = 255)
     private String language;
 
     /**
-     * @return the first name 
+     * @return the first name
      */
     public String getFirstName()
     {
@@ -125,7 +125,7 @@ public class UserFormData
     /**
      * @return the new Password
      */
-    public String getPasswordNew1() //TODO: alle templates mit diesem EditUsr ändern
+    public String getPasswordNew1()
     {
         return passwordNew1;
     }

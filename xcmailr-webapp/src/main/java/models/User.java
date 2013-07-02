@@ -34,44 +34,77 @@ import com.avaje.ebean.validation.NotEmpty;
 @Table(name = "users")
 public class User implements Serializable
 {
-
+    /**
+     * UID to serialize this object
+     */
     private static final long serialVersionUID = 1830731471817237181L;
 
-    // UserId
+    /**
+     * UserId
+     */
     @Id
     private long id;
 
+    
+    /**
+     *  first name of the User
+     */
     @NotEmpty
-    // Forename of the User
     private String forename;
 
+    
+    /**
+     *  Surname of the User
+     */
     @NotEmpty
-    // Surname of the User
     private String surname;
 
-    // Mailaddress
+    /**
+     * Email-address
+     */
     @Email
     private String mail;
 
+    
+    /**
+     *  Password
+     */
     @NotEmpty
-    // Password
     private String passwd;
 
+    /**
+     * indicates a user account
+     */
     private boolean admin;
 
+    /**
+     * indicates whether the account is active or not
+     */
     private boolean active;
 
-    // Random String which is used for Account activation and password-resend
+    /**
+     * random string which is used for account activation and password-resend
+     */
     private String confirmation;
 
-    // timestamp for the validity-period of the confirmation-token
+    /**
+     * timestamp for the validity-period of the confirmation-token
+     */
     private Long ts_confirm;
 
+    /**
+     * number of wrong logins (will be set to 0 on a successful login)
+     */
     private int badPwCount;
 
+    /**
+     * the language of a user
+     */
     private String language;
 
-    // Relation to the Mailboxes
+    /**
+     * relation to the mailboxes
+     */
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
     public List<MBox> boxes;
 

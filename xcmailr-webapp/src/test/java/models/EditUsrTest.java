@@ -26,34 +26,34 @@ public class EditUsrTest extends NinjaTest
     @Test
     public void prepopulateEdtUsrTest()
     {
-        User u = new User("forename", "surname", "test@localhost.com", "1234", "en");
-        UserFormData edt1 = UserFormData.prepopulate(u);
-        assertTrue(edt1.getFirstName().equals("forename"));
-        assertTrue(edt1.getSurName().equals("surname"));
-        assertTrue(edt1.getMail().equals("test@localhost.com"));
+        User user = new User("forename", "surname", "test@localhost.com", "1234", "en");
+        UserFormData userFormData1 = UserFormData.prepopulate(user);
+        assertTrue(userFormData1.getFirstName().equals("forename"));
+        assertTrue(userFormData1.getSurName().equals("surname"));
+        assertTrue(userFormData1.getMail().equals("test@localhost.com"));
 
         // the password should not be written to the prepopulated EdtUsr (pwn1 and 2 too)
-        assertNull(edt1.getPassword());
-        assertNull(edt1.getPasswordNew1());
-        assertNull(edt1.getPasswordNew2());
+        assertNull(userFormData1.getPassword());
+        assertNull(userFormData1.getPasswordNew1());
+        assertNull(userFormData1.getPasswordNew2());
     }
 
     @Test
     public void getAsUsrTest()
     {
 
-        UserFormData edt1 = new UserFormData();
-        edt1.setFirstName("forename");
-        edt1.setSurName("surname");
-        edt1.setMail("mail@localhost");
-        edt1.setPassword("1234");
-        edt1.setPasswordNew1("1234");
-        User u = edt1.getAsUser();
+        UserFormData userFormData1 = new UserFormData();
+        userFormData1.setFirstName("forename");
+        userFormData1.setSurName("surname");
+        userFormData1.setMail("mail@localhost");
+        userFormData1.setPassword("1234");
+        userFormData1.setPasswordNew1("1234");
+        User user = userFormData1.getAsUser();
 
-        assertTrue(u.getForename().equals("forename"));
-        assertTrue(u.getSurname().equals("surname"));
-        assertTrue(u.getMail().equals("mail@localhost"));
-        assertNotNull(u.checkPasswd("1234"));
+        assertTrue(user.getForename().equals("forename"));
+        assertTrue(user.getSurname().equals("surname"));
+        assertTrue(user.getMail().equals("mail@localhost"));
+        assertNotNull(user.checkPasswd("1234"));
 
     }
 }
