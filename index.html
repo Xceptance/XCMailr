@@ -117,23 +117,23 @@
 <li>You may want to use an (Apache2) reverse-proxy in front of the application. With the "application.basedir"-option in the application.conf, you can specify a context-path for your application. Thereby, you can use the same path on which the app will be available through the proxy. </li>
 <li>For instance, if it will be available externally at "<a href="http://reverse.proxy/path/to/app">http://reverse.proxy/path/to/app</a>", then you can set the basedir to "path/to/app" and it will run locally hat "http://localhost:port/path/to/app".</li>
 <li>The advantage is that you don't have to use the mod_proxy_html-module to rewrite every link and file-paths on all html-pages.</li>
-<li>
-<p>After setting up the Apache2 with all necessary Proxy-Modules (especially you have to enable proxy and proxy_http), you'll have to create a VirtualHost-Configuration for your site. Here's a small example for that:</p>
+<li>After setting up the Apache2 with all necessary Proxy-Modules (especially you have to enable proxy and proxy_http), you'll have to create a VirtualHost-Configuration for your site. Here's a small example for that:</li>
+</ul><div class="highlight"><pre><span class="nt">&lt;VirtualHost</span> <span class="s">*:80</span><span class="nt">&gt;</span>  
+    <span class="nb">ProxyRequests</span> <span class="k">off</span>  
+    <span class="nb">ProxyPass</span> <span class="sx">/xcmailr/</span> http://localhost:8080/xcmailr/  
+    <span class="nb">ProxyPassReverse</span> <span class="sx">/xcmailr/</span> http://localhost:8080/xcmailr/  
 
-<p><br>
-    ProxyRequests off<br>
-    ProxyPass /xcmailr/ http://localhost:8080/xcmailr/<br>
-    ProxyPassReverse /xcmailr/ http://localhost:8080/xcmailr/  </p>
+    <span class="nt">&lt;Proxy</span> <span class="s">http://localhost:8080*</span><span class="nt">&gt;</span>  
+        <span class="nb">Order</span> deny,allow  
+        <span class="nb">allow</span> from <span class="k">all</span>  
+    <span class="nt">&lt;/Proxy&gt;</span>  
 
-<pre><code>&lt;Proxy http://localhost:8080*&gt;  
-    Order deny,allow  
-    allow from all  
-&lt;/Proxy&gt;  
-</code></pre>
+    <span class="nb">Redirect</span> <span class="sx">/xcmailr</span>       <span class="sx">/xcmailr/</span>  
+<span class="nt">&lt;/VirtualHost&gt;</span>  
+</pre></div>
 
-<p>Redirect /xcmailr       /xcmailr/<br></p>
-</li>
-<li><p>We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it could be reached with this configuration at http://mydomain/xcmailr . </p></li>
+<ul>
+<li>We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it could be reached with this configuration at http://mydomain/xcmailr . </li>
 </ul><h2>
 <a name="frameworkslibraryscodeetc-provided-by-others" class="anchor" href="#frameworkslibraryscodeetc-provided-by-others"><span class="octicon octicon-link"></span></a>Frameworks/Librarys/Code/etc provided by others</h2>
 
