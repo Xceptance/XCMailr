@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>XCMailr - Email Service for Testing by Xceptance</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>XCMailr - Email Service for Testing</h1>
+        <h2>A small mailer for us but a big helper for testing</h2>
+        <a href="https://github.com/Xceptance/XCMailr" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="xcmailr" class="anchor" href="#xcmailr"><span class="octicon octicon-link"></span></a>XCMailr</h1>
+
+<h2>
+<a name="summary" class="anchor" href="#summary"><span class="octicon octicon-link"></span></a>Summary</h2>
+
+<ul>
+<li>Name: XCMailr</li>
+<li>Version: 1.1.0</li>
+<li>Release: July 2013</li>
+<li>License: Apache V2.0</li>
+<li>License URI: <a href="http://www.apache.org/licenses/LICENSE-2.0.txt">http://www.apache.org/licenses/LICENSE-2.0.txt</a>
+</li>
+<li>Tags: AntiSpam, Testutility</li>
+<li>Contributors:
+
+<ul>
+<li>Patrick Thum, Xceptance Software Technologies GmbH</li>
+<li>Patrick Hähnlein, Xceptance Software Technologies GmbH</li>
+</ul>
+</li>
+</ul><h2>
+<a name="description" class="anchor" href="#description"><span class="octicon octicon-link"></span></a>Description</h2>
+
+<p>XCMailr lets you quickly and easily reduce spam in your email account. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming emails will be silently dropped. XCMailr doesn't store any email content and and won't notify the sender if the address is no longer valid. </p>
+
+<h2>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
+
+<ul>
+<li><a href="http://memcached.org/">Memcached</a></li>
+</ul><h2>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h2>
+
+<ul>
+<li>Open and edit the application.conf in conf/ </li>
+<li>It is strongly recommended to create a new application secret. This secret ensures that the session-cookie of a user has not been modified. </li>
+<li>You should especially customize the following settings:
+
+<ul>
+<li>
+<strong>application.secret</strong> uncomment and set this line, its used to verify session-cookies</li>
+<li>
+<strong>mbox.dlist</strong> the list of available domains</li>
+<li>
+<strong>mbox.host</strong> the main-application-host </li>
+<li>
+<strong>mail.smtp.*</strong> the "outbound" SMTP-Server (the server to which the application will forward any "valid" messages)</li>
+<li>
+<strong>memcached.*</strong> the MemCached-Server (host and port)</li>
+<li>
+<strong>ebean.*</strong> the Ebean-Configuration</li>
+</ul>
+</li>
+<li>You can configure the logging by editing conf/logback.xml. See <a href="http://logback.qos.ch/manual/">http://logback.qos.ch/manual/</a> for documentation.</li>
+<li>HTTPS support, Edit conf/jetty.xml-file as shown here: <a href="http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/">http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/</a>
+</li>
+</ul><h2>
+<a name="run-the-application" class="anchor" href="#run-the-application"><span class="octicon octicon-link"></span></a>Run the Application</h2>
+
+<ul>
+<li>Just rename the application.conf.template to application.conf and edit the application.conf (see Configuration). Then run the 'run.sh'-script.</li>
+<li>If you set a value for "application.basedir", the server will use that value as contextpath for your application. That means when you specify the value "xcmailr" for the basedir and "http://localhost:8080" as "application.url", then your application can be locally reached at "http://localhost:8080/xcmailr". If you want to run the application behind a reverse proxy, have a look at the section below.</li>
+<li>To drop and recreate all tables (which will remove all data contained in this tables!), run the script with the parameter "-Dxcmailr.xcmstart.droptables=true".</li>
+</ul><h2>
+<a name="build-from-source" class="anchor" href="#build-from-source"><span class="octicon octicon-link"></span></a>Build from Source</h2>
+
+<ul>
+<li>If you want to build the Project from the sources, you have two options to run the webapp.</li>
+<li>First option (after you've changed sth. and want to check your changes), the development-mode:
+
+<ul>
+<li>cd into the 'xcmailr-webapp' folder</li>
+<li>execute 'mvn clean jetty:run' to clean up the target-folder (if existent) and run the app in development-mode inside an embedded-jetty running on localhost:8080 (the "basedir" will be ignored here)</li>
+<li>NOTE: The webapp does not check whether the database and the tables exist. On the first run, you must set "%dev.ebean.ddl.run" and "%dev.ebean.ddl.generate" in application.conf to "true" to execute the "create table"-scripts and run the app successfully. (after that, you should set these values to "false" again, otherwise the database will be dropped and recreated after each server-reload)</li>
+<li>NOTE2 (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby, you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file. It will search for the configuration-file at first in this folder. In both cases you have to care that the .conf-files at ./xcmailr-webapp/src/main/java/conf and ./xcmailr-resources/conf are up-to-date and contain all necessary keys</li>
+<li>Second option (to create the build-folder):</li>
+<li>cd into the home-directory of the xcmailr</li>
+<li>run 'mvn clean package' to create the build-folder</li>
+<li>after that, there will be a folder called 'xcmailr-build' which contains the known files and can be executed as explained in the section "run the application"</li>
+</ul>
+</li>
+</ul><h2>
+<a name="using-an-apache-reverse-proxy" class="anchor" href="#using-an-apache-reverse-proxy"><span class="octicon octicon-link"></span></a>Using an Apache Reverse-Proxy</h2>
+
+<ul>
+<li>You may want to use an (Apache2) reverse-proxy in front of the application. With the "application.basedir"-option in the application.conf, you can specify a context-path for your application. Thereby, you can use the same path on which the app will be available through the proxy. </li>
+<li>For instance, if it will be available externally at "<a href="http://reverse.proxy/path/to/app">http://reverse.proxy/path/to/app</a>", then you can set the basedir to "path/to/app" and it will run locally hat "http://localhost:port/path/to/app".</li>
+<li>The advantage is that you don't have to use the mod_proxy_html-module to rewrite every link and file-paths on all html-pages.</li>
+<li>
+<p>After setting up the Apache2 with all necessary Proxy-Modules (especially you have to enable proxy and proxy_http), you'll have to create a VirtualHost-Configuration for your site. Here's a small example for that:</p>
+
+<p><br>
+    ProxyRequests off<br>
+    ProxyPass /xcmailr/ http://localhost:8080/xcmailr/<br>
+    ProxyPassReverse /xcmailr/ http://localhost:8080/xcmailr/  </p>
+
+<pre><code>&lt;Proxy http://localhost:8080*&gt;  
+    Order deny,allow  
+    allow from all  
+&lt;/Proxy&gt;  
+</code></pre>
+
+<p>Redirect /xcmailr       /xcmailr/<br></p>
+</li>
+<li><p>We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it could be reached with this configuration at http://mydomain/xcmailr . </p></li>
+</ul><h2>
+<a name="frameworkslibraryscodeetc-provided-by-others" class="anchor" href="#frameworkslibraryscodeetc-provided-by-others"><span class="octicon octicon-link"></span></a>Frameworks/Librarys/Code/etc provided by others</h2>
+
+<h3>
+<a name="avaje-ebean" class="anchor" href="#avaje-ebean"><span class="octicon octicon-link"></span></a>Avaje Ebean</h3>
+
+<ul>
+<li><a href="http://www.avaje.org/">http://www.avaje.org/</a></li>
+<li>LGPL: <a href="http://www.gnu.org/licenses/lgpl.html">http://www.gnu.org/licenses/lgpl.html</a>
+</li>
+</ul><h3>
+<a name="bootstrap-datetimepicker" class="anchor" href="#bootstrap-datetimepicker"><span class="octicon octicon-link"></span></a>Bootstrap Datetimepicker</h3>
+
+<ul>
+<li><a href="http://tarruda.github.io/bootstrap-datetimepicker/">http://tarruda.github.io/bootstrap-datetimepicker/</a></li>
+<li>Apache V2.0 License: <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>
+</li>
+</ul><h3>
+<a name="h2-database-engine" class="anchor" href="#h2-database-engine"><span class="octicon octicon-link"></span></a>H2 Database Engine</h3>
+
+<ul>
+<li><a href="http://www.h2database.com/">http://www.h2database.com/</a></li>
+<li>Dual licensed
+
+<ul>
+<li>H2 License, V1.0: <a href="http://www.h2database.com/html/license.html#h2_license">http://www.h2database.com/html/license.html#h2_license</a>
+</li>
+<li>EPL: <a href="http://www.h2database.com/html/license.html#eclipse_license">http://www.h2database.com/html/license.html#eclipse_license</a>
+</li>
+</ul>
+</li>
+</ul><h3>
+<a name="icons-by-glyphicons-shipped-with-twitter-bootstrap" class="anchor" href="#icons-by-glyphicons-shipped-with-twitter-bootstrap"><span class="octicon octicon-link"></span></a>Icons by Glyphicons (shipped with Twitter Bootstrap)</h3>
+
+<ul>
+<li>Copyright Jan Kovařík</li>
+<li><a href="http://glyphicons.com/">http://glyphicons.com/</a></li>
+<li>Apache V2.0 License: <a href="https://github.com/twitter/bootstrap/wiki/License">https://github.com/twitter/bootstrap/wiki/License</a>
+</li>
+</ul><h3>
+<a name="jetty-6" class="anchor" href="#jetty-6"><span class="octicon octicon-link"></span></a>Jetty 6</h3>
+
+<ul>
+<li><a href="http://www.eclipse.org/jetty/">http://www.eclipse.org/jetty/</a></li>
+<li>Apache V2.0 License: <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>
+</li>
+</ul><h3>
+<a name="jquery-tablesorter-20-plugin" class="anchor" href="#jquery-tablesorter-20-plugin"><span class="octicon octicon-link"></span></a>jQuery Tablesorter 2.0 plugin</h3>
+
+<ul>
+<li><a href="http://tablesorter.com">http://tablesorter.com</a></li>
+<li>Dual licensed 
+
+<ul>
+<li>MIT-License: <a href="http://www.opensource.org/licenses/mit-license.php">http://www.opensource.org/licenses/mit-license.php</a>
+</li>
+<li>GPL: <a href="http://www.opensource.org/licenses/gpl-license.php">http://www.opensource.org/licenses/gpl-license.php</a>
+</li>
+</ul>
+</li>
+</ul><h3>
+<a name="spymemcached" class="anchor" href="#spymemcached"><span class="octicon octicon-link"></span></a>Spymemcached</h3>
+
+<ul>
+<li><a href="http://code.google.com/p/spymemcached/">http://code.google.com/p/spymemcached/</a></li>
+<li>MIT-License: <a href="http://www.opensource.org/licenses/mit-license.php">http://www.opensource.org/licenses/mit-license.php</a>
+</li>
+</ul><h3>
+<a name="jbcrypt---a-java-bcrypt-implementation" class="anchor" href="#jbcrypt---a-java-bcrypt-implementation"><span class="octicon octicon-link"></span></a>JBCrypt - a Java BCrypt implementation</h3>
+
+<ul>
+<li>Copyright (c) 2006 Damien Miller</li>
+<li><a href="http://www.mindrot.org/projects/jBCrypt/">http://www.mindrot.org/projects/jBCrypt/</a></li>
+<li>ISC/BSD License: <a href="http://www.mindrot.org/files/jBCrypt/LICENSE">http://www.mindrot.org/files/jBCrypt/LICENSE</a>
+</li>
+</ul><h3>
+<a name="jodatime" class="anchor" href="#jodatime"><span class="octicon octicon-link"></span></a>JodaTime</h3>
+
+<ul>
+<li><a href="http://joda-time.sourceforge.net">http://joda-time.sourceforge.net</a></li>
+<li>Apache V2.0 License: <a href="http://joda-time.sourceforge.net/license.html">http://joda-time.sourceforge.net/license.html</a>
+</li>
+</ul><h3>
+<a name="ninjaframework" class="anchor" href="#ninjaframework"><span class="octicon octicon-link"></span></a>NinjaFramework</h3>
+
+<ul>
+<li><a href="http://www.ninjaframework.org/">http://www.ninjaframework.org/</a></li>
+<li>Apache V2.0 License: <a href="https://github.com/reyez/ninja/blob/develop/license.txt">https://github.com/reyez/ninja/blob/develop/license.txt</a>
+</li>
+</ul><h3>
+<a name="twitter-bootstrap" class="anchor" href="#twitter-bootstrap"><span class="octicon octicon-link"></span></a>Twitter Bootstrap</h3>
+
+<ul>
+<li>Copyright 2011 Twitter, Inc.</li>
+<li><a href="http://twitter.github.io/bootstrap/">http://twitter.github.io/bootstrap/</a></li>
+<li>Apache V2.0 License: <a href="https://github.com/twitter/bootstrap/wiki/License">https://github.com/twitter/bootstrap/wiki/License</a>
+</li>
+</ul><h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>XCMailr is licensed under the Apache Version 2.0 license.
+See LICENSE file for full license text.</p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/Xceptance/XCMailr/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/Xceptance/XCMailr/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/Xceptance/XCMailr"></a> is maintained by <a href="https://github.com/Xceptance">Xceptance</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
