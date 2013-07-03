@@ -11,7 +11,6 @@ Summary
  * Contributors:
     * Patrick Thum, Xceptance Software Technologies GmbH
     * Patrick Hähnlein, Xceptance Software Technologies GmbH
-    * 
 
 Description:
 ------------
