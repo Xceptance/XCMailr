@@ -12,7 +12,7 @@ Summary
     * Patrick Thum, Xceptance Software Technologies GmbH
     * Patrick Hähnlein, Xceptance Software Technologies GmbH
 
-Description:
+Description
 ------------
  XCMailr lets you quickly and easily reduce spam in your email account. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming email will be silently dropped. XCMailr doesnt store any email content and and wont notify the sender if the address is no longer valid. 
 
@@ -21,7 +21,7 @@ Requirements
  * Memcached ( http://memcached.org/ )
 
 
-Configuration:
+Configuration
 --------------
  * Open and edit the application.conf in conf/ 
  * It is strongly recommended to create a new application secret. This secret ensures that the session-cookie of a user has not been modified. 
@@ -36,14 +36,14 @@ Configuration:
  * You can configure the logging by editing conf/logback.xml, see http://logback.qos.ch/manual/ for documentation
  * HTTPS Support, Edit conf/jetty.xml-file as shown here: http://blog.callistaenterprise.se/2011/11/24/quick-start-jettys-maven-plugin-with-ssl/
 
-Run the Application:
---------------------
+Run the Application
+-------------------
  * Just rename the application.conf.template to application.conf and edit the application.conf (see Configuration). Then run the 'run.sh'-script.
  * If you set a value for "application.basedir", the server will use that value as contextpath for your application. That means, when you specify the value "xcmailr" for the basedir and "http://localhost:8080" as "application.url", then your application can be locally reached at "http://localhost:8080/xcmailr". If you want to run the application behind a reverse proxy, have a look at the section below.
  * To drop and recreate all tables (which will remove all data contained in this tables!) run the script with the parameter "-Dxcmailr.xcmstart.droptables=true"
 
-Build from Source:
-------------------
+Build from Source
+-----------------
  * If you want to build the Project from the sources, you've two options to run the webapp.
  * First option (after you've changed sth. and want to check your changes), the development-mode:
     * cd into the 'xcmailr-webapp' folder
@@ -55,8 +55,8 @@ Build from Source:
     * run 'mvn clean package' to create the build-folder
     * after that, there will be a folder called 'xcmailr-build' which contains the known files and can be executed as explained in the section "run the application"
 
-Run the Application behind an Apache2 Reverse-Proxy
----------------------------------------------------
+Using an Apache Reverse-Proxy
+-----------------------------
  * You may want to use an (Apache2) reverse-proxy in front of the application. With the "application.basedir"-option in the application.conf, you can specify a context-path for your application. Thereby, you can use the same path on which the app will be available through the proxy. 
  * For instance, if it will be available externally at "http://reverse.proxy/path/to/app", then you can set the basedir to "path/to/app" and it will run locally hat "http://localhost:port/path/to/app".
  * The advantage is that you don't have to use the mod_proxy_html-module to rewrite every link and file-paths on all html-pages.
@@ -78,8 +78,8 @@ Run the Application behind an Apache2 Reverse-Proxy
  * We set the basedir to "xcmailr" and our app runs then locally on "http://localhost:8080/xcmailr", externally it could be reached with this configuration at http://mydomain/xcmailr . 
 
 
-Frameworks/Librarys/Code/etc which were provided by others:
------------------------------------------------------------
+Frameworks/Librarys/Code/etc which were provided by others
+----------------------------------------------------------
  * Avaje Ebean 
     * http://www.avaje.org/
     * LGPL: http://www.gnu.org/licenses/lgpl.html
@@ -132,7 +132,7 @@ Frameworks/Librarys/Code/etc which were provided by others:
     * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
 
 
-License:
---------
+License
+-------
 XCMailr is licensed under the Apache Version 2.0 license.
 See LICENSE file for full license text.
