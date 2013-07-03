@@ -1,1 +1,8 @@
+/xcmailr-build/
 /target/
+.DS_Store
+.DS_Store?
+.classpath
+.project
+.settings
+.metadata
