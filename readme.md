@@ -17,7 +17,7 @@ XCMailr lets you quickly and easily reduce spam in your email account. Simply cr
 * [Memcached](http://memcached.org/)
 
 ## Configuration
-* Open and edit the application.conf in conf/ 
+* Open and edit the application.conf in conf/. 
 * It is strongly recommended to create a new application secret. This secret ensures that the session-cookie of a user has not been modified. 
 * You should especially customize the following settings:
  * **application.secret** uncomment and set this line, its used to verify session-cookies
@@ -41,14 +41,14 @@ XCMailr lets you quickly and easily reduce spam in your email account. Simply cr
  * execute 'mvn clean jetty:run' to clean up the target-folder (if existent) and run the app in development-mode inside an embedded-jetty running on localhost:8080 (the "basedir" will be ignored here)
  * NOTE: The webapp does not check whether the database and the tables exist. On the first run, you must set "%dev.ebean.ddl.run" and "%dev.ebean.ddl.generate" in application.conf to "true" to execute the "create table"-scripts and run the app successfully. (after that, you should set these values to "false" again, otherwise the database will be dropped and recreated after each server-reload)
  * NOTE2 (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby, you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file. It will search for the configuration-file at first in this folder. In both cases you have to care that the .conf-files at ./xcmailr-webapp/src/main/java/conf and ./xcmailr-resources/conf are up-to-date and contain all necessary keys
- * Second option (to create the build-folder):
-    * cd into the home-directory of the xcmailr
-    * run 'mvn clean package' to create the build-folder
-    * after that, there will be a folder called 'xcmailr-build' which contains the known files and can be executed as explained in the section "run the application"
+* Second option (to create the build-folder):
+ * cd into the home-directory of XCMailr
+ * run 'mvn clean package' to create the build-folder
+ * after that, there will be a folder called 'xcmailr-build' which contains the known files and can be executed as explained in the section "Run the Application"
 
 ## Using an Apache Reverse-Proxy
 * You may want to use an (Apache2) reverse-proxy in front of the application. With the "application.basedir"-option in the application.conf, you can specify a context-path for your application. Thereby, you can use the same path on which the app will be available through the proxy. 
-* For instance, if it will be available externally at "http://reverse.proxy/path/to/app", then you can set the basedir to "path/to/app" and it will run locally hat "http://localhost:port/path/to/app".
+* For instance, if it will be available externally at "http://reverse.proxy/path/to/app", then you can set the basedir to "path/to/app" and it will run locally at "http://localhost:port/path/to/app".
 * The advantage is that you don't have to use the mod_proxy_html-module to rewrite every link and file-paths on all html-pages.
 * After setting up the Apache2 with all necessary Proxy-Modules (especially you have to enable proxy and proxy_http), you'll have to create a VirtualHost-Configuration for your site. Here's a small example for that:
 
@@ -67,9 +67,9 @@ XCMailr lets you quickly and easily reduce spam in your email account. Simply cr
 </VirtualHost>  
 ```
 
-* We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it could be reached with this configuration at http://mydomain/xcmailr . 
+* We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it could be reached with this configuration at http://mydomain/xcmailr. 
 
-## Frameworks/Librarys/Code/etc provided by others
+## Frameworks/Librarys/Code/etc. Provided by Others
 ### Avaje Ebean 
 * http://www.avaje.org/
 * LGPL: http://www.gnu.org/licenses/lgpl.html
