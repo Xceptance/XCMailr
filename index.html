@@ -52,7 +52,7 @@
 </ul><h2>
 <a name="description" class="anchor" href="#description"><span class="octicon octicon-link"></span></a>Description</h2>
 
-<p>XCMailr lets you quickly and easily reduce spam in your email account. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming emails will be silently dropped. XCMailr doesn't store any email content and and won't notify the sender if the address is no longer valid. </p>
+<p>XCMailr lets you quickly and easily reduce spam in your email account. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming mail will be silently dropped. XCMailr doesn't store any email content and and won't notify the sender if the address is no longer valid. </p>
 
 <h2>
 <a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
@@ -63,7 +63,7 @@
 <a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h2>
 
 <ul>
-<li>Open and edit the application.conf in conf/ </li>
+<li>Open and edit the application.conf in conf/ . </li>
 <li>It is strongly recommended to create a new application secret. This secret ensures that the session-cookie of a user has not been modified. </li>
 <li>You should especially customize the following settings:
 
@@ -96,18 +96,22 @@
 <a name="build-from-source" class="anchor" href="#build-from-source"><span class="octicon octicon-link"></span></a>Build from Source</h2>
 
 <ul>
-<li>If you want to build the Project from the sources, you have two options to run the webapp.</li>
-<li>First option (after you've changed sth. and want to check your changes), the development-mode:
+<li>If you want to build the project from the sources, you have two options to run the webapp.</li>
+<li>First option (after you've changed something and want to check your changes), the development-mode:
 
 <ul>
 <li>cd into the 'xcmailr-webapp' folder</li>
 <li>execute 'mvn clean jetty:run' to clean up the target-folder (if existent) and run the app in development-mode inside an embedded-jetty running on localhost:8080 (the "basedir" will be ignored here)</li>
-<li>NOTE: The webapp does not check whether the database and the tables exist. On the first run, you must set "%dev.ebean.ddl.run" and "%dev.ebean.ddl.generate" in application.conf to "true" to execute the "create table"-scripts and run the app successfully. (after that, you should set these values to "false" again, otherwise the database will be dropped and recreated after each server-reload)</li>
-<li>NOTE2 (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby, you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file. It will search for the configuration-file at first in this folder. In both cases you have to care that the .conf-files at ./xcmailr-webapp/src/main/java/conf and ./xcmailr-resources/conf are up-to-date and contain all necessary keys</li>
-<li>Second option (to create the build-folder):</li>
-<li>cd into the home-directory of the xcmailr</li>
+<li>NOTE: The webapp does not check whether the database and the tables exist. On the first run, you must set "%dev.ebean.ddl.run" and "%dev.ebean.ddl.generate" in application.conf to "true" to execute the "create table"-scripts and run the app successfully (afterwards you should set these values to "false" again, otherwise the database will be dropped and recreated after each server-reload).</li>
+<li>NOTE2 (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby, you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file. It will search for the configuration-file at first in this folder. In both cases you have to take care that the .conf-files at ./xcmailr-webapp/src/main/java/conf and ./xcmailr-resources/conf are up-to-date and contain all necessary keys.</li>
+</ul>
+</li>
+<li>Second option (to create the build-folder):
+
+<ul>
+<li>cd into the home-directory of XCMailr</li>
 <li>run 'mvn clean package' to create the build-folder</li>
-<li>after that, there will be a folder called 'xcmailr-build' which contains the known files and can be executed as explained in the section "run the application"</li>
+<li>now there will be a folder called 'xcmailr-build' which contains the known files and can be executed as explained in the section "Run the Application"</li>
 </ul>
 </li>
 </ul><h2>
@@ -115,7 +119,7 @@
 
 <ul>
 <li>You may want to use an (Apache2) reverse-proxy in front of the application. With the "application.basedir"-option in the application.conf, you can specify a context-path for your application. Thereby, you can use the same path on which the app will be available through the proxy. </li>
-<li>For instance, if it will be available externally at "<a href="http://reverse.proxy/path/to/app">http://reverse.proxy/path/to/app</a>", then you can set the basedir to "path/to/app" and it will run locally hat "http://localhost:port/path/to/app".</li>
+<li>For instance, if it will be available externally at "<a href="http://reverse.proxy/path/to/app">http://reverse.proxy/path/to/app</a>", then you can set the basedir to "path/to/app" and it will run locally at "http://localhost:port/path/to/app".</li>
 <li>The advantage is that you don't have to use the mod_proxy_html-module to rewrite every link and file-paths on all html-pages.</li>
 <li>After setting up the Apache2 with all necessary Proxy-Modules (especially you have to enable proxy and proxy_http), you'll have to create a VirtualHost-Configuration for your site. Here's a small example for that:</li>
 </ul><div class="highlight"><pre><span class="nt">&lt;VirtualHost</span> <span class="s">*:80</span><span class="nt">&gt;</span>  
@@ -133,9 +137,9 @@
 </pre></div>
 
 <ul>
-<li>We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it could be reached with this configuration at http://mydomain/xcmailr . </li>
+<li>We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it can be reached with this configuration at http://mydomain/xcmailr. </li>
 </ul><h2>
-<a name="frameworkslibraryscodeetc-provided-by-others" class="anchor" href="#frameworkslibraryscodeetc-provided-by-others"><span class="octicon octicon-link"></span></a>Frameworks/Librarys/Code/etc provided by others</h2>
+<a name="frameworkslibraryscodeetc-provided-by-others" class="anchor" href="#frameworkslibraryscodeetc-provided-by-others"><span class="octicon octicon-link"></span></a>Frameworks/Librarys/Code/etc. Provided by Others</h2>
 
 <h3>
 <a name="avaje-ebean" class="anchor" href="#avaje-ebean"><span class="octicon octicon-link"></span></a>Avaje Ebean</h3>
