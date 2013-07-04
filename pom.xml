@@ -76,6 +76,13 @@
 			      <outputDirectory>${basedir}/xcmailr-build/</outputDirectory>
 			      <resources>          
 				<resource>
+				  <directory>${basedir}/</directory>
+					<includes>
+					  <include>readme.md</include>
+					  <include>license.md</include>
+					</includes>
+				</resource>
+				<resource>
 				  <directory>${basedir}/xcmailr-resources/</directory>
 				</resource>
 			      </resources>              
