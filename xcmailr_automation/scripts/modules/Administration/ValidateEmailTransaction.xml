@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Validate the recording of a previously executed email forwarding or suppression.
+
+- ForwardAddress: Full temporary forward email address
+- ActiveState: The forward emails state (Active/Inactive)
+- SenderAddress: The address from which the email was sent
+- ReceiverAddress: The address which received the forwarded email (empty if suppressed)</description>
+  <parameter name="ForwardAddress"/>
+  <parameter name="ActiveState"/>
+  <parameter name="SenderAddress"/>
+  <parameter name="ReceiverAddress"/>
+  <action name="AccessAdminArea"/>
+  <command name="clickAndWait" target="link=Admin"/>
+  <action name="ValidateTransactionRecording"/>
+  <command name="clickAndWait" target="link=Email Transactions"/>
+  <command name="assertText" target="//div[@id='mtxPage_1']//td[contains(.,'${CurrentForward}')]/preceding-sibling::td[1] " value="*@{SenderAddress}*"/>
+  <command name="assertText" target="//div[@id='mtxPage_1']//td[contains(.,'${CurrentForward}')]/preceding-sibling::td[2] " value="@{ActiveState}"/>
+  <command name="assertText" target="//div[@id='mtxPage_1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[1] " value="*@{ReceiverAddress}*"/>
+</scriptmodule>

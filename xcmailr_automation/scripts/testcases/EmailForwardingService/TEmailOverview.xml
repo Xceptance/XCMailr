@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testcase version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <tags>email,forward,overview,my emails,email list</tags>
+  <description>Verifies navigational and sorting functionality on the 'My Emails' page as well as concurrent change of multiple emails.</description>
+  <module name="modules.General.AccessXCMailrSite"/>
+  <module name="modules.UserManagement.RegisterAndActivateUserAccount">
+    <parameter name="AolEmail" value="${AolTestAddress}"/>
+    <parameter name="AolPassword" value="${AolTestPassword}"/>
+  </module>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AolTestAddress}"/>
+    <parameter name="XCMailrPassword" value="${Password}"/>
+  </module>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <module name="modules.EmailValidation.PreValidation_Mailbox">
+    <parameter name="ForwardCount_pre" value="0"/>
+    <parameter name="SuppressCount_pre" value="0"/>
+    <parameter name="ActiveState_pre" value="Active"/>
+    <parameter name="Expiration_pre" value="${Expiration}"/>
+  </module>
+  <action name="CheckActiveStateChanges"/>
+  <command name="assertElementPresent" target="//div[@id='1']//tr[@class='success']/td[contains(.,'${CurrentForward}')]"/>
+  <command name="assertElementPresent" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[5]//input[@value='Disable']"/>
+  <command name="clickAndWait" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[5]//input"/>
+  <module name="modules.EmailValidation.MailboxValidation">
+    <parameter name="Expiration" value="${Expiration}"/>
+    <parameter name="ForwardCount" value="0"/>
+    <parameter name="SuppressCount" value="0"/>
+    <parameter name="ActiveState" value="Inactive"/>
+  </module>
+  <command name="assertElementPresent" target="//div[@id='1']//tr[@class='error']/td[contains(.,'${CurrentForward}')]"/>
+  <command name="assertElementPresent" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[5]//input[@value='Enable']"/>
+  <action name="CreateEmailsForFurtherTestSteps"/>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <module name="modules.EmailValidation.SearchForForwardEmail">
+    <parameter name="EmailAddress" value="${CurrentForward}"/>
+  </module>
+  <command name="clickAndWait" target="//div[@id='1']//td[contains(.,'${CurrentAddress}')]/following-sibling::td[5]//input"/>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <module name="modules.EmailValidation.SearchForForwardEmail">
+    <parameter name="EmailAddress" value="${CurrentForward}"/>
+  </module>
+  <command name="clickAndWait" target="//div[@id='1']//td[contains(.,'${CurrentAddress}')]/following-sibling::td[5]//input"/>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <action name="ChangeDisplayCount_5EntriesOnSite"/>
+  <command name="clickAndWait" target="css=.btn-link[value='5']"/>
+  <command name="assertXpathCount" target="//div[@id='1']/table/tbody/tr" value="5"/>
+  <command name="assertElementPresent" target="css=.pagination>ul>li>a"/>
+  <command name="assertXpathCount" target="//div[@class='pagination']/ul/li" value="3"/>
+  <action name="CheckSitePagination"/>
+  <command name="click" target="css=.pagination>ul>li:nth-child(3)>a"/>
+  <command name="waitForVisible" target="id=2"/>
+  <command name="assertXpathCount" target="//div[@id='2']/table/tbody/tr" value="1"/>
+  <action name="ChangeDisplayCount_AllEntriesOnSite"/>
+  <command name="clickAndWait" target="css=.btn-link[value=all]"/>
+  <command name="assertXpathCount" target="//div[@id='1']/table/tbody/tr" value="6"/>
+  <command name="assertNotElementPresent" target="css=.pagination>ul>li>a"/>
+  <action name="MultipleChange_ExpirationDate"/>
+  <command name="check" target="//div[@id='1']//tr[1]/td/input[@type='checkbox']"/>
+  <command name="check" target="//div[@id='1']//tr[3]/td/input[@type='checkbox']"/>
+  <module name="modules.EmailCreation.SelectExpirationByDatepicker"/>
+  <command name="storeText" target="id=datetime1" value="Expiration"/>
+  <command name="clickAndWait" target="id=btnBulkChangeDuration1"/>
+  <command name="assertText" target="//div[@id=1]/table/tbody/tr[1]/td[3]" value="${Expiration}"/>
+  <command name="assertText" target="//div[@id=1]/table/tbody/tr[3]/td[3]" value="${Expiration}"/>
+  <action name="MultipleChange_NoExpiration"/>
+  <command name="check" target="id=chkbx_ALL1"/>
+  <command name="check" target="id=chkUnlimited1"/>
+  <command name="assertNotVisible" target="id=datetimepicker1"/>
+  <command name="clickAndWait" target="id=btnBulkChangeDuration1"/>
+  <command name="assertXpathCount" target="//div[@id=1]/table/tbody/tr/td[contains(.,'unlimited')]" value="6"/>
+  <command name="assertXpathCount" target="//div[@id='1']//td[6 and contains(.,'Active')]" value="6"/>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <module name="modules.EmailValidation.SearchForForwardEmail">
+    <parameter name="EmailAddress" value="${CurrentAddress}"/>
+  </module>
+  <action name="DisableEmail"/>
+  <command name="clickAndWait" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[5]//input"/>
+  <command name="check" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/..//input[@type='checkbox']"/>
+  <command name="check" target="//div[@id='1']//tr[5][@class='success']/td/input[@type='checkbox']"/>
+  <action name="MultipleChange_ToggleActiveState"/>
+  <command name="clickAndWait" target="id=btnBulkEnable1"/>
+  <command name="assertText" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[4]" value="Active"/>
+  <command name="assertText" target="//div[@id='1']//tr[5]/td[6]" value="Inactive"/>
+  <action name="MultipleChange_Delete"/>
+  <command name="check" target="id=chkbx_ALL1"/>
+  <command name="clickAndWait" target="id=btnBulkDelete1"/>
+  <command name="assertXpathCount" target="//div[@id='1']/table/tbody/tr" value="0"/>
+  <module name="modules.UserManagement.DeleteTestAccount"/>
+</testcase>

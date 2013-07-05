@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Sign In a registered user on mail.aol.com website.
+
+- AolEmail: The registered email address (aol.de, aol.com or aim.com domain)
+- AolPassword: The account password</description>
+  <parameter name="AolEmail"/>
+  <parameter name="AolPassword"/>
+  <action name="AccessAolMailWebsite"/>
+  <command name="open" value="${AolMailURL}"/>
+  <command name="deleteAllVisibleCookies"/>
+  <command name="open" value="${AolMailURL}"/>
+  <action name="LoginAolMailUser"/>
+  <command name="type" target="id=lgnId1" value="@{AolEmail}"/>
+  <command name="type" target="id=pwdId1" value="@{AolPassword}"/>
+  <command name="clickAndWait" target="id=submitID"/>
+</scriptmodule>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testcase version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <tags>register,registration,create user account,validation</tags>
+  <description>Verifies the input field validation and data keeping on the 'Create Account' page.</description>
+  <module name="modules.General.AccessXCMailrSite"/>
+  <module name="modules.UserManagement.RegisterAndActivateUserAccount">
+    <parameter name="AolEmail" value="${AolTestAddress}"/>
+    <parameter name="AolPassword" value="${AolTestPassword}"/>
+  </module>
+  <module name="modules.General.AccessXCMailrSite"/>
+  <action name="AccessRegistrationPage"/>
+  <command name="clickAndWait" target="link=Create an Account"/>
+  <action name="ValidateRegistrationInputFields_EmptyInputs"/>
+  <command name="clickAndWait" target="id=btnRegisterSubmit"/>
+  <command name="assertTitle" value="XCMailr - Create an Account"/>
+  <command name="assertElementPresent" target="css=.alert-error"/>
+  <action name="ValidateRegistrationInputFields_OneEmptyInput"/>
+  <command name="store" target="${RANDOM.String(9)}" value="FirstName"/>
+  <command name="store" target="${RANDOM.String(9)}" value="LastName"/>
+  <command name="store" target="${RANDOM.String(9)}@.de" value="Email"/>
+  <command name="store" target="${RANDOM.String(10)}" value="PasswordVal"/>
+  <module name="modules.UserManagement.FillRegistrationFields">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value=""/>
+    <parameter name="Password" value="${PasswordVal}"/>
+    <parameter name="PasswordRepeat" value="${PasswordVal}"/>
+    <parameter name="Language" value="de"/>
+  </module>
+  <command name="clickAndWait" target="id=btnRegisterSubmit"/>
+  <command name="assertTitle" value="XCMailr - Create an Account"/>
+  <command name="assertElementPresent" target="css=.alert-error"/>
+  <module name="modules.UserManagement.MatchRegistrationFieldValues">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value=""/>
+    <parameter name="Password" value=""/>
+    <parameter name="PasswordRepeat" value=""/>
+    <parameter name="Language" value="de"/>
+  </module>
+  <action name="ValidateRegistrationInputFields_IncorrectEmailPattern"/>
+  <module name="modules.UserManagement.FillRegistrationFields">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="${Email}"/>
+    <parameter name="Password" value="${PasswordVal}"/>
+    <parameter name="PasswordRepeat" value="${PasswordVal}"/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <command name="clickAndWait" target="id=btnRegisterSubmit"/>
+  <command name="assertTitle" value="XCMailr - Create an Account"/>
+  <command name="assertElementPresent" target="css=.alert-error"/>
+  <module name="modules.UserManagement.MatchRegistrationFieldValues">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="${Email}"/>
+    <parameter name="Password" value=""/>
+    <parameter name="PasswordRepeat" value=""/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <action name="ValidateRegistrationInputFields_RegisteredEmail"/>
+  <module name="modules.UserManagement.FillRegistrationFields">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="${AolTestAddress}"/>
+    <parameter name="Password" value="${PasswordVal}"/>
+    <parameter name="PasswordRepeat" value="${PasswordVal}"/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <command name="clickAndWait" target="id=btnRegisterSubmit"/>
+  <command name="assertTitle" value="XCMailr - Create an Account"/>
+  <command name="assertElementPresent" target="css=.alert-error"/>
+  <module name="modules.UserManagement.MatchRegistrationFieldValues">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="${AolTestAddress}"/>
+    <parameter name="Password" value=""/>
+    <parameter name="PasswordRepeat" value=""/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <action name="ValidateRegistrationInputFields_UnequalPasswords"/>
+  <command name="store" target="${RANDOM.String(9)}@sharklasers.com" value="Email"/>
+  <module name="modules.UserManagement.FillRegistrationFields">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="${Email}"/>
+    <parameter name="Password" value="${PasswordVal}"/>
+    <parameter name="PasswordRepeat" value="${RANDOM.String(10)}"/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <command name="click" target="id=btnRegisterSubmit"/>
+  <command name="waitForElementPresent" target="pwUnequalErrorSpan"/>
+  <command name="assertTitle" value="XCMailr - Create an Account"/>
+  <module name="modules.UserManagement.MatchRegistrationFieldValues">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="${Email}"/>
+    <parameter name="Password" value=""/>
+    <parameter name="PasswordRepeat" value=""/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <action name="ValidateRegistrationInputFields_TooShortPasswords">
+    <comment>Current minimum length: 10</comment>
+  </action>
+  <command name="store" target="${RANDOM.String(9)}" value="PasswordVal"/>
+  <module name="modules.UserManagement.FillRegistrationFields">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="${Email}"/>
+    <parameter name="Password" value="${PasswordVal}"/>
+    <parameter name="PasswordRepeat" value="${PasswordVal}"/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <command name="clickAndWait" target="id=btnRegisterSubmit"/>
+  <command name="assertTitle" value="XCMailr - Create an Account"/>
+  <command name="assertElementPresent" target="css=.alert-error"/>
+  <module name="modules.UserManagement.MatchRegistrationFieldValues">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="${Email}"/>
+    <parameter name="Password" value=""/>
+    <parameter name="PasswordRepeat" value=""/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <action name="ResetInputFields"/>
+  <module name="modules.UserManagement.FillRegistrationFields">
+    <parameter name="FirstName" value="${RANDOM.String(9)}"/>
+    <parameter name="LastName" value="${RANDOM.String(9)}"/>
+    <parameter name="Email" value="${RANDOM.String(9)}@varmail.de"/>
+    <parameter name="Password" value="${PasswordVal}"/>
+    <parameter name="PasswordRepeat" value="${PasswordVal}"/>
+    <parameter name="Language" value="de"/>
+  </module>
+  <command name="click" target="id=btnRegisterReset"/>
+  <command name="waitForText" target="name=firstName" value="${FirstName}"/>
+  <module name="modules.UserManagement.MatchRegistrationFieldValues">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="${Email}"/>
+    <parameter name="Password" value=""/>
+    <parameter name="PasswordRepeat" value=""/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <action name="DeleteHelperAccount"/>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AolTestAddress}"/>
+    <parameter name="XCMailrPassword" value="${Password}"/>
+  </module>
+  <module name="modules.UserManagement.DeleteTestAccount"/>
+</testcase>

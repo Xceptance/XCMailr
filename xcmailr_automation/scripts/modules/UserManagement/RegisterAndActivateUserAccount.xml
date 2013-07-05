@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Performs a complete user registration and account activation, so the result is a new account ready for login.
+Can only be used with shortmail.com accounts.
+
+- AolEmail: A registered aol.com, aol.de or aim.com email address
+- AolPassword: The password to log in on mail.aol.com</description>
+  <parameter name="AolEmail"/>
+  <parameter name="AolPassword"/>
+  <action name="SendRegistrationInformation"/>
+  <command name="clickAndWait" target="link=Create an Account"/>
+  <command name="store" target="${RANDOM.String(9)}" value="FirstName"/>
+  <command name="store" target="${RANDOM.String(9)}" value="LastName"/>
+  <command name="store" target="${RANDOM.String(10)}" value="Password"/>
+  <module name="modules.UserManagement.FillRegistrationFields">
+    <parameter name="FirstName" value="${FirstName}"/>
+    <parameter name="LastName" value="${LastName}"/>
+    <parameter name="Email" value="@{AolEmail}"/>
+    <parameter name="Password" value="${Password}"/>
+    <parameter name="PasswordRepeat" value="${Password}"/>
+    <parameter name="Language" value="en"/>
+  </module>
+  <command name="clickAndWait" target="id=btnRegisterSubmit"/>
+  <command name="assertTitle" value="XCMailr - XCMailr - Your Place for Temporary Email Addresses!"/>
+  <command name="pause" value="7000"/>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="@{AolEmail}"/>
+    <parameter name="XCMailrPassword" value="${Password}"/>
+  </module>
+  <command name="assertNotElementPresent" target="link=Sign Out"/>
+  <command name="assertElementPresent" target="css=.alert-error"/>
+  <module name="modules.Webmailer.SignInAolMailUser">
+    <parameter name="AolEmail" value="@{AolEmail}"/>
+    <parameter name="AolPassword" value="@{AolPassword}"/>
+  </module>
+  <action name="ClickActivationLink"/>
+  <command name="clickAndWait" target="id=InboxLnk"/>
+  <command name="waitForElementPresent" target="css=.messageListView"/>
+  <command name="clickAndWait" target="xpath=(//div[@class='messageListView']//td[contains(.,'activate your account')]/..)[1]"/>
+  <command name="assertText" target="id=_aolWebSuiteMsgBody" value="*${FirstName}*"/>
+  <command name="clickAndWait" target="xpath=//div[@id='_aolWebSuiteMsgBody']//a"/>
+  <command name="clickAndWait" target="css=.signOutLink"/>
+  <command name="selectWindow" target="title=XCMailr - Sign In"/>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="@{AolEmail}"/>
+    <parameter name="XCMailrPassword" value="${Password}"/>
+  </module>
+  <command name="assertElementPresent" target="link=Sign Out"/>
+  <command name="clickAndWait" target="link=Sign Out"/>
+</scriptmodule>
