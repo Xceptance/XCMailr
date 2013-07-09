@@ -1,18 +1,19 @@
-## Information and instructions about the XCMailr test automation suite
+### Information and instructions about the XCMailr test automation suite
 
 
-### Table of Contents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#### Table of Contents
+___
 1. Overview
 2. Requirements
 3. Getting Started
-3.1. XLT Script Developer
-3.2. WebDriver tests with ANT
+ 1. XLT Script Developer
+ 2. WebDriver tests with ANT
 4. Additional Help
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+___
 
 
-### 1. Overview
+#### 1. Overview
 
 The content of the 'xcmailr_automation' folder covers the UI test automation for the XCMailr application.
 
@@ -23,11 +24,10 @@ The most important part are the workflows where the possibility of email forward
 An explanation about the usage and requirements will be given in the following.
 
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-### 2. Requirements
+#### 2. Requirements
 
-* Latest XLT release: http://www.xceptance.com/products/xlt/download.html
-* Latest Firefox release: http://www.mozilla.org/en-US/firefox/new/
+* Latest [XLT] (http://www.xceptance.com/products/xlt/download.html) release 
+* Latest [Firefox] (http://www.mozilla.org/en-US/firefox/new/) release
 
 For automated WebDriver test execution with ANT:
 
@@ -35,14 +35,14 @@ For automated WebDriver test execution with ANT:
 * Latest ChromeDriver [binary] (http://code.google.com/p/chromedriver/downloads/list)
 * Java [JDK] (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [ANT] (http://ant.apache.org/bindownload.cgi)
+
 or
 * [Eclipse] (http://www.eclipse.org/downloads/)
 
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-### 3. Getting Started
+#### 3. Getting Started
 
-### 3.1. XLT Script Developer
+#### 3.1. XLT Script Developer
 
 * You'll find the scripdeveloper.xpi file in the XLT folder (tools)
 * Install it as Firefox add-on (Firefox Add On Manager > Install add-on from file)
@@ -72,9 +72,8 @@ Things you should consider, before you start the test execution:
  * AolTestAddress/AolTestPassword: Aol webmail account for XCMailr website tests, which require a registered user
  * AlreadyRegisteredAddress: Arbitrary email address which is registered at the XCMailr site (used for validation tests)
 
- 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-### 3.2 WebDriver Tests with ANT
+
+#### 3.2 WebDriver Tests with ANT
 
 The test suite also gained the ability to be executed from Eclipse or ANT directly by utilizing WebDrivers. 
 Currently ChromeDriver and FirefoxDriver work fine. InternetExplorerDriver can be used, but is currently unstable.
@@ -99,14 +98,13 @@ On Windows you have to set some environment variables after ANT was installed.
 * Click 'Advanced System Settings'
 * Click 'Environment variables'
 * Following 'System variables' have to be created/adapted:
- * PATH must point to \ant\bin directory
- * ANT_HOME must point to \ant directory
- * ANT_OPTS with value -Xmx256M
+ * `PATH` must point to `\ant\bin` directory
+ * `ANT_HOME` must point to `\ant` directory
+ * `ANT_OPTS` with value `-Xmx256M`
 
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4. Additional Help
+#### 4. Additional Help
 
-XLT Script Developer documentation and Quick Start Guide: http://www.xceptance.com/products/xlt/documentation.html 
-A short visual Script Developer introduction: http://youtu.be/Ykx4DcKo-mc
-WebDriver with XLT: http://blog.xceptance.com/2013/04/23/webdrivers-in-xlt-how-to-run-test-cases-in-multiple-browser/
+* XLT Script Developer documentation and Quick Start Guide: http://www.xceptance.com/products/xlt/documentation.html 
+* A short visual Script Developer introduction: http://youtu.be/Ykx4DcKo-mc
+* WebDriver with XLT: http://blog.xceptance.com/2013/04/23/webdrivers-in-xlt-how-to-run-test-cases-in-multiple-browser/
