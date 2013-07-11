@@ -29,10 +29,12 @@ import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Messages;
+import ninja.params.Param;
 import ninja.params.PathParam;
 import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
+import models.Domain;
 import models.MailTransaction;
 import models.PageList;
 import models.User;
@@ -148,7 +150,8 @@ public class AdminHandler
     }
 
     /**
-     * Delete a time-specified number of MailTransactions GET /admin/mtxs/delete/{time}
+     * Delete a time-specified number of MailTransactions <br/>
+     * GET /admin/mtxs/delete/{time}
      * 
      * @param time
      *            the time in days (all before will be deleted)
@@ -278,9 +281,11 @@ public class AdminHandler
     }
 
     /**
-     * Handles JSON-Requests from the search
+     * Handles JSON-Requests from the search <br/>
+     * GET /admin/usersearch
      * 
      * @param context
+     *            the Context of this Request
      * @return a JSON-Array with the userdatalist
      */
     public Result jsonUserSearch(Context context)
@@ -307,4 +312,35 @@ public class AdminHandler
         return result.json().render(userDatalist);
     }
 
+    /**
+     * Shows a page that contains a list of all allowed domains of emails for registration <br/>
+     * GET /admin/whitelist
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return the domain-whitelist page
+     */
+    public Result showDomainWhitelist(Context context)
+    {
+        List<Domain> domainList = Domain.getAll();
+
+        return Results.html().render("domains", domainList);
+    }
+
+    public Result removeDomains(Context context, @Param("removeDomainsSelection") Long remDomainId)
+    {
+        System.out.println(remDomainId);
+        Domain.delete(remDomainId);
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        return result.redirect(context.getContextPath() + "/admin/whitelist");
+    }
+
+    public Result addDomain(Context context, @Param("domainName") String domainName)
+    {
+        System.out.println(domainName);
+        Domain domain = new Domain(domainName);
+        domain.save();
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        return result.redirect(context.getContextPath() + "/admin/whitelist");
+    }
 }

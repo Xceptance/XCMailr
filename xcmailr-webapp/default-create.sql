@@ -1,3 +1,9 @@
+create table register_domains (
+  id                        bigint not null,
+  domainname                varchar(255),
+  constraint pk_register_domains primary key (id))
+;
+
 create table mailboxes (
   id                        bigint not null,
   address                   varchar(255),
@@ -35,6 +41,8 @@ create table users (
   language                  varchar(255),
   constraint pk_users primary key (id))
 ;
+
+create sequence register_domains_seq;
 
 create sequence mailboxes_seq;
 
