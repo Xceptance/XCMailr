@@ -54,7 +54,7 @@ public class MemCachedSessionHandler
 
     private boolean instantiated;
 
-    public MemcachedClient client;
+    private MemcachedClient client;
 
     /**
      * Call this Method to initialize all Data from application.conf (if this wasn't called before, it will be invoked
@@ -67,15 +67,17 @@ public class MemCachedSessionHandler
             memHost = xcmConf.MEMCA_HOST;
             memPort = xcmConf.MEMCA_PORT;
             NAMESPACE = xcmConf.APP_NAME;
-            client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
+            this.client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
+            // indicates that the client was successfully instantiated
+            
+            instantiated = true;
         }
         catch (Exception e)
         {
             log.error(e.getMessage());
             instantiated = false;
         }
-        // indicates that the client was successfully instantiated
-        instantiated = true;
+
     }
 
     /**
@@ -147,6 +149,6 @@ public class MemCachedSessionHandler
         {
             create();
         }
-        return client;
+        return this.client;
     }
 }
