@@ -6,7 +6,6 @@ title=i18n("admin_Title_Transactions") >
 
 <div class="btn-toolbar">
 <@pag.mtxDeleter/>
-
 <!-- begin rowcount -->
 <form action="${contextPath}/admin/mtxs" id="transactionsEntryCount">
 	<@pag.entrycount/>
@@ -18,9 +17,9 @@ title=i18n("admin_Title_Transactions") >
 <div class="tab-content">  
 <#list 1..plist.getPageCount() as x > 
 	<#if x = 1 >
-		<div class="tab-pane active" id="mtxPage_${x}">  
+		<div class="tab-pane active" id="${x}">  
 	<#else>
-		<div class="tab-pane" id="mtxPage_${x}">  
+		<div class="tab-pane" id="${x}">  
 	</#if>
 	
 	<table class="table tablesorter table-hover table-condensed">
@@ -64,8 +63,8 @@ title=i18n("admin_Title_Transactions") >
 	</div> <!-- /tab pane (active) --> 
 </#list>
 <!-- end mailtransaction-list -->
-
 </div>  <!-- tab-content -->
+
 <@pag.pager name=plist/>
 <@pag.incSorter/>
 <#else>
