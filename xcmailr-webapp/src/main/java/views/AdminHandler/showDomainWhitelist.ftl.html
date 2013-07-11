@@ -2,7 +2,7 @@
 <@layout.adminLayout title=i18n("admin_Welcome")>
 
 <div>
-	<form action="${contextPath}/admin/whitelist/remove" method="post"  id="removeDomains" name="removeDomain">
+	<form action="${contextPath}/admin/whitelist/remove" method="post" class="form-inline" id="removeDomains" name="removeDomain">
 		<fieldset>
 			<legend>Domain Whitelist</legend>
 			<select name="removeDomainsSelection">
@@ -15,15 +15,10 @@
 	</form>
 </div>
 <div>
-	<form action="${contextPath}/admin/whitelist/add" method="post" id="addDomain" name="addDomain">
-		<fieldset>
-			<div class="control-group">
-				<label class="control-label" for="domainName">Add Domain</label>
-				<div class="controls">
-					<input class="input_full" type="text" id="inputAddDomain" name="domainName" required="required" />
-				</div>
-			</div>		
-		</fieldset>
+	<form action="${contextPath}/admin/whitelist/add" method="post" class="form-inline" id="addDomain" name="addDomain">
+		
+				<label class="control-label" for="inputAddDomain">Add Domain</label>
+				<input class="input_full" type="text" id="inputAddDomain" name="domainName" required="required" />
 		<input type="submit" class="btn" id="addDomainSubmit" value='${i18n("editEmail_Button_Edit")}' />
 	</form>
 </div>

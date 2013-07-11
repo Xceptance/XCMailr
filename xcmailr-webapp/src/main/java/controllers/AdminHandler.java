@@ -19,6 +19,7 @@ package controllers;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
@@ -327,17 +328,47 @@ public class AdminHandler
         return Results.html().render("domains", domainList);
     }
 
-    public Result removeDomains(Context context, @Param("removeDomainsSelection") Long remDomainId)
+    public Result callRemoveDomain(Context context, @Param("removeDomainsSelection") Long remDomainId)
     {
         System.out.println(remDomainId);
-        Domain.delete(remDomainId);
+        Domain domain = Domain.getById(remDomainId);
+        Result result = Results.html().template("/views/AdminHandler/removeDomainConfirmation.ftl.html");
+        return result.render("domain", domain);
+        // return result.redirect(context.getContextPath() + "/admin/whitelist");
+    }
+
+    public Result handleRemoveDomain(Context context, @Param("action") String action, @Param("domainId") long domainId)
+    {
+
         Result result = Results.html().template("/views/system/noContent.ftl.html");
+        //TODO add additional question for "are you sure" (when deleting the users and domain)
+        //TODO add checks for the inputs (the params) here
+        if (!StringUtils.isBlank(action))
+        {
+            if (action.equals("abort"))
+            { // the admin wants to abort this action
+                return result.redirect(context.getContextPath() + "/admin/whitelist");
+            }
+            if (action.equals("deleteUsersAndDomain"))
+            {
+                Domain domain = Domain.getById(domainId);
+                // TODO delete users with that domain
+                domain.delete();
+                return result.redirect(context.getContextPath() + "/admin/whitelist");
+            }
+            if (action.equals("deleteDomain"))
+            {// just delete the domain
+                Domain.delete(domainId);
+                return result.redirect(context.getContextPath() + "/admin/whitelist");
+            }
+        }
+        result = Results.html().template("/views/system/noContent.ftl.html");
         return result.redirect(context.getContextPath() + "/admin/whitelist");
     }
 
     public Result addDomain(Context context, @Param("domainName") String domainName)
     {
-        System.out.println(domainName);
+        //TODO add validation or sth for the domain
         Domain domain = new Domain(domainName);
         domain.save();
         Result result = Results.html().template("/views/system/noContent.ftl.html");
