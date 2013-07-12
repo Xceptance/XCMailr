@@ -80,7 +80,7 @@ public class UserHandler
         result.render("available_langs", o);
 
         User user = context.getAttribute("user", User.class);
-
+        String oldMail = user.getMail();
         if (validation.hasViolations())
         { // the filled form has errors
             context.getFlashCookie().error("flash_FormError");
@@ -170,6 +170,10 @@ public class UserHandler
                 context.getSessionCookie().put("username", userFormData.getMail());
                 memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME,
                                             user);
+                if (!oldMail.equals(mail))
+                { //update the memcached session entries 
+                    memCachedSessionHandler.updateUsersSessionsOnChangedMail(mail, user.getMail());
+                }
                 // user-edit was successful
                 context.getFlashCookie().success("flash_DataChangeSuccess");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()

@@ -63,6 +63,9 @@ public class AdminHandler
     @Inject
     MailrMessageSenderFactory mailSender;
 
+    @Inject
+    MemCachedSessionHandler mcsh;
+
     /**
      * Shows the Administration-Index-Page<br/>
      * GET site/admin
@@ -228,6 +231,9 @@ public class AdminHandler
                 String content = messages.get("user_Deactivate_Message", optLanguage, user.getForename()).get();
                 // send the mail
                 mailSender.sendMail(from, user.getMail(), content, subject);
+
+                // delete the sessions of this user
+                mcsh.deleteUsersSessions(User.getById(userId));
             }
             return result.redirect(context.getContextPath() + "/admin/users");
         }
@@ -254,6 +260,8 @@ public class AdminHandler
         if (user.getId() != userId)
         { // the user to pro-/demote is not the user who performs this action
             User.promote(userId);
+            // update all of the sessions
+            mcsh.updateUsersSessions(User.getById(userId));
         }
         return result.redirect(context.getContextPath() + "/admin/users");
     }
@@ -262,20 +270,21 @@ public class AdminHandler
      * Handles the {@link models.User User}-Delete-Function <br/>
      * POST /admin/delete/{id}
      * 
-     * @param userId
+     * @param deleteUserId
      *            the ID of a {@link models.User User}
      * @param context
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
-    public Result deleteUserProcess(@PathParam("id") Long userId, Context context)
+    public Result deleteUserProcess(@PathParam("id") Long deleteUserId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
 
-        if (user.getId() != userId)
+        if (user.getId() != deleteUserId)
         { // the user to delete is not the user who performs this action
-            User.delete(userId);
+            mcsh.deleteUsersSessions(User.getById(deleteUserId));
+            User.delete(deleteUserId);
         }
 
         return result.redirect(context.getContextPath() + "/admin/users");
@@ -328,6 +337,7 @@ public class AdminHandler
         return Results.html().render("domains", domainList);
     }
 
+    // TODO DOC
     public Result callRemoveDomain(Context context, @Param("removeDomainsSelection") Long remDomainId)
     {
         System.out.println(remDomainId);
@@ -337,12 +347,12 @@ public class AdminHandler
         // return result.redirect(context.getContextPath() + "/admin/whitelist");
     }
 
+    // TODO DOC
     public Result handleRemoveDomain(Context context, @Param("action") String action, @Param("domainId") long domainId)
     {
 
         Result result = Results.html().template("/views/system/noContent.ftl.html");
-        //TODO add additional question for "are you sure" (when deleting the users and domain)
-        //TODO add checks for the inputs (the params) here
+        // TODO add checks for the inputs (the params) here
         if (!StringUtils.isBlank(action))
         {
             if (action.equals("abort"))
@@ -352,7 +362,15 @@ public class AdminHandler
             if (action.equals("deleteUsersAndDomain"))
             {
                 Domain domain = Domain.getById(domainId);
-                // TODO delete users with that domain
+                List<User> usersToDelete = User.getUsersOfDomain(domain.getDomainname());
+
+                // delete the sessions of the users
+                for (User userToDelete : usersToDelete)
+                {
+                    mcsh.deleteUsersSessions(userToDelete);
+                    User.delete(userToDelete.getId());
+                }
+
                 domain.delete();
                 return result.redirect(context.getContextPath() + "/admin/whitelist");
             }
@@ -366,9 +384,10 @@ public class AdminHandler
         return result.redirect(context.getContextPath() + "/admin/whitelist");
     }
 
+    // TODO DOC
     public Result addDomain(Context context, @Param("domainName") String domainName)
     {
-        //TODO add validation or sth for the domain
+        // TODO add validation or sth for the domain
         Domain domain = new Domain(domainName);
         domain.save();
         Result result = Results.html().template("/views/system/noContent.ftl.html");

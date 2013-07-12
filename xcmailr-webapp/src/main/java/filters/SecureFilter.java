@@ -46,6 +46,23 @@ public class SecureFilter implements Filter
         {
             // add the user-object to the context to reduce the no. of connections to the memcached server
             context.setAttribute("user", usr);
+
+            if (context.getSessionCookie().get("adm") != null)
+            { // user has admin-token at the cookie
+                if (!usr.isAdmin())
+                { // but is no admin -> remove it
+                    context.getSessionCookie().remove("adm");
+                }
+            }
+            else
+            { // user has no admin-token
+                if (usr.isAdmin())
+                { // but he's admin
+                    // set a admin-flag at the cookie if the user is admin
+                    // we use this only to change the header-menu-view, but not for "real admin-actions"
+                    context.getSessionCookie().put("adm", "1");
+                }
+            }
             // go to the next filter (or controller-method)
             return chain.next(context);
         }

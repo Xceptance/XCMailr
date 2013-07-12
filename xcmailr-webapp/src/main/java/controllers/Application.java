@@ -328,9 +328,16 @@ public class Application
                     // we put the username into the cookie, but use the id of the cookie for authentication
                     String sessionKey = context.getSessionCookie().getId();
                     memCachedSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, loginUser);
+                    // set a reverse mapped user-mail -> sessionId-list in the memcached server to handle
+                    // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
+                    // logged-in)
+                    memCachedSessionHandler.setSessionUser(loginUser, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
+
                     context.getSessionCookie().put("username", loginUser.getMail());
+
                     if (loginUser.isAdmin())
-                    {
+                    { // set a admin-flag at the cookie if the user is admin
+                      // we use this only to change the header-menu-view, but not for "real admin-actions"
                         context.getSessionCookie().put("adm", "1");
                     }
                     loginUser.setBadPwCount(0);

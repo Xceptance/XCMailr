@@ -16,11 +16,15 @@
  */
 package controllers;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
+
+import models.User;
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.BinaryConnectionFactory;
 import net.spy.memcached.MemcachedClient;
@@ -67,9 +71,10 @@ public class MemCachedSessionHandler
             memHost = xcmConf.MEMCA_HOST;
             memPort = xcmConf.MEMCA_PORT;
             NAMESPACE = xcmConf.APP_NAME;
-            this.client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":" + memPort));
+            this.client = new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(memHost + ":"
+                                                                                                   + memPort));
             // indicates that the client was successfully instantiated
-            
+
             instantiated = true;
         }
         catch (Exception e)
@@ -93,6 +98,105 @@ public class MemCachedSessionHandler
     public void set(String key, int timeToLive, final Object object)
     {
         getCache().set(NAMESPACE + key, timeToLive, object);
+
+    }
+
+    // TODO DOC
+    public void setSessionUser(final User user, String sessionId, int timeToLive)
+    {
+
+        @SuppressWarnings("unchecked")
+        List<String> sessions = (List<String>) getCache().get(user.getMail());
+        // if there's no list, create a new one and add the session
+        if (sessions == null)
+        {
+            sessions = new LinkedList<String>();
+        }
+        // if the session is not already stored in the list, add it
+        if (!sessions.contains(sessionId))
+        {
+            sessions.add(sessionId);
+        }
+
+        set(user.getMail(), timeToLive, sessions);
+
+    }
+
+    public void deleteUsersSessions(final User user)
+    {
+        @SuppressWarnings("unchecked")
+        // get the sessions of this user
+        List<String> sessions = (List<String>) get(user.getMail());
+
+        if (sessions != null)
+        { // delete the sessionKeys of this user at memCached
+            for (String sessionKey : sessions)
+            {
+                delete(sessionKey);
+            }
+        }
+        // delete the sessionlist of this user
+        delete(user.getMail());
+    }
+
+    /**
+     * Updates the user-object for all sessions of this user <br/>
+     * <b>WARNING:</b> if the email has been changed, use {@link #updateUsersSessions(User)} to change the
+     * user-mail->session mapping
+     * 
+     * @param user
+     *            the user-object to update
+     */
+    public void updateUsersSessions(final User user)
+    {
+        @SuppressWarnings("unchecked")
+        // get the sessions of this user
+        List<String> sessions = (List<String>) get(user.getMail());
+        System.out.println("usradmin: "+user.isAdmin());
+        if (sessions != null)
+        { // update all sessions of this user at memCached
+            for (String sessionKey : sessions)
+            {
+                set(sessionKey, xcmConf.COOKIE_EXPIRETIME, user);
+            }
+        }
+    }
+
+    /**
+     * updates the user-mail -> session mapping-entries if the email has changed
+     * 
+     * @param oldEmail
+     *            the old email-address of the user
+     * @param newEmail
+     *            the new email-address of the user
+     */
+
+    public void updateUsersSessionsOnChangedMail(String oldEmail, String newEmail)
+    {
+        @SuppressWarnings("unchecked")
+        // get the sessions of this user
+        List<String> sessions = (List<String>) get(oldEmail);
+        @SuppressWarnings("unchecked")
+        List<String> sessionsNew = (List<String>) get(newEmail);
+
+        if (sessions != null)
+        { // there is a session
+          // check if such a session exists
+            if (sessionsNew != null)
+            {
+                // add the old sessions to the old
+                sessionsNew.addAll(sessions);
+                set(newEmail, xcmConf.COOKIE_EXPIRETIME, sessionsNew);
+            }
+            else
+            { // create a new mapping for the new address
+                set(newEmail, xcmConf.COOKIE_EXPIRETIME, sessions);
+            }
+        }
+        else
+        { // theres no session -> do nothing
+
+        }
 
     }
 
