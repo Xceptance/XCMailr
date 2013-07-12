@@ -60,6 +60,11 @@ public class XCMailrConf
      * specified with application.default.entriesperpage
      */
     public final Integer APP_DEFAULT_ENTRYNO;
+    
+    /**
+     * indicates the use of whitelisting for registration
+     */
+    public final boolean APP_WHITELIST;
 
     /**
      * specified with application.session.expire_time_in_seconds
@@ -159,6 +164,7 @@ public class XCMailrConf
         APP_BASEPATH = ninjaProp.getOrDie("application.basedir");
         APP_LANGS = ninjaProp.getStringArray("application.languages");
         APP_DEFAULT_ENTRYNO = ninjaProp.getIntegerWithDefault("application.default.entriesperpage", 15);
+        APP_WHITELIST = ninjaProp.getBooleanOrDie("application.whitelist");
         ADMIN_ADDRESS = ninjaProp.getOrDie("mbox.adminaddr");
         ADMIN_PASSWORD = ninjaProp.getOrDie("admin.pass");
         COOKIE_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");

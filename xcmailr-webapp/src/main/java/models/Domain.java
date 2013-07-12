@@ -75,44 +75,90 @@ public class Domain
         this.domainname = domainname;
     }
 
+    /**
+     * Persists the domain-object in the database
+     */
     public void save()
     {
         Ebean.save(this);
     }
 
+    /**
+     * Updates the domain-object in the database
+     */
     public void update()
     {
         Ebean.update(this);
     }
 
+    /**
+     * Deletes the domain-object from the database
+     */
     public void delete()
     {
         Ebean.delete(this);
     }
 
+    /**
+     * Deletes the domain-object with the specified ID from the Database
+     * 
+     * @param id
+     *            the ID of the domain
+     */
     public static void delete(Long id)
     {
         Ebean.delete(Domain.class, id);
     }
 
+    /**
+     * Deletes the domain-object with the specified domain-name from the Database
+     * 
+     * @param name
+     *            the domain-name
+     */
     public static void delete(String name)
     {
         Domain domain = getByName(name);
         domain.delete();
     }
 
+    /**
+     * @param id
+     *            the ID of the domain
+     * @return a domain-object
+     */
     public static Domain getById(Long id)
     {
         return Ebean.find(Domain.class, id);
     }
 
+    /**
+     * @param name
+     *            the domain-name
+     * @return the domain-object for this name
+     */
     public static Domain getByName(String name)
     {
         return Ebean.find(Domain.class).where().eq("domainname", name).findUnique();
     }
 
+    /**
+     * @return all listed domains in the database
+     */
     public static List<Domain> getAll()
     {
         return Ebean.find(Domain.class).findList();
+    }
+
+    /**
+     * Indicates whether a domain-name already exists
+     * 
+     * @param name
+     *            the domain-name to search for
+     * @return true, if the specified name already exists
+     */
+    public static boolean exists(String name)
+    {
+        return !Ebean.find(Domain.class).where().eq("domainname", name).findList().isEmpty();
     }
 }

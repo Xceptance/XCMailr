@@ -9,11 +9,11 @@ Do you want to delete all users with email-addresses that contain the domain: ${
 			<form action="${contextPath}/admin/whitelist/remove" id="removal" >
 				<input type="hidden" name="domainId" value="${domain.id}"/>
 				<button class="btn" id="abortSubmit" name="action" value="abort">Abort this action</button>
-				<button class="btn" id="deleteUserSubmit" name="action" value="deleteUsersAndDomain">Yes, i want to delete them</button>
+				<a href="#deleteUserModal" role="button" class="btn btn-danger" data-toggle="modal">Yes, i want to delete them</a>
 				<button class="btn" id="deleteUserSubmit" name="action" value="deleteDomain">No, just want to delete the domain</button>
 					
 			</form>
 	</div>
 </div>
-
+<#include "deleteUsersAndDomainModal.ftl.html"/>
 </@layout.adminLayout>

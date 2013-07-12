@@ -35,6 +35,7 @@ import ninja.params.PathParam;
 import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
+import filters.WhitelistFilter;
 import models.Domain;
 import models.MailTransaction;
 import models.PageList;
@@ -330,6 +331,7 @@ public class AdminHandler
      *            the Context of this Request
      * @return the domain-whitelist page
      */
+    @FilterWith(WhitelistFilter.class)
     public Result showDomainWhitelist(Context context)
     {
         List<Domain> domainList = Domain.getAll();
@@ -337,22 +339,42 @@ public class AdminHandler
         return Results.html().render("domains", domainList);
     }
 
-    // TODO DOC
+    /**
+     * Displays the Remove-Domain Page to decide whether the admin wants to delete all users to the requested domain or
+     * just the domain itself <br/>
+     * POST /admin/whitelist/remove
+     * 
+     * @param context
+     *            the Context of this Request
+     * @param remDomainId
+     *            the Id of the Domain-Object
+     * @return the removeDomainConfirmation-Page
+     */
+    @FilterWith(WhitelistFilter.class)
     public Result callRemoveDomain(Context context, @Param("removeDomainsSelection") Long remDomainId)
     {
-        System.out.println(remDomainId);
         Domain domain = Domain.getById(remDomainId);
         Result result = Results.html().template("/views/AdminHandler/removeDomainConfirmation.ftl.html");
         return result.render("domain", domain);
-        // return result.redirect(context.getContextPath() + "/admin/whitelist");
     }
 
-    // TODO DOC
+    /**
+     * handles the action requested in the removeDomainConfirmation
+     * 
+     * @param context
+     *            the Context of this Request
+     * @param action
+     *            the action to do (abort, deleteUsersAndDomain or deleteDomain)
+     * @param domainId
+     *            the Id of the Domain-Object
+     * @return to the whitelist overview page
+     */
+    @FilterWith(WhitelistFilter.class)
     public Result handleRemoveDomain(Context context, @Param("action") String action, @Param("domainId") long domainId)
     {
 
         Result result = Results.html().template("/views/system/noContent.ftl.html");
-        // TODO add checks for the inputs (the params) here
+
         if (!StringUtils.isBlank(action))
         {
             if (action.equals("abort"))
@@ -384,12 +406,28 @@ public class AdminHandler
         return result.redirect(context.getContextPath() + "/admin/whitelist");
     }
 
-    // TODO DOC
+    /**
+     * Adds a Domain to the whitelist
+     * 
+     * @param context
+     *            the Context of this Request
+     * @param domainName
+     *            the Domainname to add
+     * @return to the whitelist-page
+     */
+    @FilterWith(WhitelistFilter.class)
     public Result addDomain(Context context, @Param("domainName") String domainName)
     {
         // TODO add validation or sth for the domain
-        Domain domain = new Domain(domainName);
-        domain.save();
+        if (!Domain.exists(domainName))
+        {
+            Domain domain = new Domain(domainName);
+            domain.save();
+        }
+        else
+        {
+            context.getFlashCookie().error("The domainname already exists!");// TODO add i18n-flash-key
+        }
         Result result = Results.html().template("/views/system/noContent.ftl.html");
         return result.redirect(context.getContextPath() + "/admin/whitelist");
     }

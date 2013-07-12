@@ -1,26 +1,38 @@
 <#import "../layout/adminLayout.ftl.html" as layout>
 <@layout.adminLayout title=i18n("admin_Welcome")>
-
-<div>
-	<form action="${contextPath}/admin/whitelist/remove" method="post" class="form-inline" id="removeDomains" name="removeDomain">
-		<fieldset>
-			<legend>Domain Whitelist</legend>
-			<select name="removeDomainsSelection">
+<#if (whitelist!true)>
+<form >
+	<fieldset>
+		<legend>Domain Whitelist</legend>
+	</fieldset>
+</form>
+	<form action="${contextPath}/admin/whitelist/remove" method="post" id="removeDomains" name="removeDomain">
+	<div class="control-group">
+		<div class=" controls-row">
+			<label class="control-label" for="removeDomainsSelection">Remove Domain</label>	
+			<select id="removeDomainsSelection" name="removeDomainsSelection">
 				<#list domains as singleDomain>
 					 <option value="${singleDomain.id}">${singleDomain.domainname}</option>
 				</#list>
 			</selection>
-		</fieldset>
-		<input type="submit" class="btn btn-alert" id="removeDomainsSubmit" value='${i18n("mailbox_Button_Delete")}' />
+		</div>
+		<input type="submit" class="btn" id="removeDomainsSubmit" value='${i18n("mailbox_Button_Delete")}' />
+	</div>
 	</form>
-</div>
-<div>
-	<form action="${contextPath}/admin/whitelist/add" method="post" class="form-inline" id="addDomain" name="addDomain">
-		
-				<label class="control-label" for="inputAddDomain">Add Domain</label>
-				<input class="input_full" type="text" id="inputAddDomain" name="domainName" required="required" />
-		<input type="submit" class="btn" id="addDomainSubmit" value='${i18n("editEmail_Button_Edit")}' />
-	</form>
-</div>
 
+	<form action="${contextPath}/admin/whitelist/add" method="post"  id="addDomain" name="addDomain">
+	<div class="control-group">
+		<div class=" controls-row">
+			<label class="control-label" for="inputAddDomain">Add Domain</label>
+			<input class="input_full" type="text" id="inputAddDomain" name="domainName" required="required" />
+		</div>
+		<input type="submit" class="btn" id="addDomainSubmit" value='${i18n("editEmail_Button_Edit")}' />
+	</div>
+	</form>
+<#else>
+<h1 class="legendary">Whitelisting not available</h1>
+<div>
+	The Whitelist function is not available. If you want to activate it, set "application.whitelist" to true in your application.conf and restart the server.
+</div>
+</#if>
 </@layout.adminLayout>

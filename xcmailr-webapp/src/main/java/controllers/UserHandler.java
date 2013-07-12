@@ -22,6 +22,7 @@ import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
+import models.Domain;
 import models.UserFormData;
 import models.User;
 import ninja.Context;
@@ -104,6 +105,19 @@ public class UserHandler
                 return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
             }
 
+            // block the editing, if the domain is not on the whitelist (and the whitelisting is active)
+            if (xcmConfiguration.APP_WHITELIST)
+            { // whitelisting is active
+                if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
+                { // the domain is not in the whitelist and the whitelist is not empty
+                    context.getFlashCookie().error("You cannot register with this domain!"); // TODO new flash message
+                    userFormData.setPassword("");
+                    userFormData.setPasswordNew1("");
+                    userFormData.setPasswordNew2("");
+                    return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                }
+            }
+
             String password1 = userFormData.getPasswordNew1();
             String password2 = userFormData.getPasswordNew2();
 
@@ -171,7 +185,7 @@ public class UserHandler
                 memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME,
                                             user);
                 if (!oldMail.equals(mail))
-                { //update the memcached session entries 
+                { // update the memcached session entries
                     memCachedSessionHandler.updateUsersSessionsOnChangedMail(mail, user.getMail());
                 }
                 // user-edit was successful
