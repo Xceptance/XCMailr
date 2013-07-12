@@ -47,11 +47,12 @@ or
 * You'll find the scripdeveloper.xpi file in the XLT folder (tools)
 * Install it as Firefox add-on (Firefox Add On Manager > Install add-on from file)
 * Open the Script Developer and import the 'xcmailr_automation' folder as Test Project (folder button > Import...)
-* Click on the play button to start a test run
+* Click on the play button to start a single test run or select multiple test cases and run them as Batch
 
 Things you should consider, before you start the test execution:
 
 * Settings: The tests were created and work with the default settings
+ * Do not enable the 'Generate JUnit wrapper' checkbox, because your Java classes will be overwritten and the WebDriver execution does not work anymore
 * Modules: Use them, if you want to customize a test or create a new one
 * Parameters: Many modules provide module parameters, which can be easily customized
 * Language: The tests were designed for the English version of XCMailr
@@ -98,9 +99,9 @@ On Windows you have to set some environment variables after ANT was installed.
 * Click 'Advanced System Settings'
 * Click 'Environment variables'
 * Following 'System variables' have to be created/adapted:
- * `PATH` must point to `\ant\bin` directory
- * `ANT_HOME` must point to `\ant` directory
- * `ANT_OPTS` with value `-Xmx256M`
+ * `PATH`: add the `\ant\bin` directory
+ * `ANT_HOME`: must point to `\ant` directory
+ * `ANT_OPTS`: with value `-Xmx256M`
 
 
 #### 4. Additional Help
