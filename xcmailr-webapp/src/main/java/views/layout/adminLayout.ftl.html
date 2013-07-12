@@ -44,12 +44,18 @@
 			  </div><!-- /sidebar-nav -->
 			</div> <!-- /span2 -->
 			<div class="span10">	  
+	    	<div class="row-fluid">
+				<#include "header.ftl.html"/>
 				<#if flash_error??>
-				        <p class="error"><span class="label label-important">${flash_error}</span></p>
+				        <p class="alert alert-error"><strong> ${flash_error}</strong></p>
 				</#if>
 				<#if flash_success??>
-				        <p class="success"><span class="label label-success">${flash_success}</span></p>
+				        <p class="alert alert-success"><strong> ${flash_success}</strong></p>
 				</#if>
+				<#if flash_info??>
+				        <p class="alert alert-info"><strong> ${flash_info}</strong></p>
+				</#if>
+			</div>
 				<#nested/>
 			</div> <!-- /span9 -->
 		</div><!-- row-fluid -->
