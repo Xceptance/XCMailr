@@ -116,7 +116,8 @@ public class MailrMessageSenderFactory
             message.setText(content);
             message.saveChanges();
             // send the mail in an own thread
-            new ThreadedMailSend(message);
+            ThreadedMailSend tms = new ThreadedMailSend(message);
+            tms.start();
         }
         catch (AddressException e)
         {
@@ -227,7 +228,6 @@ public class MailrMessageSenderFactory
         {
             this.mailBox = mailBox;
             this.mail = mail;
-            this.run();
         }
 
         /**
