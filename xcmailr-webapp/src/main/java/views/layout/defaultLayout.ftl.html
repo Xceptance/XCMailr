@@ -34,10 +34,11 @@
     <link rel="apple-touch-icon-precomposed" href="${contextPath}/assets/ico/apple-touch-icon-57-precomposed.png">
   </head>
   <body>
+  <#include "header.ftl.html"/>
     <div class="container">
         <div class="container-fluid">
 	    	<div class="row-fluid">
-				<#include "header.ftl.html"/>
+
 				<#if flash_error??>
 				        <p class="alert alert-error"><strong> ${flash_error}</strong></p>
 				</#if>

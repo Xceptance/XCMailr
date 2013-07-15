@@ -110,7 +110,7 @@ public class UserHandler
             { // whitelisting is active
                 if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
                 { // the domain is not in the whitelist and the whitelist is not empty
-                    context.getFlashCookie().error("You cannot register with this domain!"); // TODO new flash message
+                    context.getFlashCookie().error("editUser_Flash_NotWhitelisted"); 
                     userFormData.setPassword("");
                     userFormData.setPasswordNew1("");
                     userFormData.setPasswordNew2("");

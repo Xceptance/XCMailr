@@ -580,15 +580,23 @@ public class User implements Serializable
         return usr.isActive();
 
     }
-    //TODO
+    /**
+     * Returns a List of all users which have email-addresses that belong to the given domain
+     * @param domainName the domain-name
+     * @return a List of Users
+     */
     public static List<User> getUsersOfDomain(String domainName)
     {
         return Ebean.find(User.class).where().like("mail", "%@" + domainName).findList();
     }
-    //TODO
-    public static int deleteUsersOfDomain(String domainName)
+    /**
+     * Deletes the users which have email-addresses of the given domain
+     * @param domainName the domain-name
+     * @return 
+     */
+    public static void deleteUsersOfDomain(String domainName)
     {
-        return Ebean.delete(getUsersOfDomain(domainName));
+        Ebean.delete(getUsersOfDomain(domainName));
     }
 
     /**

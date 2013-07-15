@@ -101,7 +101,16 @@ public class MemCachedSessionHandler
 
     }
 
-    // TODO DOC
+    /**
+     * Sets the Session to a User-Mail in the memcached-server
+     * 
+     * @param user
+     *            the user-object
+     * @param sessionId
+     *            the sessionid
+     * @param timeToLive
+     *            the lifetime of this object
+     */
     public void setSessionUser(final User user, String sessionId, int timeToLive)
     {
 
@@ -122,6 +131,10 @@ public class MemCachedSessionHandler
 
     }
 
+    /**
+     * deletes all sessions and user-mail of this specified user
+     * @param user the user object
+     */
     public void deleteUsersSessions(final User user)
     {
         @SuppressWarnings("unchecked")
@@ -152,7 +165,6 @@ public class MemCachedSessionHandler
         @SuppressWarnings("unchecked")
         // get the sessions of this user
         List<String> sessions = (List<String>) get(user.getMail());
-        System.out.println("usradmin: "+user.isAdmin());
         if (sessions != null)
         { // update all sessions of this user at memCached
             for (String sessionKey : sessions)
