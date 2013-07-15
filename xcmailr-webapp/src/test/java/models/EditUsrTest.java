@@ -6,9 +6,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import ninja.NinjaTest;
-
-public class EditUsrTest extends NinjaTest
+public class EditUsrTest 
 {
 
     @Before

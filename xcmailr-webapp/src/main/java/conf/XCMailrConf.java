@@ -112,6 +112,17 @@ public class XCMailrConf
     public final Integer MEMCA_PORT;
 
     /**
+     * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.displaylimit
+     */
+    public final Integer MTX_LIMIT;
+    
+    /**
+     * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.displaylimit
+     */
+    public final Integer MTX_MAX_AGE;
+
+
+    /**
      * specified with mail.smtp.auth
      */
     public final Boolean OUT_SMTP_AUTH;
@@ -166,6 +177,8 @@ public class XCMailrConf
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
         MB_INTERVAL = ninjaProp.getIntegerOrDie("mbox.interval");
+        MTX_LIMIT = ninjaProp.getIntegerWithDefault("mailtransaction.displaylimit", 0);
+        MTX_MAX_AGE = ninjaProp.getIntegerWithDefault("mailtransaction.maxage", 0);
         D_LIST = ninjaProp.getOrDie("mbox.dlist");
         DOMAIN_LIST = ninjaProp.getStringArray("mbox.dlist");
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");

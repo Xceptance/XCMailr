@@ -273,8 +273,21 @@ public class MailTransaction
      */
     public static List<MailTransaction> all(String sortage)
     {
-        List<MailTransaction> list = Ebean.find(MailTransaction.class).findList();
-        Ebean.sort(list, sortage);
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy(sortage).findList();
+        
+        return list;
+    }
+    
+
+    /**
+     * @param sortage
+     *            a String which indicates the sortage of the returned list, the string should be in the form
+     *            "fieldname asc" or "fieldname desc"
+     * @return a sorted list of all MailTransactions
+     */
+    public static List<MailTransaction> allSortedLimited(int limit)
+    {
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit).findList();
         return list;
     }
 

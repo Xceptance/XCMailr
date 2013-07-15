@@ -5,15 +5,10 @@ import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
-import ninja.utils.NinjaProperties;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
 public class HelperUtilsTest
 {
-    @Inject
-    NinjaProperties ninjaProp;
-
     Map<String, String> returnedData = Maps.newHashMap();
 
     String result;
