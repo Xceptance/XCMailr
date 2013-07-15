@@ -412,21 +412,38 @@ public class AdminHandler
      * @param context
      *            the Context of this Request
      * @param domainName
-     *            the Domainname to add
+     *            the domain-name to add
      * @return to the whitelist-page
      */
     @FilterWith(WhitelistFilter.class)
     public Result addDomain(Context context, @Param("domainName") String domainName)
     {
-        // TODO add validation or sth for the domain
-        if (!Domain.exists(domainName))
+        if (!StringUtils.isBlank(domainName))
         {
-            Domain domain = new Domain(domainName);
-            domain.save();
+            if (domainName.matches("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}"))
+            {
+                if (!Domain.exists(domainName))
+                {
+                    Domain domain = new Domain(domainName);
+                    domain.save();
+                    context.getFlashCookie().success("adminAddDomain_Flash_Success");
+                }
+                else
+                { // the domain-name is already part of the domain-list
+                    context.getFlashCookie().error("adminAddDomain_Flash_DomainExists");
+                }
+            }
+            else
+            {
+                // the validation of the domain-name failed
+                context.getFlashCookie().error("adminAddDomain_Flash_InvalidDomain");
+            }
         }
         else
         {
-            context.getFlashCookie().error("The domainname already exists!");// TODO add i18n-flash-key
+            // the input-string was empty
+            context.getFlashCookie().error("adminAddDomain_Flash_EmptyField");
+
         }
         Result result = Results.html().template("/views/system/noContent.ftl.html");
         return result.redirect(context.getContextPath() + "/admin/whitelist");

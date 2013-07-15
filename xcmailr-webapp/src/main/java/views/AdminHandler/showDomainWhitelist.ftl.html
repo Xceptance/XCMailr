@@ -1,38 +1,38 @@
 <#import "../layout/adminLayout.ftl.html" as layout>
-<@layout.adminLayout title=i18n("admin_Welcome")>
+<@layout.adminLayout title=i18n("adminDomainWhitelist_Title")>
 <#if (whitelist!true)>
 <form >
 	<fieldset>
-		<legend>Domain Whitelist</legend>
+		<legend>${i18n("adminDomainWhitelist_Title")}</legend>
 	</fieldset>
 </form>
-	<form action="${contextPath}/admin/whitelist/remove" method="post" id="removeDomains" name="removeDomain">
-	<div class="control-group">
-		<div class=" controls-row">
-			<label class="control-label" for="removeDomainsSelection">Remove Domain</label>	
-			<select id="removeDomainsSelection" name="removeDomainsSelection">
-				<#list domains as singleDomain>
-					 <option value="${singleDomain.id}">${singleDomain.domainname}</option>
-				</#list>
-			</selection>
-		</div>
-		<input type="submit" class="btn" id="removeDomainsSubmit" value='${i18n("mailbox_Button_Delete")}' />
+<form action="${contextPath}/admin/whitelist/remove" method="post" id="removeDomains" name="removeDomain">
+<div class="control-group">
+	<div class=" controls-row">
+		<label class="control-label" for="removeDomainsSelection">${i18n("adminDomainWhitelist_Label_RemoveDomain")}</label>	
+		<select id="removeDomainsSelection" name="removeDomainsSelection">
+			<#list domains as singleDomain>
+				 <option value="${singleDomain.id}">${singleDomain.domainname}</option>
+			</#list>
+		</select>
 	</div>
-	</form>
+	<input type="submit" class="btn" id="removeDomainsSubmit" value='${i18n("adminDomainWhitelist_Button_RemoveDomain")}' />
+</div>
+</form>
 
-	<form action="${contextPath}/admin/whitelist/add" method="post"  id="addDomain" name="addDomain">
-	<div class="control-group">
-		<div class=" controls-row">
-			<label class="control-label" for="inputAddDomain">Add Domain</label>
-			<input class="input_full" type="text" id="inputAddDomain" name="domainName" required="required" />
-		</div>
-		<input type="submit" class="btn" id="addDomainSubmit" value='${i18n("editEmail_Button_Edit")}' />
+<form action="${contextPath}/admin/whitelist/add" method="post"  id="addDomain" name="addDomain">
+<div class="control-group">
+	<div class=" controls-row">
+		<label class="control-label" for="inputAddDomain">${i18n("adminDomainWhitelist_Label_AddDomain")}</label>
+		<input class="input_full" type="text" id="inputAddDomain" name="domainName" required="required" />
 	</div>
-	</form>
+	<input type="submit" class="btn" id="addDomainSubmit" value='${i18n("adminDomainWhitelist_Button_AddDomain")}' />
+</div>
+</form>
 <#else>
-<h1 class="legendary">Whitelisting not available</h1>
+<h1 class="legendary">${i18n("adminDomainWhitelist_Title_WhitelistDisabled")}</h1>
 <div>
-	The Whitelist function is not available. If you want to activate it, set "application.whitelist" to true in your application.conf and restart the server.
+	${i18n("adminDomainWhitelist_Label_WhitelistDisabledDescription")}
 </div>
 </#if>
 </@layout.adminLayout>
