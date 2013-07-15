@@ -41,7 +41,6 @@
 <!-- start pager-list -->
 <div class="pagination">
 <#if (name.getPageCount() > 1) >
-
 	<ul >
 	<li class="disabled"><a>${i18n("macro_Page")}: </a></li>
 	<#list 1..name.getPageCount() as x >  
@@ -58,14 +57,12 @@
 				<li class="disabled"><a>...</a></li>
 				</#if>
 			</#if>
-			
 			<#if (x = currentPage + 4) >
 				<#if !(x == name.getPageCount())> 
 				<li class="disabled"><a>...</a></li>
 				</#if>
 				<li ><a href="?p=${name.getPageCount()}">${name.getPageCount()}</a></li>
 			</#if>
-				
 		</#if>
 	</#list>
 	</ul>  
