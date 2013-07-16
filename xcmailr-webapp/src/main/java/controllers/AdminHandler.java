@@ -139,19 +139,22 @@ public class AdminHandler
      *            the Context of this Request
      * @return the Page to show paginated MailTransactions
      */
-    public Result pagedMTX(Context context)
+    public Result pagedMTX(Context context, @Param("p") int page)
     {
+
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
-
+        
+        // set a default value if there's no one given
+        page = (page == 0) ? 1 : page;
         // generate the paged-list to get pagination on the page
         PageList<MailTransaction> pagedMailTransactionList = new PageList<MailTransaction>(
-                                                                                           MailTransaction.all("ts desc"),
+                                                                                           MailTransaction.allSortedLimited(xcmConfiguration.MTX_LIMIT),
                                                                                            entries);
 
-        return Results.html().render("plist", pagedMailTransactionList);
+        return Results.html().render("plist", pagedMailTransactionList).render("curPage", page);
     }
 
     /**

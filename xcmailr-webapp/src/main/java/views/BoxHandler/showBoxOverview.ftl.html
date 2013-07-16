@@ -55,7 +55,7 @@ title=i18n("mailbox_Title")>
 		    </#if>   
 		    	<td><input type="checkbox" class="bulkChk${x}" id="chkbx_${x}_${mBox.id}"></td>
 		    	
-				<td>${mBox.address}&#064;${mBox.domain}</td>
+				<td class="mbAddress">${mBox.address}&#064;${mBox.domain}</td>
 				<#if (mBox.getTSAsString()=="unlimited")>
 				<td>${i18n("mailbox_Label_Unlimited")}</td>
 				<#else>
@@ -206,6 +206,7 @@ title=i18n("mailbox_Title")>
 		
 	$(document).ready(
 	function(){
+		replaceMailBoxName();
 		$('#boxSearchInput').typeahead({
 		    source: function(query, process){
 		        		return $.get('${contextPath}/mail/search', {s: query}, 

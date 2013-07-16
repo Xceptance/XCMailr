@@ -28,8 +28,8 @@ import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListenerAdapter;
 import org.subethamail.smtp.server.SMTPServer;
 import models.MBox;
+import models.MailTransaction;
 import models.User;
-import ninja.i18n.Lang;
 import ninja.lifecycle.Dispose;
 import ninja.lifecycle.Start;
 import ninja.utils.NinjaProperties;
@@ -47,8 +47,6 @@ public class JobController
 {
     private final ScheduledExecutorService expirationService = Executors.newSingleThreadScheduledExecutor();
 
-    private final ScheduledExecutorService mailTransportService = Executors.newSingleThreadScheduledExecutor();
-
     private SMTPServer smtpServer;
 
     @Inject
@@ -63,12 +61,11 @@ public class JobController
     @Inject
     MessageListener messageListener;
 
-    @Inject
-    Lang lang;
+    private boolean deleteTransactions;
 
     /**
-     * Starts the Mailserver, creates the Admin-Account specified in application.conf and Threads to expire the
-     * Mailaddresses and the Mails which have to be sent
+     * Starts the mail-server, creates the Admin-Account specified in application.conf and threads to expire the
+     * mail-addresses 
      */
     @Start(order = 90)
     public void startActions()
@@ -76,13 +73,15 @@ public class JobController
         log.debug("prod:" + ninjaProperties.isProd() + " dev: " + ninjaProperties.isDev() + " test: "
                   + ninjaProperties.isTest());
 
-        if (!(xcmConfiguration.ADMIN_PASSWORD == null))
-        { // if a pw is set in application.conf..
+        // only delete transactions if mailtransaction.maxage is not -1 or 0
+        deleteTransactions = (xcmConfiguration.MTX_MAX_AGE != 0 && xcmConfiguration.MTX_MAX_AGE != -1);
+
+        if (xcmConfiguration.ADMIN_PASSWORD != null)
+        { // if a password is set in application.conf..
 
             if (!User.mailExists(xcmConfiguration.ADMIN_ADDRESS))
-            {// ...and the admin-acc doesn't exist
-
-                // create the adminaccount
+            {// ...and the admin-account doesn't exist
+             // create the admin-account
                 User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADDRESS, xcmConfiguration.ADMIN_PASSWORD,
                                      "en");
 
@@ -95,15 +94,8 @@ public class JobController
         // create the server for incoming mails
         smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(messageListener));
 
-        int port;
-        if (ninjaProperties.isTest())
-        {// use a dynamic port in test-mode
-            port = findAvailablePort(49152, 65535);
-        }
-        else
-        {// or in dev- and prod-mode use the port which has been specified in the application.conf
-            port = xcmConfiguration.MB_PORT;
-        }
+        // use a dynamic port for the smtp in test-mode or the port specified in application.conf in all other modes
+        int port = ninjaProperties.isTest() ? findAvailablePort(49152, 65535) : xcmConfiguration.MB_PORT;
 
         // set the port and start the SMTP-Server
         smtpServer.setPort(port);
@@ -122,14 +114,23 @@ public class JobController
                 ListIterator<MBox> mailBoxIterator = expiringMailBoxesList.listIterator();
 
                 DateTime dt = new DateTime();
-
+                MBox mailBox;
                 while (mailBoxIterator.hasNext())
                 {
-                    MBox mailBox = mailBoxIterator.next();
+                    mailBox = mailBoxIterator.next();
                     if (dt.isAfter(mailBox.getTs_Active()) && !(mailBox.getTs_Active() == 0))
                     { // this element is now expired
                         mailBox.enable();
+                        log.debug("now expired: " + mailBox.getFullAddress());
                     }
+                }
+                if (deleteTransactions)
+                { // execute only if a value has been set
+                    log.debug("Cleanup Mailtransaction-list");
+                    long removalTS = dt.minusHours(xcmConfiguration.MTX_MAX_AGE).getMillis();
+
+                    MailTransaction.deleteTxInPeriod(removalTS);
+                    log.debug("finished Mailtransaction cleanup");
                 }
             }
         }, new Long(1), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
@@ -147,7 +148,6 @@ public class JobController
 
         // stop the job to expire the mailboxes
         expirationService.shutdown();
-        mailTransportService.shutdown();
     }
 
     /**
@@ -160,7 +160,7 @@ public class JobController
      *            upper bound of ports to search
      * @return an available port
      */
-    // stolen from NinjaTestServer-source
+    // from NinjaTestServer-source
     private static int findAvailablePort(int min, int max)
     {
         for (int port = min; port < max; port++)

@@ -15,13 +15,7 @@ title=i18n("admin_Title_Transactions") >
 
 <!-- begin mailtransaction-list -->
 <div class="tab-content">  
-<#list 1..plist.getPageCount() as x > 
-	<#if x = 1 >
-		<div class="tab-pane active" id="${x}">  
-	<#else>
-		<div class="tab-pane" id="${x}">  
-	</#if>
-	
+<div class="tab-pane active" id="${curPage}">  
 	<table class="table tablesorter table-hover table-condensed">
 		<thead>
 	    <tr>
@@ -33,7 +27,7 @@ title=i18n("admin_Title_Transactions") >
 	    </tr>
 	    </thead>
 	    <tbody>
-		<#list plist.getPage(x) as mtx>
+	    <#list plist.getPage(curPage) as mtx>
 			<#switch mtx.status>
 		    		<#case 100> <tr class="error" id="$mtx{mtx.id}"> <#break>
 		    		<#case 200> <tr class="warning" id="mtx${mtx.id}"> <#break>
@@ -61,11 +55,11 @@ title=i18n("admin_Title_Transactions") >
 			</tbody>
 	    </table>
 	</div> <!-- /tab pane (active) --> 
-</#list>
+
 <!-- end mailtransaction-list -->
 </div>  <!-- tab-content -->
 
-<@pag.pager name=plist/>
+<@pag.paging name=plist currentPage = curPage/>
 <@pag.incSorter/>
 <#else>
   	${i18n("admin_Label_NoEntries")}

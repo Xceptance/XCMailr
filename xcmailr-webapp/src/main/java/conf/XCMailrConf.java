@@ -58,6 +58,7 @@ public class XCMailrConf
 
     /**
      * specified with application.default.entriesperpage
+     * default value is 15
      */
     public final Integer APP_DEFAULT_ENTRYNO;
     
@@ -117,12 +118,26 @@ public class XCMailrConf
     public final Integer MEMCA_PORT;
 
     /**
+     * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.displaylimit
+     * Default value is 0 (no limit)
+     */
+    public final Integer MTX_LIMIT;
+    
+    /**
+     * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.maxage
+     * Default value is -1 (no automatic deletion)
+     */
+    public final Integer MTX_MAX_AGE;
+
+
+    /**
      * specified with mail.smtp.auth
      */
     public final Boolean OUT_SMTP_AUTH;
 
     /**
      * specified with mail.smtp.debug
+     * default value is true
      */
     public final Boolean OUT_SMTP_DEBUG;
 
@@ -172,6 +187,8 @@ public class XCMailrConf
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
         MB_INTERVAL = ninjaProp.getIntegerOrDie("mbox.interval");
+        MTX_LIMIT = ninjaProp.getIntegerWithDefault("mailtransaction.displaylimit", 0);
+        MTX_MAX_AGE = ninjaProp.getIntegerWithDefault("mailtransaction.maxage", -1);
         D_LIST = ninjaProp.getOrDie("mbox.dlist");
         DOMAIN_LIST = ninjaProp.getStringArray("mbox.dlist");
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");

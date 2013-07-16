@@ -119,8 +119,9 @@ public class BoxHandler
         else
         {
             // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
+            
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
-            if (completeAddress.length() >= 255)
+            if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() > 254)
             {
                 context.getFlashCookie().error("createEmail_Flash_MailTooLong");
 
@@ -230,7 +231,7 @@ public class BoxHandler
         { // the form was filled correctly
           // check for rfc 5322 compliant length of email (64 chars for local and 254 in total)
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
-            if (completeAddress.length() >= 255)
+            if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() >= 255)
             {
                 context.getFlashCookie().error("editEmail_Flash_MailTooLong");
 

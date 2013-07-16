@@ -250,17 +250,19 @@ public class MailrMessageSenderFactory
                 if (!ninjaProperties.isTest()) // no messages will be sent when running in test-mode
                 {
                     Transport.send(mail);
-
-                    // log the transaction
-                    if (mailBox != null)
-                    {
-                        mtx = new MailTransaction(300, from, mailBox.getFullAddress(), recipient);
+                    if (xcmConfiguration.MTX_MAX_AGE != 0)
+                    {// if mailtransaction.maxage is set to 0 -> log nothing
+                     // log the transaction
+                        if (mailBox != null)
+                        {
+                            mtx = new MailTransaction(300, from, mailBox.getFullAddress(), recipient);
+                        }
+                        else
+                        {
+                            mtx = new MailTransaction(300, from, null, recipient);
+                        }
+                        mtx.saveTx();
                     }
-                    else
-                    {
-                        mtx = new MailTransaction(300, from, null, recipient);
-                    }
-                    mtx.saveTx();
                     log.info("Message sent, From: " + from + " To:" + recipient);
 
                     if (mailBox != null)
@@ -274,9 +276,11 @@ public class MailrMessageSenderFactory
             {
                 // the message sending-process failed
                 // log it
-                mtx = new MailTransaction(400, from, mailBox.getFullAddress(), recipient);
-                mtx.saveTx();
-
+                if (xcmConfiguration.MTX_MAX_AGE != 0)
+                { // if mailtransaction.maxage is set to 0 -> log nothing
+                    mtx = new MailTransaction(400, from, mailBox.getFullAddress(), recipient);
+                    mtx.saveTx();
+                }
                 log.error(e.getMessage());
             }
         }
