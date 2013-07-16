@@ -6,7 +6,9 @@
 		<legend>${i18n("adminDomainWhitelist_Title")}</legend>
 	</fieldset>
 </form>
+<div>
 	<#if ((domains?size)> 0) >
+	<div class="pull-left">
 		<form action="${contextPath}/admin/whitelist/remove" method="post" id="removeDomains" name="removeDomain">
 		<div class="control-group">
 			<div class=" controls-row">
@@ -20,6 +22,7 @@
 			<input type="submit" class="btn" id="removeDomainsSubmit" value='${i18n("adminDomainWhitelist_Button_RemoveDomain")}' />
 		</div>
 		</form>
+	</div>
 	<#else>
 		<div>
 			<p>
@@ -27,15 +30,19 @@
 			</p> 
 		</div>
 	</#if>
-	<form action="${contextPath}/admin/whitelist/add" method="post"  id="addDomain" name="addDomain">
-	<div class="control-group">
-		<div class=" controls-row">
-			<label class="control-label" for="inputAddDomain">${i18n("adminDomainWhitelist_Label_AddDomain")}</label>
-			<input class="input_full" type="text" id="inputAddDomain" name="domainName" required="required" />
-		</div>
-		<input type="submit" class="btn" id="addDomainSubmit" value='${i18n("adminDomainWhitelist_Button_AddDomain")}' />
+	<div class="pull-left span1"></div>
+	<div class="pull-left">
+		<form action="${contextPath}/admin/whitelist/add" method="post" id="addDomain" name="addDomain">
+			<div class="control-group">
+				<div class=" controls-row">
+					<label class="control-label" for="inputAddDomain">${i18n("adminDomainWhitelist_Label_AddDomain")}</label>
+					<input class="input_full" type="text" id="inputAddDomain" name="domainName" required="required" />
+				</div>
+				<input type="submit" class="btn" id="addDomainSubmit" value='${i18n("adminDomainWhitelist_Button_AddDomain")}' />
+			</div>
+		</form>
 	</div>
-	</form>
+</div>
 <#else>
 <h1 class="legendary">${i18n("adminDomainWhitelist_Title_WhitelistDisabled")}</h1>
 <div>

@@ -372,7 +372,6 @@ public class AdminHandler
     @FilterWith(WhitelistFilter.class)
     public Result handleRemoveDomain(Context context, @Param("action") String action, @Param("domainId") long domainId)
     {
-
         Result result = Results.html().template("/views/system/noContent.ftl.html");
 
         if (!StringUtils.isBlank(action))
