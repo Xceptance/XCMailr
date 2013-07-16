@@ -61,9 +61,11 @@ public class JobController
     @Inject
     MessageListener messageListener;
 
+    private boolean deleteTransactions;
+
     /**
-     * Starts the Mailserver, creates the Admin-Account specified in application.conf and Threads to expire the
-     * Mailaddresses and the Mails which have to be sent
+     * Starts the mail-server, creates the Admin-Account specified in application.conf and threads to expire the
+     * mail-addresses 
      */
     @Start(order = 90)
     public void startActions()
@@ -71,12 +73,15 @@ public class JobController
         log.debug("prod:" + ninjaProperties.isProd() + " dev: " + ninjaProperties.isDev() + " test: "
                   + ninjaProperties.isTest());
 
+        // only delete transactions if mailtransaction.maxage is not -1 or 0
+        deleteTransactions = (xcmConfiguration.MTX_MAX_AGE != 0 && xcmConfiguration.MTX_MAX_AGE != -1);
+
         if (xcmConfiguration.ADMIN_PASSWORD != null)
         { // if a password is set in application.conf..
 
             if (!User.mailExists(xcmConfiguration.ADMIN_ADDRESS))
             {// ...and the admin-account doesn't exist
-                // create the admin-account
+             // create the admin-account
                 User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADDRESS, xcmConfiguration.ADMIN_PASSWORD,
                                      "en");
 
@@ -119,13 +124,13 @@ public class JobController
                         log.debug("now expired: " + mailBox.getFullAddress());
                     }
                 }
-                if (xcmConfiguration.MTX_MAX_AGE != 0)
+                if (deleteTransactions)
                 { // execute only if a value has been set
                     log.debug("Cleanup Mailtransaction-list");
                     long removalTS = dt.minusHours(xcmConfiguration.MTX_MAX_AGE).getMillis();
 
                     MailTransaction.deleteTxInPeriod(removalTS);
-                    log.debug("finished MTX cleanup");
+                    log.debug("finished Mailtransaction cleanup");
                 }
             }
         }, new Long(1), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
@@ -155,7 +160,7 @@ public class JobController
      *            upper bound of ports to search
      * @return an available port
      */
-    //from NinjaTestServer-source
+    // from NinjaTestServer-source
     private static int findAvailablePort(int min, int max)
     {
         for (int port = min; port < max; port++)
