@@ -1,0 +1,25 @@
+
+
+<!-- Modal: Delete Useraccount -->
+<form action="${contextPath}/admin/whitelist/remove" id="removal" >
+	<div id="deleteUserModal" class="modal hide fade" tabindex="-1"
+		role="dialog" aria-labelledby="deleteUserLabel" aria-hidden="true">
+		
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal"
+				aria-hidden="true">×</button>
+			<h3 id="deleteUserTitle">${i18n("adminRemoveUserAndDomain_Title")}</h3>
+		</div><!-- /modal-header -->
+		
+		<div class="modal-body">
+			<p>${i18n("adminRemoveUserAndDomain_Label_Description")}</p>
+		</div><!-- /modal-body -->
+		
+		<div class="modal-footer">
+			<input type="hidden" name="domainId" value="${domain.id}"/>
+			<button class="btn" id="deleteUserSubmit" name="action" value="deleteUsersAndDomain">${i18n("adminRemoveUserAndDomain_Button_Confirm")}</button>
+		</div><!-- /modal-footer -->
+		
+	</div><!-- /deleteUserModal -->
+</form>
+<!-- End Modal -->

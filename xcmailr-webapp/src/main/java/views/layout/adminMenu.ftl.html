@@ -18,6 +18,12 @@
 		<#else>
 			<li><a href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a></li>
 		</#if>
+		
+		<#if (domains)??>
+			<li class="active"><a href="${contextPath}/admin/whitelist">Domain Whitelist</a></li>
+		<#else>
+			<li><a href="${contextPath}/admin/whitelist">Domain Whitelist</a></li>
+		</#if>
 	</ul>
 </div>
 <!-- admin menu end-->

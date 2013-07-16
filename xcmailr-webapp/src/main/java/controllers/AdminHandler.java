@@ -19,6 +19,7 @@ package controllers;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
@@ -29,10 +30,13 @@ import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Messages;
+import ninja.params.Param;
 import ninja.params.PathParam;
 import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
+import filters.WhitelistFilter;
+import models.Domain;
 import models.MailTransaction;
 import models.PageList;
 import models.User;
@@ -59,6 +63,9 @@ public class AdminHandler
 
     @Inject
     MailrMessageSenderFactory mailSender;
+
+    @Inject
+    MemCachedSessionHandler mcsh;
 
     /**
      * Shows the Administration-Index-Page<br/>
@@ -148,7 +155,8 @@ public class AdminHandler
     }
 
     /**
-     * Delete a time-specified number of MailTransactions GET /admin/mtxs/delete/{time}
+     * Delete a time-specified number of MailTransactions <br/>
+     * GET /admin/mtxs/delete/{time}
      * 
      * @param time
      *            the time in days (all before will be deleted)
@@ -224,6 +232,9 @@ public class AdminHandler
                 String content = messages.get("user_Deactivate_Message", optLanguage, user.getForename()).get();
                 // send the mail
                 mailSender.sendMail(from, user.getMail(), content, subject);
+
+                // delete the sessions of this user
+                mcsh.deleteUsersSessions(User.getById(userId));
             }
             return result.redirect(context.getContextPath() + "/admin/users");
         }
@@ -250,6 +261,8 @@ public class AdminHandler
         if (user.getId() != userId)
         { // the user to pro-/demote is not the user who performs this action
             User.promote(userId);
+            // update all of the sessions
+            mcsh.updateUsersSessions(User.getById(userId));
         }
         return result.redirect(context.getContextPath() + "/admin/users");
     }
@@ -258,29 +271,32 @@ public class AdminHandler
      * Handles the {@link models.User User}-Delete-Function <br/>
      * POST /admin/delete/{id}
      * 
-     * @param userId
+     * @param deleteUserId
      *            the ID of a {@link models.User User}
      * @param context
      *            the Context of this Request
      * @return the User-Overview-Page (/admin/users)
      */
-    public Result deleteUserProcess(@PathParam("id") Long userId, Context context)
+    public Result deleteUserProcess(@PathParam("id") Long deleteUserId, Context context)
     {
         Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = context.getAttribute("user", User.class);
 
-        if (user.getId() != userId)
+        if (user.getId() != deleteUserId)
         { // the user to delete is not the user who performs this action
-            User.delete(userId);
+            mcsh.deleteUsersSessions(User.getById(deleteUserId));
+            User.delete(deleteUserId);
         }
 
         return result.redirect(context.getContextPath() + "/admin/users");
     }
 
     /**
-     * Handles JSON-Requests from the search
+     * Handles JSON-Requests from the search <br/>
+     * GET /admin/usersearch
      * 
      * @param context
+     *            the Context of this Request
      * @return a JSON-Array with the userdatalist
      */
     public Result jsonUserSearch(Context context)
@@ -307,4 +323,128 @@ public class AdminHandler
         return result.json().render(userDatalist);
     }
 
+    /**
+     * Shows a page that contains a list of all allowed domains of emails for registration <br/>
+     * GET /admin/whitelist
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return the domain-whitelist page
+     */
+    @FilterWith(WhitelistFilter.class)
+    public Result showDomainWhitelist(Context context)
+    {
+        List<Domain> domainList = Domain.getAll();
+
+        return Results.html().render("domains", domainList);
+    }
+
+    /**
+     * Displays the Remove-Domain Page to decide whether the admin wants to delete all users to the requested domain or
+     * just the domain itself <br/>
+     * POST /admin/whitelist/remove
+     * 
+     * @param context
+     *            the Context of this Request
+     * @param remDomainId
+     *            the Id of the Domain-Object
+     * @return the removeDomainConfirmation-Page
+     */
+    @FilterWith(WhitelistFilter.class)
+    public Result callRemoveDomain(Context context, @Param("removeDomainsSelection") Long remDomainId)
+    {
+        Domain domain = Domain.getById(remDomainId);
+        Result result = Results.html().template("/views/AdminHandler/removeDomainConfirmation.ftl.html");
+        return result.render("domain", domain);
+    }
+
+    /**
+     * handles the action requested in the removeDomainConfirmation
+     * 
+     * @param context
+     *            the Context of this Request
+     * @param action
+     *            the action to do (abort, deleteUsersAndDomain or deleteDomain)
+     * @param domainId
+     *            the Id of the Domain-Object
+     * @return to the whitelist overview page
+     */
+    @FilterWith(WhitelistFilter.class)
+    public Result handleRemoveDomain(Context context, @Param("action") String action, @Param("domainId") long domainId)
+    {
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
+
+        if (!StringUtils.isBlank(action))
+        {
+            if (action.equals("abort"))
+            { // the admin wants to abort this action
+                return result.redirect(context.getContextPath() + "/admin/whitelist");
+            }
+            if (action.equals("deleteUsersAndDomain"))
+            {
+                Domain domain = Domain.getById(domainId);
+                List<User> usersToDelete = User.getUsersOfDomain(domain.getDomainname());
+
+                // delete the sessions of the users
+                for (User userToDelete : usersToDelete)
+                {
+                    mcsh.deleteUsersSessions(userToDelete);
+                    User.delete(userToDelete.getId());
+                }
+
+                domain.delete();
+                return result.redirect(context.getContextPath() + "/admin/whitelist");
+            }
+            if (action.equals("deleteDomain"))
+            {// just delete the domain
+                Domain.delete(domainId);
+                return result.redirect(context.getContextPath() + "/admin/whitelist");
+            }
+        }
+        result = Results.html().template("/views/system/noContent.ftl.html");
+        return result.redirect(context.getContextPath() + "/admin/whitelist");
+    }
+
+    /**
+     * Adds a Domain to the whitelist
+     * 
+     * @param context
+     *            the Context of this Request
+     * @param domainName
+     *            the domain-name to add
+     * @return to the whitelist-page
+     */
+    @FilterWith(WhitelistFilter.class)
+    public Result addDomain(Context context, @Param("domainName") String domainName)
+    {
+        if (!StringUtils.isBlank(domainName))
+        {
+            if (domainName.matches("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}"))
+            {
+                if (!Domain.exists(domainName))
+                {
+                    Domain domain = new Domain(domainName);
+                    domain.save();
+                    context.getFlashCookie().success("adminAddDomain_Flash_Success");
+                }
+                else
+                { // the domain-name is already part of the domain-list
+                    context.getFlashCookie().error("adminAddDomain_Flash_DomainExists");
+                }
+            }
+            else
+            {
+                // the validation of the domain-name failed
+                context.getFlashCookie().error("adminAddDomain_Flash_InvalidDomain");
+            }
+        }
+        else
+        {
+            // the input-string was empty
+            context.getFlashCookie().error("adminAddDomain_Flash_EmptyField");
+
+        }
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        return result.redirect(context.getContextPath() + "/admin/whitelist");
+    }
 }

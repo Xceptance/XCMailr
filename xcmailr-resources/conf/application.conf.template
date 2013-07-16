@@ -38,6 +38,10 @@ application.default.entriesperpage=15
 #Set an application secret and uncomment the next line, its used to verify session-cookies
 #application.secret = 
 
+# indicates the use of the whitelisting function
+# the allowed domains can be configured at the admin-section
+application.whitelist = false
+
 ######################################
 # 	Configure the Inbound SMTP   #
 ######################################

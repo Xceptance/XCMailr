@@ -26,6 +26,7 @@ import com.google.inject.Singleton;
 import conf.XCMailrConf;
 import etc.HelperUtils;
 import filters.NoLoginFilter;
+import models.Domain;
 import models.UserFormData;
 import models.LoginFormData;
 import models.PasswordFormData;
@@ -144,10 +145,11 @@ public class Application
             if (!User.mailExists(registerFormData.getMail()))
             {// the user's mailaddress does not exist already in the database
 
-                // don't let the user register with one of our domains
-                // (prevent mail-loops)
                 String mail = registerFormData.getMail();
                 String domainPart = mail.split("@")[1];
+                // don't let the user register with one of our domains
+                // (prevent mail-loops)
+
                 if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
                 {
                     context.getFlashCookie().error("flash_NoLoop");
@@ -157,6 +159,19 @@ public class Application
                     registerFormData.setPasswordNew2("");
 
                     return result.render("editUsr", registerFormData);
+                }
+                // block the registration, if the domain is not on the whitelist (and the whitelisting is active)
+                if (xcmConfiguration.APP_WHITELIST)
+                { // whitelisting is active
+                    if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
+                    { // the domain is not in the whitelist and the whitelist is not empty
+                        context.getFlashCookie().error("registerUser_Flash_NotWhitelisted"); 
+                        registerFormData.setPassword("");
+                        registerFormData.setPasswordNew1("");
+                        registerFormData.setPasswordNew2("");
+
+                        return result.render("editUsr", registerFormData);
+                    }
                 }
 
                 // a new user, check whether the passwords are matching
@@ -328,9 +343,16 @@ public class Application
                     // we put the username into the cookie, but use the id of the cookie for authentication
                     String sessionKey = context.getSessionCookie().getId();
                     memCachedSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, loginUser);
+                    // set a reverse mapped user-mail -> sessionId-list in the memcached server to handle
+                    // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
+                    // logged-in)
+                    memCachedSessionHandler.setSessionUser(loginUser, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
+
                     context.getSessionCookie().put("username", loginUser.getMail());
+
                     if (loginUser.isAdmin())
-                    {
+                    { // set a admin-flag at the cookie if the user is admin
+                      // we use this only to change the header-menu-view, but not for "real admin-actions"
                         context.getSessionCookie().put("adm", "1");
                     }
                     loginUser.setBadPwCount(0);

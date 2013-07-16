@@ -22,6 +22,7 @@ import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
+import models.Domain;
 import models.UserFormData;
 import models.User;
 import ninja.Context;
@@ -80,7 +81,7 @@ public class UserHandler
         result.render("available_langs", o);
 
         User user = context.getAttribute("user", User.class);
-
+        String oldMail = user.getMail();
         if (validation.hasViolations())
         { // the filled form has errors
             context.getFlashCookie().error("flash_FormError");
@@ -102,6 +103,19 @@ public class UserHandler
                 userFormData.setPasswordNew1("");
                 userFormData.setPasswordNew2("");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+            }
+
+            // block the editing, if the domain is not on the whitelist (and the whitelisting is active)
+            if (xcmConfiguration.APP_WHITELIST)
+            { // whitelisting is active
+                if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
+                { // the domain is not in the whitelist and the whitelist is not empty
+                    context.getFlashCookie().error("editUser_Flash_NotWhitelisted"); 
+                    userFormData.setPassword("");
+                    userFormData.setPasswordNew1("");
+                    userFormData.setPasswordNew2("");
+                    return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                }
             }
 
             String password1 = userFormData.getPasswordNew1();
@@ -170,6 +184,10 @@ public class UserHandler
                 context.getSessionCookie().put("username", userFormData.getMail());
                 memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME,
                                             user);
+                if (!oldMail.equals(mail))
+                { // update the memcached session entries
+                    memCachedSessionHandler.updateUsersSessionsOnChangedMail(mail, user.getMail());
+                }
                 // user-edit was successful
                 context.getFlashCookie().success("flash_DataChangeSuccess");
                 return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()

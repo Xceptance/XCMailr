@@ -14,7 +14,7 @@
 				  <li><a href="${contextPath}/mail/add">${i18n("menu_Link_AddMb")}</a></li>                          
             </ul>
             <ul class="nav pull-right">
-            		<li class="navbar-text">${session.username}</li>
+            		<li class="navbar-text" style="word-wrap: break-word;">${session.username}</li>
             	<#if (session.adm)??>
 	            	<li><a href="${contextPath}/admin">Admin</a></li>
             	</#if>
