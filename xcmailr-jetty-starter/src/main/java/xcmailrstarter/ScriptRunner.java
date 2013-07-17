@@ -82,7 +82,9 @@ public class ScriptRunner
             }
             alterTable("USERS", "LANGUAGE", conn, md);
             alterTable("MAILTRANSACTIONS", "RELAYADDR", conn, md);
-
+            Statement statement = conn.createStatement();
+            statement.execute("CREATE INDEX IF NOT EXISTS ix_mailtransactions_ts_1 ON mailtransactions (ts);");
+            
             conn.close();
 
         }

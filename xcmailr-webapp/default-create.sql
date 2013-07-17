@@ -52,5 +52,6 @@ create sequence users_seq;
 
 alter table mailboxes add constraint fk_mailboxes_usr_1 foreign key (usr_id) references users (id) on delete restrict on update restrict;
 create index ix_mailboxes_usr_1 on mailboxes (usr_id);
+create index if not exists ix_mailtransactions_ts_1 on mailtransactions (ts);
 
 
