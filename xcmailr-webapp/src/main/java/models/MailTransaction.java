@@ -339,6 +339,7 @@ public class MailTransaction
             ids = Ebean.find(MailTransaction.class).where().lt("ts", ts).findIds();
         }
         Ebean.delete(MailTransaction.class, ids);
+       
     }
 
     /**
