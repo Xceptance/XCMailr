@@ -101,7 +101,7 @@ public class BoxHandler
     public Result addBoxProcess(Context context, @JSR303Validation MailBoxFormData mailboxFormData,
                                 Validation validation)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         result.render("domain", xcmConfiguration.DOMAIN_LIST);
 
         if (validation.hasViolations())
@@ -119,7 +119,7 @@ public class BoxHandler
         else
         {
             // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
-            
+
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() > 254)
             {
@@ -186,7 +186,7 @@ public class BoxHandler
      */
     public Result deleteBoxProcess(@PathParam("id") Long boxId, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
         if (MBox.boxToUser(boxId, user.getId()))
         {
@@ -213,7 +213,7 @@ public class BoxHandler
     public Result editBoxProcess(Context context, @PathParam("id") Long boxId,
                                  @JSR303Validation MailBoxFormData mailboxFormData, Validation validation)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         result.render("domain", xcmConfiguration.DOMAIN_LIST);
         if (validation.hasViolations())
         { // not all fields were filled
@@ -250,31 +250,40 @@ public class BoxHandler
                     String newLocalPartName = mailboxFormData.getAddress().toLowerCase();
                     String newDomainPartName = mailboxFormData.getDomain().toLowerCase();
 
-                    if (MBox.mailChanged(newLocalPartName, newDomainPartName, boxId))
-                    { // this is only true when the address changed and the new address does not exist
-
-                        String[] domains = xcmConfiguration.DOMAIN_LIST;
-                        // assume that the POST-Request was modified and the domainname does not exist in our app
-                        if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
-                        {
-                            // the new domainname does not exist in the application.conf
-                            // stop the process and return to the mailbox-overview page
-                            return result.redirect(context.getContextPath() + "/mail");
+                    if (!mailBox.getAddress().equals(newLocalPartName)
+                        || !mailBox.getDomain().equals(newDomainPartName))
+                    { // mailaddress was changed
+                        if (!MBox.mailExists(newLocalPartName, newDomainPartName))
+                        { // the new address does not exist
+                            String[] domains = xcmConfiguration.DOMAIN_LIST;
+                            // assume that the POST-Request was modified and the domainname does not exist in our app
+                            if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
+                            {
+                                // the new domainname does not exist in the application.conf
+                                // stop the process and return to the mailbox-overview page
+                                return result.redirect(context.getContextPath() + "/mail");
+                            }
+                            mailBox.setAddress(newLocalPartName);
+                            mailBox.setDomain(newDomainPartName);
+                            changes = true;
                         }
-                        mailBox.setAddress(newLocalPartName);
-                        mailBox.setDomain(newDomainPartName);
-                        changes = true;
+                        else
+                        {
+                            // the email-address already exists
+                            context.getFlashCookie().error("flash_MailExists");
+                            return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
+                        }
                     }
                     Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                     if (ts == -1)
                     { // a faulty timestamp was given -> return an errorpage
                         context.getFlashCookie().error("flash_FormError");
-                        return result.redirect(context.getContextPath() + "/mail/edit/" + boxId.toString());
+                        return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
                     }
                     if ((ts != 0) && (ts < DateTime.now().getMillis()))
                     { // the Timestamp lays in the past
                         context.getFlashCookie().error("editEmail_Past_Timestamp");
-                        return result.redirect(context.getContextPath() + "/mail/edit/" + boxId.toString());
+                        return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
                     }
 
                     if (mailBox.getTs_Active() != ts)
@@ -457,7 +466,7 @@ public class BoxHandler
                                   @Param("duration") String duration, Context context)
     {
 
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
 
         if (action != null && boxIds != null && !action.equals("") && !action.equals(""))
