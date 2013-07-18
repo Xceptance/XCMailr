@@ -25,7 +25,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import ninja.Context;
 import ninja.Result;
-import ninja.Results;
 import ninja.i18n.Messages;
 import com.google.common.base.Optional;
 import com.google.inject.Singleton;
@@ -242,14 +241,14 @@ public class HelperUtils
      * @return a List of String[] with the key "available_langs" and a String[]-object containing the localised long
      *         form of all languages
      */
-    public static List<String[]> getLanguageList(String[] availableLanguages, Context context, Messages msg)
+    public static List<String[]> getLanguageList(String[] availableLanguages, Context context, Result result, Messages msg)
     {
         String languageTranslation;
-        Optional<Result> optionalResult = Optional.of(Results.html());
+        Optional<Result> optionalResult = Optional.of(result);
         List<String[]> availableLanguageList = new ArrayList<String[]>();
         for (String abbreviatedLanguageCode : availableLanguages)
         {
-            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult, (Object) null)
+            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult)
                                      .get();
             availableLanguageList.add(new String[]
                 {

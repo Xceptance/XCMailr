@@ -86,7 +86,7 @@ public class Application
         }
 
         // show the index-page
-        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
+        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, messages);
         return result.render("available_langs", languageList);
     }
 
@@ -102,9 +102,10 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result registerForm(Context context)
     {
+        Result result = Results.html();
         // render the available languages
-        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
-        return Results.html().render("available_langs", languageList);
+        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, messages);
+        return result.render("available_langs", languageList);
     }
 
     /**
@@ -126,7 +127,7 @@ public class Application
 
         Result result = Results.html().template("/views/Application/registerForm.ftl.html");
 
-        List<String[]> availableLanguageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context,
+        List<String[]> availableLanguageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result,
                                                                            messages);
         result.render("available_langs", availableLanguageList);
         if (validation.hasViolations())
@@ -165,7 +166,7 @@ public class Application
                 { // whitelisting is active
                     if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
                     { // the domain is not in the whitelist and the whitelist is not empty
-                        context.getFlashCookie().error("registerUser_Flash_NotWhitelisted"); 
+                        context.getFlashCookie().error("registerUser_Flash_NotWhitelisted");
                         registerFormData.setPassword("");
                         registerFormData.setPasswordNew1("");
                         registerFormData.setPasswordNew2("");
@@ -250,7 +251,7 @@ public class Application
      */
     public Result verifyActivation(@PathParam("id") Long userId, @PathParam("token") String token, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = User.getById(userId);
         if (user != null)
         { // the user exists
@@ -293,14 +294,14 @@ public class Application
      */
     public Result logoutProcess(Context context)
     {
-
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         // remove the session (memcachedServer and cookie)
         String sessionKey = context.getSessionCookie().getId();
         context.getSessionCookie().clear();
         memCachedSessionHandler.delete(sessionKey);
 
         // show the index-page
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+
         context.getFlashCookie().success("logout_Flash_LogOut");
         return result.redirect(context.getContextPath() + "/");
     }
@@ -466,7 +467,7 @@ public class Application
      */
     public Result resetPasswordForm(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = User.getById(id);
         if (user != null)
         { // the user exists
@@ -503,7 +504,7 @@ public class Application
     public Result resetPasswordProcess(@PathParam("id") Long id, @PathParam("token") String token, Context context,
                                        @JSR303Validation PasswordFormData passwordFormData, Validation validation)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         // check the PathParams again
         User user = User.getById(id);
         if (user != null)

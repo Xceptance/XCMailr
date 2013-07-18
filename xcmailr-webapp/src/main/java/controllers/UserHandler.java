@@ -72,12 +72,11 @@ public class UserHandler
      */
     public Result editUserProcess(Context context, @JSR303Validation UserFormData userFormData, Validation validation)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
-
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.
         // then you would likely get a NullPointerException
-        List<String[]> o = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, msg);
+        List<String[]> o = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, msg);
         result.render("available_langs", o);
 
         User user = context.getAttribute("user", User.class);
@@ -110,7 +109,7 @@ public class UserHandler
             { // whitelisting is active
                 if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
                 { // the domain is not in the whitelist and the whitelist is not empty
-                    context.getFlashCookie().error("editUser_Flash_NotWhitelisted"); 
+                    context.getFlashCookie().error("editUser_Flash_NotWhitelisted");
                     userFormData.setPassword("");
                     userFormData.setPasswordNew1("");
                     userFormData.setPasswordNew2("");
@@ -190,7 +189,7 @@ public class UserHandler
                 }
                 // user-edit was successful
                 context.getFlashCookie().success("flash_DataChangeSuccess");
-                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()
+                return result.redirect(context.getContextPath()
                                                                                                 + "/user/edit");
             }
             else
@@ -199,8 +198,7 @@ public class UserHandler
                 userFormData.setPasswordNew1("");
                 userFormData.setPasswordNew2("");
                 context.getFlashCookie().error("flash_FormError");
-                return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()
-                                                                                                + "/user/edit");
+                return result.redirect(context.getContextPath() + "/user/edit");
             }
         }
     }
@@ -216,8 +214,9 @@ public class UserHandler
 
     public Result editUserForm(Context context)
     {
-        List<String[]> availableLanguageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, msg);
         Result result = Results.html();
+        List<String[]> availableLanguageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result,
+                                                                           msg);
         result.render("available_langs", availableLanguageList);
         User user = context.getAttribute("user", User.class);
         if (user.getLanguage() == null || user.getLanguage() == "")
@@ -242,7 +241,7 @@ public class UserHandler
     public Result deleteUserProcess(Context context)
     {
         String password = context.getParameter("password");
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
         if (password != null && !password.isEmpty())
         {
