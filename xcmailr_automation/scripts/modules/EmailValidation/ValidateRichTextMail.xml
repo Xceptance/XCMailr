@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Validates different Rich Text formattings of customizable text patterns as well as email attachments.</description>
+  <parameter name="Alignment_Left"/>
+  <parameter name="Alignment_Right"/>
+  <parameter name="Alignment_Center"/>
+  <parameter name="FontStyle_Bold"/>
+  <parameter name="FontStyle_Italic"/>
+  <parameter name="FontStyle_Underline"/>
+  <parameter name="FontSize_Large"/>
+  <parameter name="FontSize_Small"/>
+  <parameter name="FontFamily_Times"/>
+  <parameter name="FontFamily_Arial"/>
+  <parameter name="FontFamily_Courier"/>
+  <parameter name="FontFamily_Verdana"/>
+  <parameter name="UnorderedList_Count"/>
+  <parameter name="OrderedList_Count"/>
+  <parameter name="HyperlinkName"/>
+  <parameter name="TextColor"/>
+  <parameter name="BackgroundColor"/>
+  <parameter name="Attachments_Count"/>
+  <parameter name="Attachment_Name_1"/>
+  <parameter name="Attachment_Name_2"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//div[contains(@style, &quot;text-align: left&quot;)]" value="@{Alignment_Left}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//div[contains(@style, &quot;text-align: right&quot;)]" value="@{Alignment_Right}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//div[contains(@style, &quot;text-align: center&quot;)]" value="@{Alignment_Center}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//strong" value="@{FontStyle_Bold}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//em" value="@{FontStyle_Italic}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//span[contains(@style, &quot;text-decoration: underline&quot;)]" value="@{FontStyle_Underline}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//span[contains(@style, &quot;font-size: x-large&quot;)]" value="@{FontSize_Large}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//span[contains(@style, &quot;font-size: x-small&quot;)]" value="@{FontSize_Small}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//span[contains(@style, &quot;font-family: times&quot;)]" value="@{FontFamily_Times}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//span[contains(@style, &quot;font-family: arial&quot;)]" value="@{FontFamily_Arial}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//span[contains(@style, &quot;font-family: courier&quot;)]" value="@{FontFamily_Courier}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//span[contains(@style, &quot;font-family: verdana&quot;)]" value="@{FontFamily_Verdana}"/>
+  <command name="assertXpathCount" target="//div[@id='_aolWebSuiteMsgBody']//ul/li" value="@{UnorderedList_Count}"/>
+  <command name="assertXpathCount" target="//div[@id='_aolWebSuiteMsgBody']//ol/li" value="@{OrderedList_Count}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//a[contains(@href, &quot;http://xceptance.com&quot;)]" value="@{HyperlinkName}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//span[contains(@style, &quot;color: rgb(51, 102, 255)&quot;)]" value="@{TextColor}"/>
+  <command name="assertText" target="xpath=//div[@id='_aolWebSuiteMsgBody']//span[contains(@style, &quot;background-color: rgb(51, 102, 255)&quot;)]" value="@{BackgroundColor}"/>
+  <command name="assertXpathCount" target="//table[@class='messageListTable']//tr[5]/td[@class='headerRight']/a" value="@{Attachments_Count}"/>
+  <command name="assertText" target="xpath=//table[@class='messageListTable']//tr[5]/td[@class='headerRight']/a[1]" value="@{Attachment_Name_1}"/>
+  <command name="assertText" target="xpath=//table[@class='messageListTable']//tr[5]/td[@class='headerRight']/a[2]" value="@{Attachment_Name_2}"/>
+</scriptmodule>

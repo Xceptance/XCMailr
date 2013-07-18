@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Validates the correctness of all forwarding email data on the 'My Emails' overview page after creation, change or use.
+Can be adapted for every validation purpose/situation.
+
+- Expiration: The expiration date (time pattern or unlimited)
+- ForwardCount: Count of forwarding
+- SuppressCount: Count of suppressions
+- ActiveState: Emails state (active/inactive)</description>
+  <parameter name="Expiration"/>
+  <parameter name="ForwardCount"/>
+  <parameter name="SuppressCount"/>
+  <parameter name="ActiveState"/>
+  <command name="assertText" target="//div[@id='1']//td[2 and contains(.,'${CurrentForward}')]" value="${CurrentForward}"/>
+  <command name="assertText" target="//div[@id='1']//td[1 and contains(.,'${CurrentForward}')]/following-sibling::td[1]" value="@{Expiration}"/>
+  <command name="assertText" target="//div[@id='1']//td[1 and contains(.,'${CurrentForward}')]/following-sibling::td[2]" value="@{ForwardCount}"/>
+  <command name="assertText" target="//div[@id='1']//td[1 and contains(.,'${CurrentForward}')]/following-sibling::td[3]" value="@{SuppressCount}"/>
+  <command name="assertText" target="//div[@id='1']//td[1 and contains(.,'${CurrentForward}')]/following-sibling::td[4]" value="@{ActiveState}"/>
+</scriptmodule>

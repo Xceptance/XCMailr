@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Fills the input fields and selects a language on the 'Create Account' page.
+Possible language values: 'en' or 'de'.</description>
+  <parameter name="FirstName"/>
+  <parameter name="LastName"/>
+  <parameter name="Email"/>
+  <parameter name="Password"/>
+  <parameter name="PasswordRepeat"/>
+  <parameter name="Language"/>
+  <command name="type" target="name=firstName" value="@{FirstName}"/>
+  <command name="type" target="name=surName" value="@{LastName}"/>
+  <command name="type" target="name=mail" value="@{Email}"/>
+  <command name="type" target="name=password" value="@{Password}"/>
+  <command name="type" target="name=passwordNew1" value="@{PasswordRepeat}"/>
+  <command name="select" target="name=language" value="value=@{Language}"/>
+</scriptmodule>

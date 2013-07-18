@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Fills the input fields and selects a language on the 'Edit Profile' page.
+Possible language values: 'en' or 'de'.</description>
+  <parameter name="PasswordCurrent"/>
+  <parameter name="FirstName"/>
+  <parameter name="LastName"/>
+  <parameter name="Email"/>
+  <parameter name="PasswordNew"/>
+  <parameter name="PasswordNewRepeat"/>
+  <parameter name="Language"/>
+  <command name="type" target="name=password" value="@{PasswordCurrent}"/>
+  <command name="type" target="name=firstName" value="@{FirstName}"/>
+  <command name="type" target="name=surName" value="@{LastName}"/>
+  <command name="type" target="name=mail" value="@{Email}"/>
+  <command name="type" target="id=passwordNew1" value="@{PasswordNew}"/>
+  <command name="type" target="id=passwordNew2" value="@{PasswordNewRepeat}"/>
+  <command name="select" target="id=language" value="value=@{Language}"/>
+</scriptmodule>

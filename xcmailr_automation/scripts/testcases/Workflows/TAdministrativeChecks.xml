@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testcase version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Verifies the record of email transactions in the admin area.
+
+XCMailr account with admin permission required.</description>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AdminEmailAddress}"/>
+    <parameter name="XCMailrPassword" value="${AdminXCMailrPassword}"/>
+  </module>
+  <action name="AccessAdminArea"/>
+  <command name="clickAndWait" target="link=Admin"/>
+  <action name="StoreForwardEmailStatisticsCounts"/>
+  <command name="clickAndWait" target="link=Email Record"/>
+  <command name="storeText" target="css=.warning>td:nth-child(2)" value="Statistics_inactive"/>
+  <command name="storeText" target="css=.success>td:nth-child(2)" value="Statistics_active"/>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AolReceiverAddress}"/>
+    <parameter name="XCMailrPassword" value="${AolReceiverXCMailrPassword}"/>
+  </module>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <module name="modules.EmailValidation.PreValidation_Mailbox">
+    <parameter name="ForwardCount_pre" value="0"/>
+    <parameter name="SuppressCount_pre" value="0"/>
+    <parameter name="ActiveState_pre" value="Active"/>
+    <parameter name="Expiration_pre" value="${Expiration}"/>
+  </module>
+  <module name="modules.Webmailer.SignInAolMailUser">
+    <parameter name="AolEmail" value="${AolSenderAddress}"/>
+    <parameter name="AolPassword" value="${AolSenderPassword}"/>
+  </module>
+  <module name="modules.Webmailer.ComposeAndSendTextmail">
+    <parameter name="Recipient" value="${CurrentForward}"/>
+    <parameter name="Subject" value="${NOW}"/>
+    <parameter name="Content" value="${RANDOM.String(70)}"/>
+  </module>
+  <command name="pause" value="10000"/>
+  <module name="modules.Webmailer.SignInAolMailUser">
+    <parameter name="AolEmail" value="${AolReceiverAddress}"/>
+    <parameter name="AolPassword" value="${AolReceiverPassword}"/>
+  </module>
+  <action name="CheckEmailReceiving"/>
+  <command name="clickAndWait" target="id=InboxLnk"/>
+  <command name="waitForElementPresent" target="css=.messageListView"/>
+  <command name="assertElementPresent" target="xpath=//div[@class='messageListView']//td[contains(.,'${CurrentSubject}')]"/>
+  <command name="clickAndWait" target="css=.signOutLink"/>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AdminEmailAddress}"/>
+    <parameter name="XCMailrPassword" value="${AdminXCMailrPassword}"/>
+  </module>
+  <module name="modules.Administration.ValidateEmailTransaction">
+    <parameter name="ForwardAddress" value="${CurrentForward}"/>
+    <parameter name="ActiveState" value="Active forward"/>
+    <parameter name="SenderAddress" value="${AolSenderAddress}"/>
+    <parameter name="ReceiverAddress" value="${AolReceiverAddress}"/>
+  </module>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AolReceiverAddress}"/>
+    <parameter name="XCMailrPassword" value="${AolReceiverXCMailrPassword}"/>
+  </module>
+  <action name="MailboxPreValidation"/>
+  <command name="clickAndWait" target="link=My Email Addresses"/>
+  <module name="modules.EmailValidation.SearchForForwardEmail">
+    <parameter name="EmailAddress" value="${CurrentForward}"/>
+  </module>
+  <command name="clickAndWait" target="xpath=//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[5]//input"/>
+  <module name="modules.EmailValidation.MailboxValidation">
+    <parameter name="Expiration" value="${Expiration}"/>
+    <parameter name="ForwardCount" value="1"/>
+    <parameter name="SuppressCount" value="0"/>
+    <parameter name="ActiveState" value="Inactive"/>
+  </module>
+  <module name="modules.Webmailer.SignInAolMailUser">
+    <parameter name="AolEmail" value="${AolSenderAddress}"/>
+    <parameter name="AolPassword" value="${AolSenderPassword}"/>
+  </module>
+  <module name="modules.Webmailer.ComposeAndSendTextmail">
+    <parameter name="Recipient" value="${CurrentForward}"/>
+    <parameter name="Subject" value="${NOW}"/>
+    <parameter name="Content" value="${RANDOM.String(70)}"/>
+  </module>
+  <command name="pause" value="10000"/>
+  <module name="modules.Webmailer.SignInAolMailUser">
+    <parameter name="AolEmail" value="${AolReceiverAddress}"/>
+    <parameter name="AolPassword" value="${AolReceiverPassword}"/>
+  </module>
+  <action name="CheckEmailSuppression"/>
+  <command name="clickAndWait" target="id=InboxLnk"/>
+  <command name="waitForElementPresent" target="css=.messageListView"/>
+  <command name="assertNotText" target="xpath=//div[@class='messageListView']//td[5]" value="${CurrentSubject}"/>
+  <command name="assertNotTextPresent" value="${CurrentSubject}"/>
+  <command name="clickAndWait" target="css=.signOutLink"/>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AdminEmailAddress}"/>
+    <parameter name="XCMailrPassword" value="${AdminXCMailrPassword}"/>
+  </module>
+  <module name="modules.Administration.ValidateEmailTransaction">
+    <parameter name="ForwardAddress" value="${CurrentForward}"/>
+    <parameter name="ActiveState" value="Inactive forward"/>
+    <parameter name="SenderAddress" value="${AolSenderAddress}"/>
+    <parameter name="ReceiverAddress" value=""/>
+  </module>
+  <action name="CheckEmailStatisticsCountChange"/>
+  <command name="clickAndWait" target="link=Email Record"/>
+  <command name="storeText" target="css=.warning>td:nth-child(2)" value="Statistics_inactive_past"/>
+  <command name="storeText" target="css=.success>td:nth-child(2)" value="Statistics_active_past"/>
+  <command name="storeEval" target="var m=&quot;0&quot;; if(parseInt(&quot;${Statistics_inactive}&quot;) &lt; parseInt(&quot;${Statistics_inactive_past}&quot;)){m=&quot;${Statistics_inactive_past}&quot;;} m;" value="Statistics_inactive_comp"/>
+  <command name="storeEval" target="var m=&quot;0&quot;; if(parseInt(&quot;${Statistics_active}&quot;) &lt; parseInt(&quot;${Statistics_active_past}&quot;)){m=&quot;${Statistics_active_past}&quot;;} m;" value="Statistics_active_comp"/>
+  <command name="assertText" target="css=.warning>td:nth-child(2)" value="${Statistics_inactive_comp}"/>
+  <command name="assertText" target="css=.success>td:nth-child(2)" value="${Statistics_active_comp}"/>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AolReceiverAddress}"/>
+    <parameter name="XCMailrPassword" value="${AolReceiverXCMailrPassword}"/>
+  </module>
+  <action name="RemoveForwardEmail"/>
+  <command name="clickAndWait" target="link=My Email Addresses"/>
+  <module name="modules.EmailValidation.SearchForForwardEmail">
+    <parameter name="EmailAddress" value="${CurrentForward}"/>
+  </module>
+  <command name="clickAndWait" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[6]//input"/>
+  <command name="assertNotTextPresent" value="${CurrentForward}"/>
+</testcase>

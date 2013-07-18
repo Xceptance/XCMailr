@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testcase version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <tags>login,log in,sign in,logout,sign out</tags>
+  <description>Verifies the Login/Sign In and Logout/Sign Out functionality including input field validation.</description>
+  <module name="modules.General.AccessXCMailrSite"/>
+  <module name="modules.UserManagement.RegisterAndActivateUserAccount">
+    <parameter name="AolEmail" value="${AolTestAddress}"/>
+    <parameter name="AolPassword" value="${AolTestPassword}"/>
+  </module>
+  <module name="modules.General.AccessXCMailrSite"/>
+  <action name="AccessXCMailrSignInPage"/>
+  <command name="clickAndWait" target="link=Sign In"/>
+  <action name="ValidateSignInInputFields_EmptyInput-1"/>
+  <command name="click" target="id=btnLoginSubmit"/>
+  <command name="assertTitle" value="XCMailr - Sign In"/>
+  <action name="ValidateSignInInputFields_EmptyInput-2"/>
+  <command name="type" target="id=inputLoginMail" value="${AolTestAddress}"/>
+  <command name="click" target="id=btnLoginSubmit"/>
+  <command name="assertTitle" value="XCMailr - Sign In"/>
+  <command name="assertText" target="id=inputLoginMail" value="${AolTestAddress}"/>
+  <action name="ValidateSignInInputFields_IncorrectEmailPattern"/>
+  <command name="type" target="id=inputLoginMail" value="${RANDOM.String(10)}@."/>
+  <command name="type" target="id=inputLoginPassword" value="${Password}"/>
+  <command name="click" target="id=btnLoginSubmit"/>
+  <command name="assertTitle" value="XCMailr - Sign In"/>
+  <action name="ValidateSignInInputFields_WrongPassword"/>
+  <command name="type" target="id=inputLoginMail" value="${AolTestAddress}"/>
+  <command name="type" target="id=inputLoginPassword" value="${RANDOM.String(10)}"/>
+  <command name="clickAndWait" target="id=btnLoginSubmit"/>
+  <command name="assertTitle" value="XCMailr - Sign In"/>
+  <command name="assertElementPresent" target="css=.alert-error"/>
+  <command name="assertText" target="id=inputLoginMail" value=""/>
+  <command name="assertText" target="id=inputLoginPassword" value=""/>
+  <action name="SignInUser"/>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AolTestAddress}"/>
+    <parameter name="XCMailrPassword" value="${Password}"/>
+  </module>
+  <command name="assertElementPresent" target="link=Sign Out"/>
+  <action name="SignOutUser_CheckSignOut"/>
+  <command name="clickAndWait" target="link=Sign Out"/>
+  <command name="assertNotElementPresent" target="link=Sign Out"/>
+  <command name="assertElementPresent" target="link=Sign In"/>
+  <action name="CheckSignInPossibility"/>
+  <command name="clickAndWait" target="link=Sign In"/>
+  <command name="assertTitle" value="XCMailr - Sign In"/>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AolTestAddress}"/>
+    <parameter name="XCMailrPassword" value="${Password}"/>
+  </module>
+  <module name="modules.UserManagement.DeleteTestAccount"/>
+</testcase>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Compose and send an email with only textual content. All done inside an aol mail account.
+
+- Recipient: The recipient of the composed email (aol/aim domain)
+- Subject: The emails subject (unique if possible)
+- Content: The textual content of the email (max. 70 digits)</description>
+  <parameter name="Recipient"/>
+  <parameter name="Subject"/>
+  <parameter name="Content"/>
+  <action name="ComposeTextmail"/>
+  <command name="clickAndWait" target="id=writeMailBtn"/>
+  <command name="waitForElementPresent" target="xpath=id('PlainBody')"/>
+  <command name="type" target="id=To" value="@{Recipient}"/>
+  <command name="type" target="id=Subject" value="@{Subject}"/>
+  <command name="storeText" target="id=Subject" value="CurrentSubject"/>
+  <command name="store" target="@{Content}" value="CurrentContent"/>
+  <command name="type" target="xpath=id('PlainBody')" value="${CurrentContent}"/>
+  <command name="clickAndWait" target="id=sendBtn"/>
+  <command name="waitForElementPresent" target="//h1[@id='main']/span[contains(.,'Message Sent!')]"/>
+  <action name="SignOutAolMailUser"/>
+  <command name="clickAndWait" target="css=.signOutLink"/>
+</scriptmodule>

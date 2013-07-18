@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testcase version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <tags>email,forward,edit,customize,change</tags>
+  <description>Verifies the possibility of targeted data change of an existing temporary email without losing untouched information.</description>
+  <module name="modules.General.AccessXCMailrSite"/>
+  <module name="modules.UserManagement.RegisterAndActivateUserAccount">
+    <parameter name="AolEmail" value="${AolTestAddress}"/>
+    <parameter name="AolPassword" value="${AolTestPassword}"/>
+  </module>
+  <module name="modules.UserManagement.SignInXCMailrUser">
+    <parameter name="XCMailrEmail" value="${AolTestAddress}"/>
+    <parameter name="XCMailrPassword" value="${Password}"/>
+  </module>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <command name="store" target="${DomainIndex}" value="FirstDomain"/>
+  <command name="store" target="${CurrentAddress}" value="FirstAddress"/>
+  <module name="modules.EmailCreation.CreateForwardingMailbox"/>
+  <module name="modules.EmailValidation.PreValidation_Mailbox">
+    <parameter name="ForwardCount_pre" value="0"/>
+    <parameter name="SuppressCount_pre" value="0"/>
+    <parameter name="ActiveState_pre" value="Active"/>
+    <parameter name="Expiration_pre" value="${Expiration}"/>
+  </module>
+  <action name="CheckCurrentDataAsDefault"/>
+  <command name="clickAndWait" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[8]//input"/>
+  <command name="assertTitle" value="XCMailr - Edit Email Address"/>
+  <command name="assertText" target="id=address" value="${CurrentAddress}"/>
+  <command name="assertValue" target="xpath=//select[@name='domain']/option[@selected]" value="${CurrentDomain}"/>
+  <command name="assertText" target="id=datetime" value="${Expiration}"/>
+  <action name="CheckResetFunction"/>
+  <command name="type" target="id=address" value="${RANDOM.String(7)}"/>
+  <module name="modules.EmailCreation.SelectExpirationByDatepicker"/>
+  <command name="click" target="id=btnReset"/>
+  <command name="waitForText" target="id=address" value="${CurrentAddress}"/>
+  <command name="assertSelectedValue" target="name=domain" value="${CurrentDomain}"/>
+  <command name="assertText" target="id=datetime" value="${Expiration}"/>
+  <action name="EditEmail"/>
+  <command name="type" target="id=address" value="${RANDOM.String(7)}"/>
+  <module name="modules.EmailCreation.StoreNewForwardData"/>
+  <module name="modules.EmailCreation.SelectUnlimitedExpiration"/>
+  <command name="clickAndWait" target="css=input[type=submit]"/>
+  <module name="modules.EmailValidation.PreValidation_Mailbox">
+    <parameter name="ForwardCount_pre" value="0"/>
+    <parameter name="SuppressCount_pre" value="0"/>
+    <parameter name="ActiveState_pre" value="Active"/>
+    <parameter name="Expiration_pre" value="${Expiration}"/>
+  </module>
+  <action name="DeactivateEmail"/>
+  <command name="clickAndWait" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[5]//input"/>
+  <module name="modules.EmailValidation.MailboxValidation">
+    <parameter name="Expiration" value="${Expiration}"/>
+    <parameter name="ForwardCount" value="0"/>
+    <parameter name="SuppressCount" value="0"/>
+    <parameter name="ActiveState" value="Inactive"/>
+  </module>
+  <action name="EditInactiveEmail"/>
+  <command name="clickAndWait" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[8]//input"/>
+  <command name="assertTitle" value="XCMailr - Edit Email Address"/>
+  <command name="assertChecked" target="id=chkUnlimited"/>
+  <command name="uncheck" target="id=chkUnlimited"/>
+  <command name="assertNotChecked" target="id=chkUnlimited"/>
+  <module name="modules.EmailCreation.SelectExpirationByDatepicker"/>
+  <command name="storeText" target="id=datetime" value="Expiration"/>
+  <command name="clickAndWait" target="css=input[type=submit]"/>
+  <module name="modules.EmailValidation.PreValidation_Mailbox">
+    <parameter name="ForwardCount_pre" value="0"/>
+    <parameter name="SuppressCount_pre" value="0"/>
+    <parameter name="ActiveState_pre" value="Active"/>
+    <parameter name="Expiration_pre" value="${Expiration}"/>
+  </module>
+  <action name="ValidateCreateEmailInputFields_EmptyAddress"/>
+  <command name="clickAndWait" target="//div[@id='1']//td[contains(.,'${CurrentForward}')]/following-sibling::td[8]//input"/>
+  <command name="type" target="id=address" value=""/>
+  <command name="click" target="css=input[type=submit]"/>
+  <command name="assertTitle" value="XCMailr - Edit Email Address"/>
+  <action name="ValidateCreateEmailInputFields_ExistingEmail"/>
+  <command name="type" target="id=address" value="${FirstAddress}"/>
+  <command name="select" target="name=domain" value="index=${FirstDomain}"/>
+  <command name="click" target="css=input[type=submit]"/>
+  <command name="assertTitle" value="XCMailr - Edit Email Address"/>
+  <command name="assertElementPresent" target="css=.alert-error"/>
+  <action name="ValidateCreateEmailInputFields_PastDate"/>
+  <command name="type" target="id=datetime" value="2013-04-17 10:15"/>
+  <command name="click" target="css=input[type=submit]"/>
+  <command name="assertTitle" value="XCMailr - Edit Email Address"/>
+  <command name="assertElementPresent" target="css=.alert-error"/>
+  <module name="modules.UserManagement.DeleteTestAccount"/>
+</testcase>

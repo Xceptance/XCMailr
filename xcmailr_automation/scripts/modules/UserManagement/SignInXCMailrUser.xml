@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
+  <description>Access the XCMailr website and sign in a registered user with the specified paramaters.</description>
+  <parameter name="XCMailrEmail"/>
+  <parameter name="XCMailrPassword"/>
+  <module name="modules.General.AccessXCMailrSite"/>
+  <action name="AccessXCMailrLoginPage"/>
+  <command name="clickAndWait" target="link=Sign In"/>
+  <action name="LoginXCMailrUser"/>
+  <command name="type" target="id=inputLoginMail" value="@{XCMailrEmail}"/>
+  <command name="type" target="id=inputLoginPassword" value="@{XCMailrPassword}"/>
+  <command name="clickAndWait" target="id=btnLoginSubmit"/>
+</scriptmodule>
