@@ -1,0 +1,22 @@
+<#import "../layout/adminLayout.ftl.html" as layout>
+<@layout.adminLayout title=i18n("adminRemoveDomain_Title")>
+
+<div class="span9">
+
+		<form action="${contextPath}/admin/whitelist/remove" id="removal" >
+			<fieldset>
+				<legend>${i18n("adminRemoveDomain_Title")}</legend>
+			</fieldset>
+		<p><br/>
+				${i18n("adminRemoveDomain_Label_Description", domain.domainname)}
+		</p>
+		<p> <br/><br/><br/>
+			<input type="hidden" name="domainId" value="${domain.id}"/>
+			<button class="btn" id="abortSubmit" name="action" value="abort">${i18n("adminRemoveDomain_Button_Abort")}</button>
+			<button class="btn btn-warning" id="deleteUserSubmit" name="action" value="deleteDomain">${i18n("adminRemoveDomain_Button_DeleteDomain")}</button>
+			<a href="#deleteUserModal" role="button" class="btn btn-danger" data-toggle="modal">${i18n("adminRemoveDomain_Button_DeleteUserAndDomain")}</a>
+		</p>
+		</form>
+</div>
+<#include "deleteUsersAndDomainModal.ftl.html"/>
+</@layout.adminLayout>

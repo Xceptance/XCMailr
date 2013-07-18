@@ -509,43 +509,6 @@ public class MBox
     }
 
     /**
-     * @param local
-     *            the new Local-Part of the Box
-     * @param domain
-     *            the new Domain-Part of the Box
-     * @param boxId
-     *            the ID of the Box to check
-     * @return true, if the Address has changed and is not used
-     */
-
-    public static boolean mailChanged(String local, String domain, Long boxId)
-    {
-        MBox mb = MBox.getById(boxId);
-        if (mb == null)
-        { // there's no box with that id
-            return false;
-        }
-        else
-        { // there is a mbox with that id
-            if (mb.address.equals(local) && mb.address.equals(domain))
-            { // mbox-email-address is equal to the given address -> nothing changed
-                return false;
-            }
-            else
-            { // the addresses differ
-                if (MBox.mailExists(local, domain))
-                { // the given address already exists for another mbox
-                    return false;
-                }
-                else
-                { // the given address is not used
-                    return true;
-                }
-            }
-        }
-    }
-
-    /**
      * @return the timestamp as string in the format "yyyy-MM-dd hh:mm" <br/>
      *         if its 0, then also 0 is returned
      */
@@ -650,7 +613,7 @@ public class MBox
     {
         ExpressionList<MBox> exList1 = Ebean.find(MBox.class).where().eq("usr_id", userId);
         if (input.contains("@"))
-        { //check for a correct format of a box
+        { // check for a correct format of a box
             String[] split = input.split("@");
 
             switch (split.length)
@@ -667,7 +630,7 @@ public class MBox
             }
 
         }
-        //the entry may be something like "addr" or "doma" (just a part of the address) 
+        // the entry may be something like "addr" or "doma" (just a part of the address)
         return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%")).findList();
     }
 
@@ -710,7 +673,5 @@ public class MBox
         }
         return csvMails;
     }
-    
-    
 
 }

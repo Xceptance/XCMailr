@@ -45,16 +45,14 @@ public class User implements Serializable
     @Id
     private long id;
 
-    
     /**
-     *  first name of the User
+     * first name of the User
      */
     @NotEmpty
     private String forename;
 
-    
     /**
-     *  Surname of the User
+     * Surname of the User
      */
     @NotEmpty
     private String surname;
@@ -65,9 +63,8 @@ public class User implements Serializable
     @Email
     private String mail;
 
-    
     /**
-     *  Password
+     * Password
      */
     @NotEmpty
     private String passwd;
@@ -582,6 +579,24 @@ public class User implements Serializable
         Ebean.update(usr);
         return usr.isActive();
 
+    }
+    /**
+     * Returns a List of all users which have email-addresses that belong to the given domain
+     * @param domainName the domain-name
+     * @return a List of Users
+     */
+    public static List<User> getUsersOfDomain(String domainName)
+    {
+        return Ebean.find(User.class).where().like("mail", "%@" + domainName).findList();
+    }
+    /**
+     * Deletes the users which have email-addresses of the given domain
+     * @param domainName the domain-name
+     * @return 
+     */
+    public static void deleteUsersOfDomain(String domainName)
+    {
+        Ebean.delete(getUsersOfDomain(domainName));
     }
 
     /**

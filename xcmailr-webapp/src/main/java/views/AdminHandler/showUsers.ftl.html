@@ -17,6 +17,8 @@ title=i18n("adminUserPage_Title")>
 		<button class="btn" id="userSearchButton" type="submit"><i class="icon-search"></i> ${adminUserPage_Button_Search}</button>
 	</div>
 </form>
+
+
 <!-- end user-search -->
 <!-- begin user table -->
 <div class="tab-content">  
@@ -67,7 +69,7 @@ title=i18n("adminUserPage_Title")>
 			 <#else>
 				<td>
 		   			<form class="nomarg" action="${contextPath}/admin/delete/${user.id}" id="formDeleteUser${user.id}" method="post"> 
-		                   <input type="submit" class="btn btn-small btn-danger" id="btnDeleteUser${user.id}" value="${i18n("adminUserPage_Button_Delete")}"/>
+		            	<a  role="button" onClick="showModal(${user.id},'${user.mail}');" class="btn btn-small btn-danger">${i18n("adminUserPage_Button_Delete")}</a>
 		        	</form>
 		        </td>
 			    <td> 
@@ -97,7 +99,15 @@ title=i18n("adminUserPage_Title")>
 </#list>
 </div><!-- /tab-content -->
 <!-- end user table -->
+<#include "deleteUserModal.ftl.html"/>
 <script>
+function showModal(userId, userMail){
+	$('#modalUserName').text(userMail);
+	var actionPath = "${contextPath}/admin/delete/";
+	$('#removeUserModal').attr("action", actionPath + userId);
+	$('#deleteUserModal').modal('show');
+}
+
 	$(document).ready(
 	function(){
 		$('#userSearchInput').typeahead({
@@ -130,9 +140,12 @@ title=i18n("adminUserPage_Title")>
 		        return parts[3];
 		    },
 		});
-	});//doc ready
+	});//doc ready 
+	
 </script> 
 <script type="text/javascript" src="${contextPath}/assets/js/typeaheadpreventautoselect.js"></script>
 <@pag.pager name=users/> 
 <@pag.incSorter vals=[6,7,8]/>
+
+
 </@layout.adminLayout>

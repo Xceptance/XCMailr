@@ -14,14 +14,14 @@
 				  <li><a href="${contextPath}/mail/add">${i18n("menu_Link_AddMb")}</a></li>                          
             </ul>
             <ul class="nav pull-right">
-            		<li class="navbar-text">${session.username}</li>
+            		<li class="nav navbar-text" id="headerUsername">${session.username}</li>
             	<#if (session.adm)??>
 	            	<li><a href="${contextPath}/admin">Admin</a></li>
             	</#if>
 			      	<li><a href="${contextPath}/user/edit">${i18n("menu_Link_Edit")}</a></li>
 	            	<li><a href="${contextPath}/logout">${i18n("menu_Link_Logout")}</a></li>
 				<#else>
-					<li><a href="${contextPath}/login">${i18n("menu_Link_Login")}</a></li>   
+					<li><a href="${contextPath}/login">${i18n("menu_Link_Login")}</a></li>  
 					<li><a href="${contextPath}/register">${i18n("menu_Link_Register")}</a></li>
 				</#if>
             </ul>
@@ -29,3 +29,7 @@
         </div><!-- /container -->
       </div><!-- /navbar-inner -->
     </div><!-- /navbar -->
+    <script type="text/javascript" src="${contextPath}/assets/js/stringreplacetooltip.js"></script>
+	<script type="text/javascript">
+	$(document).ready(replaceUserName());
+	</script>

@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.tools.RunScript;
@@ -47,6 +48,8 @@ public class ScriptRunner
             boolean usrTable = false;
             boolean mbxTable = false;
             boolean mtxTable = false;
+            boolean fk_mtxTable_usr_id = false;
+            boolean domainTable = false;
             // if xcmstarter has been started with the parameter "-Dxcmailr.xcmstart.droptables=true"
             // drop all tables
             if (!(System.getProperty("xcmailr.xcmstart.droptables") == null))
@@ -72,16 +75,41 @@ public class ScriptRunner
                 {
                     mtxTable = true;
                 }
+                if (rs.getString(3).equals("REGISTER_DOMAINS"))
+                {
+                    domainTable = true;
+                }
+
             }
 
             // create the tables if they're not existing
-            if (!(usrTable && mbxTable && mtxTable))
+            if (!(usrTable && mbxTable && mtxTable && domainTable))
             {
                 RunScript.execute(conn, new FileReader("conf/default-create.sql"));
                 Log.info("Executed Create Table.");
             }
+
+            rs = md.getImportedKeys(conn.getCatalog(), null, "MAILBOXES");
+            while (rs.next())
+            {
+                String name = rs.getString("FK_NAME");
+                if (name.equals("FK_MAILBOXES_USR_1"))
+                {
+                    fk_mtxTable_usr_id = true;
+                }
+            }
+
+            if (!fk_mtxTable_usr_id)
+            {
+                Statement statement = conn.createStatement();
+                statement.execute("alter table mailboxes add constraint fk_mailboxes_usr_1 foreign key (usr_id) references users (id) on delete restrict on update restrict;");
+            }
+
+            //
             alterTable("USERS", "LANGUAGE", conn, md);
             alterTable("MAILTRANSACTIONS", "RELAYADDR", conn, md);
+            Statement statement = conn.createStatement();
+            statement.execute("CREATE INDEX IF NOT EXISTS ix_mailtransactions_ts_1 ON mailtransactions (ts);");
 
             conn.close();
 

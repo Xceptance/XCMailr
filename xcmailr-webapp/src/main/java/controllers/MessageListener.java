@@ -67,8 +67,11 @@ public class MessageListener implements SimpleMessageListener
             // the mailaddress has a strange form or has an recipient with a domain-part that does not belong to our
             // domains
             // log status 500 (relay denied)
-            MailTransaction mtx = new MailTransaction(500, from, null, recipient);
-            mtx.saveTx();
+            if (xcmConfiguration.MTX_MAX_AGE != 0)
+            { // if mailtransaction.maxage is set to 0 -> log nothing
+                MailTransaction mtx = new MailTransaction(500, from, null, recipient);
+                mtx.saveTx();
+            }
             return false;
         }
         else
@@ -97,8 +100,11 @@ public class MessageListener implements SimpleMessageListener
 
             if (splitAddress.length != 2)
             { // the mailaddress does not have the expected pattern -> do nothing, just log it
-                mtx = new MailTransaction(0, from, null, recipient);
-                mtx.saveTx();
+                if (xcmConfiguration.MTX_MAX_AGE != 0)
+                {// if mailtransaction.maxage is set to 0 -> log nothing
+                    mtx = new MailTransaction(0, from, null, recipient);
+                    mtx.saveTx();
+                }
                 return;
             }
 
@@ -118,29 +124,39 @@ public class MessageListener implements SimpleMessageListener
                         mail.removeHeader("Cc");
                         mail.removeHeader("BCC");
                         // send the mail in a separate thread
-                        mailrSenderFactory.new ThreadedMailSend(mail, mailBox);
+                        MailrMessageSenderFactory.ThreadedMailSend tms = mailrSenderFactory.new ThreadedMailSend(mail, mailBox);
+                        tms.start();
                     }
                     catch (AddressException e)
                     {
                         log.error(e.getMessage());
                         // the message can't be forwarded (has not the correct format)
                         // this SHOULD never be the case...
-                        mtx = new MailTransaction(400, from, recipient, forwardTarget);
-                        mtx.saveTx();
+                        if (xcmConfiguration.MTX_MAX_AGE != 0)
+                        {// if mailtransaction.maxage is set to 0 -> log nothing
+                            mtx = new MailTransaction(400, from, recipient, forwardTarget);
+                            mtx.saveTx();
+                        }
                     }
                 }
                 else
                 { // there's a mailaddress, but the forward is inactive
-                    mtx = new MailTransaction(200, from, recipient, forwardTarget);
-                    mtx.saveTx();
+                    if (xcmConfiguration.MTX_MAX_AGE != 0)
+                    { // if mailtransaction.maxage is set to 0 -> log nothing
+                        mtx = new MailTransaction(200, from, recipient, forwardTarget);
+                        mtx.saveTx();
+                    }
                     mailBox.increaseSuppressions();
                     mailBox.update();
                 }
             }
             else
             { // mailaddress/forward does not exist
-                mtx = new MailTransaction(100, from, recipient, null);
-                mtx.saveTx();
+                if (xcmConfiguration.MTX_MAX_AGE != 0)
+                { // if mailtransaction.maxage is set to 0 -> log nothing
+                    mtx = new MailTransaction(100, from, recipient, null);
+                    mtx.saveTx();
+                }
             }
         }
         catch (MessagingException e)
