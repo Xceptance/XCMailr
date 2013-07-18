@@ -229,27 +229,29 @@ public class HelperUtils
     }
 
     /**
-     * Creates a Map which contains the key "available_langs" with a String[] containing the long form of all languages
-     * translated to the language which is given by the context
+     * Creates a List which contains a string-array with the abbreviated language first and the long form as second item
+     * translated to the language which is given primary by the result (or the context, if e.g. the result is null)
      * 
      * @param availableLanguages
      *            the short form of all languages (e.g. "en", "de")
      * @param context
      *            the current user-context
+     * @param result
+     *            the result-page
      * @param msg
      *            the Messages-object
      * @return a List of String[] with the key "available_langs" and a String[]-object containing the localised long
      *         form of all languages
      */
-    public static List<String[]> getLanguageList(String[] availableLanguages, Context context, Result result, Messages msg)
+    public static List<String[]> getLanguageList(String[] availableLanguages, Context context, Result result,
+                                                 Messages msg)
     {
         String languageTranslation;
         Optional<Result> optionalResult = Optional.of(result);
         List<String[]> availableLanguageList = new ArrayList<String[]>();
         for (String abbreviatedLanguageCode : availableLanguages)
         {
-            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult)
-                                     .get();
+            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult).get();
             availableLanguageList.add(new String[]
                 {
                     abbreviatedLanguageCode, languageTranslation
