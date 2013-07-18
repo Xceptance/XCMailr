@@ -124,7 +124,8 @@ public class MessageListener implements SimpleMessageListener
                         mail.removeHeader("Cc");
                         mail.removeHeader("BCC");
                         // send the mail in a separate thread
-                        mailrSenderFactory.new ThreadedMailSend(mail, mailBox);
+                        MailrMessageSenderFactory.ThreadedMailSend tms = mailrSenderFactory.new ThreadedMailSend(mail, mailBox);
+                        tms.start();
                     }
                     catch (AddressException e)
                     {
