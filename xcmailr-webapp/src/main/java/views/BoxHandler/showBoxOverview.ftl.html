@@ -173,7 +173,7 @@ title=i18n("mailbox_Title")>
     </div> <!-- /tab pane (active) -->
   </#list>
   <#else>
-  	${i18n("mailbox_Label_NoEntries")}
+  	<p> ${i18n("mailbox_Label_NoEntries")} </p><p><a href="${contextPath}/mail/add">${i18n("mailbox_Label_AskForNewAddress")}</a></p>
  </#if>
   
 </div><!-- /tab content -->
