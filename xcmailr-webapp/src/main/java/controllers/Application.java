@@ -105,7 +105,7 @@ public class Application
         Result result = Results.html();
         // render the available languages
         List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, messages);
-        return result.render("available_langs", languageList);
+        return result.render("available_langs", languageList).render("registerUserData", new UserFormData());
     }
 
     /**
@@ -139,7 +139,7 @@ public class Application
 
             context.getFlashCookie().error("flash_FormError");
 
-            return result.render("editUsr", registerFormData);
+            return result.render("registerUserData", registerFormData);
         }
         else
         { // form was filled correctly, go on!
@@ -159,7 +159,7 @@ public class Application
                     registerFormData.setPasswordNew1("");
                     registerFormData.setPasswordNew2("");
 
-                    return result.render("editUsr", registerFormData);
+                    return result.render("registerUserData", registerFormData);
                 }
                 // block the registration, if the domain is not on the whitelist (and the whitelisting is active)
                 if (xcmConfiguration.APP_WHITELIST)
@@ -171,7 +171,7 @@ public class Application
                         registerFormData.setPasswordNew1("");
                         registerFormData.setPasswordNew2("");
 
-                        return result.render("editUsr", registerFormData);
+                        return result.render("registerUserData", registerFormData);
                     }
                 }
 
@@ -188,7 +188,7 @@ public class Application
                         registerFormData.setPassword("");
                         registerFormData.setPasswordNew1("");
                         registerFormData.setPasswordNew2("");
-                        return result.render("editUsr", registerFormData);
+                        return result.render("registerUserData", registerFormData);
                     }
                     // create the user
                     User user = registerFormData.getAsUser();
@@ -202,7 +202,7 @@ public class Application
                         registerFormData.setPasswordNew2("");
                         context.getFlashCookie().error("flash_PasswordsUnequal");
 
-                        return result.render("editUsr", registerFormData);
+                        return result.render("registerUserData", registerFormData);
                     }
 
                     // generate the confirmation-token
@@ -226,13 +226,13 @@ public class Application
                     registerFormData.setPasswordNew2("");
                     context.getFlashCookie().error("flash_PasswordsUnequal");
 
-                    return result.render("editUsr", registerFormData);
+                    return result.render("registerUserData", registerFormData);
                 }
             }
             else
             { // mailadress already exists
                 context.getFlashCookie().error("flash_MailExists");
-                return result.render("editUsr", registerFormData);
+                return result.render("registerUserData", registerFormData);
             }
         }
     }
@@ -281,29 +281,7 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result loginForm(Context context)
     {
-        return Results.html();
-    }
-
-    /**
-     * Handles the Logout-Process<br/>
-     * GET /logout
-     * 
-     * @param context
-     *            the Context of this Request
-     * @return the Index-Page
-     */
-    public Result logoutProcess(Context context)
-    {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
-        // remove the session (memcachedServer and cookie)
-        String sessionKey = context.getSessionCookie().getId();
-        context.getSessionCookie().clear();
-        memCachedSessionHandler.delete(sessionKey);
-
-        // show the index-page
-
-        context.getFlashCookie().success("logout_Flash_LogOut");
-        return result.redirect(context.getContextPath() + "/");
+        return Results.html().render(new LoginFormData());
     }
 
     /**
@@ -321,6 +299,7 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result logInProcess(Context context, @JSR303Validation LoginFormData loginData, Validation validation)
     {
+        System.out.println(loginData.getMail());
         Result result = Results.html().template("/views/Application/loginForm.ftl.html");
         if (validation.hasViolations())
         {
@@ -392,6 +371,28 @@ public class Application
                 return result.render(loginData);
             }
         }
+    }
+
+    /**
+     * Handles the Logout-Process<br/>
+     * GET /logout
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return the Index-Page
+     */
+    public Result logoutProcess(Context context)
+    {
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        // remove the session (memcachedServer and cookie)
+        String sessionKey = context.getSessionCookie().getId();
+        context.getSessionCookie().clear();
+        memCachedSessionHandler.delete(sessionKey);
+
+        // show the index-page
+
+        context.getFlashCookie().success("logout_Flash_LogOut");
+        return result.redirect(context.getContextPath() + "/");
     }
 
     /**

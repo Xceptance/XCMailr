@@ -8,13 +8,13 @@
         <div class="control-group"> 
 			<label class="control-label" for="mail"> ${i18n("login_Label_Email")} </label>
 			<div class="controls">  
-				<input class="input_full" type="email" id="inputLoginMail" name="mail" required="required" value="${(login.mail)!}"/>
+				<input class="input_full" type="email" id="inputLoginMail" name="mail" required="required" value="${(loginFormData.mail)!}"/>
 			</div>
 		</div>
 		<div class="control-group"> 
 			<label class="control-label" for="pwd"> ${i18n("login_Label_Password")} </label>
 			<div class="controls"> 
-				<input class="input_full" type="password" id="inputLoginPassword" name="password" required="required" value="${(login.password)!}"/>
+				<input class="input_full" type="password" id="inputLoginPassword" name="password" required="required" value="${(loginFormData.password)!}"/>
 				<span class="help-inline"><a href="${contextPath}/pwresend">${i18n("login_Label_Link_ForgotPassword")}</a></span>
 			</div>
 		</div>
