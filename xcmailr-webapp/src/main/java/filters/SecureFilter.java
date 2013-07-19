@@ -58,8 +58,8 @@ public class SecureFilter implements Filter
             { // user has no admin-token
                 if (usr.isAdmin())
                 { // but he's admin
-                    // set a admin-flag at the cookie if the user is admin
-                    // we use this only to change the header-menu-view, but not for "real admin-actions"
+                  // set a admin-flag at the cookie if the user is admin
+                  // we use this only to change the header-menu-view, but not for "real admin-actions"
                     context.getSessionCookie().put("adm", "1");
                 }
             }
@@ -72,7 +72,7 @@ public class SecureFilter implements Filter
             { // delete the cookie if there's no user object but a session-cookie
                 context.getSessionCookie().clear();
             }
-            Result result = Results.forbidden().template("/views/Application/index.ftl.html");
+            Result result = Results.forbidden().template("/views/system/noContent.ftl.html");
             return result.redirect(context.getContextPath() + "/login");
         }
     }

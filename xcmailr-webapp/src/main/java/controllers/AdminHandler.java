@@ -168,7 +168,7 @@ public class AdminHandler
 
     public Result deleteMTXProcess(@PathParam("time") Integer time, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         if (time == null)
         {
             return result.redirect(context.getContextPath() + "/admin/mtxs");
@@ -183,7 +183,6 @@ public class AdminHandler
             DateTime dt = DateTime.now().minusDays(time);
             MailTransaction.deleteTxInPeriod(dt.getMillis());
         }
-
         return result.redirect(context.getContextPath() + "/admin/mtxs");
     }
 
@@ -199,7 +198,7 @@ public class AdminHandler
      */
     public Result activateUserProcess(@PathParam("id") Long userId, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
 
         // get the user who executes this action
         User executingUser = context.getAttribute("user", User.class);
@@ -259,7 +258,7 @@ public class AdminHandler
      */
     public Result promoteUserProcess(@PathParam("id") Long userId, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
         if (user.getId() != userId)
         { // the user to pro-/demote is not the user who performs this action
@@ -282,7 +281,7 @@ public class AdminHandler
      */
     public Result deleteUserProcess(@PathParam("id") Long deleteUserId, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
 
         if (user.getId() != deleteUserId)
@@ -404,7 +403,6 @@ public class AdminHandler
                 return result.redirect(context.getContextPath() + "/admin/whitelist");
             }
         }
-        result = Results.html().template("/views/system/noContent.ftl.html");
         return result.redirect(context.getContextPath() + "/admin/whitelist");
     }
 

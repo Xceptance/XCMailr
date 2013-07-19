@@ -189,8 +189,7 @@ public class UserHandler
                 }
                 // user-edit was successful
                 context.getFlashCookie().success("flash_DataChangeSuccess");
-                return result.redirect(context.getContextPath()
-                                                                                                + "/user/edit");
+                return result.redirect(context.getContextPath() + "/user/edit");
             }
             else
             { // the authorization-process failed

@@ -319,7 +319,7 @@ public class BoxHandler
      */
     public Result editBoxForm(Context context, @PathParam("id") Long boxId)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
 
         MBox mailBox = MBox.getById(boxId);
 
@@ -402,7 +402,7 @@ public class BoxHandler
 
     public Result expireBoxProcess(@PathParam("id") Long boxId, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
 
@@ -434,7 +434,7 @@ public class BoxHandler
      */
     public Result resetBoxCounterProcess(@PathParam("id") Long boxId, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
 
