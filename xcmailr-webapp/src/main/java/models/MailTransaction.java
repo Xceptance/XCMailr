@@ -26,6 +26,7 @@ import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Query;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
+import com.avaje.ebean.SqlUpdate;
 
 /**
  * This Class is used to save all Actions on the Mailserver
@@ -274,10 +275,9 @@ public class MailTransaction
     public static List<MailTransaction> all(String sortage)
     {
         List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy(sortage).findList();
-        
+
         return list;
     }
-    
 
     /**
      * @param sortage
@@ -287,7 +287,8 @@ public class MailTransaction
      */
     public static List<MailTransaction> allSortedLimited(int limit)
     {
-        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit).findList();
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit)
+                                          .findList();
         return list;
     }
 
@@ -329,17 +330,13 @@ public class MailTransaction
      */
     public static void deleteTxInPeriod(Long ts)
     {
-        List<Object> ids;
-        if (ts == null)
-        { // delete all transactions if no timestamp is given
-            ids = Ebean.find(MailTransaction.class).findIds();
+        String sql = "DELETE FROM MAILTRANSACTIONS";
+        if (ts != null)
+        { // there's a timestamp, add
+            sql += " WHERE ts < " + ts;
         }
-        else
-        {
-            ids = Ebean.find(MailTransaction.class).where().lt("ts", ts).findIds();
-        }
-        Ebean.delete(MailTransaction.class, ids);
-       
+        SqlUpdate down = Ebean.createSqlUpdate(sql);
+        down.execute();
     }
 
     /**
@@ -353,5 +350,4 @@ public class MailTransaction
     {
         return Ebean.find(MailTransaction.class, id);
     }
-
 }
