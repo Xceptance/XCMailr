@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +63,8 @@ public class JobController
     MessageListener messageListener;
 
     private boolean deleteTransactions;
+    
+    CopyOnWriteArrayList<MailTransaction> mtxList = new CopyOnWriteArrayList<MailTransaction>();
 
     /**
      * Starts the mail-server, creates the Admin-Account specified in application.conf and threads to expire the
@@ -124,6 +127,9 @@ public class JobController
                         log.debug("now expired: " + mailBox.getFullAddress());
                     }
                 }
+                MailTransaction.saveMultipleTx(mtxList);
+                mtxList.clear();
+
                 if (deleteTransactions)
                 { // execute only if a value has been set
                     log.debug("Cleanup Mailtransaction-list");
@@ -133,7 +139,7 @@ public class JobController
                     log.debug("finished Mailtransaction cleanup");
                 }
             }
-        }, new Long(1), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
+        }, new Long(0), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
 
     }
 

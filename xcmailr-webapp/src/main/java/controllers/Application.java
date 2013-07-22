@@ -299,7 +299,6 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result logInProcess(Context context, @JSR303Validation LoginFormData loginData, Validation validation)
     {
-        System.out.println(loginData.getMail());
         Result result = Results.html().template("/views/Application/loginForm.ftl.html");
         if (validation.hasViolations())
         {

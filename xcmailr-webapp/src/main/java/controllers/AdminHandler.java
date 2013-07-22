@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
+
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -141,7 +142,6 @@ public class AdminHandler
      */
     public Result pagedMTX(Context context, @Param("p") int page)
     {
-
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
@@ -153,7 +153,6 @@ public class AdminHandler
         PageList<MailTransaction> pagedMailTransactionList = new PageList<MailTransaction>(
                                                                                            MailTransaction.allSortedLimited(xcmConfiguration.MTX_LIMIT),
                                                                                            entries);
-
         return Results.html().render("plist", pagedMailTransactionList).render("curPage", page);
     }
 
@@ -314,12 +313,13 @@ public class AdminHandler
         {
             userList = User.findUserLike(searchString);
         }
-
+        
+        UserFormData userData;
         List<UserFormData> userDatalist = new ArrayList<UserFormData>();
         for (User currentUser : userList)
         {
-            UserFormData mbd = UserFormData.prepopulate(currentUser);
-            userDatalist.add(mbd);
+            userData = UserFormData.prepopulate(currentUser);
+            userDatalist.add(userData);
 
         }
         return result.json().render(userDatalist);

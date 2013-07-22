@@ -291,7 +291,7 @@ public class MailTransaction
                                           .findList();
         return list;
     }
-
+    
     /**
      * Gets all Mail-Transactions in the last "Period"
      * 
@@ -318,7 +318,7 @@ public class MailTransaction
         Query<Status> query = Ebean.find(Status.class);
         query.setRawSql(rawSql);
         List<Status> list = query.findList();
-
+        
         return list;
     }
 
@@ -349,5 +349,13 @@ public class MailTransaction
     public static MailTransaction getById(long id)
     {
         return Ebean.find(MailTransaction.class, id);
+    }
+    
+    /**
+     * saves multiple elements
+     * @param mtxList
+     */
+    public static void saveMultipleTx(List<MailTransaction> mtxList){
+        Ebean.save(mtxList);
     }
 }
