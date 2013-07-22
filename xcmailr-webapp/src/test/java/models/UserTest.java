@@ -1,17 +1,23 @@
 package models;
 
 import static org.junit.Assert.*;
-
+import static org.mockito.Mockito.spy;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import ninja.NinjaTest;
+import ninja.utils.NinjaProperties;
+import ninja.utils.NinjaPropertiesImpl;
 
+@RunWith(MockitoJUnitRunner.class)
 public class UserTest extends NinjaTest
 {
+    NinjaProperties ninjaProperties;
 
     @Before
     public void setUp()
@@ -28,7 +34,7 @@ public class UserTest extends NinjaTest
     @Test
     public void UsersTest()
     {
-
+        ninjaProperties = spy(new NinjaPropertiesImpl());
         /*
          * TEST: create, persist and find a user-object
          */
@@ -37,6 +43,14 @@ public class UserTest extends NinjaTest
         User user2 = User.getById(user.getId());
         assertNotNull(user);
         assertNotNull(user2);
+
+        /*
+         * TEST: isAdmin and isLastAdmin-functions
+         */
+        String adminAccName = ninjaProperties.get("mbox.adminaddr");
+        User admin = User.getUsrByMail(adminAccName);
+        assertTrue(admin.isAdmin());
+        assertTrue(admin.isLastAdmin());
 
         /*
          * TEST: Auth-Methods

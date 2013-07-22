@@ -7,20 +7,14 @@ import java.util.Map;
 
 import models.User;
 import ninja.NinjaTest;
-import ninja.utils.NinjaProperties;
-
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
 public class UserHandlerTest extends NinjaTest
 {
-
-    @Inject
-    NinjaProperties ninjaProp;
 
     Map<String, String> headers = Maps.newHashMap();
 
