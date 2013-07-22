@@ -26,7 +26,7 @@ import org.mortbay.xml.XmlConfiguration;
 import xcmailrstarter.ScriptRunner;
 
 /**
- * Drops and creates the SQL-Tables and runs the Jetty-Server
+ * Main-Class which reads the configurations, handles the preparation of the database and starts the jetty-server
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
@@ -34,10 +34,12 @@ public class XCMStarter
 {
 
     /**
+     * Starts the jetty-webserver
+     * 
      * @param config
      *            the configuration object that belongs to this instance
      */
-    public static void XCMStart(StarterConf config)
+    public static void xCMStart(StarterConf config)
     {
         try
         {
@@ -87,16 +89,16 @@ public class XCMStarter
     }
 
     /**
-     * Static main method to invoke Jetty starter class and run the SQL-Scripts.
+     * Static main method to prepare the configuration, the database and to invoke Jetty starter class.
      * 
      * @param args
+     *            the arguments
      * @throws Exception
      */
     public static void main(String[] args) throws Exception
     {
         StarterConf config = new StarterConf(args);
         new ScriptRunner(config);
-        XCMStart(config);
-
+        xCMStart(config);
     }
 }

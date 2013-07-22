@@ -250,13 +250,6 @@ public class MailTransaction
     // -------------------------------------------------------
     // E-Bean Functions
     // -------------------------------------------------------
-    /**
-     * Saves the Transaction in the Database
-     */
-    public void saveTx()
-    {
-        Ebean.save(this);
-    }
 
     /**
      * @return all Transactions which were stored in the Database
@@ -280,45 +273,28 @@ public class MailTransaction
     }
 
     /**
-     * @param sortage
-     *            a String which indicates the sortage of the returned list, the string should be in the form
-     *            "fieldname asc" or "fieldname desc"
-     * @return a sorted list of all MailTransactions
-     */
-    public static List<MailTransaction> allSortedLimited(int limit)
-    {
-        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit)
-                                          .findList();
-        return list;
-    }
-    
-    /**
      * Gets all Mail-Transactions in the last "Period"
      * 
      * @param period
      *            Joda-Time Period
      * @return a List of Mail-Transactions
      */
-    public static List<MailTransaction> allInPeriod(Period period)
+    public static List<MailTransaction> getAllInPeriod(Period period)
     {
         return Ebean.find(MailTransaction.class).where().gt("ts", DateTime.now().minus(period).getMillis()).findList();
     }
 
     /**
-     * Generates a List of Status-Numbers and the Number of their occurrences
+     * returns a list of MailTransactions sorted descending and limited by the given number
      * 
-     * @return a List of Status-Elements (as an aggregate of Transactions)
-     * @see Status
+     * @param limit
+     *            the maximal row number
+     * @return a sorted list of all MailTransactions
      */
-    public static List<Status> getStatusList()
+    public static List<MailTransaction> getSortedAndLimitedList(int limit)
     {
-        // create a sql-query that contains the statuscode and their number of occurences
-        String sql = "SELECT mtx.status, COUNT(mtx.status) AS count  FROM mailtransactions mtx GROUP BY mtx.status";
-        RawSql rawSql = RawSqlBuilder.parse(sql).columnMapping("mtx.status", "statuscode").create();
-        Query<Status> query = Ebean.find(Status.class);
-        query.setRawSql(rawSql);
-        List<Status> list = query.findList();
-        
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit)
+                                          .findList();
         return list;
     }
 
@@ -350,12 +326,40 @@ public class MailTransaction
     {
         return Ebean.find(MailTransaction.class, id);
     }
-    
+
+    /**
+     * Generates a List of Status-Numbers and the Number of their occurrences
+     * 
+     * @return a List of Status-Elements (as an aggregate of Transactions)
+     * @see Status
+     */
+    public static List<Status> getStatusList()
+    {
+        // create a sql-query that contains the statuscode and their number of occurences
+        String sql = "SELECT mtx.status, COUNT(mtx.status) AS count  FROM mailtransactions mtx GROUP BY mtx.status";
+        RawSql rawSql = RawSqlBuilder.parse(sql).columnMapping("mtx.status", "statuscode").create();
+        Query<Status> query = Ebean.find(Status.class);
+        query.setRawSql(rawSql);
+        List<Status> list = query.findList();
+
+        return list;
+    }
+
+    /**
+     * Saves the Transaction in the Database
+     */
+    public void save()
+    {
+        Ebean.save(this);
+    }
+
     /**
      * saves multiple elements
+     * 
      * @param mtxList
      */
-    public static void saveMultipleTx(List<MailTransaction> mtxList){
+    public static void saveMultipleTx(List<MailTransaction> mtxList)
+    {
         Ebean.save(mtxList);
     }
 }

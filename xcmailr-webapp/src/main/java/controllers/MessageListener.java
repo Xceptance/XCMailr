@@ -104,7 +104,7 @@ public class MessageListener implements SimpleMessageListener
                 if (xcmConfiguration.MTX_MAX_AGE != 0)
                 {// if mailtransaction.maxage is set to 0 -> log nothing
                     mtx = new MailTransaction(0, from, null, recipient);
-                    mtx.saveTx();
+                    mtx.save();
                 }
                 return;
             }

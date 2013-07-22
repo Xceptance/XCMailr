@@ -185,8 +185,8 @@ public class AdminHandlerTest extends NinjaTest
         // create some transactions
         MailTransaction mtx1 = new MailTransaction(200, "test@abc", "", "somewhere");
         MailTransaction mtx2 = new MailTransaction(100, "tsest@abc", "", "somewhere");
-        mtx1.saveTx();
-        mtx2.saveTx();
+        mtx1.save();
+        mtx2.save();
         // delete all entries
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs/delete/-1");
         assertFalse(result.contains("FreeMarker template error"));

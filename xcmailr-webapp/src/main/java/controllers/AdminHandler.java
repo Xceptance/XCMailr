@@ -146,12 +146,13 @@ public class AdminHandler
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
-        
+
         // set a default value if there's no one given
         page = (page == 0) ? 1 : page;
+
         // generate the paged-list to get pagination on the page
         PageList<MailTransaction> pagedMailTransactionList = new PageList<MailTransaction>(
-                                                                                           MailTransaction.allSortedLimited(xcmConfiguration.MTX_LIMIT),
+                                                                                           MailTransaction.getSortedAndLimitedList(xcmConfiguration.MTX_LIMIT),
                                                                                            entries);
         return Results.html().render("plist", pagedMailTransactionList).render("curPage", page);
     }
@@ -313,7 +314,7 @@ public class AdminHandler
         {
             userList = User.findUserLike(searchString);
         }
-        
+
         UserFormData userData;
         List<UserFormData> userDatalist = new ArrayList<UserFormData>();
         for (User currentUser : userList)
