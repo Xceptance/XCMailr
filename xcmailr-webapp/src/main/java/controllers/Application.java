@@ -57,7 +57,7 @@ public class Application
     MailrMessageSenderFactory mailrSenderFactory;
 
     @Inject
-    MemCachedSessionHandler memCachedSessionHandler;
+    CachingSessionHandler cachingSessionHandler;
 
     @Inject
     Messages messages;
@@ -321,12 +321,12 @@ public class Application
 
                     // we put the username into the cookie, but use the id of the cookie for authentication
                     String sessionKey = context.getSessionCookie().getId();
-                    memCachedSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, loginUser);
+                    cachingSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, loginUser);
                     // set a reverse mapped user-mail -> sessionId-list in the memcached server to handle
                     // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
                     // logged-in)
-                    memCachedSessionHandler.setSessionUser(loginUser, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
-
+                    cachingSessionHandler.setSessionUser(loginUser, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
+                    
                     context.getSessionCookie().put("username", loginUser.getMail());
 
                     if (loginUser.isAdmin())
@@ -386,7 +386,7 @@ public class Application
         // remove the session (memcachedServer and cookie)
         String sessionKey = context.getSessionCookie().getId();
         context.getSessionCookie().clear();
-        memCachedSessionHandler.delete(sessionKey);
+        cachingSessionHandler.delete(sessionKey);
 
         // show the index-page
 

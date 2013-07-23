@@ -47,7 +47,7 @@ import filters.SecureFilter;
 public class UserHandler
 {
     @Inject
-    MemCachedSessionHandler memCachedSessionHandler;
+    CachingSessionHandler cachingSessionHandler;
 
     @Inject
     XCMailrConf xcmConfiguration;
@@ -180,13 +180,16 @@ public class UserHandler
                 }
                 // update the user
                 user.update();
-                context.getSessionCookie().put("username", userFormData.getMail());
-                memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME,
-                                            user);
+
                 if (!oldMail.equals(mail))
-                { // update the memcached session entries
-                    memCachedSessionHandler.updateUsersSessionsOnChangedMail(mail, user.getMail());
+                { // update the cached session-list
+                    cachingSessionHandler.updateUsersSessionsOnChangedMail(oldMail, user.getMail());
+                    // set the new mail if it has changed correctly
+                    context.getSessionCookie().put("username", user.getMail());
                 }
+                // update all user objects for all sessions
+                cachingSessionHandler.updateUsersSessions(user);
+
                 // user-edit was successful
                 context.getFlashCookie().success("flash_DataChangeSuccess");
                 return result.redirect(context.getContextPath() + "/user/edit");
@@ -218,13 +221,18 @@ public class UserHandler
                                                                            msg);
         result.render("available_langs", availableLanguageList);
         User user = context.getAttribute("user", User.class);
+
+        // handle the possibility, that the user has no language set (compatibility from updates of old versions, when
+        // there was no language-attribute)
         if (user.getLanguage() == null || user.getLanguage() == "")
         {
             Optional<Result> opt = Optional.of(result);
             user.setLanguage(lang.getLanguage(context, opt).get());
             user.update();
-            memCachedSessionHandler.set(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME, user);
+            cachingSessionHandler.replace(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME,
+                                            user);
         }
+
         UserFormData userFormData = UserFormData.prepopulate(user);
         return result.render(userFormData);
     }
@@ -250,7 +258,7 @@ public class UserHandler
                 {
                     // delete the session
                     context.getSessionCookie().clear();
-                    memCachedSessionHandler.delete(String.valueOf(user.getId()));
+                    cachingSessionHandler.delete(String.valueOf(user.getId()));
                     // delete the user-account
                     User.delete(user.getId());
                     context.getFlashCookie().success("deleteUser_Flash_Success");

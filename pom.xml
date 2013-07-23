@@ -31,7 +31,7 @@
 	<parent>
 		<groupId>org.ninjaframework</groupId>
 		<artifactId>ninja</artifactId>
-		<version>1.4.4</version>
+		<version>1.5.1</version>
 	</parent>
 	<!-- pin encoding to utf-8 -->
 	<properties>
@@ -145,6 +145,9 @@
 				<includes>
 					<include>**/*</include>
 				</includes>
+				<excludes>
+				    <exclude>**/*.java</exclude>
+				</excludes>
 			</resource>         
 			<resource>
 				<directory>src/main/resources</directory>

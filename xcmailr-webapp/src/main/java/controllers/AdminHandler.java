@@ -66,7 +66,7 @@ public class AdminHandler
     MailrMessageSenderFactory mailSender;
 
     @Inject
-    MemCachedSessionHandler mcsh;
+    CachingSessionHandler csh;
 
     /**
      * Shows the Administration-Index-Page<br/>
@@ -236,7 +236,7 @@ public class AdminHandler
                 mailSender.sendMail(from, user.getMail(), content, subject);
 
                 // delete the sessions of this user
-                mcsh.deleteUsersSessions(User.getById(userId));
+                csh.deleteUsersSessions(User.getById(userId));
             }
             return result.redirect(context.getContextPath() + "/admin/users");
         }
@@ -264,7 +264,7 @@ public class AdminHandler
         { // the user to pro-/demote is not the user who performs this action
             User.promote(userId);
             // update all of the sessions
-            mcsh.updateUsersSessions(User.getById(userId));
+            csh.updateUsersSessions(User.getById(userId));
         }
         return result.redirect(context.getContextPath() + "/admin/users");
     }
@@ -286,7 +286,7 @@ public class AdminHandler
 
         if (user.getId() != deleteUserId)
         { // the user to delete is not the user who performs this action
-            mcsh.deleteUsersSessions(User.getById(deleteUserId));
+            csh.deleteUsersSessions(User.getById(deleteUserId));
             User.delete(deleteUserId);
         }
 
@@ -391,7 +391,7 @@ public class AdminHandler
                 // delete the sessions of the users
                 for (User userToDelete : usersToDelete)
                 {
-                    mcsh.deleteUsersSessions(userToDelete);
+                    csh.deleteUsersSessions(userToDelete);
                     User.delete(userToDelete.getId());
                 }
 

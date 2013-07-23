@@ -28,7 +28,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import models.MBox;
 import models.MailTransaction;
-import ninja.utils.NinjaProperties;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 import com.google.inject.Inject;
@@ -45,9 +44,6 @@ public class MessageListener implements SimpleMessageListener
 {
     @Inject
     XCMailrConf xcmConfiguration;
-
-    @Inject
-    NinjaProperties ninjaProperties;
 
     @Inject
     MailrMessageSenderFactory mailrSenderFactory;

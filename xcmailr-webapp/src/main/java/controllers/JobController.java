@@ -63,12 +63,12 @@ public class JobController
     MessageListener messageListener;
 
     private boolean deleteTransactions;
-    
+
     CopyOnWriteArrayList<MailTransaction> mtxList = new CopyOnWriteArrayList<MailTransaction>();
 
     /**
      * Starts the mail-server, creates the Admin-Account specified in application.conf and threads to expire the
-     * mail-addresses 
+     * mail-addresses
      */
     @Start(order = 90)
     public void startActions()

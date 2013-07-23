@@ -171,6 +171,12 @@ public class XCMailrConf
      */
     public final Integer PW_LENGTH;
 
+    /**
+     * this is the cookie expiration-time in seconds as string<br/>
+     * suffixed with "s" for ninjaCache
+     */
+    public final String SESSION_EXPIRETIME;
+
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
     {
@@ -184,6 +190,7 @@ public class XCMailrConf
         ADMIN_PASSWORD = ninjaProp.getOrDie("admin.pass");
         COOKIE_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
         COOKIE_EXPIRETIME = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
+        SESSION_EXPIRETIME = COOKIE_EXPIRETIME + "s";
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
         MB_INTERVAL = ninjaProp.getIntegerOrDie("mbox.interval");

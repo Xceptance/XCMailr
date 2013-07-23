@@ -81,7 +81,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
 
-        // verify that the login-page is shown (check for menu with register-field and the login-formaction)
+        // verify that the login-page is shown (check for menu with register-field and the login-form-action)
         assertTrue(result.contains("<a href=\"/register\">"));
         assertTrue(result.contains("form action=\"/login\""));
 
