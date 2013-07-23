@@ -24,6 +24,7 @@ import ninja.FilterWith;
 import ninja.Results;
 import etc.HelperUtils;
 import filters.SecureFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -119,7 +120,6 @@ public class BoxHandler
         else
         {
             // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
-
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() > 254)
             {
@@ -218,12 +218,7 @@ public class BoxHandler
         if (validation.hasViolations())
         { // not all fields were filled
             context.getFlashCookie().error("flash_FormError");
-
-            if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null)
-                || (mailboxFormData.getDatetime() == null))
-            {
-                return result.redirect(context.getContextPath() + "/mail/edit/" + boxId.toString());
-            }
+            mailboxFormData.setBoxId(boxId);
             result.render("mbFrmDat", mailboxFormData);
             return result.template("/views/BoxHandler/editBoxForm.ftl.html");
         }
@@ -465,11 +460,10 @@ public class BoxHandler
     public Result bulkChangeBoxes(@Param("action") String action, @Param("ids") String boxIds,
                                   @Param("duration") String duration, Context context)
     {
-
         Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
 
-        if (action != null && boxIds != null && !action.equals("") && !action.equals(""))
+        if (!StringUtils.isBlank(action) && !StringUtils.isBlank(boxIds))
         {
             if (boxIds.matches("[(\\d+)][(\\,)(\\d+)]*"))
             {// the list of boxIds have to be in the form of comma-separated-ids
@@ -540,13 +534,11 @@ public class BoxHandler
                                 { // box belongs to the user
                                     mailBox.setTs_Active(ts);
                                     mailBox.setExpired(false);
-
                                     mailBox.update();
                                 }
                                 else
-                                {
+                                { //set an error-message
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-
                                 }
                             }
                             return result.redirect(context.getContextPath() + "/mail");
@@ -599,7 +591,7 @@ public class BoxHandler
         }
     }
 
-    enum Actions
+    private enum Actions
     {
         reset, delete, change, enable
     }
@@ -616,16 +608,10 @@ public class BoxHandler
     {
         User user = context.getAttribute("user", User.class);
         List<MBox> boxList;
-        Result result = Results.html();
+        Result result = Results.json();
         String searchString = context.getParameter("s", "");
-        if (searchString.equals(""))
-        { // the parameter is empty or missing, return an empty list
-            boxList = new ArrayList<MBox>();
-        }
-        else
-        { // there is a parameter, search for a box with an address that is like the search-string
-            boxList = MBox.findBoxLike(searchString, user.getId());
-        }
+
+        boxList = (searchString.equals("")) ? new ArrayList<MBox>() : MBox.findBoxLike(searchString, user.getId());
 
         // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
         // so we need to transform the data which does not contain the reference
@@ -634,9 +620,7 @@ public class BoxHandler
         {
             MailBoxFormData mbd = MailBoxFormData.prepopulate(mb);
             mbdlist.add(mbd);
-
         }
-
         return result.json().render(mbdlist);
     }
 
@@ -668,5 +652,4 @@ public class BoxHandler
         User user = context.getAttribute("user", User.class);
         return Results.contentType("text/plain").render(MBox.getActiveMailsForTxt(user.getId()));
     }
-
 }

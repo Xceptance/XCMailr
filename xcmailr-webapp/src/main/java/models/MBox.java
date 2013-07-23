@@ -588,7 +588,7 @@ public class MBox
     }
 
     /**
-     * Sets the valid Box as invalid and vice versa
+     * Sets the valid Box as invalid and vice versa (and updates the database!)
      * 
      * @return Value of true means that the Box is now enabled (== not expired)
      */

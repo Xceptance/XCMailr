@@ -18,6 +18,7 @@ package controllers;
 
 import java.util.List;
 import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import com.google.common.base.Optional;
@@ -80,7 +81,7 @@ public class Application
     {
         Result result = Results.ok().html();
         // set the wanted language
-        if (languageParam != null && !languageParam.equals(""))
+        if (!StringUtils.isBlank(languageParam))
         {
             lang.setLanguage(languageParam, result);
         }
@@ -133,10 +134,7 @@ public class Application
         if (validation.hasViolations())
         { // the form contains errors
 
-            registerFormData.setPassword("");
-            registerFormData.setPasswordNew1("");
-            registerFormData.setPasswordNew2("");
-
+            registerFormData.clearPasswordFields();
             context.getFlashCookie().error("flash_FormError");
 
             return result.render("registerUserData", registerFormData);
@@ -155,9 +153,7 @@ public class Application
                 {
                     context.getFlashCookie().error("flash_NoLoop");
                     registerFormData.setMail("");
-                    registerFormData.setPassword("");
-                    registerFormData.setPasswordNew1("");
-                    registerFormData.setPasswordNew2("");
+                    registerFormData.clearPasswordFields();
 
                     return result.render("registerUserData", registerFormData);
                 }
@@ -167,9 +163,7 @@ public class Application
                     if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
                     { // the domain is not in the whitelist and the whitelist is not empty
                         context.getFlashCookie().error("registerUser_Flash_NotWhitelisted");
-                        registerFormData.setPassword("");
-                        registerFormData.setPasswordNew1("");
-                        registerFormData.setPasswordNew2("");
+                        registerFormData.clearPasswordFields();
 
                         return result.render("registerUserData", registerFormData);
                     }
@@ -185,9 +179,7 @@ public class Application
 
                         String shortPw = messages.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH).get();
                         context.getFlashCookie().error(shortPw);
-                        registerFormData.setPassword("");
-                        registerFormData.setPasswordNew1("");
-                        registerFormData.setPasswordNew2("");
+                        registerFormData.clearPasswordFields();
                         return result.render("registerUserData", registerFormData);
                     }
                     // create the user
@@ -197,9 +189,7 @@ public class Application
 
                     if (!Arrays.asList(xcmConfiguration.APP_LANGS).contains(user.getLanguage()))
                     { // the language stored in the user-object does not exist in the app
-                        registerFormData.setPassword("");
-                        registerFormData.setPasswordNew1("");
-                        registerFormData.setPasswordNew2("");
+                        registerFormData.clearPasswordFields();
                         context.getFlashCookie().error("flash_PasswordsUnequal");
 
                         return result.render("registerUserData", registerFormData);
@@ -221,9 +211,7 @@ public class Application
                 }
                 else
                 { // password mismatch
-                    registerFormData.setPassword("");
-                    registerFormData.setPasswordNew1("");
-                    registerFormData.setPasswordNew2("");
+                    registerFormData.clearPasswordFields();
                     context.getFlashCookie().error("flash_PasswordsUnequal");
 
                     return result.render("registerUserData", registerFormData);
@@ -326,7 +314,7 @@ public class Application
                     // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
                     // logged-in)
                     cachingSessionHandler.setSessionUser(loginUser, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
-                    
+
                     context.getSessionCookie().put("username", loginUser.getMail());
 
                     if (loginUser.isAdmin())
@@ -434,7 +422,7 @@ public class Application
             { // mailadress was correct (exists in the DB)
               // generate a new confirmation token and send it to the given mailadress
 
-                // generate the confirmation-token
+                // generate the confirmation-token and set it in the user object
                 user.setConfirmation(HelperUtils.getRandomSecureString(20));
                 // set the new validity-time
                 user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONFIRMATION_PERIOD).getMillis());

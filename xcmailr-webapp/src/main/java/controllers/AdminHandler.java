@@ -304,24 +304,20 @@ public class AdminHandler
     public Result jsonUserSearch(Context context)
     {
         List<User> userList;
-        Result result = Results.html();
+        Result result = Results.json(); 
         String searchString = context.getParameter("s", "");
-        if (searchString.equals(""))
-        {
-            userList = new ArrayList<User>();
-        }
-        else
-        {
-            userList = User.findUserLike(searchString);
-        }
+        
+        userList = (searchString.equals("")) ? new ArrayList<User>() : User.findUserLike(searchString);
 
         UserFormData userData;
         List<UserFormData> userDatalist = new ArrayList<UserFormData>();
+        
+        // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
+        // so we need to transform the data which does not contain the reference
         for (User currentUser : userList)
         {
             userData = UserFormData.prepopulate(currentUser);
             userDatalist.add(userData);
-
         }
         return result.json().render(userDatalist);
     }
@@ -444,7 +440,6 @@ public class AdminHandler
         {
             // the input-string was empty
             context.getFlashCookie().error("adminAddDomain_Flash_EmptyField");
-
         }
         Result result = Results.html().template("/views/system/noContent.ftl.html");
         return result.redirect(context.getContextPath() + "/admin/whitelist");

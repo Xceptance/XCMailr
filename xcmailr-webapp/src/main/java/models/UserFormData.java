@@ -202,4 +202,11 @@ public class UserFormData
         return userFormData;
     }
 
+    public void clearPasswordFields()
+    {
+        this.setPassword("");
+        this.setPasswordNew1("");
+        this.setPasswordNew2("");
+    }
+
 }

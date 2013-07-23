@@ -49,7 +49,7 @@ public class CachingSessionHandler
     Logger log;
 
     /**
-     * Sets a new Object in the Memcache
+     * Sets a new Object to the caching-server
      * 
      * @param key
      *            the Key to find the Object
@@ -206,7 +206,6 @@ public class CachingSessionHandler
      * 
      * @param key
      *            the Key
-     * @return an OperationFuture<Boolean>
      */
 
     public void delete(String key)

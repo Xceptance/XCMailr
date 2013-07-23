@@ -49,6 +49,9 @@ public class MessageListener implements SimpleMessageListener
     MailrMessageSenderFactory mailrSenderFactory;
 
     @Inject
+    JobController jobController;
+
+    @Inject
     Logger log;
 
     @Override
@@ -66,8 +69,7 @@ public class MessageListener implements SimpleMessageListener
             if (xcmConfiguration.MTX_MAX_AGE != 0)
             { // if mailtransaction.maxage is set to 0 -> log nothing
                 MailTransaction mtx = new MailTransaction(500, from, null, recipient);
-                mailrSenderFactory.addMtxToJCList(mtx);
-
+                jobController.mtxQueue.add(mtx);
             }
             return false;
         }
@@ -109,7 +111,6 @@ public class MessageListener implements SimpleMessageListener
             { // the given mailaddress exists in the db
                 mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
                 forwardTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
-
                 if (mailBox.isActive())
                 { // there's an existing and active mailaddress
                   // add the target-address to the list
@@ -133,8 +134,7 @@ public class MessageListener implements SimpleMessageListener
                         if (xcmConfiguration.MTX_MAX_AGE != 0)
                         {// if mailtransaction.maxage is set to 0 -> log nothing
                             mtx = new MailTransaction(400, from, recipient, forwardTarget);
-                            //mtx.saveTx();
-                            mailrSenderFactory.addMtxToJCList(mtx);
+                            jobController.mtxQueue.add(mtx);
                         }
                     }
                 }
@@ -143,8 +143,7 @@ public class MessageListener implements SimpleMessageListener
                     if (xcmConfiguration.MTX_MAX_AGE != 0)
                     { // if mailtransaction.maxage is set to 0 -> log nothing
                         mtx = new MailTransaction(200, from, recipient, forwardTarget);
-//                        mtx.saveTx();
-                        mailrSenderFactory.addMtxToJCList(mtx);
+                        jobController.mtxQueue.add(mtx);
                     }
                     mailBox.increaseSuppressions();
                     mailBox.update();
@@ -155,8 +154,7 @@ public class MessageListener implements SimpleMessageListener
                 if (xcmConfiguration.MTX_MAX_AGE != 0)
                 { // if mailtransaction.maxage is set to 0 -> log nothing
                     mtx = new MailTransaction(100, from, recipient, null);
-//                    mtx.saveTx();
-                    mailrSenderFactory.addMtxToJCList(mtx);
+                    jobController.mtxQueue.add(mtx);
                 }
             }
         }

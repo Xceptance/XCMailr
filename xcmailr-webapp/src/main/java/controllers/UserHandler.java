@@ -18,6 +18,7 @@ package controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.lang.StringUtils;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -92,15 +93,13 @@ public class UserHandler
 
             // don't let the user register with one of our domains
             // (prevent mail-loops)
-            String mail = userFormData.getMail();
-            String domainPart = mail.split("@")[1];
+            String mailFromForm = userFormData.getMail();
+            String domainPart = mailFromForm.split("@")[1];
             if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
             {
                 context.getFlashCookie().error("flash_NoLoop");
                 userFormData.setMail(user.getMail());
-                userFormData.setPassword("");
-                userFormData.setPasswordNew1("");
-                userFormData.setPasswordNew2("");
+                userFormData.clearPasswordFields();
                 return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
             }
 
@@ -110,78 +109,72 @@ public class UserHandler
                 if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
                 { // the domain is not in the whitelist and the whitelist is not empty
                     context.getFlashCookie().error("editUser_Flash_NotWhitelisted");
-                    userFormData.setPassword("");
-                    userFormData.setPasswordNew1("");
-                    userFormData.setPasswordNew2("");
+                    userFormData.clearPasswordFields();
                     return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
                 }
             }
 
-            String password1 = userFormData.getPasswordNew1();
-            String password2 = userFormData.getPasswordNew2();
-
             if (user.checkPasswd(userFormData.getPassword()))
             { // the user authorized himself
 
-                if (!userFormData.getMail().equals(user.getMail()))
+                if (!mailFromForm.equals(oldMail))
                 { // the user's mail-address changed
-                    if (User.mailExists(userFormData.getMail()))
-                    {// throw mailex-error
+                    if (User.mailExists(mailFromForm))
+                    {// return an error that the mail exists
                         context.getFlashCookie().error("flash_MailExists");
-                        userFormData.setPassword("");
-                        userFormData.setPasswordNew1("");
-                        userFormData.setPasswordNew2("");
+                        userFormData.clearPasswordFields();
 
                         return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
                     }
                     else
-                    { // the address does not exist
+                    { // the address does not exist -> success!
                         user.setMail(userFormData.getMail());
                     }
                 }
-                // update the fore- and surname
-                user.setForename(userFormData.getFirstName());
-                user.setSurname(userFormData.getSurName());
-                if ((password1 != null) && (password2 != null))
-                {
-                    if (!(password2.isEmpty()) && !(password1.isEmpty()))
-                    { // new password has been entered
-                        if (password1.equals(password2))
-                        { // the repetition is equal to the new pw
-                            if (password1.length() < xcmConfiguration.PW_LENGTH)
-                            {
-                                Optional<String> opt = Optional.of(user.getLanguage());
-                                String tooShortPassword = msg.get("flash_PasswordTooShort", opt,
-                                                                  xcmConfiguration.PW_LENGTH.toString()).get();
-                                context.getFlashCookie().error(tooShortPassword);
-                                userFormData.setPassword("");
-                                userFormData.setPasswordNew1("");
-                                userFormData.setPasswordNew2("");
-
-                                return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
-                            }
-
-                            user.hashPasswd(password2);
-                        }
-                        else
-                        { // the passwords are not equal
-                            context.getFlashCookie().error("flash_PasswordsUnequal");
-                            userFormData.setPassword("");
-                            userFormData.setPasswordNew1("");
-                            userFormData.setPasswordNew2("");
-                            return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
-                        }
-                    }
-                }
+                // set the language
                 if (Arrays.asList(xcmConfiguration.APP_LANGS).contains(userFormData.getLanguage()))
                 { // set the selected language in the user-object and also in the application
                     user.setLanguage(userFormData.getLanguage());
                     lang.setLanguage(userFormData.getLanguage(), result);
                 }
+
+                // update the fore- and surname
+                user.setForename(userFormData.getFirstName());
+                user.setSurname(userFormData.getSurName());
+
+                String password1 = userFormData.getPasswordNew1();
+                String password2 = userFormData.getPasswordNew2();
+
+                // check whether the new passwords are whitespace, null or empty strings
+                if (!StringUtils.isBlank(password1) && !StringUtils.isBlank(password2))
+                { // new password has been entered
+                    if (password1.equals(password2))
+                    { // the repetition is equal to the new pw
+                        if (password1.length() < xcmConfiguration.PW_LENGTH)
+                        { // the new password is too short
+                            Optional<String> opt = Optional.of(user.getLanguage());
+                            String tooShortPassword = msg.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH)
+                                                         .get();
+                            context.getFlashCookie().error(tooShortPassword);
+                            userFormData.clearPasswordFields();
+
+                            return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                        }
+                        user.hashPasswd(password2);
+                    }
+                    else
+                    { // the passwords are not equal
+                        context.getFlashCookie().error("flash_PasswordsUnequal");
+                        userFormData.clearPasswordFields();
+                        return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                    }
+                }
+
                 // update the user
                 user.update();
 
-                if (!oldMail.equals(mail))
+                // update the entries in the caching-server
+                if (!oldMail.equals(mailFromForm))
                 { // update the cached session-list
                     cachingSessionHandler.updateUsersSessionsOnChangedMail(oldMail, user.getMail());
                     // set the new mail if it has changed correctly
@@ -196,9 +189,7 @@ public class UserHandler
             }
             else
             { // the authorization-process failed
-                userFormData.setPassword("");
-                userFormData.setPasswordNew1("");
-                userFormData.setPasswordNew2("");
+                userFormData.clearPasswordFields();
                 context.getFlashCookie().error("flash_FormError");
                 return result.redirect(context.getContextPath() + "/user/edit");
             }
@@ -229,8 +220,7 @@ public class UserHandler
             Optional<Result> opt = Optional.of(result);
             user.setLanguage(lang.getLanguage(context, opt).get());
             user.update();
-            cachingSessionHandler.replace(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME,
-                                            user);
+            cachingSessionHandler.replace(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME, user);
         }
 
         UserFormData userFormData = UserFormData.prepopulate(user);
@@ -250,15 +240,14 @@ public class UserHandler
         String password = context.getParameter("password");
         Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
-        if (password != null && !password.isEmpty())
+        if (!StringUtils.isBlank(password))
         {
             if (user.checkPasswd(password))
             {
                 if (!user.isLastAdmin())
-                {
-                    // delete the session
+                { // delete the session
                     context.getSessionCookie().clear();
-                    cachingSessionHandler.delete(String.valueOf(user.getId()));
+                    cachingSessionHandler.deleteUsersSessions(user);
                     // delete the user-account
                     User.delete(user.getId());
                     context.getFlashCookie().success("deleteUser_Flash_Success");
@@ -281,5 +270,4 @@ public class UserHandler
             return result.redirect(context.getContextPath() + "/user/edit");
         }
     }
-
 }

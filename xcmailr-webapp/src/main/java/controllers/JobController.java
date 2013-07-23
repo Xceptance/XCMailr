@@ -18,9 +18,10 @@ package controllers;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -64,7 +65,7 @@ public class JobController
 
     private boolean deleteTransactions;
 
-    CopyOnWriteArrayList<MailTransaction> mtxList = new CopyOnWriteArrayList<MailTransaction>();
+    ConcurrentLinkedQueue<MailTransaction> mtxQueue = new ConcurrentLinkedQueue<MailTransaction>();
 
     /**
      * Starts the mail-server, creates the Admin-Account specified in application.conf and threads to expire the
@@ -104,7 +105,9 @@ public class JobController
         smtpServer.setPort(port);
         smtpServer.start();
 
-        // create the executor-service to check the mailboxes which were expired since the last run and disable them
+        // create the executor-service to check the mail-addresses which were expired since the last run and disable
+        // them
+        // and also all new MailTransactions will be stored here and old entries will be removed
         expirationService.scheduleAtFixedRate(new Runnable()
         {
             @Override
@@ -118,18 +121,30 @@ public class JobController
 
                 DateTime dt = new DateTime();
                 MBox mailBox;
+                // disable expired mail-addresses
                 while (mailBoxIterator.hasNext())
                 {
                     mailBox = mailBoxIterator.next();
-                    if (dt.isAfter(mailBox.getTs_Active()) && !(mailBox.getTs_Active() == 0))
+                    if (dt.isAfter(mailBox.getTs_Active()) && (mailBox.getTs_Active() != 0))
                     { // this element is now expired
                         mailBox.enable();
                         log.debug("now expired: " + mailBox.getFullAddress());
                     }
                 }
-                MailTransaction.saveMultipleTx(mtxList);
-                mtxList.clear();
 
+                // add the new Mailtransactions
+                List<MailTransaction> mtxToSave = new LinkedList<MailTransaction>();
+
+                // add all transactions from the queue to a list
+                while (!mtxQueue.isEmpty())
+                {
+                    mtxToSave.add(mtxQueue.poll());
+                }
+                // and save all entries of this list in one transaction to the list
+                MailTransaction.saveMultipleTx(mtxToSave);
+                log.info("stored " + mtxToSave.size() + " entries in the database");
+
+                // remove old MailTransactions
                 if (deleteTransactions)
                 { // execute only if a value has been set
                     log.debug("Cleanup Mailtransaction-list");
@@ -157,8 +172,8 @@ public class JobController
     }
 
     /**
-     * finds an available Port in the Range of "min" and "max" Copyright information: this Method comes from
-     * NinjaTestServer
+     * finds an available Port in the Range of "min" and "max" <br/>
+     * Copyright information: this Method comes from NinjaTestServer
      * 
      * @param min
      *            lower bound of ports to search
