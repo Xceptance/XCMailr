@@ -113,11 +113,6 @@ public class XCMailrConf
     public final String MEMCA_HOST;
 
     /**
-     * specified with memcached.port
-     */
-    public final Integer MEMCA_PORT;
-
-    /**
      * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.displaylimit
      * Default value is 0 (no limit)
      */
@@ -208,7 +203,6 @@ public class XCMailrConf
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
         OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", true);
         MEMCA_HOST = ninjaProp.getOrDie("memcached.host");
-        MEMCA_PORT = ninjaProp.getIntegerOrDie("memcached.port");
 
         if (DOMAIN_LIST == null)
         {
