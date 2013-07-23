@@ -101,21 +101,16 @@ public class AdminHandler
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 
-        // generate the paged-list to get pagination in the pattern
-        PageList<User> pagedUserList;
         String searchString = context.getParameter("s", "");
-        if (searchString.equals(""))
-        { // there is no searchString
-            pagedUserList = new PageList<User>(User.all(), entries);
-        }
-        else
-        { // there is a searchString, search the related users
-            pagedUserList = new PageList<User>(User.findUserLike(searchString), entries);
-            result.render("searchValue", searchString);
-        }
+        // generate the paged-list to get pagination in the template
+        PageList<User> pagedUserList = new PageList<User>(User.findUserLike(searchString), entries);
         // add the user-list
         result.render("users", pagedUserList);
 
+        if (!searchString.equals(""))
+        { // there is a searchString
+            result.render("searchValue", searchString);
+        }
         return result;
     }
 
@@ -168,10 +163,9 @@ public class AdminHandler
 
     public Result deleteMTXProcess(@PathParam("time") Integer time, Context context)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
         if (time == null)
         {
-            return result.redirect(context.getContextPath() + "/admin/mtxs");
+            return Results.redirect(context.getContextPath() + "/admin/mtxs");
         }
         if (time == -1)
         { // all entries will be deleted
@@ -183,7 +177,7 @@ public class AdminHandler
             DateTime dt = DateTime.now().minusDays(time);
             MailTransaction.deleteTxInPeriod(dt.getMillis());
         }
-        return result.redirect(context.getContextPath() + "/admin/mtxs");
+        return Results.redirect(context.getContextPath() + "/admin/mtxs");
     }
 
     /**
@@ -198,8 +192,6 @@ public class AdminHandler
      */
     public Result activateUserProcess(@PathParam("id") Long userId, Context context)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
-
         // get the user who executes this action
         User executingUser = context.getAttribute("user", User.class);
         if (executingUser.getId() != userId)
@@ -238,11 +230,11 @@ public class AdminHandler
                 // delete the sessions of this user
                 csh.deleteUsersSessions(User.getById(userId));
             }
-            return result.redirect(context.getContextPath() + "/admin/users");
+            return Results.redirect(context.getContextPath() + "/admin/users");
         }
         else
         { // the admin wants to disable his own account, this is not allowed
-            return result.redirect(context.getContextPath() + "/admin/users");
+            return Results.redirect(context.getContextPath() + "/admin/users");
         }
     }
 
@@ -258,15 +250,15 @@ public class AdminHandler
      */
     public Result promoteUserProcess(@PathParam("id") Long userId, Context context)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
+
         if (user.getId() != userId)
         { // the user to pro-/demote is not the user who performs this action
             User.promote(userId);
             // update all of the sessions
             csh.updateUsersSessions(User.getById(userId));
         }
-        return result.redirect(context.getContextPath() + "/admin/users");
+        return Results.redirect(context.getContextPath() + "/admin/users");
     }
 
     /**
@@ -281,7 +273,6 @@ public class AdminHandler
      */
     public Result deleteUserProcess(@PathParam("id") Long deleteUserId, Context context)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
 
         if (user.getId() != deleteUserId)
@@ -290,7 +281,7 @@ public class AdminHandler
             User.delete(deleteUserId);
         }
 
-        return result.redirect(context.getContextPath() + "/admin/users");
+        return Results.redirect(context.getContextPath() + "/admin/users");
     }
 
     /**
@@ -304,14 +295,13 @@ public class AdminHandler
     public Result jsonUserSearch(Context context)
     {
         List<User> userList;
-        Result result = Results.json(); 
         String searchString = context.getParameter("s", "");
-        
+
         userList = (searchString.equals("")) ? new ArrayList<User>() : User.findUserLike(searchString);
 
         UserFormData userData;
         List<UserFormData> userDatalist = new ArrayList<UserFormData>();
-        
+
         // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
         // so we need to transform the data which does not contain the reference
         for (User currentUser : userList)
@@ -319,7 +309,7 @@ public class AdminHandler
             userData = UserFormData.prepopulate(currentUser);
             userDatalist.add(userData);
         }
-        return result.json().render(userDatalist);
+        return Results.json().render(userDatalist);
     }
 
     /**
@@ -371,14 +361,8 @@ public class AdminHandler
     @FilterWith(WhitelistFilter.class)
     public Result handleRemoveDomain(Context context, @Param("action") String action, @Param("domainId") long domainId)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
-
         if (!StringUtils.isBlank(action))
         {
-            if (action.equals("abort"))
-            { // the admin wants to abort this action
-                return result.redirect(context.getContextPath() + "/admin/whitelist");
-            }
             if (action.equals("deleteUsersAndDomain"))
             {
                 Domain domain = Domain.getById(domainId);
@@ -390,17 +374,16 @@ public class AdminHandler
                     csh.deleteUsersSessions(userToDelete);
                     User.delete(userToDelete.getId());
                 }
-
                 domain.delete();
-                return result.redirect(context.getContextPath() + "/admin/whitelist");
             }
+
             if (action.equals("deleteDomain"))
             {// just delete the domain
                 Domain.delete(domainId);
-                return result.redirect(context.getContextPath() + "/admin/whitelist");
             }
         }
-        return result.redirect(context.getContextPath() + "/admin/whitelist");
+        // if no action matches or the actions had been executed, redirect
+        return Results.redirect(context.getContextPath() + "/admin/whitelist");
     }
 
     /**
@@ -441,7 +424,6 @@ public class AdminHandler
             // the input-string was empty
             context.getFlashCookie().error("adminAddDomain_Flash_EmptyField");
         }
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
-        return result.redirect(context.getContextPath() + "/admin/whitelist");
+        return Results.redirect(context.getContextPath() + "/admin/whitelist");
     }
 }

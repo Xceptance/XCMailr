@@ -176,7 +176,6 @@ public class Application
                     { // password is too short
 
                         Optional<String> opt = Optional.of(registerFormData.getLanguage());
-
                         String shortPw = messages.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH).get();
                         context.getFlashCookie().error(shortPw);
                         registerFormData.clearPasswordFields();
@@ -184,9 +183,8 @@ public class Application
                     }
                     // create the user
                     User user = registerFormData.getAsUser();
-
+                    
                     // handle the language
-
                     if (!Arrays.asList(xcmConfiguration.APP_LANGS).contains(user.getLanguage()))
                     { // the language stored in the user-object does not exist in the app
                         registerFormData.clearPasswordFields();
@@ -207,7 +205,7 @@ public class Application
                     context.getFlashCookie().success("registerUser_Flash_Successful");
 
                     lang.setLanguage(user.getLanguage(), result);
-                    return result.redirect(context.getContextPath() + "/");
+                    return Results.redirect(context.getContextPath() + "/");
                 }
                 else
                 { // password mismatch
@@ -239,7 +237,7 @@ public class Application
      */
     public Result verifyActivation(@PathParam("id") Long userId, @PathParam("token") String token, Context context)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        Result result = Results.html();
         User user = User.getById(userId);
         if (user != null)
         { // the user exists

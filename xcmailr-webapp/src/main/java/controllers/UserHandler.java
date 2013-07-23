@@ -73,7 +73,10 @@ public class UserHandler
      */
     public Result editUserProcess(Context context, @JSR303Validation UserFormData userFormData, Validation validation)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        // TODO eventually rearrange the big if-else-block in a "positive" way (->error-cases at the end to aggregate
+        // the clearpasswordfields()- and render-calls)
+
+        Result result = Results.html().template("/views/UserHandler/editUserForm.ftl.html");
         // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.
         // then you would likely get a NullPointerException
@@ -85,8 +88,7 @@ public class UserHandler
         if (validation.hasViolations())
         { // the filled form has errors
             context.getFlashCookie().error("flash_FormError");
-            return result.template("/views/UserHandler/editUserForm.ftl.html").redirect(context.getContextPath()
-                                                                                            + "/user/edit");
+            return Results.redirect(context.getContextPath() + "/user/edit");
         }
         else
         { // the form is filled correctly
@@ -100,7 +102,7 @@ public class UserHandler
                 context.getFlashCookie().error("flash_NoLoop");
                 userFormData.setMail(user.getMail());
                 userFormData.clearPasswordFields();
-                return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                return result.render(userFormData);
             }
 
             // block the editing, if the domain is not on the whitelist (and the whitelisting is active)
@@ -110,7 +112,7 @@ public class UserHandler
                 { // the domain is not in the whitelist and the whitelist is not empty
                     context.getFlashCookie().error("editUser_Flash_NotWhitelisted");
                     userFormData.clearPasswordFields();
-                    return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                    return result.render(userFormData);
                 }
             }
 
@@ -124,7 +126,7 @@ public class UserHandler
                         context.getFlashCookie().error("flash_MailExists");
                         userFormData.clearPasswordFields();
 
-                        return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                        return result.render(userFormData);
                     }
                     else
                     { // the address does not exist -> success!
@@ -158,7 +160,7 @@ public class UserHandler
                             context.getFlashCookie().error(tooShortPassword);
                             userFormData.clearPasswordFields();
 
-                            return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                            return result.render(userFormData);
                         }
                         user.hashPasswd(password2);
                     }
@@ -166,7 +168,7 @@ public class UserHandler
                     { // the passwords are not equal
                         context.getFlashCookie().error("flash_PasswordsUnequal");
                         userFormData.clearPasswordFields();
-                        return result.template("/views/UserHandler/editUserForm.ftl.html").render(userFormData);
+                        return result.render(userFormData);
                     }
                 }
 
@@ -185,13 +187,13 @@ public class UserHandler
 
                 // user-edit was successful
                 context.getFlashCookie().success("flash_DataChangeSuccess");
-                return result.redirect(context.getContextPath() + "/user/edit");
+                return Results.redirect(context.getContextPath() + "/user/edit");
             }
             else
             { // the authorization-process failed
                 userFormData.clearPasswordFields();
                 context.getFlashCookie().error("flash_FormError");
-                return result.redirect(context.getContextPath() + "/user/edit");
+                return Results.redirect(context.getContextPath() + "/user/edit");
             }
         }
     }
@@ -238,7 +240,6 @@ public class UserHandler
     public Result deleteUserProcess(Context context)
     {
         String password = context.getParameter("password");
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
         if (!StringUtils.isBlank(password))
         {
@@ -251,23 +252,21 @@ public class UserHandler
                     // delete the user-account
                     User.delete(user.getId());
                     context.getFlashCookie().success("deleteUser_Flash_Success");
-                    return result.redirect(context.getContextPath() + "/");
+                    return Results.redirect(context.getContextPath() + "/");
                 }
                 else
                 { // can't delete the user, because he's the last admin
                     context.getFlashCookie().error("deleteUser_Flash_Failed");
-                    return result.redirect(context.getContextPath() + "/user/edit");
                 }
             }
             else
             { // the entered password was wrong
                 context.getFlashCookie().error("deleteUser_Flash_WrongPassword");
-                return result.redirect(context.getContextPath() + "/user/edit");
             }
         }
         else
         { // no password entered
-            return result.redirect(context.getContextPath() + "/user/edit");
         }
+        return Results.redirect(context.getContextPath() + "/user/edit");
     }
 }

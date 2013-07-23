@@ -624,6 +624,10 @@ public class User implements Serializable
      */
     public static List<User> findUserLike(String input)
     {
+        if (input.equals(""))
+        {
+            return all();
+        }
         return Ebean.find(User.class).where().like("mail", "%" + input + "%").findList();
     }
 

@@ -611,6 +611,10 @@ public class MBox
      */
     public static List<MBox> findBoxLike(String input, long userId)
     {
+        if (input.equals(""))
+        {
+            return allUser(userId);
+        }
         ExpressionList<MBox> exList1 = Ebean.find(MBox.class).where().eq("usr_id", userId);
         if (input.contains("@"))
         { // check for a correct format of a box

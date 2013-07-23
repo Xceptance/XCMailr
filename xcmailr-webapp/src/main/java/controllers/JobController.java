@@ -74,9 +74,6 @@ public class JobController
     @Start(order = 90)
     public void startActions()
     {
-        log.debug("prod:" + ninjaProperties.isProd() + " dev: " + ninjaProperties.isDev() + " test: "
-                  + ninjaProperties.isTest());
-
         // only delete transactions if mailtransaction.maxage is not -1 or 0
         deleteTransactions = (xcmConfiguration.MTX_MAX_AGE != 0 && xcmConfiguration.MTX_MAX_AGE != -1);
 
