@@ -218,65 +218,62 @@ public class BoxHandler
             }
             // we got the boxID with the POST-Request
             MBox mailBox = MBox.getById(boxId);
-            if (mailBox != null)
-            { // the box with the given id exists
-                User usr = context.getAttribute("user", User.class);
+            User usr = context.getAttribute("user", User.class);
+            if (mailBox != null && mailBox.belongsTo(usr.getId()))
+            { // the box with the given id exists and the current user is the owner of the mailbox
+                boolean changes = false;
+                String newLocalPartName = mailboxFormData.getAddress().toLowerCase();
+                String newDomainPartName = mailboxFormData.getDomain().toLowerCase();
 
-                if (mailBox.belongsTo(usr.getId()))
-                { // the current user is the owner of the mailbox
-                    boolean changes = false;
-                    String newLocalPartName = mailboxFormData.getAddress().toLowerCase();
-                    String newDomainPartName = mailboxFormData.getDomain().toLowerCase();
-
-                    if (!mailBox.getAddress().equals(newLocalPartName)
-                        || !mailBox.getDomain().equals(newDomainPartName))
-                    { // mailaddress was changed
-                        if (!MBox.mailExists(newLocalPartName, newDomainPartName))
-                        { // the new address does not exist
-                            String[] domains = xcmConfiguration.DOMAIN_LIST;
-                            // assume that the POST-Request was modified and the domainname does not exist in our app
-                            if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
-                            {
-                                // the new domainname does not exist in the application.conf
-                                // stop the process and return to the mailbox-overview page
-                                return Results.redirect(context.getContextPath() + "/mail");
-                            }
-                            mailBox.setAddress(newLocalPartName);
-                            mailBox.setDomain(newDomainPartName);
-                            changes = true;
-                        }
-                        else
+                if (!mailBox.getAddress().equals(newLocalPartName) || !mailBox.getDomain().equals(newDomainPartName))
+                { // mailaddress was changed
+                    if (!MBox.mailExists(newLocalPartName, newDomainPartName))
+                    { // the new address does not exist
+                        String[] domains = xcmConfiguration.DOMAIN_LIST;
+                        // assume that the POST-Request was modified and the domainname does not exist in our app
+                        if (!Arrays.asList(domains).contains(newDomainPartName))
                         {
-                            // the email-address already exists
-                            context.getFlashCookie().error("flash_MailExists");
-                            return result;
+                            // the new domainname does not exist in the application.conf
+                            // stop the process and return to the mailbox-overview page
+                            return Results.redirect(context.getContextPath() + "/mail");
                         }
-                    }
-                    Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
-                    if (ts == -1)
-                    { // a faulty timestamp was given -> return an errorpage
-                        context.getFlashCookie().error("flash_FormError");
-                        return result;
-                    }
-                    if ((ts != 0) && (ts < DateTime.now().getMillis()))
-                    { // the Timestamp lays in the past
-                        context.getFlashCookie().error("editEmail_Past_Timestamp");
-                        return result;
-                    }
-
-                    if (mailBox.getTs_Active() != ts)
-                    { // check if the MBox-TS is unequal to the given TS in the form
-                        mailBox.setTs_Active(ts);
+                        mailBox.setAddress(newLocalPartName);
+                        mailBox.setDomain(newDomainPartName);
                         changes = true;
                     }
-
-                    // Updates the Box if changes were made
-                    if (changes)
+                    else
                     {
-                        mailBox.setExpired(false);
-                        mailBox.update();
+                        // the email-address already exists
+                        context.getFlashCookie().error("flash_MailExists");
+                        return result;
                     }
                 }
+                Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
+                if (ts == -1)
+                { // a faulty timestamp was given -> return an errorpage
+                    context.getFlashCookie().error("flash_FormError");
+                    return result;
+                }
+                if ((ts != 0) && (ts < DateTime.now().getMillis()))
+                { // the Timestamp lays in the past
+                    context.getFlashCookie().error("editEmail_Past_Timestamp");
+                    return result;
+                }
+
+                if (mailBox.getTs_Active() != ts)
+                { // check if the MBox-TS is unequal to the given TS in the form
+                    mailBox.setTs_Active(ts);
+                    changes = true;
+                }
+
+                // Updates the Box if changes were made
+                if (changes)
+                {
+                    mailBox.setExpired(false);
+                    mailBox.update();
+                    context.getFlashCookie().success("flash_DataChangeSuccess");
+                }
+
             }
         }
         // the current user is not the owner of the mailbox,
@@ -452,7 +449,6 @@ public class BoxHandler
                     {
                         case reset: // reset the list of boxes, we'll abort if there's a box with an id that does not
                                     // belong to the user
-
                             for (String boxIdString : splittedIds)
                             {
                                 boxId = Long.valueOf(boxIdString);
@@ -468,6 +464,7 @@ public class BoxHandler
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                 }
                             }
+
                             return result;
 
                         case delete:
@@ -502,6 +499,7 @@ public class BoxHandler
                                 context.getFlashCookie().error("createEmail_Past_Timestamp");
                                 return result;
                             }
+
                             for (String boxIdString : splittedIds)
                             {
                                 boxId = Long.valueOf(boxIdString);

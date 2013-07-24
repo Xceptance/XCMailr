@@ -66,7 +66,7 @@ public class AdminHandler
     MailrMessageSenderFactory mailSender;
 
     @Inject
-    CachingSessionHandler csh;
+    CachingSessionHandler cachingSessionHandler;
 
     /**
      * Shows the Administration-Index-Page<br/>
@@ -228,7 +228,7 @@ public class AdminHandler
                 mailSender.sendMail(from, user.getMail(), content, subject);
 
                 // delete the sessions of this user
-                csh.deleteUsersSessions(User.getById(userId));
+                cachingSessionHandler.deleteUsersSessions(User.getById(userId));
             }
             return Results.redirect(context.getContextPath() + "/admin/users");
         }
@@ -256,7 +256,7 @@ public class AdminHandler
         { // the user to pro-/demote is not the user who performs this action
             User.promote(userId);
             // update all of the sessions
-            csh.updateUsersSessions(User.getById(userId));
+            cachingSessionHandler.updateUsersSessions(User.getById(userId));
         }
         return Results.redirect(context.getContextPath() + "/admin/users");
     }
@@ -277,7 +277,7 @@ public class AdminHandler
 
         if (user.getId() != deleteUserId)
         { // the user to delete is not the user who performs this action
-            csh.deleteUsersSessions(User.getById(deleteUserId));
+            cachingSessionHandler.deleteUsersSessions(User.getById(deleteUserId));
             User.delete(deleteUserId);
         }
 
@@ -368,10 +368,9 @@ public class AdminHandler
                 Domain domain = Domain.getById(domainId);
                 List<User> usersToDelete = User.getUsersOfDomain(domain.getDomainname());
 
-                // delete the sessions of the users
                 for (User userToDelete : usersToDelete)
-                {
-                    csh.deleteUsersSessions(userToDelete);
+                { // delete the sessions of the users and the account
+                    cachingSessionHandler.deleteUsersSessions(userToDelete);
                     User.delete(userToDelete.getId());
                 }
                 domain.delete();
@@ -414,14 +413,12 @@ public class AdminHandler
                 }
             }
             else
-            {
-                // the validation of the domain-name failed
+            { // the validation of the domain-name failed
                 context.getFlashCookie().error("adminAddDomain_Flash_InvalidDomain");
             }
         }
         else
-        {
-            // the input-string was empty
+        { // the input-string was empty
             context.getFlashCookie().error("adminAddDomain_Flash_EmptyField");
         }
         return Results.redirect(context.getContextPath() + "/admin/whitelist");

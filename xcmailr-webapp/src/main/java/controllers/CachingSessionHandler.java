@@ -29,8 +29,8 @@ import com.google.inject.Singleton;
 import conf.XCMailrConf;
 
 /**
- * Handles all actions that belong to the Memcached-Server<br/>
- * This is almost a Wrapper-Class for the MemCached-Client
+ * Handles all actions that belong to the Caching-Server<br/>
+ * This is almost a Wrapper-Class for the NinjaCache
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
@@ -60,16 +60,16 @@ public class CachingSessionHandler
      */
     public void set(String key, int timeToLive, final Object object)
     {
-        ninjaCache.safeAdd(xcmConf.APP_NAME + key, object, timeToLive + "s");
+        ninjaCache.add(xcmConf.APP_NAME + key, object, timeToLive + "s");
     }
 
     public void replace(String key, int timeToLive, final Object object)
     {
-        ninjaCache.safeReplace(xcmConf.APP_NAME + key, object, timeToLive + "s");
+        ninjaCache.replace(xcmConf.APP_NAME + key, object, timeToLive + "s");
     }
 
     /**
-     * Sets the Session to a User-Mail in the caching-server
+     * Sets the session to an user-mail in the caching-server
      * 
      * @param user
      *            the user-object
@@ -99,7 +99,7 @@ public class CachingSessionHandler
     }
 
     /**
-     * deletes all sessions and user-mail of this specified user
+     * deletes all session mappings and user-email mappings of this specified user
      * 
      * @param user
      *            the user object
@@ -124,7 +124,7 @@ public class CachingSessionHandler
     /**
      * Updates the user-object for all sessions of this user <br/>
      * <b>WARNING:</b> if the email has been changed, use {@link #updateUsersSessions(User)} to change the
-     * user-mail->session mapping
+     * user-mail->session mapping too
      * 
      * @param user
      *            the user-object to update
@@ -189,8 +189,8 @@ public class CachingSessionHandler
     }
 
     /**
-     * loads the Object belonging to the given Key <br/>
-     * it will return null if the Key doesn't exist
+     * loads the object belonging to the given key <br/>
+     * it will return null if the key doesn't exist
      * 
      * @param key
      *            the Key

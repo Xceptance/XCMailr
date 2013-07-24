@@ -424,9 +424,7 @@ public class BoxHandlerTest extends NinjaTest
                         + dt.getMinuteOfHour());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + mailbox.getId(),
                                                                     headers, formMap);
-        expected = ninjaTestBrowser.makeRequest(getServerAddress() + "mail");
-
-        assertTrue(expected.equals(result));
+        assertTrue(result.contains("\"alert alert-success\""));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 

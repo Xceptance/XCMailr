@@ -677,5 +677,4 @@ public class MBox
         }
         return csvMails;
     }
-
 }

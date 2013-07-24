@@ -80,8 +80,8 @@ public class UserHandler
         // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.
         // then you would likely get a NullPointerException
-        List<String[]> o = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, msg);
-        result.render("available_langs", o);
+        List<String[]> availableLanguages = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, msg);
+        result.render("available_langs", availableLanguages);
 
         User user = context.getAttribute("user", User.class);
         String oldMail = user.getMail();
