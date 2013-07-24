@@ -18,7 +18,7 @@ package filters;
 
 import com.google.inject.Inject;
 
-import controllers.MemCachedSessionHandler;
+import controllers.CachingSessionHandler;
 import models.User;
 import ninja.Context;
 import ninja.Filter;
@@ -34,17 +34,17 @@ import ninja.Results;
 public class SecureFilter implements Filter
 {
     @Inject
-    MemCachedSessionHandler mcsh;
+    CachingSessionHandler csh;
 
     @Override
     public Result filter(FilterChain chain, Context context)
     {
         // get the user-object from memcached-server
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = (User) csh.get(context.getSessionCookie().getId());
 
         if ((usr != null) && usr.isActive())
         {
-            // add the user-object to the context to reduce the no. of connections to the memcached server
+            // add the user-object to the context to reduce the no. of connections to the caching server
             context.setAttribute("user", usr);
 
             if (context.getSessionCookie().get("adm") != null)
@@ -58,10 +58,14 @@ public class SecureFilter implements Filter
             { // user has no admin-token
                 if (usr.isAdmin())
                 { // but he's admin
-                    // set a admin-flag at the cookie if the user is admin
-                    // we use this only to change the header-menu-view, but not for "real admin-actions"
+                  // set a admin-flag at the cookie if the user is admin
+                  // we use this only to change the header-menu-view, but not for "real admin-actions"
                     context.getSessionCookie().put("adm", "1");
                 }
+            }
+            if (!usr.getMail().equals(context.getSessionCookie().get("user")))
+            {
+                context.getSessionCookie().put("username", usr.getMail());
             }
             // go to the next filter (or controller-method)
             return chain.next(context);
@@ -72,7 +76,7 @@ public class SecureFilter implements Filter
             { // delete the cookie if there's no user object but a session-cookie
                 context.getSessionCookie().clear();
             }
-            Result result = Results.forbidden().template("/views/Application/index.ftl.html");
+            Result result = Results.forbidden().template("/views/system/noContent.ftl.html");
             return result.redirect(context.getContextPath() + "/login");
         }
     }

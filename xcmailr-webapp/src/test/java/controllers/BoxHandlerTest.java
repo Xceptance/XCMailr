@@ -81,7 +81,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/add", headers,
                                                                     formParams);
 
-        // verify that the login-page is shown (check for menu with register-field and the login-formaction)
+        // verify that the login-page is shown (check for menu with register-field and the login-form-action)
         assertTrue(result.contains("<a href=\"/register\">"));
         assertTrue(result.contains("form action=\"/login\""));
 
@@ -424,9 +424,7 @@ public class BoxHandlerTest extends NinjaTest
                         + dt.getMinuteOfHour());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/edit/" + mailbox.getId(),
                                                                     headers, formMap);
-        expected = ninjaTestBrowser.makeRequest(getServerAddress() + "mail");
-
-        assertTrue(expected.equals(result));
+        assertTrue(result.contains("\"alert alert-success\""));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 

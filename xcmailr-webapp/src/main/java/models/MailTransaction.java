@@ -26,6 +26,7 @@ import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Query;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
+import com.avaje.ebean.SqlUpdate;
 
 /**
  * This Class is used to save all Actions on the Mailserver
@@ -249,13 +250,6 @@ public class MailTransaction
     // -------------------------------------------------------
     // E-Bean Functions
     // -------------------------------------------------------
-    /**
-     * Saves the Transaction in the Database
-     */
-    public void saveTx()
-    {
-        Ebean.save(this);
-    }
 
     /**
      * @return all Transactions which were stored in the Database
@@ -274,20 +268,7 @@ public class MailTransaction
     public static List<MailTransaction> all(String sortage)
     {
         List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy(sortage).findList();
-        
-        return list;
-    }
-    
 
-    /**
-     * @param sortage
-     *            a String which indicates the sortage of the returned list, the string should be in the form
-     *            "fieldname asc" or "fieldname desc"
-     * @return a sorted list of all MailTransactions
-     */
-    public static List<MailTransaction> allSortedLimited(int limit)
-    {
-        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit).findList();
         return list;
     }
 
@@ -298,9 +279,52 @@ public class MailTransaction
      *            Joda-Time Period
      * @return a List of Mail-Transactions
      */
-    public static List<MailTransaction> allInPeriod(Period period)
+    public static List<MailTransaction> getAllInPeriod(Period period)
     {
         return Ebean.find(MailTransaction.class).where().gt("ts", DateTime.now().minus(period).getMillis()).findList();
+    }
+
+    /**
+     * returns a list of MailTransactions sorted descending and limited by the given number
+     * 
+     * @param limit
+     *            the maximal row number
+     * @return a sorted list of all MailTransactions
+     */
+    public static List<MailTransaction> getSortedAndLimitedList(int limit)
+    {
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit)
+                                          .findList();
+        return list;
+    }
+
+    /**
+     * Deletes all Transactions that have been stored before the given Timestamp
+     * 
+     * @param ts
+     *            the Timestamp in milliseconds
+     */
+    public static void deleteTxInPeriod(Long ts)
+    {
+        String sql = "DELETE FROM MAILTRANSACTIONS";
+        if (ts != null)
+        { // there's a timestamp, add
+            sql += " WHERE ts < " + ts;
+        }
+        SqlUpdate down = Ebean.createSqlUpdate(sql);
+        down.execute();
+    }
+
+    /**
+     * returns a specific MailTransaction that belongs to the ID
+     * 
+     * @param id
+     *            the ID of an MailTransaction
+     * @return a MailTransaction
+     */
+    public static MailTransaction getById(long id)
+    {
+        return Ebean.find(MailTransaction.class, id);
     }
 
     /**
@@ -322,36 +346,20 @@ public class MailTransaction
     }
 
     /**
-     * Deletes all Transactions that have been stored before the given Timestamp
-     * 
-     * @param ts
-     *            the Timestamp in milliseconds
+     * Saves the Transaction in the Database
      */
-    public static void deleteTxInPeriod(Long ts)
+    public void save()
     {
-        List<Object> ids;
-        if (ts == null)
-        { // delete all transactions if no timestamp is given
-            ids = Ebean.find(MailTransaction.class).findIds();
-        }
-        else
-        {
-            ids = Ebean.find(MailTransaction.class).where().lt("ts", ts).findIds();
-        }
-        Ebean.delete(MailTransaction.class, ids);
-       
+        Ebean.save(this);
     }
 
     /**
-     * returns a specific MailTransaction that belongs to the ID
+     * saves multiple elements
      * 
-     * @param id
-     *            the ID of an MailTransaction
-     * @return a MailTransaction
+     * @param mtxList
      */
-    public static MailTransaction getById(long id)
+    public static void saveMultipleTx(List<MailTransaction> mtxList)
     {
-        return Ebean.find(MailTransaction.class, id);
+        Ebean.save(mtxList);
     }
-
 }

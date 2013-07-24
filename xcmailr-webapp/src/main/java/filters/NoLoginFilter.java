@@ -18,7 +18,8 @@ package filters;
 
 import com.google.inject.Inject;
 
-import controllers.MemCachedSessionHandler;
+import controllers.CachingSessionHandler;
+
 import models.User;
 import ninja.Context;
 import ninja.Filter;
@@ -34,12 +35,12 @@ import ninja.Results;
 public class NoLoginFilter implements Filter
 {
     @Inject
-    MemCachedSessionHandler mcsh;
-
+    CachingSessionHandler csh;
+    
     @Override
     public Result filter(FilterChain chain, Context context)
     {
-        User usr = (User) mcsh.get(context.getSessionCookie().getId());
+        User usr = (User) csh.get(context.getSessionCookie().getId());
         if (usr == null)
         {
             return chain.next(context);
@@ -47,7 +48,8 @@ public class NoLoginFilter implements Filter
         }
         else
         {
-            return Results.redirect(context.getContextPath() + "/");
+            Result result = Results.html().template("/views/system/noContent.ftl.html");
+            return result.redirect(context.getContextPath() + "/");
         }
     }
 }

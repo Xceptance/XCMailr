@@ -7,20 +7,20 @@
 			<div class="control-group">
 				<label class="control-label" for="firstName">${i18n("registerUser_Label_FirstName")} </label>
 				<div class="controls">
-					<input class="input_full" type="text" id="inputRegisterFirstName" name="firstName" value="${(editUsr.firstName)!}" required="required" />
+					<input class="input_full" type="text" id="inputRegisterFirstName" name="firstName" value="${(registerUserData.firstName)!}" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="surname">
 					${i18n("registerUser_Label_Name")} </label>
 				<div class="controls">
-					<input class="input_full" type="text" id="inputRegisterSurName" name="surName" value="${(editUsr.surName)!}" required="required" />
+					<input class="input_full" type="text" id="inputRegisterSurName" name="surName" value="${(registerUserData.surName)!}" required="required" />
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="mail"> ${i18n("registerUser_Label_Email")} </label>
 				<div class="controls">
-					<input class="input_full" type="email" id="inputRegisterMail" name="mail" value="${(editUsr.mail)!}" required="required" />
+					<input class="input_full" type="email" id="inputRegisterMail" name="mail" value="${(registerUserData.mail)!}" required="required" />
 				</div>
 			</div>
 
@@ -41,8 +41,8 @@
 			<div class="controls">
 			<select name="language" id="selectRegisterLanguage" >
 			<#list available_langs as lng>
-				<#if (editUsr.language)??>
-		  			<#if editUsr.language == lng[0]>	
+				<#if (registerUserData.language)??>
+		  			<#if registerUserData.language == lng[0]>	
 		  			<option value="${lng[0]}" id="optionRegisterLanguage_${lng[0]}" selected="selected">${lng[1]}</option>
 		  			<#else>
 		  			<option value="${lng[0]}" id="optionRegisterLanguage_${lng[0]}">${lng[1]}</option>

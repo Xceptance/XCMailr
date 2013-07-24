@@ -56,6 +56,9 @@ public class MailrMessageSenderFactory
     @Inject
     NinjaProperties ninjaProperties;
 
+    @Inject
+    JobController jobController;
+
     private Session session;
 
     /**
@@ -210,6 +213,11 @@ public class MailrMessageSenderFactory
         sendMail(from, to, body, subject);
     }
 
+    public void addMtxToJCList(MailTransaction mtx)
+    {
+        jobController.mtxQueue.add(mtx);
+    }
+
     public class ThreadedMailSend extends Thread
     {
 
@@ -261,7 +269,7 @@ public class MailrMessageSenderFactory
                         {
                             mtx = new MailTransaction(300, from, null, recipient);
                         }
-                        mtx.saveTx();
+                        addMtxToJCList(mtx);
                     }
                     log.info("Message sent, From: " + from + " To:" + recipient);
 
@@ -279,11 +287,10 @@ public class MailrMessageSenderFactory
                 if (xcmConfiguration.MTX_MAX_AGE != 0)
                 { // if mailtransaction.maxage is set to 0 -> log nothing
                     mtx = new MailTransaction(400, from, mailBox.getFullAddress(), recipient);
-                    mtx.saveTx();
+                    addMtxToJCList(mtx);
                 }
                 log.error(e.getMessage());
             }
         }
     }
-
 }

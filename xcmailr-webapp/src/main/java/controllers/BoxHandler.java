@@ -24,6 +24,7 @@ import ninja.FilterWith;
 import ninja.Results;
 import etc.HelperUtils;
 import filters.SecureFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -101,36 +102,32 @@ public class BoxHandler
     public Result addBoxProcess(Context context, @JSR303Validation MailBoxFormData mailboxFormData,
                                 Validation validation)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        Result result = Results.html().template("/views/BoxHandler/addBoxForm.ftl.html");
         result.render("domain", xcmConfiguration.DOMAIN_LIST);
+        result.render("mbFrmDat", mailboxFormData);
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
             context.getFlashCookie().error("flash_FormError");
-            if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null)
-                || (mailboxFormData.getDatetime() == null))
-            {
-                return result.redirect(context.getContextPath() + "/mail/add");
-            }
-
-            result.render("mbFrmDat", mailboxFormData);
-            return result.template("/views/BoxHandler/addBoxForm.ftl.html");
+            return result;
         }
         else
         {
             // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
-
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() > 254)
             {
                 context.getFlashCookie().error("createEmail_Flash_MailTooLong");
-
-                result.render("mbFrmDat", mailboxFormData);
-                return result.template("/views/BoxHandler/addBoxForm.ftl.html");
+                return result;
             }
-
-            // checks whether the Box already exists
-            if (!MBox.mailExists(mailboxFormData.getAddress(), mailboxFormData.getDomain()))
+            // checks whether the email address already exists
+            if (MBox.mailExists(mailboxFormData.getAddress(), mailboxFormData.getDomain()))
+            {
+                // the mailbox already exists
+                context.getFlashCookie().error("flash_MailExists");
+                return result;
+            }
+            else
             {
                 String mailBoxName = mailboxFormData.getAddress().toLowerCase();
                 // set the data of the box
@@ -138,20 +135,18 @@ public class BoxHandler
                 if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
                 { // the new domain-name does not exist in the application.conf
                   // stop the process and return to the mailbox-overview page
-                    return result.redirect(context.getContextPath() + "/mail");
+                    return Results.redirect(context.getContextPath() + "/mail");
                 }
                 Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                 if (ts == -1L)
                 { // show an error-page if the timestamp is faulty
                     context.getFlashCookie().error("flash_FormError");
-                    result.render("mbFrmDat", mailboxFormData);
-                    return result.template("/views/BoxHandler/addBoxForm.ftl.html");
+                    return result;
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
                     context.getFlashCookie().error("createEmail_Past_Timestamp");
-                    result.render("mbFrmDat", mailboxFormData);
-                    return result.template("/views/BoxHandler/addBoxForm.ftl.html");
+                    return result;
                 }
 
                 // create the MBox
@@ -160,16 +155,7 @@ public class BoxHandler
 
                 // creates the Box in the DB
                 mailBox.save();
-
-                return result.redirect(context.getContextPath() + "/mail");
-            }
-            else
-            {
-                // the mailbox already exists
-                context.getFlashCookie().error("flash_MailExists");
-
-                result.render("mbFrmDat", mailboxFormData);
-                return result.template("/views/BoxHandler/addBoxForm.ftl.html");
+                return Results.redirect(context.getContextPath() + "/mail");
             }
         }
     }
@@ -186,14 +172,12 @@ public class BoxHandler
      */
     public Result deleteBoxProcess(@PathParam("id") Long boxId, Context context)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
         User user = context.getAttribute("user", User.class);
         if (MBox.boxToUser(boxId, user.getId()))
-        {
-            // deletes the box from DB
+        { // deletes the box from DB
             MBox.delete(boxId);
         }
-        return result.redirect(context.getContextPath() + "/mail");
+        return Results.redirect(context.getContextPath() + "/mail");
     }
 
     /**
@@ -213,19 +197,15 @@ public class BoxHandler
     public Result editBoxProcess(Context context, @PathParam("id") Long boxId,
                                  @JSR303Validation MailBoxFormData mailboxFormData, Validation validation)
     {
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        Result result = Results.html().template("/views/BoxHandler/editBoxForm.ftl.html");
+        mailboxFormData.setBoxId(boxId);
+        result.render("mbFrmDat", mailboxFormData);
         result.render("domain", xcmConfiguration.DOMAIN_LIST);
+
         if (validation.hasViolations())
         { // not all fields were filled
             context.getFlashCookie().error("flash_FormError");
-
-            if ((mailboxFormData.getAddress() == null) || (mailboxFormData.getDomain() == null)
-                || (mailboxFormData.getDatetime() == null))
-            {
-                return result.redirect(context.getContextPath() + "/mail/edit/" + boxId.toString());
-            }
-            result.render("mbFrmDat", mailboxFormData);
-            return result.template("/views/BoxHandler/editBoxForm.ftl.html");
+            return result;
         }
         else
         { // the form was filled correctly
@@ -234,77 +214,72 @@ public class BoxHandler
             if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() >= 255)
             {
                 context.getFlashCookie().error("editEmail_Flash_MailTooLong");
-
-                result.render("mbFrmDat", mailboxFormData);
-                return result.template("/views/BoxHandler/addBoxForm.ftl.html");
+                return result;
             }
             // we got the boxID with the POST-Request
             MBox mailBox = MBox.getById(boxId);
-            if (mailBox != null)
-            { // the box with the given id exists
-                User usr = context.getAttribute("user", User.class);
+            User usr = context.getAttribute("user", User.class);
+            if (mailBox != null && mailBox.belongsTo(usr.getId()))
+            { // the box with the given id exists and the current user is the owner of the mailbox
+                boolean changes = false;
+                String newLocalPartName = mailboxFormData.getAddress().toLowerCase();
+                String newDomainPartName = mailboxFormData.getDomain().toLowerCase();
 
-                if (mailBox.belongsTo(usr.getId()))
-                { // the current user is the owner of the mailbox
-                    boolean changes = false;
-                    String newLocalPartName = mailboxFormData.getAddress().toLowerCase();
-                    String newDomainPartName = mailboxFormData.getDomain().toLowerCase();
-
-                    if (!mailBox.getAddress().equals(newLocalPartName)
-                        || !mailBox.getDomain().equals(newDomainPartName))
-                    { // mailaddress was changed
-                        if (!MBox.mailExists(newLocalPartName, newDomainPartName))
-                        { // the new address does not exist
-                            String[] domains = xcmConfiguration.DOMAIN_LIST;
-                            // assume that the POST-Request was modified and the domainname does not exist in our app
-                            if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
-                            {
-                                // the new domainname does not exist in the application.conf
-                                // stop the process and return to the mailbox-overview page
-                                return result.redirect(context.getContextPath() + "/mail");
-                            }
-                            mailBox.setAddress(newLocalPartName);
-                            mailBox.setDomain(newDomainPartName);
-                            changes = true;
-                        }
-                        else
+                if (!mailBox.getAddress().equals(newLocalPartName) || !mailBox.getDomain().equals(newDomainPartName))
+                { // mailaddress was changed
+                    if (!MBox.mailExists(newLocalPartName, newDomainPartName))
+                    { // the new address does not exist
+                        String[] domains = xcmConfiguration.DOMAIN_LIST;
+                        // assume that the POST-Request was modified and the domainname does not exist in our app
+                        if (!Arrays.asList(domains).contains(newDomainPartName))
                         {
-                            // the email-address already exists
-                            context.getFlashCookie().error("flash_MailExists");
-                            return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
+                            // the new domainname does not exist in the application.conf
+                            // stop the process and return to the mailbox-overview page
+                            return Results.redirect(context.getContextPath() + "/mail");
                         }
-                    }
-                    Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
-                    if (ts == -1)
-                    { // a faulty timestamp was given -> return an errorpage
-                        context.getFlashCookie().error("flash_FormError");
-                        return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
-                    }
-                    if ((ts != 0) && (ts < DateTime.now().getMillis()))
-                    { // the Timestamp lays in the past
-                        context.getFlashCookie().error("editEmail_Past_Timestamp");
-                        return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
-                    }
-
-                    if (mailBox.getTs_Active() != ts)
-                    { // check if the MBox-TS is unequal to the given TS in the form
-                        mailBox.setTs_Active(ts);
+                        mailBox.setAddress(newLocalPartName);
+                        mailBox.setDomain(newDomainPartName);
                         changes = true;
                     }
-
-                    // Updates the Box if changes were made
-                    if (changes)
+                    else
                     {
-                        mailBox.setExpired(false);
-                        mailBox.update();
+                        // the email-address already exists
+                        context.getFlashCookie().error("flash_MailExists");
+                        return result;
                     }
                 }
+                Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
+                if (ts == -1)
+                { // a faulty timestamp was given -> return an errorpage
+                    context.getFlashCookie().error("flash_FormError");
+                    return result;
+                }
+                if ((ts != 0) && (ts < DateTime.now().getMillis()))
+                { // the Timestamp lays in the past
+                    context.getFlashCookie().error("editEmail_Past_Timestamp");
+                    return result;
+                }
+
+                if (mailBox.getTs_Active() != ts)
+                { // check if the MBox-TS is unequal to the given TS in the form
+                    mailBox.setTs_Active(ts);
+                    changes = true;
+                }
+
+                // Updates the Box if changes were made
+                if (changes)
+                {
+                    mailBox.setExpired(false);
+                    mailBox.update();
+                    context.getFlashCookie().success("flash_DataChangeSuccess");
+                }
+
             }
         }
         // the current user is not the owner of the mailbox,
         // the given box-id does not exist,
         // or the editing-process was successful
-        return result.redirect(context.getContextPath() + "/mail");
+        return Results.redirect(context.getContextPath() + "/mail");
     }
 
     /**
@@ -319,13 +294,12 @@ public class BoxHandler
      */
     public Result editBoxForm(Context context, @PathParam("id") Long boxId)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
 
         MBox mailBox = MBox.getById(boxId);
 
         if (mailBox == null)
         { // there's no box with that id
-            return result.redirect(context.getContextPath() + "/mail");
+            return Results.redirect(context.getContextPath() + "/mail");
         }
         else
         { // the box exists, go on!
@@ -342,12 +316,12 @@ public class BoxHandler
                     mailBox.setTs_Active(dateTime.getMillis());
                 }
                 MailBoxFormData mailBoxFormData = MailBoxFormData.prepopulate(mailBox);
-                return result.template("/views/BoxHandler/editBoxForm.ftl.html").render("mbFrmDat", mailBoxFormData)
-                             .render("domain", xcmConfiguration.DOMAIN_LIST);
+                return Results.html().template("/views/BoxHandler/editBoxForm.ftl.html")
+                              .render("mbFrmDat", mailBoxFormData).render("domain", xcmConfiguration.DOMAIN_LIST);
             }
             else
             { // the MBox does not belong to this user
-                return result.redirect(context.getContextPath() + "/mail");
+                return Results.redirect(context.getContextPath() + "/mail");
             }
         }
     }
@@ -370,18 +344,14 @@ public class BoxHandler
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
 
-        PageList<MBox> plist;
-
         String searchString = context.getParameter("s", "");
-        if (searchString.equals(""))
-        { // if there's no parameter, simply render all boxes
-            plist = new PageList<MBox>(MBox.allUser(user.getId()), entries);
-        }
-        else
-        { // there's a search parameter with input, get the related boxes
+        PageList<MBox> plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
+
+        if (!searchString.isEmpty())
+        {
             result.render("searchValue", searchString);
-            plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
         }
+
         result.render("mboxes", plist);
 
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
@@ -402,7 +372,6 @@ public class BoxHandler
 
     public Result expireBoxProcess(@PathParam("id") Long boxId, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
 
@@ -412,14 +381,14 @@ public class BoxHandler
             { // if the validity period is over, return the Edit page and give the user a response why he gets there
 
                 context.getFlashCookie().put("info", "expireEmail_Flash_Expired");
-                return result.redirect(context.getContextPath() + "/mail/edit/" + boxId);
+                return Results.redirect(context.getContextPath() + "/mail/edit/" + boxId);
             }
             else
             { // otherwise just set the new status
                 mailBox.enable();
             }
         }
-        return result.redirect(context.getContextPath() + "/mail");
+        return Results.redirect(context.getContextPath() + "/mail");
     }
 
     /**
@@ -434,7 +403,6 @@ public class BoxHandler
      */
     public Result resetBoxCounterProcess(@PathParam("id") Long boxId, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
 
@@ -445,7 +413,7 @@ public class BoxHandler
             mailBox.resetSuppressions();
             mailBox.update();
         }
-        return result.redirect(context.getContextPath() + "/mail");
+        return Results.redirect(context.getContextPath() + "/mail");
     }
 
     /**
@@ -465,11 +433,10 @@ public class BoxHandler
     public Result bulkChangeBoxes(@Param("action") String action, @Param("ids") String boxIds,
                                   @Param("duration") String duration, Context context)
     {
-
-        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        Result result = Results.redirect(context.getContextPath() + "/mail");
         User user = context.getAttribute("user", User.class);
 
-        if (action != null && boxIds != null && !action.equals("") && !action.equals(""))
+        if (!StringUtils.isBlank(action) && !StringUtils.isBlank(boxIds))
         {
             if (boxIds.matches("[(\\d+)][(\\,)(\\d+)]*"))
             {// the list of boxIds have to be in the form of comma-separated-ids
@@ -482,7 +449,6 @@ public class BoxHandler
                     {
                         case reset: // reset the list of boxes, we'll abort if there's a box with an id that does not
                                     // belong to the user
-
                             for (String boxIdString : splittedIds)
                             {
                                 boxId = Long.valueOf(boxIdString);
@@ -498,7 +464,8 @@ public class BoxHandler
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                 }
                             }
-                            return result.redirect(context.getContextPath() + "/mail");
+
+                            return result;
 
                         case delete:
                             // delete the list of boxes, we'll abort if there's a box with an id, that does not belong
@@ -515,7 +482,7 @@ public class BoxHandler
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                 }
                             }
-                            return result.redirect(context.getContextPath() + "/mail");
+                            return result;
 
                         case change:
                             // change the duration of the boxes, we'll abort if there's a box with an id, that does not
@@ -525,13 +492,14 @@ public class BoxHandler
                             if (ts == -1L)
                             { // show an error-page if the timestamp is faulty
                                 context.getFlashCookie().error("mailbox_Wrong_Timestamp");
-                                return result.redirect(context.getContextPath() + "/mail");
+                                return result;
                             }
                             if ((ts != 0) && (ts < DateTime.now().getMillis()))
                             { // the Timestamp lays in the past
                                 context.getFlashCookie().error("createEmail_Past_Timestamp");
-                                return result.redirect(context.getContextPath() + "/mail");
+                                return result;
                             }
+
                             for (String boxIdString : splittedIds)
                             {
                                 boxId = Long.valueOf(boxIdString);
@@ -540,16 +508,14 @@ public class BoxHandler
                                 { // box belongs to the user
                                     mailBox.setTs_Active(ts);
                                     mailBox.setExpired(false);
-
                                     mailBox.update();
                                 }
                                 else
-                                {
+                                { // set an error-message
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-
                                 }
                             }
-                            return result.redirect(context.getContextPath() + "/mail");
+                            return result;
 
                         case enable:
                             // enable or disable the boxes
@@ -575,31 +541,31 @@ public class BoxHandler
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                 }
                             }
-                            return result.redirect(context.getContextPath() + "/mail");
+                            return result;
 
                         default:
                             // we got an action that is not defined
                             // we're ignoring it and simply redirect to the overview-page
-                            return result.redirect(context.getContextPath() + "/mail");
+                            return result;
                     }// end switch
                 }
                 else
                 { // the IDs have a wrong separator
-                    return result.redirect(context.getContextPath() + "/mail");
+                    return result;
                 }
             }
             else
             { // the IDs are not in the expected pattern
-                return result.redirect(context.getContextPath() + "/mail");
+                return result;
             }
         }
         else
         { // the action or IDs-parameter is empty or null
-            return result.redirect(context.getContextPath() + "/mail");
+            return result;
         }
     }
 
-    enum Actions
+    private enum Actions
     {
         reset, delete, change, enable
     }
@@ -616,16 +582,10 @@ public class BoxHandler
     {
         User user = context.getAttribute("user", User.class);
         List<MBox> boxList;
-        Result result = Results.html();
+        Result result = Results.json();
         String searchString = context.getParameter("s", "");
-        if (searchString.equals(""))
-        { // the parameter is empty or missing, return an empty list
-            boxList = new ArrayList<MBox>();
-        }
-        else
-        { // there is a parameter, search for a box with an address that is like the search-string
-            boxList = MBox.findBoxLike(searchString, user.getId());
-        }
+
+        boxList = (searchString.equals("")) ? new ArrayList<MBox>() : MBox.findBoxLike(searchString, user.getId());
 
         // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
         // so we need to transform the data which does not contain the reference
@@ -634,9 +594,7 @@ public class BoxHandler
         {
             MailBoxFormData mbd = MailBoxFormData.prepopulate(mb);
             mbdlist.add(mbd);
-
         }
-
         return result.json().render(mbdlist);
     }
 
@@ -668,5 +626,4 @@ public class BoxHandler
         User user = context.getAttribute("user", User.class);
         return Results.contentType("text/plain").render(MBox.getActiveMailsForTxt(user.getId()));
     }
-
 }

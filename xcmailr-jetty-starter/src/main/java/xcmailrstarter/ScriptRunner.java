@@ -21,13 +21,14 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.tools.RunScript;
 import org.mortbay.log.Log;
 
 /**
+ * Prepares the Database and checks whether all necessary tables exist
+ * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 public class ScriptRunner
@@ -36,13 +37,13 @@ public class ScriptRunner
     public ScriptRunner(StarterConf config)
     {
         // Handle the connection
-        Connection conn;
+        Connection connection;
         try
         {
             Class.forName(config.XCM_DB_DRIVER);
             Log.info("Driver Loaded.");
 
-            conn = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
+            connection = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
             Log.info("Got Connection.");
 
             boolean usrTable = false;
@@ -50,17 +51,19 @@ public class ScriptRunner
             boolean mtxTable = false;
             boolean fk_mtxTable_usr_id = false;
             boolean domainTable = false;
+
             // if xcmstarter has been started with the parameter "-Dxcmailr.xcmstart.droptables=true"
             // drop all tables
-            if (!(System.getProperty("xcmailr.xcmstart.droptables") == null))
+            if (System.getProperty("xcmailr.xcmstart.droptables") != null)
             {
-                RunScript.execute(conn, new FileReader("conf/default-drop.sql"));
+                RunScript.execute(connection, new FileReader("conf/default-drop.sql"));
                 Log.info("Executed Drop Table.");
             }
-            DatabaseMetaData md = conn.getMetaData();
 
+            // get the DB-metadata
+            DatabaseMetaData md = connection.getMetaData();
             ResultSet rs = md.getTables(null, null, "%", null);
-            // check if the tables exist
+            // check if all tables exist
             while (rs.next())
             {
                 if (rs.getString(3).equals("USERS"))
@@ -79,17 +82,17 @@ public class ScriptRunner
                 {
                     domainTable = true;
                 }
-
             }
 
-            // create the tables if they're not existing
+            // create the tables if they not exist
             if (!(usrTable && mbxTable && mtxTable && domainTable))
-            {
-                RunScript.execute(conn, new FileReader("conf/default-create.sql"));
+            { // simply execute the create-script
+                RunScript.execute(connection, new FileReader("conf/default-create.sql"));
                 Log.info("Executed Create Table.");
             }
 
-            rs = md.getImportedKeys(conn.getCatalog(), null, "MAILBOXES");
+            // check whether the foreign-key of the mailbox-table (usr_id->USER) exists
+            rs = md.getImportedKeys(connection.getCatalog(), null, "MAILBOXES");
             while (rs.next())
             {
                 String name = rs.getString("FK_NAME");
@@ -100,43 +103,55 @@ public class ScriptRunner
             }
 
             if (!fk_mtxTable_usr_id)
-            {
-                Statement statement = conn.createStatement();
+            { // add the foreign-key if not exist
+                Statement statement = connection.createStatement();
                 statement.execute("alter table mailboxes add constraint fk_mailboxes_usr_1 foreign key (usr_id) references users (id) on delete restrict on update restrict;");
             }
 
             //
-            alterTable("USERS", "LANGUAGE", conn, md);
-            alterTable("MAILTRANSACTIONS", "RELAYADDR", conn, md);
-            Statement statement = conn.createStatement();
+            alterTable("USERS", "LANGUAGE", connection, md);
+            alterTable("MAILTRANSACTIONS", "RELAYADDR", connection, md);
+            Statement statement = connection.createStatement();
             statement.execute("CREATE INDEX IF NOT EXISTS ix_mailtransactions_ts_1 ON mailtransactions (ts);");
 
-            conn.close();
+            connection.close();
 
         }
         catch (Exception e)
         {
-            System.err.println("Got an exception! Connection error or Script execution failed.");
+            Log.warn("Got an exception! Connection error or Script execution failed.");
             e.printStackTrace();
             System.exit(0);
         }
-
     }
 
+    /**
+     * Adds a column with the given name to the given table if its not already existing
+     * 
+     * @param tableName
+     *            the name of the table to alter
+     * @param columnName
+     *            the name of the column to add
+     * @param conn
+     *            the database connection
+     * @param md
+     *            the metadata of the database
+     * @throws SQLException
+     */
     public void alterTable(String tableName, String columnName, Connection conn, DatabaseMetaData md)
         throws SQLException
     {
-        // get the user-table
+        // get the table with the given table-name
         ResultSet rs = md.getColumns(null, "PUBLIC", tableName, null);
 
-        // get all column-names of the usertable
+        // get all column-names of the "tableName"
         String columns = "";
         while (rs.next())
-        {
+        { // create a list with the current column-names
             columns += rs.getString("COLUMN_NAME");
             columns += "; ";
         }
-        // alter the user-table if it has no language-attribute
+        // alter the "tableName"-table if it has no column with the given columnName
         if (!columns.contains(columnName))
         {
             Statement stmnt = conn.createStatement();

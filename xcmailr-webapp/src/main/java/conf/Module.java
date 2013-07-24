@@ -18,8 +18,6 @@ package conf;
 
 import ninja.ebean.NinjaEbeanModule;
 import com.google.inject.AbstractModule;
-import controllers.MemCachedSessionHandler;
-
 import controllers.JobController;
 
 public class Module extends AbstractModule
@@ -35,10 +33,9 @@ public class Module extends AbstractModule
     {
         // install the ebean module
         install(new NinjaEbeanModule());
-        // bind configuration-class, jobcontroller and memcached-session-handler
+        // bind configuration-class and jobcontroller
         bind(XCMailrConf.class);
         bind(JobController.class);
-        bind(MemCachedSessionHandler.class);
 
     }
 

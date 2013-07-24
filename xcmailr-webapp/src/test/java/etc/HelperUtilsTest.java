@@ -5,8 +5,12 @@ import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import com.google.common.collect.Maps;
 
+@RunWith(MockitoJUnitRunner.class)
 public class HelperUtilsTest
 {
     Map<String, String> returnedData = Maps.newHashMap();

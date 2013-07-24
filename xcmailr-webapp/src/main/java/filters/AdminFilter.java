@@ -16,9 +16,6 @@
  */
 package filters;
 
-import com.google.inject.Inject;
-
-import controllers.MemCachedSessionHandler;
 import models.User;
 import ninja.Context;
 import ninja.Filter;
@@ -33,8 +30,6 @@ import ninja.Results;
  */
 public class AdminFilter implements Filter
 {
-    @Inject
-    MemCachedSessionHandler mcsh;
 
     @Override
     public Result filter(FilterChain chain, Context context)
@@ -48,7 +43,8 @@ public class AdminFilter implements Filter
         }
         else
         {
-            return Results.redirect(context.getContextPath() + "/");
+            Result result = Results.html().template("/views/system/noContent.ftl.html");
+            return result.redirect(context.getContextPath() + "/");
         }
     }
 }

@@ -28,7 +28,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import models.MBox;
 import models.MailTransaction;
-import ninja.utils.NinjaProperties;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 import com.google.inject.Inject;
@@ -47,10 +46,10 @@ public class MessageListener implements SimpleMessageListener
     XCMailrConf xcmConfiguration;
 
     @Inject
-    NinjaProperties ninjaProperties;
+    MailrMessageSenderFactory mailrSenderFactory;
 
     @Inject
-    MailrMessageSenderFactory mailrSenderFactory;
+    JobController jobController;
 
     @Inject
     Logger log;
@@ -70,7 +69,7 @@ public class MessageListener implements SimpleMessageListener
             if (xcmConfiguration.MTX_MAX_AGE != 0)
             { // if mailtransaction.maxage is set to 0 -> log nothing
                 MailTransaction mtx = new MailTransaction(500, from, null, recipient);
-                mtx.saveTx();
+                jobController.mtxQueue.add(mtx);
             }
             return false;
         }
@@ -103,7 +102,7 @@ public class MessageListener implements SimpleMessageListener
                 if (xcmConfiguration.MTX_MAX_AGE != 0)
                 {// if mailtransaction.maxage is set to 0 -> log nothing
                     mtx = new MailTransaction(0, from, null, recipient);
-                    mtx.saveTx();
+                    mtx.save();
                 }
                 return;
             }
@@ -112,7 +111,6 @@ public class MessageListener implements SimpleMessageListener
             { // the given mailaddress exists in the db
                 mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
                 forwardTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
-
                 if (mailBox.isActive())
                 { // there's an existing and active mailaddress
                   // add the target-address to the list
@@ -124,7 +122,8 @@ public class MessageListener implements SimpleMessageListener
                         mail.removeHeader("Cc");
                         mail.removeHeader("BCC");
                         // send the mail in a separate thread
-                        MailrMessageSenderFactory.ThreadedMailSend tms = mailrSenderFactory.new ThreadedMailSend(mail, mailBox);
+                        MailrMessageSenderFactory.ThreadedMailSend tms = mailrSenderFactory.new ThreadedMailSend(mail,
+                                                                                                                 mailBox);
                         tms.start();
                     }
                     catch (AddressException e)
@@ -135,7 +134,7 @@ public class MessageListener implements SimpleMessageListener
                         if (xcmConfiguration.MTX_MAX_AGE != 0)
                         {// if mailtransaction.maxage is set to 0 -> log nothing
                             mtx = new MailTransaction(400, from, recipient, forwardTarget);
-                            mtx.saveTx();
+                            jobController.mtxQueue.add(mtx);
                         }
                     }
                 }
@@ -144,7 +143,7 @@ public class MessageListener implements SimpleMessageListener
                     if (xcmConfiguration.MTX_MAX_AGE != 0)
                     { // if mailtransaction.maxage is set to 0 -> log nothing
                         mtx = new MailTransaction(200, from, recipient, forwardTarget);
-                        mtx.saveTx();
+                        jobController.mtxQueue.add(mtx);
                     }
                     mailBox.increaseSuppressions();
                     mailBox.update();
@@ -155,7 +154,7 @@ public class MessageListener implements SimpleMessageListener
                 if (xcmConfiguration.MTX_MAX_AGE != 0)
                 { // if mailtransaction.maxage is set to 0 -> log nothing
                     mtx = new MailTransaction(100, from, recipient, null);
-                    mtx.saveTx();
+                    jobController.mtxQueue.add(mtx);
                 }
             }
         }

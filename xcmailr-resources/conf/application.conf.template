@@ -16,7 +16,7 @@ application.name=XCMailr
 
 application.cookie.prefix=XCMailr
 
-#ISO Language Code, optionally followed by a valid ISO Country Code. 
+# ISO Language Code, optionally followed by a valid ISO Country Code. 
 application.languages=en,de
 
 application.session.expire_time_in_seconds=3600
@@ -32,11 +32,11 @@ application.port=8080
 # if this app runs on http://localhost:8080, leave it empty
 application.basedir=
 
-#the number of default entries per page
+# the number of default entries per page
 application.default.entriesperpage=15
 
-#Set an application secret and uncomment the next line, its used to verify session-cookies
-#application.secret = 
+# Set an application secret and uncomment the next line, its used to verify session-cookies
+# application.secret = 
 
 # indicates the use of the whitelisting function
 # the allowed domains can be configured at the admin-section
@@ -56,7 +56,7 @@ mbox.interval=1
 mbox.dlist=xcmailr.test,ccmailr.test
 mbox.adminaddr=admin@${mbox.host}
 
-#the interval to check for new mails and send them, in minutes (default: 1 minute)
+# the interval to check for new mails and send them, in minutes (default: 1 minute)
 mbox.mailinterval=1
 
 # this will configure the minimum password-length
@@ -88,19 +88,22 @@ mail.smtp.user=
 mail.smtp.pass=
 # set this to true if a password and username is used to send mails
 mail.smtp.auth=true
-#indicates a tls-connection
+# indicates a tls-connection
 mail.smtp.tls=true
+# debugging messages
 mail.smtp.debug=true
 
-###############################
-# Configure the Memcached-Srv #
-###############################
-# the Host for the Memcached-Server (127.0.0.1 will be used if nothing's entered here)
-memcached.host=localhost
-# the Port for the Memcached-Server (11211 will be used if nothing's entered here)
-memcached.port=11211
+################################
+# Configure the Caching-Server #
+################################
+# the Host for the Memcached-Server (including the port)
+memcached.host=localhost:11211
 
-
+# use the EhCache-Standalone-Solution in test and dev-mode and MemCached (required separately) in production
+# as said in the ninja-framework docs, you always should use MemCached in prod-mode
+cache.implementation=ninja.cache.CacheMemcachedImpl
+%test.cache.implementation=ninja.cache.CacheEhCacheImpl
+%dev.cache.implementation=ninja.cache.CacheEhCacheImpl
 
 ###############################
 # Configure the Ebean-Storage #
@@ -112,11 +115,11 @@ ebean.datasource.databaseUrl=jdbc:h2:~/xcmailrDB;DB_CLOSE_DELAY=-1;AUTO_SERVER=T
 %dev.ebean.datasource.databaseUrl=jdbc:h2:~/test;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
 
 
-#database username
+# database username
 ebean.datasource.username=sa
-#database password
+# database password
 ebean.datasource.password=
-#db-driver
+# db-driver
 ebean.datasource.databaseDriver=org.h2.Driver
 ebean.logging=all
 

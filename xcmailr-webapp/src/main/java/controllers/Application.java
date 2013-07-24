@@ -18,8 +18,8 @@ package controllers;
 
 import java.util.List;
 import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -57,16 +57,13 @@ public class Application
     MailrMessageSenderFactory mailrSenderFactory;
 
     @Inject
-    MemCachedSessionHandler memCachedSessionHandler;
+    CachingSessionHandler cachingSessionHandler;
 
     @Inject
     Messages messages;
 
     @Inject
     Lang lang;
-
-    @Inject
-    Logger log;
 
     /**
      * Shows the general or logged-in Index-Page <br/>
@@ -80,13 +77,13 @@ public class Application
     {
         Result result = Results.ok().html();
         // set the wanted language
-        if (languageParam != null && !languageParam.equals(""))
+        if (!StringUtils.isBlank(languageParam))
         {
             lang.setLanguage(languageParam, result);
         }
 
         // show the index-page
-        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
+        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, messages);
         return result.render("available_langs", languageList);
     }
 
@@ -102,9 +99,10 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result registerForm(Context context)
     {
+        Result result = Results.html();
         // render the available languages
-        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, messages);
-        return Results.html().render("available_langs", languageList);
+        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, messages);
+        return result.render("available_langs", languageList).render("registerUserData", new UserFormData());
     }
 
     /**
@@ -126,19 +124,16 @@ public class Application
 
         Result result = Results.html().template("/views/Application/registerForm.ftl.html");
 
-        List<String[]> availableLanguageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context,
+        List<String[]> availableLanguageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result,
                                                                            messages);
         result.render("available_langs", availableLanguageList);
         if (validation.hasViolations())
         { // the form contains errors
 
-            registerFormData.setPassword("");
-            registerFormData.setPasswordNew1("");
-            registerFormData.setPasswordNew2("");
-
+            registerFormData.clearPasswordFields();
             context.getFlashCookie().error("flash_FormError");
 
-            return result.render("editUsr", registerFormData);
+            return result.render("registerUserData", registerFormData);
         }
         else
         { // form was filled correctly, go on!
@@ -154,23 +149,19 @@ public class Application
                 {
                     context.getFlashCookie().error("flash_NoLoop");
                     registerFormData.setMail("");
-                    registerFormData.setPassword("");
-                    registerFormData.setPasswordNew1("");
-                    registerFormData.setPasswordNew2("");
+                    registerFormData.clearPasswordFields();
 
-                    return result.render("editUsr", registerFormData);
+                    return result.render("registerUserData", registerFormData);
                 }
                 // block the registration, if the domain is not on the whitelist (and the whitelisting is active)
                 if (xcmConfiguration.APP_WHITELIST)
                 { // whitelisting is active
                     if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
                     { // the domain is not in the whitelist and the whitelist is not empty
-                        context.getFlashCookie().error("registerUser_Flash_NotWhitelisted"); 
-                        registerFormData.setPassword("");
-                        registerFormData.setPasswordNew1("");
-                        registerFormData.setPasswordNew2("");
+                        context.getFlashCookie().error("registerUser_Flash_NotWhitelisted");
+                        registerFormData.clearPasswordFields();
 
-                        return result.render("editUsr", registerFormData);
+                        return result.render("registerUserData", registerFormData);
                     }
                 }
 
@@ -180,28 +171,20 @@ public class Application
                     if (registerFormData.getPasswordNew1().length() < xcmConfiguration.PW_LENGTH)
                     { // password is too short
 
-                        Optional<String> opt = Optional.of(registerFormData.getLanguage());
-
-                        String shortPw = messages.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH).get();
-                        context.getFlashCookie().error(shortPw);
-                        registerFormData.setPassword("");
-                        registerFormData.setPasswordNew1("");
-                        registerFormData.setPasswordNew2("");
-                        return result.render("editUsr", registerFormData);
+                        setShortPwInCtx(registerFormData.getLanguage(), context);
+                        registerFormData.clearPasswordFields();
+                        return result.render("registerUserData", registerFormData);
                     }
                     // create the user
                     User user = registerFormData.getAsUser();
 
                     // handle the language
-
                     if (!Arrays.asList(xcmConfiguration.APP_LANGS).contains(user.getLanguage()))
                     { // the language stored in the user-object does not exist in the app
-                        registerFormData.setPassword("");
-                        registerFormData.setPasswordNew1("");
-                        registerFormData.setPasswordNew2("");
+                        registerFormData.clearPasswordFields();
                         context.getFlashCookie().error("flash_PasswordsUnequal");
 
-                        return result.render("editUsr", registerFormData);
+                        return result.render("registerUserData", registerFormData);
                     }
 
                     // generate the confirmation-token
@@ -216,22 +199,20 @@ public class Application
                     context.getFlashCookie().success("registerUser_Flash_Successful");
 
                     lang.setLanguage(user.getLanguage(), result);
-                    return result.redirect(context.getContextPath() + "/");
+                    return Results.redirect(context.getContextPath() + "/");
                 }
                 else
                 { // password mismatch
-                    registerFormData.setPassword("");
-                    registerFormData.setPasswordNew1("");
-                    registerFormData.setPasswordNew2("");
+                    registerFormData.clearPasswordFields();
                     context.getFlashCookie().error("flash_PasswordsUnequal");
 
-                    return result.render("editUsr", registerFormData);
+                    return result.render("registerUserData", registerFormData);
                 }
             }
             else
             { // mailadress already exists
                 context.getFlashCookie().error("flash_MailExists");
-                return result.render("editUsr", registerFormData);
+                return result.render("registerUserData", registerFormData);
             }
         }
     }
@@ -250,7 +231,7 @@ public class Application
      */
     public Result verifyActivation(@PathParam("id") Long userId, @PathParam("token") String token, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
+        Result result = Results.html();
         User user = User.getById(userId);
         if (user != null)
         { // the user exists
@@ -280,29 +261,7 @@ public class Application
     @FilterWith(NoLoginFilter.class)
     public Result loginForm(Context context)
     {
-        return Results.html();
-    }
-
-    /**
-     * Handles the Logout-Process<br/>
-     * GET /logout
-     * 
-     * @param context
-     *            the Context of this Request
-     * @return the Index-Page
-     */
-    public Result logoutProcess(Context context)
-    {
-
-        // remove the session (memcachedServer and cookie)
-        String sessionKey = context.getSessionCookie().getId();
-        context.getSessionCookie().clear();
-        memCachedSessionHandler.delete(sessionKey);
-
-        // show the index-page
-        Result result = Results.html().template("/views/Application/index.ftl.html");
-        context.getFlashCookie().success("logout_Flash_LogOut");
-        return result.redirect(context.getContextPath() + "/");
+        return Results.html().render(new LoginFormData());
     }
 
     /**
@@ -342,11 +301,11 @@ public class Application
 
                     // we put the username into the cookie, but use the id of the cookie for authentication
                     String sessionKey = context.getSessionCookie().getId();
-                    memCachedSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, loginUser);
+                    cachingSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, loginUser);
                     // set a reverse mapped user-mail -> sessionId-list in the memcached server to handle
                     // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
                     // logged-in)
-                    memCachedSessionHandler.setSessionUser(loginUser, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
+                    cachingSessionHandler.setSessionUser(loginUser, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
 
                     context.getSessionCookie().put("username", loginUser.getMail());
 
@@ -367,8 +326,6 @@ public class Application
                 else
                 { // the authentication was not correct
                     loginUser.setBadPwCount(loginUser.getBadPwCount() + 1);
-                    loginUser.update();
-
                     if (loginUser.getBadPwCount() >= 6)
                     { // the password was six times wrong
                         loginUser.setActive(false);
@@ -378,7 +335,8 @@ public class Application
                         context.getFlashCookie().error("login_Flash_UserDisabled");
                         return result.redirect(context.getContextPath() + "/pwresend");
                     }
-
+                    // update the user here
+                    loginUser.update();
                     loginData.setPassword("");
                     context.getFlashCookie().error("flash_FormError");
                     return result.render(loginData);
@@ -391,6 +349,26 @@ public class Application
                 return result.render(loginData);
             }
         }
+    }
+
+    /**
+     * Handles the Logout-Process<br/>
+     * GET /logout
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return the Index-Page
+     */
+    public Result logoutProcess(Context context)
+    {
+        // remove the session (cachingServer and cookie)
+        String sessionKey = context.getSessionCookie().getId();
+        context.getSessionCookie().clear();
+        cachingSessionHandler.delete(sessionKey);
+
+        // show the index-page
+        context.getFlashCookie().success("logout_Flash_LogOut");
+        return Results.redirect(context.getContextPath() + "/");
     }
 
     /**
@@ -410,30 +388,28 @@ public class Application
      * 
      * @param context
      *            the Context of this Request
-     * @param loginDat
+     * @param loginData
      *            the Data of the Resend-Password-Form (just one Field for the Mail-Address)
      * @param validation
      *            Form validation
      * @return the Index-Page
      */
-    public Result forgotPasswordProcess(Context context, @JSR303Validation LoginFormData loginDat, Validation validation)
+    public Result forgotPasswordProcess(Context context, @JSR303Validation LoginFormData loginData, Validation validation)
     {
-        Result result = Results.html().template("/views/Application/forgotPasswordForm.ftl.html");
         if (validation.hasViolations())
-        {
-            // some fields weren't filled
+        { // some fields weren't filled
             context.getFlashCookie().error("flash_FormError");
-            return result.redirect(context.getContextPath() + "/pwresend");
+            return Results.redirect(context.getContextPath() + "/pwresend");
         }
         else
         {
-            User user = User.getUsrByMail(loginDat.getMail());
+            User user = User.getUsrByMail(loginData.getMail());
 
             if (user != null)
             { // mailadress was correct (exists in the DB)
               // generate a new confirmation token and send it to the given mailadress
 
-                // generate the confirmation-token
+                // generate the confirmation-token and set it in the user object
                 user.setConfirmation(HelperUtils.getRandomSecureString(20));
                 // set the new validity-time
                 user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONFIRMATION_PERIOD).getMillis());
@@ -441,15 +417,12 @@ public class Application
                 Optional<String> lang = Optional.of(user.getLanguage());
                 mailrSenderFactory.sendPwForgotAddressMail(user.getMail(), user.getForename(),
                                                            String.valueOf(user.getId()), user.getConfirmation(), lang);
-                context.getFlashCookie().success("forgotPassword_Flash_Success");
-                return result.redirect(context.getContextPath() + "/");
             }
 
-            // The user doesn't exist in the db, but we show him the success-msg anyway
+            // We always show the success-message, even when the user does not exist
             context.getFlashCookie().success("forgotPassword_Flash_Success");
-            return result.redirect(context.getContextPath() + "/");
+            return Results.redirect(context.getContextPath() + "/");
         }
-
     }
 
     /**
@@ -466,21 +439,19 @@ public class Application
      */
     public Result resetPasswordForm(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
         User user = User.getById(id);
         if (user != null)
         { // the user exists
             if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
             { // the token is right and the request is in time
+                Result result = Results.html();
                 lang.setLanguage(user.getLanguage(), result);
                 // show the form for the new password
-                result = Results.html();
                 return result.render("id", id.toString()).render("token", token);
             }
         }
         // something was wrong, so redirect without any comment to the index-page
-
-        return result.redirect(context.getContextPath() + "/");
+        return Results.redirect(context.getContextPath() + "/");
 
     }
 
@@ -503,7 +474,6 @@ public class Application
     public Result resetPasswordProcess(@PathParam("id") Long id, @PathParam("token") String token, Context context,
                                        @JSR303Validation PasswordFormData passwordFormData, Validation validation)
     {
-        Result result = Results.html().template("/views/Application/index.ftl.html");
         // check the PathParams again
         User user = User.getById(id);
         if (user != null)
@@ -514,17 +484,12 @@ public class Application
                 { // the form was filled correctly
                     if (passwordFormData.getPassword().equals(passwordFormData.getPassword2()))
                     { // the entered PWs are equal
-
                         if (passwordFormData.getPassword().length() < xcmConfiguration.PW_LENGTH)
                         { // check whether the password has the correct length
-
-                            Optional<String> optionalLanguage = Optional.of(user.getLanguage());
-                            String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage,
-                                                                   xcmConfiguration.PW_LENGTH).get();
-                            context.getFlashCookie().error(tooShortPassword);
+                            setShortPwInCtx(user.getLanguage(), context);
                             passwordFormData.setPassword("");
                             passwordFormData.setPassword2("");
-                            return result.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
+                            return Results.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
                         }
                         user.hashPasswd(passwordFormData.getPassword());
                         user.setActive(true);
@@ -534,22 +499,34 @@ public class Application
                         user.setTs_confirm(DateTime.now().getMillis());
                         user.update();
                         context.getFlashCookie().success("flash_DataChangeSuccess");
-                        return result.redirect(context.getContextPath() + "/");
+                        return Results.redirect(context.getContextPath() + "/");
                     }
                     else
                     { // the passwords are not equal
                         context.getFlashCookie().error("flash_PasswordsUnequal");
-                        return result.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
+                        return Results.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
                     }
                 }
                 else
                 { // the form has errors
                     context.getFlashCookie().error("flash_FormError");
-                    return result.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
+                    return Results.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
                 }
             }
         }
         // if the link was wrong -> redirect without any message
-        return result.redirect(context.getContextPath() + "/");
+        return Results.redirect(context.getContextPath() + "/");
+    }
+    
+    /**
+     * Sets the "password is too short"-message to the context 
+     * @param language the language to use
+     * @param context the context object
+     */
+    private void setShortPwInCtx(String language, Context context){
+        Optional<String> optionalLanguage = Optional.of(language);
+        String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage,
+                                               xcmConfiguration.PW_LENGTH).get();
+        context.getFlashCookie().error(tooShortPassword);
     }
 }

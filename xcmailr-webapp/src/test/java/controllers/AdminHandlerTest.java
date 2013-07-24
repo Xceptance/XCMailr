@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.spy;
 
 import java.util.Map;
 
@@ -11,17 +12,25 @@ import org.apache.http.cookie.Cookie;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import com.google.common.collect.Maps;
 
 import models.MailTransaction;
 import models.User;
 import ninja.NinjaTest;
+import ninja.utils.NinjaProperties;
+import ninja.utils.NinjaPropertiesImpl;
 
+@RunWith(MockitoJUnitRunner.class)
 public class AdminHandlerTest extends NinjaTest
 {
     Map<String, String> headers = Maps.newHashMap();
 
     Map<String, String> formParams = Maps.newHashMap();
+
+    NinjaProperties ninjaProperties;
 
     String result;
 
@@ -30,11 +39,17 @@ public class AdminHandlerTest extends NinjaTest
     @Before
     public void setUp()
     {
+        //get the admin-account from the application.conf-file
+        ninjaProperties = spy(new NinjaPropertiesImpl());
+        String adminAccName = ninjaProperties.get("mbox.adminaddr");
+        String adminPassword = ninjaProperties.get("admin.pass");
+        
+        
         // get the adminaccount and login
         headers.put("Accept-Language", "en-US");
-        admin = User.getUsrByMail("admin@xcmailr.test");
-        formParams.put("mail", "admin@xcmailr.test");
-        formParams.put("password", "1234");
+        admin = User.getUsrByMail(adminAccName);
+        formParams.put("mail", adminAccName);
+        formParams.put("password", adminPassword);
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress() + "/login",
                                                                     headers, formParams);
@@ -185,8 +200,8 @@ public class AdminHandlerTest extends NinjaTest
         // create some transactions
         MailTransaction mtx1 = new MailTransaction(200, "test@abc", "", "somewhere");
         MailTransaction mtx2 = new MailTransaction(100, "tsest@abc", "", "somewhere");
-        mtx1.saveTx();
-        mtx2.saveTx();
+        mtx1.save();
+        mtx2.save();
         // delete all entries
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs/delete/-1");
         assertFalse(result.contains("FreeMarker template error"));
@@ -213,7 +228,7 @@ public class AdminHandlerTest extends NinjaTest
         assertTrue(result.equals("[]"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: one search string
          */
