@@ -18,6 +18,7 @@ package controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
@@ -67,6 +68,8 @@ public class AdminHandler
 
     @Inject
     CachingSessionHandler cachingSessionHandler;
+    
+    private static final Pattern PATTERN_DOMAINS = Pattern.compile("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}");
 
     /**
      * Shows the Administration-Index-Page<br/>
@@ -399,7 +402,7 @@ public class AdminHandler
     {
         if (!StringUtils.isBlank(domainName))
         {
-            if (domainName.matches("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}"))
+            if (PATTERN_DOMAINS.matcher(domainName).matches())
             {
                 if (!Domain.exists(domainName))
                 {

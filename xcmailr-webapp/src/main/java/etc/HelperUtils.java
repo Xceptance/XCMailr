@@ -20,6 +20,8 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Pattern;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -36,6 +38,7 @@ import com.google.inject.Singleton;
 public class HelperUtils
 {
 
+    private static final Pattern PATTERN_DATEFORMAT = Pattern.compile("(\\d+){4}[\\-](\\d+){1,2}[\\-](\\d+){1,2}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}");
     /**
      * Generates a random name, generated with {@link java.util.Random} and an Alphabet of 0-9,a-z,A-Z <br/>
      * e.g. for the Mailbox
@@ -171,7 +174,7 @@ public class HelperUtils
     {
         input = input.trim();
 
-        if (input.matches("(\\d+){4}[\\-](\\d+){1,2}[\\-](\\d+){1,2}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}"))
+        if (PATTERN_DATEFORMAT.matcher(input).matches())
         {
             return true;
         }

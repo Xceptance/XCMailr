@@ -19,6 +19,8 @@ package controllers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Results;
@@ -52,6 +54,7 @@ public class BoxHandler
     @Inject
     XCMailrConf xcmConfiguration;
 
+    private static final Pattern PATTERN_CS_BOXIDS = Pattern.compile("[(\\d+)][(\\,)(\\d+)]*");
     /**
      * Shows the "new Mail-Forward"-Page <br/>
      * GET /mail/add
@@ -437,8 +440,8 @@ public class BoxHandler
         User user = context.getAttribute("user", User.class);
 
         if (!StringUtils.isBlank(action) && !StringUtils.isBlank(boxIds))
-        {
-            if (boxIds.matches("[(\\d+)][(\\,)(\\d+)]*"))
+        { 
+            if (PATTERN_CS_BOXIDS.matcher(boxIds).matches())
             {// the list of boxIds have to be in the form of comma-separated-ids
                 String[] splittedIds = boxIds.split("\\,");
 
