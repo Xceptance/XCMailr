@@ -31,6 +31,7 @@ import org.joda.time.DateTime;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
+import models.JsonMBox;
 import models.MBox;
 import models.MailBoxFormData;
 import models.PageList;
@@ -181,6 +182,25 @@ public class BoxHandler
             MBox.delete(boxId);
         }
         return Results.redirect(context.getContextPath() + "/mail");
+    }
+    /**
+     * Deletes a Box from the DB <br/>
+     * POST /mail/delete/{id}
+     * 
+     * @param boxId
+     *            the ID of the Mailbox
+     * @param context
+     *            the Context of this Request
+     * @return the Mailbox-Overview-Page
+     */
+    public Result deleteBoxProcesse(@PathParam("id") Long boxId, Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        if (MBox.boxToUser(boxId, user.getId()))
+        { // deletes the box from DB
+            MBox.delete(boxId);
+        }
+        return Results.ok();
     }
 
     /**
@@ -361,6 +381,67 @@ public class BoxHandler
         result.render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
         return result;
     }
+    
+    /**
+     * Generates the Angularized Mailbox-Overview-Page of a {@link User}. <br/>
+     * GET /mail
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return the Mailbox-Overview-Page
+     */
+
+    public Result showAngularBoxOverview(Context context)
+    {
+        Result result = Results.html();
+        User user = context.getAttribute("user", User.class);
+        // set a default number or the number which the user had chosen
+        HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
+        // get the default number of entries per page
+        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
+
+        String searchString = context.getParameter("s", "");
+        PageList<MBox> plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
+
+        if (!searchString.isEmpty())
+        {
+            result.render("searchValue", searchString);
+        }
+
+        result.render("mboxes", plist);
+
+        long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
+        result.render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
+        return result;
+    }
+    
+    /**
+     * Handles JSON-Requests for the search <br/>
+     * GET /mail/search
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return a JSON-Array with the boxes
+     */
+    public Result jsonBox(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        List<MBox> boxList;
+        Result result = Results.json();
+        String searchString = context.getParameter("s", "");
+
+        boxList =  MBox.findBoxLike(searchString, user.getId());
+
+        // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
+        // so we need to transform the data which does not contain the reference
+        List<JsonMBox> mbdlist = new ArrayList<JsonMBox>();
+        for (MBox mb : boxList)
+        {
+            JsonMBox mailboxdata = JsonMBox.prepopulate(mb);
+            mbdlist.add(mailboxdata);
+        }
+        return result.json().render(mbdlist);
+    }
 
     /**
      * Sets the Box valid/invalid <br/>
@@ -417,6 +498,30 @@ public class BoxHandler
             mailBox.update();
         }
         return Results.redirect(context.getContextPath() + "/mail");
+    }
+    /**
+     * Sets the Values of the Counters for the Box, given by their ID, to zero <br/>
+     * POST /mail/reset/{id}
+     * 
+     * @param boxId
+     *            the ID of the Mailbox
+     * @param context
+     *            the Context of this Request
+     * @return the Mailbox-Overview-Page
+     */
+    public Result resetBoxCounterProcesse(@PathParam("id") Long boxId, Context context)
+    {
+        MBox mailBox = MBox.getById(boxId);
+        User user = context.getAttribute("user", User.class);
+
+        // check if the mailbox belongs to the current user
+        if (mailBox.belongsTo(user.getId()))
+        {
+            mailBox.resetForwards();
+            mailBox.resetSuppressions();
+            mailBox.update();
+        }
+        return Results.ok();
     }
 
     /**

@@ -67,6 +67,10 @@ public class Routes implements ApplicationRoutes
          */
         router.GET().route("/mail").with(BoxHandler.class, "showBoxOverview");
         router.POST().route("/mail").with(BoxHandler.class, "showBoxOverview");
+        
+        router.GET().route("/angmail").with(BoxHandler.class, "showAngularBoxOverview");
+        router.POST().route("/angmail").with(BoxHandler.class, "showAngularBoxOverview");
+        router.GET().route("/mail/angget").with(BoxHandler.class, "jsonBox");
 
         router.GET().route("/mail/add").with(BoxHandler.class, "addBoxForm");
         router.POST().route("/mail/add").with(BoxHandler.class, "addBoxProcess");
@@ -74,7 +78,8 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/mail/bulkChange").with(BoxHandler.class, "bulkChangeBoxes");
 
         router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxProcess");
-
+        router.POST().route("/mail/delete2/{id}").with(BoxHandler.class, "deleteBoxProcesse");
+        
         router.GET().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxForm");
         router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxProcess");
 
@@ -84,6 +89,7 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/mail/myactivemaillist.txt").with(BoxHandler.class, "showActiveMailsAsTextList");
 
         router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounterProcess");
+        router.POST().route("/mail/reset2/{id}").with(BoxHandler.class, "resetBoxCounterProcesse");
 
         router.GET().route("/mail/search").with(BoxHandler.class, "jsonBoxSearch");
 
