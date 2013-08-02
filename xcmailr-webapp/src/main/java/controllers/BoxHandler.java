@@ -734,4 +734,8 @@ public class BoxHandler
         User user = context.getAttribute("user", User.class);
         return Results.contentType("text/plain").render(MBox.getActiveMailsForTxt(user.getId()));
     }
+    
+    public Result addBoxDialog(){
+        return Results.html();
+    }
 }

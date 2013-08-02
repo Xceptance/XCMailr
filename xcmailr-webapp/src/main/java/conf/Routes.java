@@ -71,6 +71,7 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/angmail").with(BoxHandler.class, "showAngularBoxOverview");
         router.POST().route("/angmail").with(BoxHandler.class, "showAngularBoxOverview");
         router.GET().route("/mail/angget").with(BoxHandler.class, "jsonBox");
+        router.GET().route("/mail/addBoxDialog.html").with(BoxHandler.class, "addBoxDialog");
 
         router.GET().route("/mail/add").with(BoxHandler.class, "addBoxForm");
         router.POST().route("/mail/add").with(BoxHandler.class, "addBoxProcess");

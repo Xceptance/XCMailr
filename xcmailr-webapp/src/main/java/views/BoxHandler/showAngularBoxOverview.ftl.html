@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app>
+<html ng-app="BoxHandler">
   <head>
     <meta charset="utf-8">
     <title>XCMailr - ${i18n("mailbox_Title")}</title>
@@ -32,9 +32,12 @@
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="${contextPath}/assets/ico/apple-touch-icon-72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="${contextPath}/assets/ico/apple-touch-icon-57-precomposed.png">
     <script type="text/javascript" src="${contextPath}/assets/js/angular.min.js"> </script>
+    <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-0.4.0.js"> </script>
+    <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-tpls-0.4.0.js"> </script>
     <script type="text/javascript" src="${contextPath}/assets/js/controllers.js"> </script>
   </head>
-  <body ng-controller="BoxListCtrl">
+  <body>
+  
   <#include "../layout/header.ftl.html"/>
     <div class="container">
         <div class="container-fluid">
@@ -53,7 +56,7 @@
 			<div class="row-fluid">
 			<!-- start page -->
 <#import "../layout/macros.ftl.html" as pag/>
-<div class="row">
+<div class="row" ng-controller="BoxListCtrl" id="overViewCtrl">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<!--mailboxoverview-->
 	<table class="table table-hover table-condensed">
@@ -74,7 +77,7 @@
 		    <tbody>
 				<tr ng-repeat= "mBox in boxes" ng-class="{ true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}">   
 
-		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}"></td>
+		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]"></td>
 				<td class="mbAddress">{{mBox.address}}&#064;{{mBox.domain}}</td>
 				<td>{{mBox.dateTime}}</td>						
 				<td>{{mBox.forwards}}</td>
@@ -109,12 +112,12 @@
 			</tr>
 		</tbody>
     </table>
-
+<a href="javascript:;" data-ng-click="ShowSelected()">Show Selected</a>
 <!-- end page -->
-	        </div>
-		</div>
-        <#include "../layout/footer.ftl.html"/>
-    </div> <!-- /container -->
+</div>
+</div>
+<#include "../layout/footer.ftl.html"/>
+</div> <!-- /container -->
 
 </body>
 </html>
