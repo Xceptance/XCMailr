@@ -3,36 +3,81 @@ function BoxListCtrl($scope, $dialog, $http) {
 
 $scope.selected = {};
 
+// load the boxes
 $http.get('/mail/angget').success(function(data){
-	$scope.boxes = data;
+	$scope.allBoxes = data;
+    $scope.noOfPages = $scope.setNumPages();
+    
+    // listener for page-changes
+    $scope.paginationListener = $scope.$watch('currentPage + maxSize + allBoxes.length', function() {
+    	if($scope.maxSize > 0)
+    	{
+	  	    var begin = (($scope.currentPage - 1) * $scope.maxSize)
+	  	    , end = begin + $scope.maxSize;
+	  	    $scope.filteredBoxes = $scope.allBoxes.slice(begin, end);
+    	}else
+		{
+    		$scope.filteredBoxes = $scope.allBoxes;
+		}
+  	  });
 	});
 
 	$scope.deleteBox = function(boxId, elementIdx, contextPath){
 		$http.post(contextPath+'/mail/delete/'+boxId, null).success(function(){
-		$scope.boxes.splice(elementIdx, 1);
+		$scope.allBoxes.splice(elementIdx, 1);
 		});
 	}
 	$scope.resetBox = function(boxId, elementIdx, contextPath){
 		$http.post(contextPath+'/mail/reset2/'+boxId, null).success(function(){
-		$scope.boxes[elementIdx].suppressions=0;
-		$scope.boxes[elementIdx].forwards=0;
+		$scope.allBoxes[elementIdx].suppressions=0;
+		$scope.allBoxes[elementIdx].forwards=0;
 		});
 	}
-
+	
 	$scope.toggleMenu = function(boxId){
 		return !$scope.toggleMenu;
 	}
 
     $scope.ShowSelected = function() {
-      $scope.boxes = $.grep($scope.boxes, function( box ) {
+      $scope.allBoxes = $.grep($scope.allBoxes, function( box ) {
         return $scope.selected[ box.id ];
       });
     };  
 
+    /*
+     *  handle the pagination
+     */
+    $scope.noOfPages = 1;
+    $scope.currentPage = 1;
+    $scope.maxSize = 15;
+    
+    //set the page
+    $scope.setPage = function (pageNo) {
+        $scope.currentPage = pageNo;
+      };
+      //set the page-size
+      $scope.setMaxSize = function (size) {
+          $scope.maxSize = size;
+          $scope.noOfPages = $scope.setNumPages();
+          $scope.currentPage = 1;
+        };
+        
+      //set the number of pages
+      $scope.setNumPages = function(){
+    	  if($scope.maxSize != 0)
+    	  {
+    		  return Math.ceil($scope.allBoxes.length / $scope.maxSize);
+    	  }else
+    	  {
+    		return 1;  
+    	  }
+      }  
+      
 
 
-
-
+      /*
+       * handle the addboxdialog (TODO)
+       */
   $scope.opts = {
     backdrop: true,
     keyboard: true,
@@ -43,7 +88,7 @@ $http.get('/mail/angget').success(function(data){
   
 
   $scope.openDialog = function(elementIdx, data){
-    $scope.currentBox = $scope.boxes[elementIdx];
+    $scope.currentBox = $scope.allBoxes[elementIdx];
     var d = $dialog.dialog($scope.opts);
     d.open().then(function(result){
       if(result)

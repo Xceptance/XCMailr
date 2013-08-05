@@ -39,7 +39,7 @@
   <body>
   
   <#include "../layout/header.ftl.html"/>
-    <div class="container">
+<div class="container">
         <div class="container-fluid">
 	    	<div class="row-fluid">
 
@@ -53,8 +53,8 @@
 				        <p class="alert alert-info"><strong> ${flash_info}</strong></p>
 				</#if>
 			</div>
-			<div class="row-fluid">
-			<!-- start page -->
+<div class="row-fluid">
+<!-- start page -->
 <#import "../layout/macros.ftl.html" as pag/>
 <div class="row" ng-controller="BoxListCtrl" id="overViewCtrl">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
@@ -63,59 +63,71 @@
 		<thead>
 		    <tr>
 		    	<th></th>
-		    	<th class="header">${i18n("mailbox_Header_Address")}</th>	
-		    	<th class="header">${i18n("mailbox_Header_Duration")}</th>
-		    	<th class="header">${i18n("mailbox_Header_Forwards")}</th>
-		    	<th class="header">${i18n("mailbox_Header_Suppressions")}</th>
-		    	<th class="header">${i18n("mailbox_Header_Valid")}</th>
+		    	<th class="header"><a ng-click="predicate= 'address'; reverse=!reverse">${i18n("mailbox_Header_Address")}</a></th>	
+		    	<th class="header"><a ng-click="predicate= 'dateTime'; reverse=!reverse">${i18n("mailbox_Header_Duration")}</a></th>
+		    	<th class="header"><a ng-click="predicate= 'forwards'; reverse=!reverse">${i18n("mailbox_Header_Forwards")}</a></th>
+		    	<th class="header"><a ng-click="predicate= 'suppressions'; reverse=!reverse">${i18n("mailbox_Header_Suppressions")}</a></th>
+		    	<th class="header"><a ng-click="predicate= '!expired'; reverse=!reverse">${i18n("mailbox_Header_Valid")}</a></th>
 		    	<th>${i18n("mailbox_Header_Renew")}</th>
-			    <th>${i18n("mailbox_Header_Delete")}</th>  	
-			    <th>${i18n("mailbox_Header_Reset")}</th> 
-			    <th>${i18n("mailbox_Header_Edit")}</th>
 		    </tr>
 		    </thead>
-		    <tbody>
-				<tr ng-repeat= "mBox in boxes" ng-class="{ true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}">   
+		    <tbody ng-repeat= "mBox in filteredBoxes | orderBy:predicate:reverse">
+				<tr ng-class="{ true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overM = true; overId=$index" ng-mouseleave="overM=false">   
+			    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]"></td>
+					<td class="mbAddress"><div class="row-fluid">{{mBox.address}}&#064;{{mBox.domain}}</div>
+					<div class="row-fluid">
+						<span ng-show="overM && ($index == overId)"> 
+						<form class="nomarg" action="${contextPath}/mail/expire/{{mBox.id}}" method="post">
+		                    <button type="submit" class="btn btn-mini btn-link"  id="btnDeactivate{{mBox.boxId}}" value='${i18n("mailbox_Button_Deactivate")}'>  <i class="icon-play"></i></button> 
+		                </form>
+		    			<a class="btn btn-mini btn-link" ng-click="deleteBox({{mBox.id}}, $index, '${contextPath}')">
+		    				<i class="icon-trash"></i> ${i18n("mailbox_Button_Delete")}
+		    			</a>
 
-		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]"></td>
-				<td class="mbAddress">{{mBox.address}}&#064;{{mBox.domain}}</td>
-				<td>{{mBox.dateTime}}</td>						
-				<td>{{mBox.forwards}}</td>
-				<td>{{mBox.suppressions}}</td>
-				<td ng-if="!mBox.expired"> ${i18n("mailbox_Label_MailActive")} </td>
-   				<td ng-if="mBox.expired"> ${i18n("mailbox_Label_MailExpired")} </td>
-    			<td ng-if="!mBox.expired">
-	    			<form class="nomarg" action="${contextPath}/mail/expire/{{mBox.id}}" method="post">
-	                    <button type="submit" class="btn  btn-mini btn-link"  id="btnDeactivate{{mBox.boxId}}" value='${i18n("mailbox_Button_Deactivate")}'> <i class="icon-pause"></i></button>
-	                </form>
-                </td>
-                <td ng-if="mBox.expired">
-	    			<form class="nomarg" action="${contextPath}/mail/expire/{{mBox.id}}" method="post">
-	                    <button type="submit" class="btn btn-mini btn-link"  id="btnDeactivate{{mBox.boxId}}" value='${i18n("mailbox_Button_Deactivate")}'>  <i class="icon-play"></i></button> 
-	                </form>
-                </td>
-    			<td>
-	    			<a class="btn btn-mini btn-link" ng-click="deleteBox({{mBox.id}}, $index, '${contextPath}')">
-	    				<i class="icon-trash"></i> ${i18n("mailbox_Button_Delete")}
-	    			</a>
-                </td>
-                <td>
-	                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index, '${contextPath}')">
-	    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
-	    			</a>
-                </td> 
-		        <td> 
-		        	<a href="${contextPath}/mail/edit/{{mBox.id}}" class="btn btn-mini btn-link" >
-		        		<i class="icon-edit"></i> ${i18n("mailbox_Button_Edit")}
-		        	</a>
-		        </td>
-			</tr>
+		                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index, '${contextPath}')" >
+		    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
+		    			</a>
+			        	<a href="${contextPath}/mail/edit/{{mBox.id}}" class="btn btn-mini btn-link">
+			        		<i class="icon-edit"></i> ${i18n("mailbox_Button_Edit")}
+			        	</a>
+			        	</span>
+					</div>
+					
+					</td>
+					<td>{{mBox.dateTime}}</td>						
+					<td>{{mBox.forwards}}</td>
+					<td>{{mBox.suppressions}}</td>
+					<td ng-if="!mBox.expired"> ${i18n("mailbox_Label_MailActive")} </td>
+	   				<td ng-if="mBox.expired"> ${i18n("mailbox_Label_MailExpired")} </td>
+					<td>
+					</td>
+
+				</tr>
 		</tbody>
     </table>
 <a href="javascript:;" data-ng-click="ShowSelected()">Show Selected</a>
 <!-- end page -->
-</div>
-</div>
+	<div class="pagination">
+    <div class="row-fluid">
+  	<div class="pull-left">
+    <pagination num-pages="noOfPages" current-page="currentPage" max-size="maxSize"></pagination>
+    The selected page no: {{currentPage}}, PNoTotal: {{noOfPages}}, MaxSize: {{maxSize}} , BLength: {{allBoxes.length}}
+    </div>
+
+		<ul class ="pull-right">
+			<li class="disabled"><a>${i18n("macro_EntriesPerPage")}</a></li>
+			<li><a class="btn btn-link btn-small" ng-click="setMaxSize(5)" >5</a></li>
+			<li><a class="btn btn-link btn-small" ng-click="setMaxSize(15)" >15</a></li>
+			<li><a class="btn btn-link btn-small" ng-click="setMaxSize(25)" >25</a></li>
+			<li><a class="btn btn-link btn-small" ng-click="setMaxSize(50)" >50</a></li>
+			<li><a class="btn btn-link btn-small" ng-click="setMaxSize(0)" >all</a></li>
+		</ul>
+	</div>
+	</div> 
+</div><!-- /row -->
+
+</div><!-- /row-fluid -->
+</div> <!-- /container-fluid -->
 <#include "../layout/footer.ftl.html"/>
 </div> <!-- /container -->
 

@@ -1,38 +1,38 @@
-	<div id="addBoxModal" class="modal" tabindex="-1"	role="dialog">
-<div class="modal-header"  ng-controller="BoxListCtrl">
-<h3>This is the title</h3>
-</div>
-				<div class="control-group" id="emailRow">
-					<label class="control-label" for="address">
-						${i18n("editEmail_Label_Address")}* </label>
-					<div class="controls"  id="emailRowControl">
-						<div class="input-append" id="mailInputDiv">
-							<input class="input_full" type="text" id="address" name="address" value="{{boxes[elementIdx].address}}" required="required" />
-							 <span class="add-on">@</span>								 
-							</div>
-					</div>
+<div id="addBoxModal" class="modal" tabindex="-1"	role="dialog">
+	<div class="modal-header"  ng-controller="BoxListCtrl">
+		<h3>This is the title</h3>
+	</div>
+	<div class="control-group" id="emailRow">
+		<label class="control-label" for="address">
+			${i18n("editEmail_Label_Address")}* </label>
+		<div class="controls"  id="emailRowControl">
+			<div class="input-append" id="mailInputDiv">
+				<input class="input_full" type="text" id="address" name="address" value="{{boxes[elementIdx].address}}" required="required" />
+				 <span class="add-on">@</span>								 
 				</div>
-				<!-- row: life-time of the address -->
-				<div class="control-group">
-					<label class="control-label" for="datetime">${i18n("editEmail_Label_Duration")}* </label>
-					<div class="controls">
-						<div id="datetimepicker" class="input-append">
-							<input data-format="yyyy-MM-dd hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required" /> <span id="pickr_span" class="add-on">
-								<i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
-							</span>
-						</div>
-					</div>
-					<div class="controls">
-							<label class="checkbox"> 
-								<input type="checkbox"	id="chkUnlimited" onClick="toggle(this)"/> ${i18n("editEmail_Unlimited")}
-							</label>
-						</div>
-					</div>	
-					<div class="form-actions">
-						<input type="button" class="btn" id="btnReset" value='${i18n("editEmail_Button_Reset")}'/>
-						<input type="submit" class="btn btn-primary" value='${i18n("editEmail_Button_Edit")}' />
-					</div>
-          <div class="modal-footer">
-          <button ng-click="close(result)" class="btn btn-primary" >Close</button>
-      </div>
-  </div>
+		</div>
+	</div>
+	<!-- row: life-time of the address -->
+	<div class="control-group">
+		<label class="control-label" for="datetime">${i18n("editEmail_Label_Duration")}* </label>
+		<div class="controls">
+			<div id="datetimepicker" class="input-append">
+				<input data-format="yyyy-MM-dd hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required" /> <span id="pickr_span" class="add-on">
+					<i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+				</span>
+			</div>
+		</div>
+		<div class="controls">
+			<label class="checkbox"> 
+				<input type="checkbox"	id="chkUnlimited" onClick="toggle(this)"/> ${i18n("editEmail_Unlimited")}
+			</label>
+		</div>
+	</div>	
+	<div class="form-actions">
+		<input type="button" class="btn" id="btnReset" value='${i18n("editEmail_Button_Reset")}'/>
+		<input type="submit" class="btn btn-primary" value='${i18n("editEmail_Button_Edit")}' />
+	</div>
+    <div class="modal-footer">
+       <button ng-click="close(result)" class="btn btn-primary" >Close</button>
+   	</div>
+</div>
