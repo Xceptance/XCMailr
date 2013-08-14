@@ -86,15 +86,17 @@ $scope.allBoxes = {};
   };
   
 
-  $scope.openDialog = function(elementIdx, data){
-    $scope.currentBox = $scope.allBoxes[elementIdx];
-    var d = $dialog.dialog($scope.opts);
-    d.open().then(function(result){
-      if(result)
-      {
-        alert('dialog closed with result: ' + result);
-      }
-    });
+  $scope.openDialog = function(elementIdx){
+	  	$scope.currentBox = $scope.allBoxes[elementIdx];
+	  	var d = $dialog.dialog($scope.opts);
+	  	d.open().then(
+			function(result){
+			      if(result)
+			      {
+			        alert('dialog closed with result: ' + result);
+			      }
+			}
+	  	);
   };
 
   

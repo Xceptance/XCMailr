@@ -86,7 +86,7 @@
 		                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index, '${contextPath}')" >
 		    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
 		    			</a>
-			        	<a href="${contextPath}/mail/edit/{{mBox.id}}" class="btn btn-mini btn-link">
+			        	<a ng-click="openDialog($index)"  class="btn btn-mini btn-link"> <!-- href="${contextPath}/mail/edit/{{mBox.id}}" -->
 			        		<i class="icon-edit"></i> ${i18n("mailbox_Button_Edit")}
 			        	</a>
 			        	</span>
