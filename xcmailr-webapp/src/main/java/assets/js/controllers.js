@@ -2,36 +2,35 @@ angular.module('BoxHandler', ['ui.bootstrap']);
 function BoxListCtrl($scope, $dialog, $http) {
 
 $scope.selected = {};
-
-// load the boxes
-$http.get('/mail/angget').success(function(data){
-	$scope.allBoxes = data;
-    $scope.noOfPages = $scope.setNumPages();
-    
-    // listener for page-changes
-    $scope.paginationListener = $scope.$watch('currentPage + maxSize + allBoxes.length', function() {
-    	if($scope.maxSize > 0)
-    	{
-	  	    var begin = (($scope.currentPage - 1) * $scope.maxSize)
-	  	    , end = begin + $scope.maxSize;
-	  	    $scope.filteredBoxes = $scope.allBoxes.slice(begin, end);
-    	}else
-		{
-    		$scope.filteredBoxes = $scope.allBoxes;
-		}
-  	  });
-	});
-
+$scope.allBoxes = {};
+	// load the boxes
+	$scope.updateModel = function(){ 
+		$http.get('/mail/angget').success(
+			function(data){
+				$scope.allBoxes = data;
+			    $scope.noOfPages = $scope.setNumPages();
+			}
+	
+		);
+	};
+	
+	// deleteBox
 	$scope.deleteBox = function(boxId, elementIdx, contextPath){
-		$http.post(contextPath+'/mail/delete/'+boxId, null).success(function(){
-		$scope.allBoxes.splice(elementIdx, 1);
-		});
+		$http.post(contextPath + '/mail/delete2/' + boxId, null).success(
+			function(){
+				$scope.allBoxes.splice(elementIdx, 1);
+			}
+		);
 	}
+	
+	// resetBox
 	$scope.resetBox = function(boxId, elementIdx, contextPath){
-		$http.post(contextPath+'/mail/reset2/'+boxId, null).success(function(){
-		$scope.allBoxes[elementIdx].suppressions=0;
-		$scope.allBoxes[elementIdx].forwards=0;
-		});
+		$http.post(contextPath + '/mail/reset2/' + boxId, null).success(
+				function(){
+					$scope.allBoxes[elementIdx].suppressions = 0;
+					$scope.allBoxes[elementIdx].forwards = 0;
+				}
+			);
 	}
 	
 	$scope.toggleMenu = function(boxId){
@@ -39,45 +38,45 @@ $http.get('/mail/angget').success(function(data){
 	}
 
     $scope.ShowSelected = function() {
-      $scope.allBoxes = $.grep($scope.allBoxes, function( box ) {
-        return $scope.selected[ box.id ];
+    	$scope.allBoxes = $.grep($scope.allBoxes, function( box ) {
+    		return $scope.selected[ box.id ];
       });
     };  
 
     /*
-     *  handle the pagination
-     */
+	 * handle the pagination
+	 */
     $scope.noOfPages = 1;
     $scope.currentPage = 1;
     $scope.maxSize = 15;
     
-    //set the page
+
+    // set the page
     $scope.setPage = function (pageNo) {
         $scope.currentPage = pageNo;
-      };
-      //set the page-size
-      $scope.setMaxSize = function (size) {
-          $scope.maxSize = size;
-          $scope.noOfPages = $scope.setNumPages();
-          $scope.currentPage = 1;
-        };
+    };
+      
+      // set the page-size
+	$scope.setMaxSize = function (size) {
+	    $scope.maxSize = size;
+	    $scope.noOfPages = $scope.setNumPages();
+	    $scope.currentPage = 1;
+	};
         
-      //set the number of pages
+      // set the number of pages
       $scope.setNumPages = function(){
     	  if($scope.maxSize != 0)
     	  {
     		  return Math.ceil($scope.allBoxes.length / $scope.maxSize);
     	  }else
     	  {
-    		return 1;  
+    		  return 1;  
     	  }
       }  
-      
-
 
       /*
-       * handle the addboxdialog (TODO)
-       */
+		 * handle the addboxdialog (TODO)
+		 */
   $scope.opts = {
     backdrop: true,
     keyboard: true,
@@ -98,6 +97,30 @@ $http.get('/mail/angget').success(function(data){
     });
   };
 
+  
+  $scope.updateModel();
+  $scope.noOfPages = $scope.setNumPages();		
+	// listener for page-changes
+	$scope.paginationListener = $scope.$watch('currentPage + maxSize + allBoxes.length', 
+		function() {
+			if($scope.maxSize > 0 && $scope.allBoxes.length > 0)
+			{
+		  	    var begin = (($scope.currentPage - 1) * $scope.maxSize);
+		  	    var end = begin + $scope.maxSize;
+		  	    $scope.filteredBoxes = $scope.allBoxes.slice(begin, end);
+			}
+			else
+			{
+				$scope.filteredBoxes = $scope.allBoxes;
+			}
+	  	}
+	);
+	
+	$scope.boxCountListener = $scope.$watch('allBoxes.length', 
+			function(){
+				$scope.noOfPages = $scope.setNumPages();		
+			}
+		);
 }
 
  // the dialog is injected in the specified controller

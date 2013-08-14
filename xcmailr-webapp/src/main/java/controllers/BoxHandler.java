@@ -93,7 +93,80 @@ public class BoxHandler
 
     /**
      * Adds a Mailbox to the {@link User}-Account <br/>
-     * POST of /mail/add
+     * POST /mail/add
+     * 
+     * @param context
+     *            the Context of this Request
+     * @param mailboxFormData
+     *            the Data of the Mailbox-Add-Form
+     * @param validation
+     *            Form validation
+     * @return the Add-Box-Form (on Error) or the Box-Overview
+     */
+    public Result addBoxJsonProcess(Context context, @JSR303Validation MailBoxFormData mailboxFormData,
+                                Validation validation)
+    {
+        Result result = Results.html().template("/views/BoxHandler/addBoxForm.ftl.html");
+        result.render("domain", xcmConfiguration.DOMAIN_LIST);
+        result.render("mbFrmDat", mailboxFormData);
+
+        if (validation.hasViolations())
+        { // not all fields were filled (correctly)
+            context.getFlashCookie().error("flash_FormError");
+            return result;
+        }
+        else
+        {
+            // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
+            String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
+            if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() > 254)
+            {
+                context.getFlashCookie().error("createEmail_Flash_MailTooLong");
+                return result;
+            }
+            // checks whether the email address already exists
+            if (MBox.mailExists(mailboxFormData.getAddress(), mailboxFormData.getDomain()))
+            {
+                // the mailbox already exists
+                context.getFlashCookie().error("flash_MailExists");
+                return result;
+            }
+            else
+            {
+                String mailBoxName = mailboxFormData.getAddress().toLowerCase();
+                // set the data of the box
+                String[] domains = xcmConfiguration.DOMAIN_LIST;
+                if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
+                { // the new domain-name does not exist in the application.conf
+                  // stop the process and return to the mailbox-overview page
+                    return Results.redirect(context.getContextPath() + "/angmail");
+                }
+                Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
+                if (ts == -1L)
+                { // show an error-page if the timestamp is faulty
+                    context.getFlashCookie().error("flash_FormError");
+                    return result;
+                }
+                if ((ts != 0) && (ts < DateTime.now().getMillis()))
+                { // the Timestamp lays in the past
+                    context.getFlashCookie().error("createEmail_Past_Timestamp");
+                    return result;
+                }
+
+                // create the MBox
+                User user = context.getAttribute("user", User.class);
+                MBox mailBox = new MBox(mailBoxName, mailboxFormData.getDomain(), ts, false, user);
+
+                // creates the Box in the DB
+                mailBox.save();
+                return Results.redirect(context.getContextPath() + "/angmail");
+            }
+        }
+    }
+    
+    /**
+     * Adds a Mailbox to the {@link User}-Account <br/>
+     * POST /mail/add
      * 
      * @param context
      *            the Context of this Request
@@ -183,6 +256,7 @@ public class BoxHandler
         }
         return Results.redirect(context.getContextPath() + "/mail");
     }
+    
     /**
      * Deletes a Box from the DB <br/>
      * POST /mail/delete/{id}
@@ -193,15 +267,16 @@ public class BoxHandler
      *            the Context of this Request
      * @return the Mailbox-Overview-Page
      */
-    public Result deleteBoxProcesse(@PathParam("id") Long boxId, Context context)
+    public Result deleteBoxByJson(@PathParam("id") Long boxId, Context context)
     {
         User user = context.getAttribute("user", User.class);
         if (MBox.boxToUser(boxId, user.getId()))
         { // deletes the box from DB
             MBox.delete(boxId);
         }
-        return Results.ok();
+        return jsonBox(context);
     }
+
 
     /**
      * Edits a Mailbox <br/>
@@ -412,7 +487,27 @@ public class BoxHandler
 
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
         result.render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
-        return result;
+        
+        MailBoxFormData mailboxFormData = new MailBoxFormData();
+        // set the value of the random-name to 7
+        // use the lowercase, we handle the address as case-insensitive
+        String randomName = HelperUtils.getRandomString(7).toLowerCase();
+        mailboxFormData.setAddress(randomName);
+
+        // check that the generated mailname-proposal does not exist
+        String[] domains = xcmConfiguration.DOMAIN_LIST;
+        if (domains.length > 0)
+        {// prevent OutOfBoundException
+            while (MBox.mailExists(randomName, domains[0]))
+            {
+                randomName = HelperUtils.getRandomString(7).toLowerCase();
+            }
+        }
+        mailboxFormData.setDatetime(HelperUtils.parseStringTs(nowPlusOneHour));
+        mailboxFormData.setDomain(domains[0]);
+
+        
+        return result.render("domain", domains).render("mbFrmDat", mailboxFormData);
     }
     
     /**

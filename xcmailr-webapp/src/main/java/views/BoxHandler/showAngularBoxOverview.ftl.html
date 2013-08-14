@@ -74,12 +74,11 @@
 		    <tbody ng-repeat= "mBox in filteredBoxes | orderBy:predicate:reverse">
 				<tr ng-class="{ true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overM = true; overId=$index" ng-mouseleave="overM=false">   
 			    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]"></td>
-					<td class="mbAddress"><div class="row-fluid">{{mBox.address}}&#064;{{mBox.domain}}</div>
+					<td class="mbAddress">
+					<div class="row-fluid">{{mBox.address}}&#064;{{mBox.domain}}</div>
 					<div class="row-fluid">
 						<span ng-show="overM && ($index == overId)"> 
-						<form class="nomarg" action="${contextPath}/mail/expire/{{mBox.id}}" method="post">
-		                    <button type="submit" class="btn btn-mini btn-link"  id="btnDeactivate{{mBox.boxId}}" value='${i18n("mailbox_Button_Deactivate")}'>  <i class="icon-play"></i></button> 
-		                </form>
+		                    <a class="btn btn-mini btn-link"  id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, '${contextPath}')" value='${i18n("mailbox_Button_Deactivate")}'>  <i class="icon-play"></i></a> 
 		    			<a class="btn btn-mini btn-link" ng-click="deleteBox({{mBox.id}}, $index, '${contextPath}')">
 		    				<i class="icon-trash"></i> ${i18n("mailbox_Button_Delete")}
 		    			</a>
@@ -92,7 +91,6 @@
 			        	</a>
 			        	</span>
 					</div>
-					
 					</td>
 					<td>{{mBox.dateTime}}</td>						
 					<td>{{mBox.forwards}}</td>
@@ -125,12 +123,115 @@
 	</div>
 	</div> 
 </div><!-- /row -->
+<div class="row">
+	<div class="span7">
+		<form action="${contextPath}/mail/addJson" method="post" class="form-horizontal" id="addBoxForm">
+			<fieldset>
+				<legend>${i18n("createEmail_Title")}</legend>
+				<!-- row: email-address -->
+				<div class="control-group" id="emailRow">
+					<label class="control-label" for="address">	${i18n("createEmail_Label_Address")} </label>
+					<div class="controls" id="emailRowControl">
+						<div class="input-append" id="mailInputDiv">
+							<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required" />
+							<span class="add-on">@</span>
+							<select name="domain"> 
+								<#list domain as singleDomain> 
+									<#if (mbFrmDat.domain)??> 
+										<#if (mbFrmDat.domain == singleDomain)>
+											<option value="${singleDomain}" selected="selected">${singleDomain}</option>
+										<#else>
+											<option value="${singleDomain}">${singleDomain}</option> 
+										</#if> 
+									<#else>
+										<option value="${singleDomain}">${singleDomain}</option> 
+									</#if> 
+								</#list>
+							</select>
+						</div>
+					</div>
+				</div>		
+				<!-- row: life-time of the address -->
+				<div class="control-group" id="validityRow">
+					<label class="control-label" for="datetime">${i18n("createEmail_Label_Duration")}</label>
+					<div class="controls">
+				  	<div id="datetimepicker" class="input-append">
+				    	<input data-format="yyyy-MM-dd hh:mm" id="datetime" name="datetime" type="text" value="${ (mbFrmDat.datetime)!}" required="required"/>
+					    <span id="pickr_span" class="add-on">
+					      <i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar" class="group1"></i>
+					    </span>
+				    </div>
+				  </div>
+				    <div class="controls">
+				    <label class="checkbox"> 
+				    	<input type="checkbox" id="chkUnlimited" onClick="toggle(this)" /> ${i18n("createEmail_Unlimited")}
+				    </label>
+				    </div>
+				</div>				
+				<div class="form-actions">
+					<input type="button" class="btn" id="createEmailReset"  value='${i18n("createEmail_Button_Reset")}' />
+					<input type="button" class="btn btn-primary" id="createEmailSubmit" value='${i18n("createEmail_Button_New")}' />
+				</div>
+			</fieldset>
+		</form>
+	</div>
+</div>
 
 </div><!-- /row-fluid -->
 </div> <!-- /container-fluid -->
 <#include "../layout/footer.ftl.html"/>
 </div> <!-- /container -->
 
+
+<script type="text/javascript">
+	$(function() {
+		$('#datetimepicker').datetimepicker({
+			language : '${lang}',
+			pick12HourFormat : false,
+			startDate : new Date()
+		});
+	});
+
+	$(document).ready(function() {
+		//handle the reset-button
+		$('#createEmailReset.btn').click(function reset() {
+			var chkBxUnlimited = $('#chkUnlimited');
+
+			if(chkBxUnlimited.is(':checked')){
+				toggle(chkBxUnlimited);
+			}
+
+			$('#mailInvalidErrorSpan').remove();
+			$('#emailRow').removeClass('error');
+			$('#addBoxForm')[0].reset();
+			
+		});
+		
+		//handle the submit-button
+		$('#createEmailSubmit')
+		.click(
+				function() {
+					var mailRegExp = /^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*$/m
+					var localPart = $('#address').val();
+					var match = mailRegExp.test(localPart);
+					
+					if (match) {
+						$('#addBoxForm')[0].submit();
+						return false;
+					} else {
+						$('#mailInvalidErrorSpan').remove();
+						$('#emailRow').removeClass('error');
+						
+						$('#emailRowControl')
+						.append('<span class="help-inline" id="mailInvalidErrorSpan">${i18n("createEmail_JSValidation_MailInvalid")}</span>')
+						$('#emailRow').addClass("error");
+					}
+				});
+	});			
+</script>
+<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
+<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
+<script type="text/javascript" src="${contextPath}/assets/js/picker-enable.js"></script> 
 </body>
 </html>
 
