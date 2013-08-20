@@ -1,6 +1,5 @@
-
-	<div class="modal-header" id="addBoxModal" class="modal" tabindex="-1" role="dialog"  ng-controller="BoxListCtrl">
-	<div >
+<div class="modal-header" id="addBoxModal" class="modal" tabindex="-1" role="dialog">
+	<div>
 		<h3>This is the title</h3>
 	</div>
 	<div class="control-group" id="emailRow">
@@ -8,8 +7,21 @@
 			${i18n("editEmail_Label_Address")}* </label>
 		<div class="controls"  id="emailRowControl">
 			<div class="input-append" id="mailInputDiv">
-				<input class="input_full" type="text" id="address" name="address" value="{{boxes[elementIdx].address}}" required="required" />
-				 <span class="add-on">@</span>								 
+				<input class="input_full" type="text" id="address" name="address" value="{{currentBox.address}}" required="required" />
+				 <span class="add-on">@</span>	
+				 <select name="domain"> 
+					<#list domain as singleDomain> 
+						<#if (mbFrmDat.domain)??> 
+							<#if (mbFrmDat.domain == singleDomain)>
+								<option value="${singleDomain}" selected="selected">${singleDomain}</option>
+							<#else>
+								<option value="${singleDomain}">${singleDomain}</option> 
+							</#if> 
+						<#else>
+							<option value="${singleDomain}">${singleDomain}</option> 
+						</#if> 
+					</#list>
+				</select>									 
 				</div>
 		</div>
 	</div>

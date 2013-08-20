@@ -539,6 +539,35 @@ public class BoxHandler
     }
 
     /**
+     * Handles JSON-Requests for the search <br/>
+     * GET /mail/search
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return a JSON-Array with the boxes
+     */
+    public Result jsonDomainList(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        List<MBox> boxList;
+        Result result = Results.json();
+        String searchString = context.getParameter("s", "");
+
+        boxList =  MBox.findBoxLike(searchString, user.getId());
+
+        // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
+        // so we need to transform the data which does not contain the reference
+        List<JsonMBox> mbdlist = new ArrayList<JsonMBox>();
+        for (MBox mb : boxList)
+        {
+            JsonMBox mailboxdata = JsonMBox.prepopulate(mb);
+            mbdlist.add(mailboxdata);
+        }
+        return result.json().render(mbdlist);
+    }
+    
+
+    /**
      * Sets the Box valid/invalid <br/>
      * POST /mail/expire/{id}
      * 
@@ -831,6 +860,9 @@ public class BoxHandler
     }
     
     public Result addBoxDialog(){
-        return Results.html();
+        // set a default entry for the validity-period
+        // per default now+1h
+        long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
+        return Results.html().render("timeStamp", nowPlusOneHour);
     }
 }

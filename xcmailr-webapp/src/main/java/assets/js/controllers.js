@@ -73,31 +73,36 @@ $scope.allBoxes = {};
     		  return 1;  
     	  }
       }  
+ 	/*
+	 * handle the addboxdialog (TODO)
+	 */
+	$scope.opts = {
+		 backdrop: true,
+		 keyboard: true,
+		 backdropClick: true,
+		 templateUrl: '/mail/addBoxDialog.html',
+		 controller: 'TestDialogController'
+	};
 
-      /*
-		 * handle the addboxdialog (TODO)
-		 */
-  $scope.opts = {
-    backdrop: true,
-    keyboard: true,
-    backdropClick: true,
-    templateUrl: '/mail/addBoxDialog.html',
-    controller: 'TestDialogController'
-  };
-  
 
-  $scope.openDialog = function(elementIdx){
-	  	$scope.currentBox = $scope.allBoxes[elementIdx];
-	  	var d = $dialog.dialog($scope.opts);
-	  	d.open().then(
-			function(result){
-			      if(result)
-			      {
-			        alert('dialog closed with result: ' + result);
-			      }
-			}
-	  	);
-  };
+	$scope.openDialog = function(elementIdx){
+		  	$scope.currentBox = $scope.filteredBoxes[elementIdx];
+
+		  		$scope.opts.resolve = {currentBox : function() {
+		  				return angular.copy($scope.currentBox);
+		  			}
+		  		};
+		  	var d = $dialog.dialog($scope.opts);
+		  	d.open().then(
+				function(result){
+				      if(result)
+				      {
+				        alert('dialog closed with result: ' + result);
+				      }
+				}
+		  	);
+	};
+
 
   
   $scope.updateModel();
@@ -126,9 +131,14 @@ $scope.allBoxes = {};
 }
 
  // the dialog is injected in the specified controller
- function TestDialogController($scope, dialog){
- 	 $scope.close = function(result){
-    dialog.close(result);
-  };
+ function TestDialogController($scope, dialog, currentBox){
+	 
+	 	/*
+		 * handle the addboxdialog (TODO)
+		 */
+	$scope.currentBox = currentBox; 
+	$scope.close = function(result){
+		dialog.close(result);
+	};
 
 }
