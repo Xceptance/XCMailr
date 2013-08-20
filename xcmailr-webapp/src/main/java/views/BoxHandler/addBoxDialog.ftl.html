@@ -1,43 +1,36 @@
+<html>
+
+<body>
 <div class="modal-header" id="addBoxModal" class="modal" tabindex="-1" role="dialog">
 	<div>
 		<h3>This is the title</h3>
 	</div>
 	<div class="control-group" id="emailRow">
-		<label class="control-label" for="address">
+		<label class="control-label" for="editBoxDialogAddress">
 			${i18n("editEmail_Label_Address")}* </label>
 		<div class="controls"  id="emailRowControl">
 			<div class="input-append" id="mailInputDiv">
-				<input class="input_full" type="text" id="address" name="address" value="{{currentBox.address}}" required="required" />
+				<input class="input_full" type="text" id="editBoxDialogAddress" name="address" value="{{currentBox.address}}" required="required" />
 				 <span class="add-on">@</span>	
 				 <select name="domain"> 
-					<#list domain as singleDomain> 
-						<#if (mbFrmDat.domain)??> 
-							<#if (mbFrmDat.domain == singleDomain)>
-								<option value="${singleDomain}" selected="selected">${singleDomain}</option>
-							<#else>
-								<option value="${singleDomain}">${singleDomain}</option> 
-							</#if> 
-						<#else>
-							<option value="${singleDomain}">${singleDomain}</option> 
-						</#if> 
-					</#list>
+					<option ng-repeat="singleDomain in domains" ng-selected="(singleDomain == currentBox.domain)">{{singleDomain}}</option>
 				</select>									 
 				</div>
 		</div>
 	</div>
 	<!-- row: life-time of the address -->
 	<div class="control-group">
-		<label class="control-label" for="datetime">${i18n("editEmail_Label_Duration")}* </label>
+		<label class="control-label" for="datetime{{currentBox.id}}">${i18n("editEmail_Label_Duration")}* </label>
 		<div class="controls">
-			<div id="datetimepicker" class="input-append">
-				<input data-format="yyyy-MM-dd hh:mm" id="datetime" name="datetime" type="text" value="${(mbFrmDat.datetime)!}" required="required" /> <span id="pickr_span" class="add-on">
-					<i id="pickr_i" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+			<div id="datetimepicker{{currentBox.id}}" class="input-append pickrBoxEdit">
+				<input data-format="yyyy-MM-dd hh:mm" id="datetime{{currentBox.id}}" name="datetime" type="text" value="{{currentBox.dateTime}}" required="required" /> <span id="pickr_span{{currentBox.id}}" class="add-on">
+					<i id="pickr_i{{currentBox.id}}" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
 				</span>
 			</div>
 		</div>
 		<div class="controls">
-			<label class="checkbox"> 
-				<input type="checkbox"	id="chkUnlimited" onClick="toggle(this)"/> ${i18n("editEmail_Unlimited")}
+			<label class="checkbox" for="chkUnlimited{{currentBox.id}}"> 
+				<input type="checkbox"	id="chkUnlimited{{currentBox.id}}" onClick="toggleBatch(this, {{currentBox.id}})"/> ${i18n("editEmail_Unlimited")}
 			</label>
 		</div>
 	</div>	
@@ -47,3 +40,15 @@
        <button ng-click="close(result)" class="btn btn-primary" >Close</button>
    	</div>
 </div>
+<script type="text/javascript">
+	$(function() {
+		$('.pickrBoxEdit').datetimepicker({
+			language : '${lang}',
+			pick12HourFormat : false,
+			startDate : new Date()
+		});
+	});		
+</script>
+
+</body>
+</html>

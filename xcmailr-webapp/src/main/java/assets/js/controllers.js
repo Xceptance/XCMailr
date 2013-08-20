@@ -3,6 +3,17 @@ function BoxListCtrl($scope, $dialog, $http) {
 
 $scope.selected = {};
 $scope.allBoxes = {};
+
+//get the domains
+$scope.loadDomains = function(){
+	$http.get('/mail/domainlist').success(
+		function(data){
+			$scope.domains = data;
+		}
+	);
+}
+$scope.loadDomains();
+
 	// load the boxes
 	$scope.updateModel = function(){ 
 		$http.get('/mail/angget').success(
@@ -31,6 +42,14 @@ $scope.allBoxes = {};
 					$scope.allBoxes[elementIdx].forwards = 0;
 				}
 			);
+	}
+	// editBox
+	$scope.editBox = function(boxId, contextPath, data){
+		$http.post(contextPath + '/mail/edit/' + boxId, data).success(
+			function(){
+				$scope.updateModel();
+			}
+		);
 	}
 	
 	$scope.toggleMenu = function(boxId){
@@ -83,6 +102,7 @@ $scope.allBoxes = {};
 		 templateUrl: '/mail/addBoxDialog.html',
 		 controller: 'TestDialogController'
 	};
+	
 
 
 	$scope.openDialog = function(elementIdx){
@@ -90,6 +110,8 @@ $scope.allBoxes = {};
 
 		  		$scope.opts.resolve = {currentBox : function() {
 		  				return angular.copy($scope.currentBox);
+		  			}, domains : function(){
+		  				return angular.copy($scope.domains);
 		  			}
 		  		};
 		  	var d = $dialog.dialog($scope.opts);
@@ -97,14 +119,14 @@ $scope.allBoxes = {};
 				function(result){
 				      if(result)
 				      {
-				        alert('dialog closed with result: ' + result);
+				        $scope.editBox(result.id,'', result);
 				      }
 				}
 		  	);
 	};
 
 
-  
+
   $scope.updateModel();
   $scope.noOfPages = $scope.setNumPages();		
 	// listener for page-changes
@@ -131,14 +153,15 @@ $scope.allBoxes = {};
 }
 
  // the dialog is injected in the specified controller
- function TestDialogController($scope, dialog, currentBox){
+ function TestDialogController($scope, dialog, currentBox, domains){
 	 
 	 	/*
 		 * handle the addboxdialog (TODO)
 		 */
+	 $scope.domains = domains;
 	$scope.currentBox = currentBox; 
-	$scope.close = function(result){
-		dialog.close(result);
+	$scope.close = function(currentBox){
+		dialog.close($scope.currentBox);
 	};
 
 }

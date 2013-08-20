@@ -103,7 +103,6 @@
 	   				<td ng-if="mBox.expired"> ${i18n("mailbox_Label_MailExpired")} </td>
 					<td>
 					</td>
-
 				</tr>
 		</tbody>
     </table>
@@ -126,8 +125,7 @@
 		</ul>
 	</div>
 	</div> 
-</div><!-- /row -->
-<div class="row">
+
 	<div class="span7">
 		<form action="${contextPath}/mail/addJson" method="post" class="form-horizontal" id="addBoxForm">
 			<fieldset>
@@ -140,17 +138,7 @@
 							<input class="input_full" type="text" id="address" name="address" value="${ (mbFrmDat.address)!}" required="required" />
 							<span class="add-on">@</span>
 							<select name="domain"> 
-								<#list domain as singleDomain> 
-									<#if (mbFrmDat.domain)??> 
-										<#if (mbFrmDat.domain == singleDomain)>
-											<option value="${singleDomain}" selected="selected">${singleDomain}</option>
-										<#else>
-											<option value="${singleDomain}">${singleDomain}</option> 
-										</#if> 
-									<#else>
-										<option value="${singleDomain}">${singleDomain}</option> 
-									</#if> 
-								</#list>
+								<option ng-repeat="singdomain in domains">{{singdomain}}</option>
 							</select>
 						</div>
 					</div>

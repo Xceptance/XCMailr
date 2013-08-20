@@ -548,22 +548,8 @@ public class BoxHandler
      */
     public Result jsonDomainList(Context context)
     {
-        User user = context.getAttribute("user", User.class);
-        List<MBox> boxList;
-        Result result = Results.json();
-        String searchString = context.getParameter("s", "");
-
-        boxList =  MBox.findBoxLike(searchString, user.getId());
-
-        // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
-        // so we need to transform the data which does not contain the reference
-        List<JsonMBox> mbdlist = new ArrayList<JsonMBox>();
-        for (MBox mb : boxList)
-        {
-            JsonMBox mailboxdata = JsonMBox.prepopulate(mb);
-            mbdlist.add(mailboxdata);
-        }
-        return result.json().render(mbdlist);
+        String[] domains = xcmConfiguration.DOMAIN_LIST;
+        return Results.json().render(domains);
     }
     
 
@@ -633,7 +619,7 @@ public class BoxHandler
      *            the Context of this Request
      * @return the Mailbox-Overview-Page
      */
-    public Result resetBoxCounterProcesse(@PathParam("id") Long boxId, Context context)
+    public Result resetBoxCounterProcessXhr(@PathParam("id") Long boxId, Context context)
     {
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);

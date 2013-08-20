@@ -91,9 +91,10 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/mail/myactivemaillist.txt").with(BoxHandler.class, "showActiveMailsAsTextList");
 
         router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounterProcess");
-        router.POST().route("/mail/reset2/{id}").with(BoxHandler.class, "resetBoxCounterProcesse");
+        router.POST().route("/mail/reset2/{id}").with(BoxHandler.class, "resetBoxCounterProcessXhr");
 
         router.GET().route("/mail/search").with(BoxHandler.class, "jsonBoxSearch");
+        router.GET().route("/mail/domainlist").with(BoxHandler.class, "jsonDomainList");
 
         /*
          * Routes in the admin-section (Controller: AdminHandler)
