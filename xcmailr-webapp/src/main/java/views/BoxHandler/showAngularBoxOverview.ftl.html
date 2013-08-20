@@ -76,21 +76,25 @@
 			    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]"></td>
 					<td class="mbAddress">
 					<div class="row-fluid">{{mBox.address}}&#064;{{mBox.domain}}</div>
+					<!-- start inline menu -->
 					<div class="row-fluid">
 						<span ng-show="overM && ($index == overId)"> 
-		                    <a class="btn btn-mini btn-link"  id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, '${contextPath}')" value='${i18n("mailbox_Button_Deactivate")}'>  <i class="icon-play"></i></a> 
-		    			<a class="btn btn-mini btn-link" ng-click="deleteBox({{mBox.id}}, $index, '${contextPath}')">
-		    				<i class="icon-trash"></i> ${i18n("mailbox_Button_Delete")}
-		    			</a>
-
-		                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index, '${contextPath}')" >
-		    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
-		    			</a>
-			        	<a ng-click="openDialog($index)"  class="btn btn-mini btn-link"> <!-- href="${contextPath}/mail/edit/{{mBox.id}}" -->
-			        		<i class="icon-edit"></i> ${i18n("mailbox_Button_Edit")}
-			        	</a>
+			                <a class="btn btn-mini btn-link"  id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, '${contextPath}')" value='${i18n("mailbox_Button_Deactivate")}'>  
+			                	<i class="icon-play"></i> ${i18n("mailbox_Button_Activate")}
+			                </a> 
+			    			<a class="btn btn-mini btn-link" ng-click="deleteBox({{mBox.id}}, $index, '${contextPath}')">
+			    				<i class="icon-trash"></i> ${i18n("mailbox_Button_Delete")}
+			    			</a>
+	
+			                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index, '${contextPath}')" >
+			    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
+			    			</a>
+				        	<a ng-click="openDialog($index)"  class="btn btn-mini btn-link"> <!-- href="${contextPath}/mail/edit/{{mBox.id}}" -->
+				        		<i class="icon-edit"></i> ${i18n("mailbox_Button_Edit")}
+				        	</a>
 			        	</span>
 					</div>
+					<!-- end inline menu -->
 					</td>
 					<td>{{mBox.dateTime}}</td>						
 					<td>{{mBox.forwards}}</td>
@@ -176,8 +180,8 @@
 		</form>
 	</div>
 </div>
-
 </div><!-- /row-fluid -->
+
 </div> <!-- /container-fluid -->
 <#include "../layout/footer.ftl.html"/>
 </div> <!-- /container -->
