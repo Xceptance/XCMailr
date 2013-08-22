@@ -4,14 +4,15 @@ function BoxListCtrl($scope, $dialog, $http) {
 $scope.selected = {};
 $scope.allBoxes = {};
 
-//get the domains
-$scope.loadDomains = function(){
-	$http.get('/mail/domainlist').success(
-		function(data){
-			$scope.domains = data;
-		}
-	);
-}
+	//get the domains
+	$scope.loadDomains = function(){
+		$http.get('/mail/domainlist').success(
+			function(data){
+				$scope.domains = data;
+			}
+		);
+	}
+//execute the domain-load
 $scope.loadDomains();
 
 	// load the boxes
@@ -44,10 +45,10 @@ $scope.loadDomains();
 			);
 	}
 	// editBox
-	$scope.editBox = function(boxId, contextPath, data){
-		$http.post(contextPath + '/mail/edit/' + boxId, data).success(
-			function(){
-				$scope.updateModel();
+	$scope.editBox = function(boxId, contextPath, data, elementIdx){
+		$http.post(contextPath + '/mail/edit2/' + boxId, data).success(
+			function(returnedData){
+				$scope.filteredBoxes[elementIdx] = returnedData.currentBox;
 			}
 		);
 	}
@@ -56,11 +57,15 @@ $scope.loadDomains();
 		return !$scope.toggleMenu;
 	}
 
-    $scope.ShowSelected = function() {
-    	$scope.allBoxes = $.grep($scope.allBoxes, function( box ) {
+    $scope.showSelected = function() {
+    	$scope.filteredBoxes = $.grep($scope.allBoxes, function( box ) {
     		return $scope.selected[ box.id ];
       });
     };  
+    
+    $scope.showAll = function(){
+    	$scope.filteredBoxes = $scope.allBoxes;
+    };
 
     /*
 	 * handle the pagination
@@ -99,7 +104,7 @@ $scope.loadDomains();
 		 backdrop: true,
 		 keyboard: true,
 		 backdropClick: true,
-		 templateUrl: '/mail/addBoxDialog.html',
+		 templateUrl: '/mail/editBoxDialog.html',
 		 controller: 'TestDialogController'
 	};
 	
@@ -158,10 +163,15 @@ $scope.loadDomains();
 	 	/*
 		 * handle the addboxdialog (TODO)
 		 */
-	 $scope.domains = domains;
+	$scope.domains = domains;
 	$scope.currentBox = currentBox; 
-	$scope.close = function(currentBox){
-		dialog.close($scope.currentBox);
+	$scope.close = function(data){
+		dialog.close(data);
+	};
+	
+	
+	$scope.newDateTime = function(data){
+		$scope.currentBox = data;
 	};
 
 }

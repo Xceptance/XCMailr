@@ -63,7 +63,7 @@ public class JsonMBox
      */
     private int suppressions;
 
-    private String dateTime;
+    private String datetime;
     
     /**
      * Default-Constructor
@@ -300,12 +300,12 @@ public class JsonMBox
 
     public String getDateTime()
     {
-        return dateTime;
+        return datetime;
     }
 
     public void setDateTime(String dateTime)
     {
-        this.dateTime = dateTime;
+        this.datetime = dateTime;
     }
     
     public static JsonMBox prepopulate(MBox mailbox){

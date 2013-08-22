@@ -42,7 +42,6 @@
 <div class="container">
         <div class="container-fluid">
 	    	<div class="row-fluid">
-
 				<#if flash_error??>
 				        <p class="alert alert-error"><strong> ${flash_error}</strong></p>
 				</#if>
@@ -79,7 +78,10 @@
 					<!-- start inline menu -->
 					<div class="row-fluid">
 						<span ng-show="overM && ($index == overId)"> 
-			                <a class="btn btn-mini btn-link"  id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, '${contextPath}')" value='${i18n("mailbox_Button_Deactivate")}'>  
+			                <a class="btn btn-mini btn-link" ng-if="!mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, '${contextPath}')" value='${i18n("mailbox_Button_Deactivate")}'>  
+			                	<i class="icon-pause"></i> ${i18n("mailbox_Button_Deactivate")}
+			                </a> 
+							<a class="btn btn-mini btn-link" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, '${contextPath}')" value='${i18n("mailbox_Button_Deactivate")}'>  
 			                	<i class="icon-play"></i> ${i18n("mailbox_Button_Activate")}
 			                </a> 
 			    			<a class="btn btn-mini btn-link" ng-click="deleteBox({{mBox.id}}, $index, '${contextPath}')">
@@ -106,7 +108,8 @@
 				</tr>
 		</tbody>
     </table>
-<a href="javascript:;" data-ng-click="ShowSelected()">Show Selected</a>
+<a href="javascript:;" data-ng-click="showSelected()">Show Selected</a><br/>
+<a href="javascript:;" data-ng-click="showAll()">Show All</a>
 <!-- end page -->
 	<div class="pagination">
     <div class="row-fluid">

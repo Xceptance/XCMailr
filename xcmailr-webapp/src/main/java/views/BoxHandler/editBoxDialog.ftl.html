@@ -10,9 +10,9 @@
 			${i18n("editEmail_Label_Address")}* </label>
 		<div class="controls"  id="emailRowControl">
 			<div class="input-append" id="mailInputDiv">
-				<input class="input_full" type="text" id="editBoxDialogAddress" name="address" value="{{currentBox.address}}" required="required" />
+				<input class="input_full" type="text" id="editBoxDialogAddress" name="address" ng-model="currentBox.address" required="required" />
 				 <span class="add-on">@</span>	
-				 <select name="domain"> 
+				 <select name="domain" ng-model="currentBox.domain"> 
 					<option ng-repeat="singleDomain in domains" ng-selected="(singleDomain == currentBox.domain)">{{singleDomain}}</option>
 				</select>									 
 				</div>
@@ -23,7 +23,7 @@
 		<label class="control-label" for="datetime{{currentBox.id}}">${i18n("editEmail_Label_Duration")}* </label>
 		<div class="controls">
 			<div id="datetimepicker{{currentBox.id}}" class="input-append pickrBoxEdit">
-				<input data-format="yyyy-MM-dd hh:mm" id="datetime{{currentBox.id}}" name="datetime" type="text" value="{{currentBox.dateTime}}" required="required" /> <span id="pickr_span{{currentBox.id}}" class="add-on">
+				<input data-format="yyyy-MM-dd hh:mm" id="datetime{{currentBox.id}}" name="datetime" type="text" ng-model="currentBox.datetime" required="required" /> <span id="pickr_span{{currentBox.id}}" class="add-on">
 					<i id="pickr_i{{currentBox.id}}" data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
 				</span>
 			</div>
@@ -37,7 +37,7 @@
 	<div class="modal-footer">
 		<input type="button" class="btn" id="btnReset" value='${i18n("editEmail_Button_Reset")}'/>
 		<input type="submit" class="btn btn-primary" value='${i18n("editEmail_Button_Edit")}' />
-       <button ng-click="close(result)" class="btn btn-primary" >Close</button>
+       <button ng-click="close(currentBox)" class="btn btn-primary" >Close</button>
    	</div>
 </div>
 <script type="text/javascript">
@@ -47,8 +47,8 @@
 			pick12HourFormat : false,
 			startDate : new Date()
 		});
-	});		
-</script>
+</script>		
+
 
 </body>
 </html>

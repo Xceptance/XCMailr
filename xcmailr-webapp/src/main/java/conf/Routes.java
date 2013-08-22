@@ -71,7 +71,7 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/angmail").with(BoxHandler.class, "showAngularBoxOverview");
         router.POST().route("/angmail").with(BoxHandler.class, "showAngularBoxOverview");
         router.GET().route("/mail/angget").with(BoxHandler.class, "jsonBox");
-        router.GET().route("/mail/addBoxDialog.html").with(BoxHandler.class, "addBoxDialog");
+        router.GET().route("/mail/editBoxDialog.html").with(BoxHandler.class, "editBoxDialog");
 
         router.GET().route("/mail/add").with(BoxHandler.class, "addBoxForm");
         router.POST().route("/mail/add").with(BoxHandler.class, "addBoxProcess");
@@ -84,7 +84,8 @@ public class Routes implements ApplicationRoutes
         
         router.GET().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxForm");
         router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxProcess");
-
+        router.POST().route("/mail/edit2/{id}").with(BoxHandler.class, "editBoxJson");
+        
         router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBoxProcess");
 
         router.GET().route("/mail/mymaillist.txt").with(BoxHandler.class, "showMailsAsTextList");
