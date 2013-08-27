@@ -1,24 +1,31 @@
 angular.module('BoxHandler', ['ui.bootstrap']);
-function BoxListCtrl($scope, $dialog, $http) {
+function BoxListCtrl($scope, $dialog, $http) 
+{
 
 $scope.selected = {};
 $scope.allBoxes = {};
 
 	//get the domains
-	$scope.loadDomains = function(){
-		$http.get('/mail/domainlist').success(
-			function(data){
+	$scope.loadDomains = function()
+	{
+		$http.get('/mail/domainlist').success
+		(
+			function(data)
+			{
 				$scope.domains = data;
 			}
 		);
-	}
+	};
 //execute the domain-load
 $scope.loadDomains();
 
 	// load the boxes
-	$scope.updateModel = function(){ 
-		$http.get('/mail/angget').success(
-			function(data){
+	$scope.updateModel = function()
+	{ 
+		$http.get('/mail/angget').success
+		(
+			function(data)
+			{
 				$scope.allBoxes = data;
 			    $scope.noOfPages = $scope.setNumPages();
 			}
@@ -27,43 +34,57 @@ $scope.loadDomains();
 	};
 	
 	// deleteBox
-	$scope.deleteBox = function(boxId, elementIdx, contextPath){
-		$http.post(contextPath + '/mail/delete2/' + boxId, null).success(
-			function(){
+	$scope.deleteBox = function(boxId, elementIdx, contextPath)
+	{
+		$http.post(contextPath + '/mail/delete2/' + boxId, null).success
+		(
+			function()
+			{
 				$scope.allBoxes.splice(elementIdx, 1);
 			}
 		);
-	}
+	};
 	
 	// resetBox
-	$scope.resetBox = function(boxId, elementIdx, contextPath){
-		$http.post(contextPath + '/mail/reset2/' + boxId, null).success(
-				function(){
+	$scope.resetBox = function(boxId, elementIdx, contextPath)
+	{
+		$http.post(contextPath + '/mail/reset2/' + boxId, null).success
+		(
+				function()
+				{
 					$scope.allBoxes[elementIdx].suppressions = 0;
 					$scope.allBoxes[elementIdx].forwards = 0;
 				}
-			);
-	}
+		);
+	};
 	// editBox
-	$scope.editBox = function(boxId, contextPath, data, elementIdx){
-		$http.post(contextPath + '/mail/edit2/' + boxId, data).success(
-			function(returnedData){
+	$scope.editBox = function(boxId, contextPath, data, elementIdx)
+	{
+		$http.post(contextPath + '/mail/edit2/' + boxId, data).success
+		(
+			function(returnedData)
+			{
 				$scope.filteredBoxes[elementIdx] = returnedData.currentBox;
 			}
 		);
-	}
+	};
 	
-	$scope.toggleMenu = function(boxId){
+	$scope.toggleMenu = function(boxId)
+	{
 		return !$scope.toggleMenu;
-	}
+	};
 
-    $scope.showSelected = function() {
-    	$scope.filteredBoxes = $.grep($scope.allBoxes, function( box ) {
-    		return $scope.selected[ box.id ];
-      });
+    $scope.showSelected = function() 
+    {
+    	$scope.filteredBoxes = $.grep($scope.allBoxes, function( box ) 
+    			{
+    				return $scope.selected[ box.id ];
+    			}
+    	);
     };  
     
-    $scope.showAll = function(){
+    $scope.showAll = function()
+    {
     	$scope.filteredBoxes = $scope.allBoxes;
     };
 
@@ -76,27 +97,31 @@ $scope.loadDomains();
     
 
     // set the page
-    $scope.setPage = function (pageNo) {
+    $scope.setPage = function (pageNo) 
+    {
         $scope.currentPage = pageNo;
     };
       
       // set the page-size
-	$scope.setMaxSize = function (size) {
+	$scope.setMaxSize = function (size) 
+	{
 	    $scope.maxSize = size;
 	    $scope.noOfPages = $scope.setNumPages();
 	    $scope.currentPage = 1;
 	};
         
       // set the number of pages
-      $scope.setNumPages = function(){
+      $scope.setNumPages = function()
+      {
     	  if($scope.maxSize != 0)
     	  {
     		  return Math.ceil($scope.allBoxes.length / $scope.maxSize);
-    	  }else
+    	  }
+    	  else
     	  {
     		  return 1;  
     	  }
-      }  
+      };  
  	/*
 	 * handle the addboxdialog (TODO)
 	 */
@@ -110,24 +135,34 @@ $scope.loadDomains();
 	
 
 
-	$scope.openDialog = function(elementIdx){
-		  	$scope.currentBox = $scope.filteredBoxes[elementIdx];
-
-		  		$scope.opts.resolve = {currentBox : function() {
-		  				return angular.copy($scope.currentBox);
-		  			}, domains : function(){
+	$scope.openDialog = function(elementIdx)
+	{
+		$scope.currentBox = $scope.filteredBoxes[elementIdx];
+  		$scope.opts.resolve = 
+  		{
+  			currentBox : 
+  				function() 
+  				{
+		  			return angular.copy($scope.currentBox);
+		  		}, 
+		  		domains : 
+		  			function()
+		  			{
 		  				return angular.copy($scope.domains);
 		  			}
-		  		};
-		  	var d = $dialog.dialog($scope.opts);
-		  	d.open().then(
-				function(result){
-				      if(result)
-				      {
-				        $scope.editBox(result.id,'', result);
-				      }
+		 };
+		 var d = $dialog.dialog($scope.opts);
+		 
+		 d.open().then
+		 (
+			function(result)
+			{
+				if(result)
+				{
+					$scope.editBox(result.id,'', result);
 				}
-		  	);
+			}
+		 );
 	};
 
 
@@ -136,7 +171,8 @@ $scope.loadDomains();
   $scope.noOfPages = $scope.setNumPages();		
 	// listener for page-changes
 	$scope.paginationListener = $scope.$watch('currentPage + maxSize + allBoxes.length', 
-		function() {
+		function() 
+		{
 			if($scope.maxSize > 0 && $scope.allBoxes.length > 0)
 			{
 		  	    var begin = (($scope.currentPage - 1) * $scope.maxSize);
@@ -151,27 +187,29 @@ $scope.loadDomains();
 	);
 	
 	$scope.boxCountListener = $scope.$watch('allBoxes.length', 
-			function(){
+			function()
+			{
 				$scope.noOfPages = $scope.setNumPages();		
 			}
 		);
 }
 
  // the dialog is injected in the specified controller
- function TestDialogController($scope, dialog, currentBox, domains){
-	 
-	 	/*
-		 * handle the addboxdialog (TODO)
-		 */
+function TestDialogController($scope, dialog, currentBox, domains)
+{
+ 	/*
+	 * handle the addboxdialog (TODO)
+	 */
 	$scope.domains = domains;
 	$scope.currentBox = currentBox; 
-	$scope.close = function(data){
+	$scope.close = function(data)
+	{
 		dialog.close(data);
 	};
 	
 	
-	$scope.newDateTime = function(data){
+	$scope.newDateTime = function(data)
+	{
 		$scope.currentBox = data;
 	};
-
 }
