@@ -16,6 +16,7 @@
  */
 package controllers;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.subethamail.smtp.helper.SimpleMessageListener;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
+import etc.MessageComposer;
 
 /**
  * Handles all Actions for incoming Mails
@@ -82,23 +84,23 @@ public class MessageListener implements SimpleMessageListener
     @Override
     public void deliver(String from, String recipient, InputStream data)
     {
-        Session session = mailrSenderFactory.getSession();
+        final Session session = mailrSenderFactory.getSession();
         session.setDebug(true);
         MimeMessage mail;
         try
         {
             mail = new MimeMessage(session, data);
 
-            MailTransaction mtx;
-            String[] splitAddress;
-            Address forwardAddress;
-            String forwardTarget;
-            MBox mailBox;
+            final MailTransaction mtx;
+            final String[] splitAddress;
+            final Address forwardAddress;
+            final String forwardTarget;
+            final MBox mailBox;
 
             splitAddress = recipient.split("@");
 
             if (splitAddress.length != 2)
-            { // the mailaddress does not have the expected pattern -> do nothing, just log it
+            { // the mail-address does not have the expected pattern -> do nothing, just log it
                 if (xcmConfiguration.MTX_MAX_AGE != 0)
                 {// if mailtransaction.maxage is set to 0 -> log nothing
                     mtx = new MailTransaction(0, from, null, recipient);
@@ -108,19 +110,26 @@ public class MessageListener implements SimpleMessageListener
             }
 
             if (MBox.mailExists(splitAddress[0], splitAddress[1]))
-            { // the given mailaddress exists in the db
+            { // the given mail-address exists in the DB
                 mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
                 forwardTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
+                
                 if (mailBox.isActive())
-                { // there's an existing and active mailaddress
+                { // there's an existing and active mail-address
                   // add the target-address to the list
 
                     try
                     {
                         forwardAddress = new InternetAddress(forwardTarget);
+                        mail = MessageComposer.createQuotedMessage(mail);
                         mail.setRecipient(Message.RecipientType.TO, forwardAddress);
                         mail.removeHeader("Cc");
                         mail.removeHeader("BCC");
+                        
+                        mail.setSender(new InternetAddress(recipient));
+                        mail.setFrom(new InternetAddress(recipient));
+                        mail.setSubject(mail.getSubject()+"[Forward from: "+from+"]");
+                        
                         // send the mail in a separate thread
                         MailrMessageSenderFactory.ThreadedMailSend tms = mailrSenderFactory.new ThreadedMailSend(mail,
                                                                                                                  mailBox);
@@ -136,6 +145,11 @@ public class MessageListener implements SimpleMessageListener
                             mtx = new MailTransaction(400, from, recipient, forwardTarget);
                             jobController.mtxQueue.add(mtx);
                         }
+                    }
+                    catch (IOException e)
+                    {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
                 }
                 else
