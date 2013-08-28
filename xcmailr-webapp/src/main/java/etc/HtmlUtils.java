@@ -19,7 +19,7 @@ public class HtmlUtils
      * 
      * @param result
      *            - the HTML Document as String
-     * @return a Hashmap of all names and values from input-fields
+     * @return a String containing the pure body of the HTML-Document
      */
     public static String readHTMLData(String result)
     {
@@ -64,17 +64,13 @@ public class HtmlUtils
 
         public void handleStartTag(HTML.Tag tag, MutableAttributeSet attr, int pos)
         {
-            if (tag == HTML.Tag.HTML)
-            { // found an html-element
+            if (tag == HTML.Tag.HTML || tag == HTML.Tag.BODY)
+            { // found a HTML or Body-element
                 record = true;
             }
             else if (tag == HTML.Tag.HEAD)
             {
                 record = false;
-            }
-            else if (tag == HTML.Tag.BODY)
-            {
-                record = true;
             }
             else
             {
@@ -87,19 +83,7 @@ public class HtmlUtils
 
         public void handleEndTag(HTML.Tag tag, int pos)
         {
-            if (tag == HTML.Tag.HTML)
-            { // found an html-element
-                record = true;
-            }
-            else if (tag == HTML.Tag.HEAD)
-            {
-                record = false;
-            }
-            else if (tag == HTML.Tag.BODY)
-            {
-                record = true;
-            }
-            else if (record)
+ if (record)
             {
                 sb.append("</");
                 sb.append(tag.toString());
@@ -125,6 +109,7 @@ public class HtmlUtils
             }
         }
 
+        @SuppressWarnings("unchecked")
         private String getAttributesAsString(MutableAttributeSet attr)
         {
             StringBuilder sb = new StringBuilder();
@@ -135,8 +120,7 @@ public class HtmlUtils
                 sb.append(attName);
                 sb.append(" = ").append("\"").append(attr.getAttribute(attName)).append("\"");
             }
-            
-        return sb.toString();
+            return sb.toString();
         }
     }
 

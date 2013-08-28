@@ -16,6 +16,7 @@ public class MessageComposer
     public static MimeMessage createQuotedMessage(MimeMessage message) throws MessagingException, IOException
     {
         MimeMessage message2 = new MimeMessage(message);
+        
         if (message.isMimeType("text/plain"))
         {
             message2 = createQuotedPlainText(message2);
@@ -28,10 +29,10 @@ public class MessageComposer
         {
             message2 = createQuotedMultipart(message2);
         }
-
         return message2;
     }
 
+    @SuppressWarnings("unchecked")
     public static MimeMessage createQuotedPlainText(MimeMessage message) throws MessagingException, IOException
     {
         // build "quoted" message
@@ -45,13 +46,14 @@ public class MessageComposer
         }
         buf.append("\n\n MESSAGE:\n\n");
         buf.append(message.getContent().toString());
-        buf.append("\nmessage end of forwarded message");
+        buf.append("\n------------------message end of forwarded message------------------");
         String quotationString = buf.toString().replace("\n", "\n>");
         message.setContent(quotationString, "text/plain");
         message.setHeader("Content-Transfer-Encoding", "8bit");
         return message;
     }
 
+    @SuppressWarnings("unchecked")
     public static MimeMessage createQuotedHtmlText(MimeMessage message) throws MessagingException, IOException
     {
         // build "quoted" message
@@ -66,15 +68,16 @@ public class MessageComposer
         }
         buf.append("<br/><br/> MESSAGE:<br/><br/>");
         buf.append(message.getContent().toString());
-        String quotationString;
-        buf.append("\nmessage end of forwarded message<br/></p></body></html>");
-        quotationString = buf.toString().replace("\n", "<br/>");
 
-        message.setContent(quotationString, "text/html");
+        buf.append("<br/>message end of forwarded message<br/></p></body></html>");
+        //quotationString = buf.toString().replace("\n", "<br/>");
+
+        message.setContent(buf.toString(), "text/html");
         message.setHeader("Content-Transfer-Encoding", "8bit");
         return message;
     }
 
+    @SuppressWarnings("unchecked")
     public static MimeMessage createQuotedMultipart(MimeMessage message) throws MessagingException, IOException
     {
         // build "quoted" message
@@ -138,12 +141,11 @@ public class MessageComposer
         {
             buf.append("<br/>" + en);
         }
-        buf.append("<br/><br/> MESSAGE:<br/><br/>");
+        buf.append("<br/><br/> <b>MESSAGE:</b><br/><br/>");
         String content = body.getContent().toString();
         content = HtmlUtils.readHTMLData(content);
         buf.append(content);
-
-        buf.append("\nmessage end of forwarded message<br/></p></body></html>");
+        buf.append("<br/>------------------message end of forwarded message------------------<br/></p></body></html>");
         String quotationString = buf.toString().replace("\n", "<br/>");
 
         body.setContent(quotationString, "text/html");
