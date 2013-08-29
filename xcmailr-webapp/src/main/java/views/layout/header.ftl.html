@@ -11,15 +11,14 @@
             <ul class="nav">
 				<#if (session.username)??>
 				<#if (mboxes)??>
-				  <li class="active"><a href="${contextPath}/angmail">${i18n("menu_Link_Mb")}</a></li>
+				  	<li class="active"><a href="${contextPath}/angmail">${i18n("menu_Link_Mb")}</a></li>
 				  <#else>
-				  <li><a href="${contextPath}/angmail">${i18n("menu_Link_Mb")}</a></li>
+				  	<li><a href="${contextPath}/angmail">${i18n("menu_Link_Mb")}</a></li>
 				  </#if>
-				  
 				  <#if (mbFrmDat)??>
-				  <li class="active"><a href="${contextPath}/mail/add">${i18n("menu_Link_AddMb")}</a></li>     
+				  	<li class="active"><a href="${contextPath}/mail/add">${i18n("menu_Link_AddMb")}</a></li>     
 				  <#else>
-				  <li><a href="${contextPath}/mail/add">${i18n("menu_Link_AddMb")}</a></li>     
+				  	<li><a href="${contextPath}/mail/add">${i18n("menu_Link_AddMb")}</a></li>     
 				  </#if>                       
             </ul>
             <ul class="nav pull-right">
@@ -28,23 +27,23 @@
 	            	<li><a href="${contextPath}/admin">Admin</a></li>
             	</#if>
             		<#if (userFormData)??>
-			      	<li class="active"><a href="${contextPath}/user/edit">${i18n("menu_Link_Edit")}</a></li>
+			      		<li class="active"><a href="${contextPath}/user/edit">${i18n("menu_Link_Edit")}</a></li>
 			      	<#else>
-			      	<li><a href="${contextPath}/user/edit">${i18n("menu_Link_Edit")}</a></li>
+			      		<li><a href="${contextPath}/user/edit">${i18n("menu_Link_Edit")}</a></li>
 			      	</#if>
-	            	<li><a href="${contextPath}/logout">${i18n("menu_Link_Logout")}</a></li>
+	            		<li><a href="${contextPath}/logout">${i18n("menu_Link_Logout")}</a></li>
 				<#else>
 				
 					<#if (loginFormData)??>
-			      	<li class="active"><a href="${contextPath}/login">${i18n("menu_Link_Login")}</a></li>  
+			      		<li class="active"><a href="${contextPath}/login">${i18n("menu_Link_Login")}</a></li>  
 			      	<#else>
-			      	<li><a href="${contextPath}/login">${i18n("menu_Link_Login")}</a></li>  
+			      		<li><a href="${contextPath}/login">${i18n("menu_Link_Login")}</a></li>  
 			      	</#if>
 
 					<#if (registerUserData)??>
-			      	<li class="active"><a href="${contextPath}/register">${i18n("menu_Link_Register")}</a></li>
+			      		<li class="active"><a href="${contextPath}/register">${i18n("menu_Link_Register")}</a></li>
 			      	<#else>
-			      	<li><a href="${contextPath}/register">${i18n("menu_Link_Register")}</a></li>
+			      		<li><a href="${contextPath}/register">${i18n("menu_Link_Register")}</a></li>
 			      	</#if>
 				</#if>
             </ul>

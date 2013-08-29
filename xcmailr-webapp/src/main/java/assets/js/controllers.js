@@ -4,6 +4,7 @@ function BoxListCtrl($scope, $dialog, $http)
 
 $scope.selected = {};
 $scope.allBoxes = {};
+$scope.alerts = [];
 
 	//get the domains
 	$scope.loadDomains = function()
@@ -64,7 +65,19 @@ $scope.loadDomains();
 		(
 			function(returnedData)
 			{
-				$scope.filteredBoxes[elementIdx] = returnedData.currentBox;
+				
+				if(returnedData.success)
+				{
+					$scope.alerts.push({'type' : 'success', 'msg' : returnedData.statusmsg});
+					$scope.filteredBoxes[elementIdx] = returnedData.currentBox;
+				}
+				else
+				{
+					var alert = {};
+					alert["type"] = 'error';
+					alert["msg"] = returnedData.statusmsg;
+					$scope.alerts.push(alert);
+				}
 			}
 		);
 	};
@@ -165,6 +178,9 @@ $scope.loadDomains();
 		 );
 	};
 
+	$scope.closeAlert = function(elementIdx){
+		$scope.alerts.splice(elementIdx, 1);
+	}
 
 
   $scope.updateModel();
@@ -204,6 +220,9 @@ function TestDialogController($scope, dialog, currentBox, domains)
 	$scope.currentBox = currentBox; 
 	$scope.close = function(data)
 	{
+		var idString = '#datetime'+data.id;
+		var newTime = $(idString).val();
+		data.datetime = newTime; 
 		dialog.close(data);
 	};
 	

@@ -28,6 +28,8 @@ import etc.HelperUtils;
 import filters.SecureFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
@@ -36,6 +38,7 @@ import models.MBox;
 import models.MailBoxFormData;
 import models.PageList;
 import models.User;
+import ninja.i18n.Messages;
 import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
@@ -54,6 +57,9 @@ public class BoxHandler
 {
     @Inject
     XCMailrConf xcmConfiguration;
+
+    @Inject
+    Messages messages;
 
     private static final Pattern PATTERN_CS_BOXIDS = Pattern.compile("[(\\d+)][(\\,)(\\d+)]*");
 
@@ -397,15 +403,17 @@ public class BoxHandler
     public Result editBoxJson(Context context, @PathParam("id") Long boxId,
                               @JSR303Validation MailBoxFormData mailboxFormData, Validation validation)
     {
+        String errorMessage;
         Result result = Results.json();
         mailboxFormData.setBoxId(boxId);
         result.render("currentBox", mailboxFormData);
         result.render("domains", xcmConfiguration.DOMAIN_LIST);
+        result.render("success", false);
 
         if (validation.hasViolations())
         { // not all fields were filled
-            context.getFlashCookie().error("flash_FormError");
-            return result;
+            errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
+            return result.render("error", errorMessage);
         }
         else
         { // the form was filled correctly
@@ -413,8 +421,8 @@ public class BoxHandler
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
             if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() >= 255)
             {
-                context.getFlashCookie().error("editEmail_Flash_MailTooLong");
-                return result;
+                errorMessage = messages.get("editEmail_Flash_MailTooLong", context, Optional.of(result)).get();
+                return result.render("error", errorMessage);
             }
             // we got the boxID with the POST-Request
             MBox mailBox = MBox.getById(boxId);
@@ -426,7 +434,7 @@ public class BoxHandler
                 String newDomainPartName = mailboxFormData.getDomain().toLowerCase();
 
                 if (!mailBox.getAddress().equals(newLocalPartName) || !mailBox.getDomain().equals(newDomainPartName))
-                { // mailaddress was changed
+                { // email-address changed
                     if (!MBox.mailExists(newLocalPartName, newDomainPartName))
                     { // the new address does not exist
                         String[] domains = xcmConfiguration.DOMAIN_LIST;
@@ -435,7 +443,8 @@ public class BoxHandler
                         {
                             // the new domainname does not exist in the application.conf
                             // stop the process and return to the mailbox-overview page
-                            return Results.redirect(context.getContextPath() + "/mail");
+                            errorMessage = "";
+                            return result.render("error", errorMessage);
                         }
                         mailBox.setAddress(newLocalPartName);
                         mailBox.setDomain(newDomainPartName);
@@ -444,20 +453,21 @@ public class BoxHandler
                     else
                     {
                         // the email-address already exists
-                        context.getFlashCookie().error("flash_MailExists");
-                        return result;
+                        errorMessage = messages.get("flash_MailExists", context, Optional.of(result)).get();
+                        return result.render("statusmsg", errorMessage);
+
                     }
                 }
                 Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                 if (ts == -1)
                 { // a faulty timestamp was given -> return an errorpage
-                    context.getFlashCookie().error("flash_FormError");
-                    return result;
+                    errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
+                    return result.render("statusmsg", errorMessage);
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
-                    context.getFlashCookie().error("editEmail_Past_Timestamp");
-                    return result;
+                    errorMessage = messages.get("editEmail_Past_Timestamp", context, Optional.of(result)).get();
+                    return result.render("statusmsg", errorMessage);
                 }
 
                 if (mailBox.getTs_Active() != ts)
@@ -465,13 +475,16 @@ public class BoxHandler
                     mailBox.setTs_Active(ts);
                     changes = true;
                 }
-
                 // Updates the Box if changes were made
                 if (changes)
                 {
                     mailBox.setExpired(false);
                     mailBox.update();
-                    context.getFlashCookie().success("flash_DataChangeSuccess");
+                    // context.getFlashCookie().success("flash_DataChangeSuccess");
+
+                    errorMessage = messages.get("flash_DataChangeSuccess", context, Optional.of(result)).get();
+                    result.render("success", true);
+                    return result.render("statusmsg", errorMessage);
                 }
 
             }
@@ -479,7 +492,11 @@ public class BoxHandler
         // the current user is not the owner of the mailbox,
         // the given box-id does not exist,
         // or the editing-process was successful
-        return Results.redirect(context.getContextPath() + "/mail");
+        errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
+        return result.render("statusmsg", errorMessage);
+        // return Results.ok();
+
+        // return Results.redirect(context.getContextPath() + "/mail");
     }
 
     /**
