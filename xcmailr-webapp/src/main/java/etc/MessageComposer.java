@@ -5,8 +5,10 @@ import java.util.Collections;
 import java.util.Enumeration;
 
 import javax.mail.BodyPart;
+import javax.mail.Header;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.internet.InternetHeaders;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 
@@ -16,7 +18,7 @@ public class MessageComposer
     public static MimeMessage createQuotedMessage(MimeMessage message) throws MessagingException, IOException
     {
         MimeMessage message2 = new MimeMessage(message);
-        
+
         if (message.isMimeType("text/plain"))
         {
             message2 = createQuotedPlainText(message2);
@@ -46,7 +48,7 @@ public class MessageComposer
         }
         buf.append("\n\n MESSAGE:\n\n");
         buf.append(message.getContent().toString());
-        buf.append("\n------------------message end of forwarded message------------------");
+        buf.append("\n------------------End of forwarded Message------------------");
         String quotationString = buf.toString().replace("\n", "\n>");
         message.setContent(quotationString, "text/plain");
         message.setHeader("Content-Transfer-Encoding", "8bit");
@@ -61,16 +63,23 @@ public class MessageComposer
         buf.append("<html><body><p>");
         buf.append("------------------Message forwarded by the XCMAILR---------------<br/><br/>HEADER:<br/><br/>");
         // add the header lines
-        Enumeration<String> enumer = message.getAllHeaderLines();
-        for (String en : Collections.list(enumer))
+        Enumeration<Header> enumer = message.getAllHeaders();
+        
+        buf.append("<table>");
+        for (Header en : Collections.list(enumer))
         {
-            buf.append("<br/>" + en);
+            buf.append("<tr><td>");
+            buf.append(en.getName());
+            buf.append("</td><td>");
+            buf.append(en.getName());
+            buf.append("</td></tr>");
         }
+        buf.append("</table>");
         buf.append("<br/><br/> MESSAGE:<br/><br/>");
         buf.append(message.getContent().toString());
 
-        buf.append("<br/>message end of forwarded message<br/></p></body></html>");
-        //quotationString = buf.toString().replace("\n", "<br/>");
+        buf.append("<br/>------------------End of forwarded Message------------------<br/></p></body></html>");
+        // quotationString = buf.toString().replace("\n", "<br/>");
 
         message.setContent(buf.toString(), "text/html");
         message.setHeader("Content-Transfer-Encoding", "8bit");
@@ -99,7 +108,46 @@ public class MessageComposer
             boolean isAttachment = (disposition != null && disposition.equals(BodyPart.ATTACHMENT));
             if (bodyPart.isMimeType("text/html") && !isAttachment)
             {
-                createQuotedHtmlTextBody(bodyPart, message.getAllHeaderLines());
+                createQuotedHtmlTextBody(bodyPart, message.getAllHeaders());
+            }
+            if (bodyPart.isMimeType("multipart/related"))
+            {
+                Multipart newMulti = (Multipart) bodyPart.getContent();
+                createQuotedMultipart(newMulti, message);
+            }
+
+        }
+        return message;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static MimeMessage createQuotedMultipart(Multipart multiPart, MimeMessage message)
+        throws MessagingException, IOException
+    {
+        // build "quoted" message
+
+        int j = multiPart.getCount();
+        MimeBodyPart bodyPart;
+
+        // create the different bodyparts
+        for (int i = 0; i < j; i++)
+        {
+            bodyPart = (MimeBodyPart) multiPart.getBodyPart(i);
+            if (bodyPart.isMimeType("text/plain"))
+            {
+                createQuotedPlainTextBody(bodyPart, message.getAllHeaderLines());
+            }
+
+            String disposition = bodyPart.getDisposition();
+            boolean isAttachment = (disposition != null && disposition.equals(BodyPart.ATTACHMENT));
+            if (bodyPart.isMimeType("text/html") && !isAttachment)
+            {
+                createQuotedHtmlTextBody(bodyPart, message.getAllHeaders());
+            }
+            if (bodyPart.isMimeType("multipart/alternative"))
+            {
+                Multipart newMulti = (Multipart) bodyPart.getContent();
+                createQuotedMultipart(newMulti, message);
             }
 
         }
@@ -121,14 +169,14 @@ public class MessageComposer
         }
         buf.append("\n\n MESSAGE:\n\n");
         buf.append(body.getContent().toString());
-        buf.append("\nmessage end of forwarded message");
+        buf.append("\n------------------End of forwarded Message------------------");
         String quotationString = buf.toString().replace("\n", "\n>");
         body.setContent(quotationString, "text/plain");
         body.setHeader("Content-Transfer-Encoding", "8bit");
         return body;
     }
 
-    public static MimeBodyPart createQuotedHtmlTextBody(MimeBodyPart body, Enumeration<String> headers)
+    public static MimeBodyPart createQuotedHtmlTextBody(MimeBodyPart body, Enumeration<Header> headers)
         throws MessagingException, IOException
     {
         // build "quoted" message
@@ -136,16 +184,23 @@ public class MessageComposer
         buf.append("<html><body><p>");
         buf.append("------------------Message forwarded by the XCMAILR---------------<br/><br/>HEADER:<br/><br/>");
         // add the header lines
+        // add the header lines
 
-        for (String en : Collections.list(headers))
+        buf.append("<table>");
+        for (Header en : Collections.list(headers))
         {
-            buf.append("<br/>" + en);
+            buf.append("<tr><td>");
+            buf.append(en.getName());
+            buf.append("</td><td>");
+            buf.append(en.getValue());
+            buf.append("</td></tr>");
         }
+        buf.append("</table>");
         buf.append("<br/><br/> <b>MESSAGE:</b><br/><br/>");
         String content = body.getContent().toString();
         content = HtmlUtils.readHTMLData(content);
         buf.append(content);
-        buf.append("<br/>------------------message end of forwarded message------------------<br/></p></body></html>");
+        buf.append("<br/>------------------End of forwarded Message------------------<br/></p></body></html>");
         String quotationString = buf.toString().replace("\n", "<br/>");
 
         body.setContent(quotationString, "text/html");
