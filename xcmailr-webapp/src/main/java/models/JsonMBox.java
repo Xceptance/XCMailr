@@ -64,7 +64,7 @@ public class JsonMBox
     private int suppressions;
 
     private String datetime;
-    
+
     /**
      * Default-Constructor
      */
@@ -187,7 +187,6 @@ public class JsonMBox
         this.expired = expired;
     }
 
-
     /**
      * @return the Domain-Part of this Mail-Forward
      */
@@ -298,17 +297,50 @@ public class JsonMBox
         return this.address + "@" + this.domain;
     }
 
+    /**
+     * @return the date-time in an easy human-readable way
+     */
     public String getDateTime()
     {
         return datetime;
     }
 
+    /**
+     * @param dateTime
+     *            the date-time in an easy human-readable way
+     */
     public void setDateTime(String dateTime)
     {
         this.datetime = dateTime;
     }
-    
-    public static JsonMBox prepopulate(MBox mailbox){
+
+    /**
+     * pre-populates the fields of the current JsonMBox-Object with the given MBox-Object
+     * 
+     * @param mailbox
+     *            the MBox-Object
+     */
+    public void prepopulateJS(MBox mailbox)
+    {
+        this.address = mailbox.getAddress();
+        this.datetime = mailbox.getTSAsString();
+        this.domain = mailbox.getDomain();
+        this.expired = mailbox.isExpired();
+        this.forwards = mailbox.getForwards();
+        this.id = mailbox.getId();
+        this.suppressions = mailbox.getSuppressions();
+        this.ts_Active = mailbox.getTs_Active();
+    }
+
+    /**
+     * pre-populates a JsonMBox-Object in a static way, by the given MBox-Object-values and returns it
+     * 
+     * @param mailbox
+     *            the MBox-Object to parse
+     * @return a JsonMBox-Object
+     */
+    public static JsonMBox prepopulate(MBox mailbox)
+    {
         JsonMBox jsonMailbox = new JsonMBox();
         jsonMailbox.setAddress(mailbox.getAddress());
         jsonMailbox.setDateTime(mailbox.getTSAsString());
@@ -319,6 +351,6 @@ public class JsonMBox
         jsonMailbox.setId(mailbox.getId());
         jsonMailbox.setTs_Active(mailbox.getTs_Active());
         return jsonMailbox;
-        
+
     }
 }

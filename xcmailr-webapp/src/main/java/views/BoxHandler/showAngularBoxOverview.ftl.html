@@ -54,7 +54,7 @@
 
 <!-- start page -->
 <#import "../layout/macros.ftl.html" as pag/>
-<div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl">
+<div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="contextPath='${contextPath}'">
 <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<!--mailboxoverview-->
@@ -76,16 +76,16 @@
 					{{mBox.address}}&#064;{{mBox.domain}}<br/>
 				<!-- start inline menu -->
 			        <span ng-show="overM && ($index == overId)" > 
-		                <a class="btn btn-mini btn-link" ng-if="!mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, '${contextPath}')" value='${i18n("mailbox_Button_Deactivate")}'>  
+		                <a class="btn btn-mini btn-link" ng-if="!mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" value='${i18n("mailbox_Button_Deactivate")}'>  
 		                	<i class="icon-pause"></i> ${i18n("mailbox_Button_Deactivate")}
 		                </a>
-						<a  class="btn btn-mini btn-link" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, '${contextPath}')" value='${i18n("mailbox_Button_Deactivate")}'>  
+						<a  class="btn btn-mini btn-link" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, $index)" value='${i18n("mailbox_Button_Deactivate")}'>  
 		                	<i class="icon-play"></i> ${i18n("mailbox_Button_Activate")}
 		                </a> 
-		    			<a class="btn btn-mini btn-link" ng-click="deleteBox({{mBox.id}}, $index, '${contextPath}')">
+		    			<a class="btn btn-mini btn-link" ng-click="deleteBox({{mBox.id}}, $index)">
 		    				<i class="icon-trash"></i> ${i18n("mailbox_Button_Delete")}
 		    			</a>
-		                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index, '${contextPath}')">
+		                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index)">
 		    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
 		    			</a>
 			        	<a ng-click="openDialog($index)"  class="btn btn-mini btn-link"> <!-- href="${contextPath}/mail/edit/{{mBox.id}}" -->
@@ -94,11 +94,13 @@
 			        </span>
 				<!-- end inline menu -->
 				</td>
-				<td>{{mBox.datetime}}</td>						
+				<td ng-if="mBox.datetime=='unlimited'">${i18n("mailbox_Label_Unlimited")}</td>
+				<td ng-if="mBox.datetime!='unlimited'">{{mBox.datetime}}</td>						
 				<td>{{mBox.forwards}}</td>
 				<td>{{mBox.suppressions}}</td>
 				<td ng-if="!mBox.expired"> ${i18n("mailbox_Label_MailActive")} </td>
-   				<td ng-if="mBox.expired"> ${i18n("mailbox_Label_MailExpired")} </td>
+   				<td ng-if="mBox.expired && (${ts_now} > mBox.ts_Active)"> ${i18n("mailbox_Label_MailExpired")} </td>
+   				<td ng-if="mBox.expired && (${ts_now} < mBox.ts_Active)"> ${i18n("mailbox_Label_MailInactive")} </td>
 			</tr>
 		</tbody>
     </table>
@@ -194,7 +196,7 @@
 			
 		});
 		
-		//handle the submit-button
+		//handle the submit-button 
 		$('#createEmailSubmit')
 		.click(
 				function() {

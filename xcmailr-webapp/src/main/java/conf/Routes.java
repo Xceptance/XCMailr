@@ -87,7 +87,8 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/mail/edit2/{id}").with(BoxHandler.class, "editBoxJson");
         
         router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBoxProcess");
-
+        router.POST().route("/mail/expire2/{id}").with(BoxHandler.class, "expireBoxJson");
+        
         router.GET().route("/mail/mymaillist.txt").with(BoxHandler.class, "showMailsAsTextList");
         router.GET().route("/mail/myactivemaillist.txt").with(BoxHandler.class, "showActiveMailsAsTextList");
 
