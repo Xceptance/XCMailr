@@ -129,6 +129,26 @@ $scope.init = function(cP)
 		);
 	};
 	
+	//--------------- add a box ---------------//
+	$scope.addBox = function(boxId, data)
+	{
+		$http.post($scope.contextPath + '/mail/addJson', data).success
+		(
+			function(returnedData)
+			{
+				if(returnedData.success)
+				{
+					$scope.alerts.push({'type': 'success', 'msg': returnedData.statusmsg });
+					$scope.allBoxes.push(returnedData.currentBox);
+				}
+				else
+				{
+					$scope.alerts.push({'type': 'error', 'msg': returnedData.statusmsg });
+				}
+			}
+		);
+	};
+	
 	//--------------- toggle the inlined menu on/off ---------------//
 	$scope.toggleMenu = function(boxId)
 	{
@@ -262,7 +282,7 @@ $scope.init = function(cP)
 			{
 				if(result)
 				{ // boxId, data, elementIdx
-					//$scope.editBox(result.id, result, elementIdx);
+					$scope.addBox(result.id, result);
 				}
 			}
 		 );
@@ -325,6 +345,22 @@ $scope.init = function(cP)
 				}
 		);
 		$('.bulkChk').prop("checked", $scope.allBoxesAreNowSelected);
+	};
+	
+	$scope.bulkDeleteBox = function()
+	{
+		$http.post($scope.contextPath + '/mail/bulkDelete', $scope.selected).success
+		(
+			function(returnedData)
+			{
+				if(returnedData.success)
+				{
+					$scope.updateModel();
+					//$scope.alerts.push({'type': 'success', 'msg': returnedData.statusmsg });
+					//$scope.allBoxes[elementIdx+(($scope.currentPage-1)*$scope.maxSize)] = returnedData.currentBox;
+				}
+			}
+		);
 	};
 }
 

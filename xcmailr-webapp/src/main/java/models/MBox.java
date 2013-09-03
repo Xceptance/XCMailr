@@ -498,14 +498,8 @@ public class MBox
      */
     public static boolean mailExists(String mail, String domain)
     {
-        if (!Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findList().isEmpty())
-        { // theres no such mailaddress registered now
-            return true;
-        }
-        else
-        { // the mailaddress exists
-            return false;
-        }
+        return !Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findList()
+                     .isEmpty();
     }
 
     /**
@@ -521,36 +515,35 @@ public class MBox
         else
         {
             DateTime dt = new DateTime(this.ts_Active);
-            String day = "";
-            String month = "";
-            String hour = "";
-            String minute = "";
+            StringBuilder timeString = new StringBuilder();
             // add a leading "0" if the value is under ten
-            if (dt.getDayOfMonth() < 10)
-            {
-                day += "0";
-            }
-            day += String.valueOf(dt.getDayOfMonth());
+            timeString.append(dt.getYear()).append("-");
 
             if (dt.getMonthOfYear() < 10)
             {
-                month += "0";
+                timeString.append("0");
             }
-            month += String.valueOf(dt.getMonthOfYear());
+            timeString.append(dt.getMonthOfYear()).append("-");
+
+            if (dt.getDayOfMonth() < 10)
+            {
+                timeString.append("0");
+            }
+            timeString.append(dt.getDayOfMonth()).append(" ");
 
             if (dt.getHourOfDay() < 10)
             {
-                hour += "0";
+                timeString.append("0");
             }
-            hour += String.valueOf(dt.getHourOfDay());
+            timeString.append(dt.getHourOfDay()).append(":");
 
             if (dt.getMinuteOfHour() < 10)
             {
-                minute += "0";
+                timeString.append("0");
             }
-            minute += String.valueOf(dt.getMinuteOfHour());
+            timeString.append(dt.getMinuteOfHour());
 
-            return dt.getYear() + "-" + month + "-" + day + " " + hour + ":" + minute;
+            return timeString.toString();
         }
 
     }
@@ -648,14 +641,14 @@ public class MBox
 
     public static String getMailsForTxt(long userId)
     {
-        String csvMails = "";
+        StringBuilder csvMail = new StringBuilder();
         List<MBox> allBoxes = MBox.allUser(userId);
         for (MBox mailBox : allBoxes)
         {
-            csvMails += mailBox.getAddress() + "@" + mailBox.getDomain() + "\n";
+            csvMail.append(mailBox.getFullAddress()).append("\n");
         }
 
-        return csvMails;
+        return csvMail.toString();
     }
 
     /**
@@ -665,16 +658,40 @@ public class MBox
      *            the userid
      * @return a list of emails
      */
-
     public static String getActiveMailsForTxt(Long userId)
     {
-        String csvMails = "";
+        StringBuilder csvMail = new StringBuilder();
         List<MBox> allActiveBoxes = Ebean.find(MBox.class).where().eq("usr_id", userId.toString()).eq("expired", false)
                                          .findList();
         for (MBox mailBox : allActiveBoxes)
         {
-            csvMails += mailBox.getAddress() + "@" + mailBox.getDomain() + "\n";
+            csvMail.append(mailBox.getFullAddress()).append("\n");
         }
-        return csvMails;
+        return csvMail.toString();
+    }
+
+    public static int removeListOfBoxes(long userId, String boxIds)
+    {
+        StringBuilder sqlSb = new StringBuilder();
+        sqlSb.append("DELETE FROM MAILBOXES WHERE USR_ID=").append(userId).append(" AND (");
+        String[] boxArray = boxIds.split("\\,");
+        if (boxArray.length > 0)
+        {
+            for (String id : boxArray)
+            {
+                sqlSb.append(" ID=").append(id).append(" OR");
+            }
+            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
+            sqlSb.append(");");
+            System.out.println(sqlSb.toString());
+            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+            int no = down.execute();
+            return no;
+        }
+        else
+        {
+            return -1;
+        }
+
     }
 }

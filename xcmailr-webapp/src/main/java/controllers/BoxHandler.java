@@ -19,6 +19,8 @@ package controllers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import ninja.Context;
@@ -28,8 +30,9 @@ import etc.HelperUtils;
 import filters.SecureFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-
 import com.google.common.base.Optional;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
@@ -649,6 +652,7 @@ public class BoxHandler
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
         return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour));
     }
+
     /**
      * Shows the "new Mail-Forward"-Page <br/>
      * GET /mail/addBoxData
@@ -683,9 +687,10 @@ public class BoxHandler
 
         return Results.json().render("currentBox", jsonMailboxData);
     }
+
     /**
      * Adds a Mailbox to the {@link User}-Account <br/>
-     * POST /mail/add
+     * POST /mail/addJson
      * 
      * @param context
      *            the Context of this Request
@@ -695,33 +700,38 @@ public class BoxHandler
      *            Form validation
      * @return the Add-Box-Form (on Error) or the Box-Overview
      */
-    public Result addBoxJsonProcess(Context context, @JSR303Validation MailBoxFormData mailboxFormData,
-                                    Validation validation)
+    public Result addBoxJsonProcess(Context context, @JSR303Validation JsonMBox mailboxFormData, Validation validation)
     {
-        Result result = Results.html().template("/views/BoxHandler/addBoxForm.ftl.html");
+        String errorMessage;
+        Result result = Results.json();
         result.render("domain", xcmConfiguration.DOMAIN_LIST);
-        result.render("mbFrmDat", mailboxFormData);
 
         if (validation.hasViolations())
         { // not all fields were filled (correctly)
-            context.getFlashCookie().error("flash_FormError");
-            return result;
+            errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
+            result.render("currentBox", mailboxFormData);
+            return result.render("success", false).render("statusmsg", errorMessage);
         }
         else
         {
             // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
             String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
+
             if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() > 254)
             {
-                context.getFlashCookie().error("createEmail_Flash_MailTooLong");
-                return result;
+                errorMessage = messages.get("createEmail_Flash_MailTooLong", context, Optional.of(result)).get();
+                result.render("currentBox", mailboxFormData);
+                return result.render("success", false).render("statusmsg", errorMessage);
+
             }
             // checks whether the email address already exists
             if (MBox.mailExists(mailboxFormData.getAddress(), mailboxFormData.getDomain()))
             {
                 // the mailbox already exists
-                context.getFlashCookie().error("flash_MailExists");
-                return result;
+                errorMessage = messages.get("flash_MailExists", context, Optional.of(result)).get();
+                result.render("currentBox", mailboxFormData);
+                return result.render("success", false).render("statusmsg", errorMessage);
+
             }
             else
             {
@@ -731,18 +741,22 @@ public class BoxHandler
                 if (!Arrays.asList(domains).contains(mailboxFormData.getDomain()))
                 { // the new domain-name does not exist in the application.conf
                   // stop the process and return to the mailbox-overview page
-                    return Results.redirect(context.getContextPath() + "/angmail");
+                    errorMessage = messages.get("flash_MailExists", context, Optional.of(result)).get();
+                    result.render("currentBox", mailboxFormData);
+                    return result.render("success", false).render("statusmsg", errorMessage);
                 }
-                Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
+                Long ts = HelperUtils.parseTimeString(mailboxFormData.getDateTime());
                 if (ts == -1L)
                 { // show an error-page if the timestamp is faulty
-                    context.getFlashCookie().error("flash_FormError");
-                    return result;
+                    errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
+                    result.render("currentBox", mailboxFormData);
+                    return result.render("success", false).render("statusmsg", errorMessage);
                 }
                 if ((ts != 0) && (ts < DateTime.now().getMillis()))
                 { // the Timestamp lays in the past
-                    context.getFlashCookie().error("createEmail_Past_Timestamp");
-                    return result;
+                    errorMessage = messages.get("createEmail_Past_Timestamp", context, Optional.of(result)).get();
+                    result.render("currentBox", mailboxFormData);
+                    return result.render("success", false).render("statusmsg", errorMessage);
                 }
 
                 // create the MBox
@@ -751,7 +765,10 @@ public class BoxHandler
 
                 // creates the Box in the DB
                 mailBox.save();
-                return Results.redirect(context.getContextPath() + "/angmail");
+                mailboxFormData.prepopulateJS(mailBox);
+                errorMessage = messages.get("flash_DataChangeSuccess", context, Optional.of(result)).get();
+                result.render("currentBox", mailboxFormData);
+                return result.render("success", true).render("statusmsg", errorMessage);
             }
         }
     }
@@ -899,7 +916,6 @@ public class BoxHandler
         }
         // the given box-id does not exist,
         // or the editing-process was successful
-
     }
 
     /**
@@ -1061,5 +1077,183 @@ public class BoxHandler
             errorMessage = "Box does not belong to this user";
             return result.render("success", false).render("statusmsg", errorMessage);
         }
+    }
+
+    /**
+     * Processes the given action on the given Mail-Addresses<br/>
+     * GET /mail/bulkChange
+     * 
+     * @param action
+     *            the action to do (may be 'reset','delete', 'change' or 'enable'
+     * @param boxIds
+     *            the IDs of the mailboxes/mailaddresses to modify, separated by a colon
+     * @param duration
+     *            the new duration for the mailboxes in action 'change', must be in format "dd.MM.yyyy hh:mm"
+     * @param context
+     *            the context of this request
+     * @return to the mailbox-overview-page
+     */
+    public Result bulkChngBoxes(@Param("action") String action, @Param("ids") String boxIds,
+                                @Param("duration") String duration, Context context)
+    {
+        Result result = Results.redirect(context.getContextPath() + "/mail");
+        User user = context.getAttribute("user", User.class);
+
+        if (!StringUtils.isBlank(action) && !StringUtils.isBlank(boxIds))
+        {
+            if (PATTERN_CS_BOXIDS.matcher(boxIds).matches())
+            {// the list of boxIds have to be in the form of comma-separated-ids
+                String[] splittedIds = boxIds.split("\\,");
+
+                Long boxId;
+                if (splittedIds.length > 0)
+                { // the length of the IDs are at least one
+                    switch (Actions.valueOf(action))
+                    {
+                        case reset: // reset the list of boxes, we'll abort if there's a box with an id that does not
+                                    // belong to the user
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                MBox mailBox = MBox.getById(boxId);
+                                if (mailBox.belongsTo(user.getId()))
+                                { // box belongs to the user
+                                    mailBox.resetForwards();
+                                    mailBox.resetSuppressions();
+                                    mailBox.update();
+                                }
+                                else
+                                {
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
+                                }
+                            }
+                            return result;
+
+                        case delete:
+                            // delete the list of boxes, we'll abort if there's a box with an id, that does not belong
+                            // to this user
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                if (MBox.boxToUser(boxId, user.getId()))
+                                { // box belongs to the user
+                                    MBox.delete(boxId);
+                                }
+                                else
+                                {
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
+                                }
+                            }
+                            return result;
+
+                        case change:
+                            // change the duration of the boxes, we'll abort if there's a box with an id, that does not
+                            // belong to this user
+
+                            Long ts = HelperUtils.parseTimeString(duration);
+                            if (ts == -1L)
+                            { // show an error-page if the timestamp is faulty
+                                context.getFlashCookie().error("mailbox_Wrong_Timestamp");
+                                return result;
+                            }
+                            if ((ts != 0) && (ts < DateTime.now().getMillis()))
+                            { // the Timestamp lays in the past
+                                context.getFlashCookie().error("createEmail_Past_Timestamp");
+                                return result;
+                            }
+
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                MBox mailBox = MBox.getById(boxId);
+                                if (mailBox.belongsTo(user.getId()))
+                                { // box belongs to the user
+                                    mailBox.setTs_Active(ts);
+                                    mailBox.setExpired(false);
+                                    mailBox.update();
+                                }
+                                else
+                                { // set an error-message
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
+                                }
+                            }
+                            return result;
+
+                        case enable:
+                            // enable or disable the boxes
+                            // all active boxes will then be inactive and vice versa
+                            for (String boxIdString : splittedIds)
+                            {
+                                boxId = Long.valueOf(boxIdString);
+                                MBox mailBox = MBox.getById(boxId);
+                                if (mailBox.belongsTo(user.getId()))
+                                { // box belongs to the user
+                                    if ((mailBox.getTs_Active() != 0)
+                                        && (mailBox.getTs_Active() < DateTime.now().getMillis()))
+                                    { // if the validity period is over, return the Edit page
+                                        context.getFlashCookie().error("mailbox_Flash_NotEnabled");
+                                    }
+                                    else
+                                    { // otherwise just set the new status
+                                        mailBox.enable();
+                                    }
+                                }
+                                else
+                                { // box does not belong to the user
+                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
+                                }
+                            }
+                            return result;
+
+                        default:
+                            // we got an action that is not defined
+                            // we're ignoring it and simply redirect to the overview-page
+                            return result;
+                    }// end switch
+                }
+                else
+                { // the IDs have a wrong separator
+                    return result;
+                }
+            }
+            else
+            { // the IDs are not in the expected pattern
+                return result;
+            }
+        }
+        else
+        { // the action or IDs-parameter is empty or null
+            return result;
+        }
+    }
+
+    public Result bulkDeleteBoxes(JsonObject boxIds, Context context)
+    {
+        Result result = Results.json();
+        String ids = getJsonArrayAsString(boxIds);
+        User user = context.getAttribute("user", User.class);
+
+        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+        { // the list of boxIds have to be in the form of comma-separated-ids
+            int nu = MBox.removeListOfBoxes(user.getId(), ids);
+            return result.render("count", nu).render("success", true);
+        }
+        else
+        { // the IDs are not in the expected pattern
+            return result.render("success", false);
+        }
+    }
+
+    private String getJsonArrayAsString(JsonObject json)
+    {
+        Set<Entry<String, JsonElement>> entrys = json.entrySet();
+        StringBuilder sb = new StringBuilder();
+        for (Entry<String, JsonElement> entry : entrys)
+        {
+            sb.append(entry.getKey()).append(",");
+        }
+        sb.delete(sb.length() - 1, sb.length());
+        System.out.println(sb.toString());
+        return sb.toString();
     }
 }
