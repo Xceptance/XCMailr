@@ -437,7 +437,7 @@ public class MBox
 
         if (mb != null)
         { // the box exists, return true if the id belongs to the user
-            return (mb.usr.getId() == uId);
+            return (mb.getUsr().getId() == uId);
         }
         else
         { // there's no box with that ID
@@ -572,8 +572,8 @@ public class MBox
     public static List<MBox> getNextBoxes(int minutes)
     {
         // get the time to check for
-        DateTime dt = new DateTime();
-        dt = dt.plusHours(minutes);
+        DateTime dt = new DateTime().plusHours(minutes);
+
         // get a list of boxes, that are active, have a timestamp that is lower than the time to check for and not
         // unlimited
         return Ebean.find(MBox.class).where().eq("expired", false).lt("ts_Active", dt.getMillis()).ne("ts_Active", 0)
@@ -683,15 +683,58 @@ public class MBox
             }
             sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
             sqlSb.append(");");
-            System.out.println(sqlSb.toString());
             SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-            int no = down.execute();
-            return no;
+             
+            return down.execute();
         }
         else
         {
             return -1;
         }
-
     }
+    public static int resetListOfBoxes(long userId, String boxIds)
+    {
+        StringBuilder sqlSb = new StringBuilder();
+        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId).append(" AND (");
+        String[] boxArray = boxIds.split("\\,");
+        if (boxArray.length > 0)
+        {
+            for (String id : boxArray)
+            {
+                sqlSb.append(" ID=").append(id).append(" OR");
+            }
+            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
+            sqlSb.append(");");
+            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+             
+            return down.execute();
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    public static int disableListOfBoxes(long userId, String boxIds)
+    {
+        StringBuilder sqlSb = new StringBuilder();
+        sqlSb.append("UPDATE MAILBOXES SET EXPIRED = TRUE WHERE USR_ID=").append(userId).append(" AND (");
+        String[] boxArray = boxIds.split("\\,");
+        if (boxArray.length > 0)
+        {
+            for (String id : boxArray)
+            {
+                sqlSb.append(" ID=").append(id).append(" OR");
+            }
+            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
+            sqlSb.append(");");
+            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+             
+            return down.execute();
+        }
+        else
+        {
+            return -1;
+        }
+    }
+   
 }

@@ -338,15 +338,21 @@ $scope.init = function(cP)
 	$scope.selectAllItems = function()
 	{
 		$scope.allBoxesAreNowSelected = !$scope.allBoxesAreNowSelected;
-		angular.forEach($scope.allBoxes,
-				function(mBox, key)
-				{
-					$scope.selected[mBox.id] = $scope.allBoxesAreNowSelected;
-				}
-		);
+		if($scope.allBoxesAreNowSelected){
+			angular.forEach($scope.allBoxes,
+					function(mBox, key)
+					{
+						$scope.selected[mBox.id] = $scope.allBoxesAreNowSelected;
+					}
+			);
+		}
+		else
+		{
+			$scope.selected = {};
+		}
 		$('.bulkChk').prop("checked", $scope.allBoxesAreNowSelected);
 	};
-	
+	//--------------- Deletes the selected Boxes ---------------//		
 	$scope.bulkDeleteBox = function()
 	{
 		$http.post($scope.contextPath + '/mail/bulkDelete', $scope.selected).success
@@ -362,6 +368,37 @@ $scope.init = function(cP)
 			}
 		);
 	};
+	//--------------- Resets the selected Boxes ---------------//	
+	$scope.bulkResetBox = function()
+	{
+		$http.post($scope.contextPath + '/mail/bulkReset', $scope.selected).success
+		(
+			function(returnedData)
+			{
+				if(returnedData.success)
+				{
+					$scope.updateModel();
+				}
+			}
+		);
+	};
+	
+	//--------------- Disables the selected Boxes ---------------//	
+	$scope.bulkDisableBox = function()
+	{
+		$http.post($scope.contextPath + '/mail/bulkDisable', $scope.selected).success
+		(
+			function(returnedData)
+			{
+				if(returnedData.success)
+				{
+					$scope.updateModel();
+				}
+			}
+		);
+	};
+	
+	
 }
 
 

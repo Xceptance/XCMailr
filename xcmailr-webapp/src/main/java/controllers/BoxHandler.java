@@ -1244,15 +1244,55 @@ public class BoxHandler
         }
     }
 
+    public Result bulkResetBoxes(JsonObject boxIds, Context context)
+    {
+        Result result = Results.json();
+        String ids = getJsonArrayAsString(boxIds);
+        User user = context.getAttribute("user", User.class);
+
+        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+        { // the list of boxIds have to be in the form of comma-separated-ids
+            int nu = MBox.resetListOfBoxes(user.getId(), ids);
+            return result.render("count", nu).render("success", true);
+        }
+        else
+        { // the IDs are not in the expected pattern
+            return result.render("success", false);
+        }
+    }
+
+    public Result bulkDisableBoxes(JsonObject boxIds, Context context)
+    {
+        Result result = Results.json();
+        String ids = getJsonArrayAsString(boxIds);
+        User user = context.getAttribute("user", User.class);
+
+        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+        { // the list of boxIds have to be in the form of comma-separated-ids
+            int nu = MBox.disableListOfBoxes(user.getId(), ids);
+            return result.render("count", nu).render("success", true);
+        }
+        else
+        { // the IDs are not in the expected pattern
+            return result.render("success", false);
+        }
+    }
+
     private String getJsonArrayAsString(JsonObject json)
     {
         Set<Entry<String, JsonElement>> entrys = json.entrySet();
         StringBuilder sb = new StringBuilder();
         for (Entry<String, JsonElement> entry : entrys)
         {
-            sb.append(entry.getKey()).append(",");
+            if (entry.getValue().getAsBoolean())
+            {
+                sb.append(entry.getKey()).append(",");
+            }
         }
-        sb.delete(sb.length() - 1, sb.length());
+        if (sb.length() > 0)
+        {
+            sb.delete(sb.length() - 1, sb.length());
+        }
         System.out.println(sb.toString());
         return sb.toString();
     }
