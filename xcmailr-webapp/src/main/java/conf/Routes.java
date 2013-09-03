@@ -75,6 +75,7 @@ public class Routes implements ApplicationRoutes
 
         router.GET().route("/mail/add").with(BoxHandler.class, "addBoxForm");
         router.POST().route("/mail/add").with(BoxHandler.class, "addBoxProcess");
+        router.GET().route("/mail/addBoxData").with(BoxHandler.class, "addBoxJsonData");
         router.POST().route("/mail/addJson").with(BoxHandler.class, "addBoxJsonProcess");
 
         router.GET().route("/mail/bulkChange").with(BoxHandler.class, "bulkChangeBoxes");

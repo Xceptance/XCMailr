@@ -1,15 +1,30 @@
 angular.module('BoxHandler', ['ui.bootstrap']);
 function BoxListCtrl($scope, $dialog, $http) 
 {
-
-$scope.selected = {};
-$scope.allBoxes = {};
-$scope.alerts = [];
+$scope.init = function(cP)
+	{ // something like a constructor
+		$scope.contextPath = cP;
+		//execute the domain-load
+		$scope.loadDomains();
+	    /*
+		 * handle the pagination
+		 */
+	    $scope.noOfPages = 1;
+	    $scope.currentPage = 1;
+	    $scope.maxSize = 15;
+	    $scope.selected = {};
+	    $scope.allBoxes = {};
+	    $scope.alerts = [];
+	    $scope.updateModel();
+	    $scope.noOfPages = $scope.setNumPages();	
+	    $scope.allBoxesAreNowSelected = false;
+	}
+	
 
 	//--------------- get the available domains ---------------//
 	$scope.loadDomains = function()
 	{
-		$http.get('/mail/domainlist').success
+		$http.get($scope.contextPath + '/mail/domainlist').success
 		(
 			function(data)
 			{
@@ -17,14 +32,11 @@ $scope.alerts = [];
 			}
 		);
 	};
-	
-//execute the domain-load
-$scope.loadDomains();
 
 	//--------------- load all boxes ---------------//
 	$scope.updateModel = function()
 	{ 
-		$http.get('/mail/angget').success
+		$http.get($scope.contextPath + '/mail/angget').success
 		(
 			function(data)
 			{
@@ -40,10 +52,16 @@ $scope.loadDomains();
 	{
 		$http.post($scope.contextPath + '/mail/delete2/' + boxId, null).success
 		(
-			function()
+			function(returnedData)
 			{
-				//$scope.filteredBoxes.splice(elementIdx, 1);
-				$scope.allBoxes.splice(elementIdx+(($scope.currentPage-1)*$scope.maxSize),1);
+				if(returnedData.success)
+				{
+					$scope.allBoxes.splice(elementIdx+(($scope.currentPage-1)*$scope.maxSize),1);
+				}
+				else
+				{
+					$scope.alerts.push({'type': 'success', 'msg': 'errrrror!' });
+				}
 			}
 		);
 	};
@@ -59,7 +77,6 @@ $scope.loadDomains();
 				{
 					var curBox = $scope.filteredBoxes[elementIdx];
 					curBox.expired = !curBox.expired;
-					//$scope.filteredBoxes[elementIdx] = curBox;
 					//update the allBoxes-model, this should also refresh the filteredboxes
 					$scope.allBoxes[elementIdx+(($scope.currentPage-1)*$scope.maxSize)] = curBox;
 				}
@@ -77,10 +94,17 @@ $scope.loadDomains();
 	{
 		$http.post($scope.contextPath + '/mail/reset2/' + boxId, null).success
 		(
-				function()
+				function(returnedData)
 				{
+					if(returnedData.success)
+					{
 					$scope.allBoxes[elementIdx+(($scope.currentPage-1)*$scope.maxSize)].suppressions = 0;
 					$scope.allBoxes[elementIdx+(($scope.currentPage-1)*$scope.maxSize)].forwards = 0;
+					}
+					else
+					{
+						$scope.alerts.push({'type': 'error', 'msg': returnedData.statusmsg });
+					}
 				}
 		);
 	};
@@ -92,7 +116,6 @@ $scope.loadDomains();
 		(
 			function(returnedData)
 			{
-				
 				if(returnedData.success)
 				{
 					$scope.alerts.push({'type': 'success', 'msg': returnedData.statusmsg });
@@ -127,14 +150,7 @@ $scope.loadDomains();
     {
     	$scope.filteredBoxes = $scope.allBoxes;
     };
-
-    /*
-	 * handle the pagination
-	 */
-    $scope.noOfPages = 1;
-    $scope.currentPage = 1;
-    $scope.maxSize = 15;
-    
+   
 	//--------------- set the page ---------------//
     $scope.setPage = function (pageNo) 
     {
@@ -150,17 +166,17 @@ $scope.loadDomains();
 	};
 	
 	//--------------- set the number of pages ---------------//
-	  $scope.setNumPages = function()
-	  {
-		  if($scope.maxSize != 0)
-		  {
-			  return Math.ceil($scope.allBoxes.length / $scope.maxSize);
-		  }
-		  else
-		  {
-			  return 1;  
-		  }
-	  };  
+	$scope.setNumPages = function()
+	{
+		if($scope.maxSize != 0)
+		{
+			return Math.ceil($scope.allBoxes.length / $scope.maxSize);
+		}
+		else
+		{
+			return 1;  
+		}
+	};  
 	  
  	/*
 	 * handle the addboxdialog (TODO)
@@ -174,32 +190,79 @@ $scope.loadDomains();
 	};
 	
 	//--------------- Opens the EditBoxDialog ---------------//
-	$scope.openDialog = function(elementIdx)
+	$scope.openEditBoxDialog = function(elementIdx)
 	{
 		$scope.currentBox = $scope.filteredBoxes[elementIdx];
   		$scope.opts.resolve = 
   		{
-  			currentBox : 
-  				function() 
+  			currentBox : function() 
   				{
 		  			return angular.copy($scope.currentBox);
 		  		}, 
-		  		domains : 
-		  			function()
-		  			{
-		  				return angular.copy($scope.domains);
-		  			}
+	  		domains : function()
+	  			{
+	  				return angular.copy($scope.domains);
+	  			},
+	  		contextPath : function()
+	  			{
+	  				return angular.copy($scope.contextPath);
+	  			}
 		 };
 		 var d = $dialog.dialog($scope.opts);
 		 		 
 		 d.open().then
 		 (
-
 			function(result)
 			{
 				if(result)
 				{ //boxId, data, elementIdx
 					$scope.editBox(result.id, result, elementIdx);
+				}
+			}
+		 );
+	};
+	
+	//--------------- Loads the AddBoxData ---------------//
+	$scope.getAddBoxData = function()
+	{
+		var boxData
+		$http.get($scope.contextPath + '/mail/addBoxData').success
+		(
+			function(data)
+			{
+				boxData = data.currentBox;
+			}
+		);
+		return boxData;
+	};
+	
+	//--------------- Opens the AddBoxDialog ---------------//
+	$scope.openAddBoxDialog = function()
+	{
+  		$scope.opts.resolve = 
+  		{ 
+  			currentBox : function()
+  				{
+  					return $scope.getAddBoxData();
+  				},
+	  		domains : function()
+	  			{
+	  				return angular.copy($scope.domains);
+	  			},
+	  		contextPath : function()
+	  			{
+	  				return angular.copy($scope.contextPath);
+	  			}
+		 };
+		 var d = $dialog.dialog($scope.opts);
+		 		 
+		 d.open().then
+		 (
+			function(result)
+			{
+				if(result)
+				{ // boxId, data, elementIdx
+					//$scope.editBox(result.id, result, elementIdx);
 				}
 			}
 		 );
@@ -211,8 +274,7 @@ $scope.loadDomains();
 		$scope.alerts.splice(elementIdx, 1);
 	}
 
-  $scope.updateModel();
-  $scope.noOfPages = $scope.setNumPages();		
+
   
 	//--------------- Page-Change Listener ---------------//
 	$scope.paginationListener = $scope.$watch('currentPage + maxSize', //+ allBoxes.length + filteredBoxes.length
@@ -243,7 +305,7 @@ $scope.loadDomains();
 		{
 			$scope.filteredBoxes = $scope.allBoxes;
 		}
-  	}
+  	};
 	
 	//--------------- BoxCount Listener ---------------//	
 	$scope.boxCountListener = $scope.$watch('allBoxes.length', 
@@ -252,16 +314,46 @@ $scope.loadDomains();
 			$scope.noOfPages = $scope.setNumPages();		
 		}
 	);
+	//--------------- Select All available Items  (by checkbox) ---------------//	
+	$scope.selectAllItems = function()
+	{
+		$scope.allBoxesAreNowSelected = !$scope.allBoxesAreNowSelected;
+		angular.forEach($scope.allBoxes,
+				function(mBox, key)
+				{
+					$scope.selected[mBox.id] = $scope.allBoxesAreNowSelected;
+				}
+		);
+		$('.bulkChk').prop("checked", $scope.allBoxesAreNowSelected);
+	};
 }
 
+
+
  // the dialog is injected in the specified controller
-function TestDialogController($scope, dialog, currentBox, domains)
+function TestDialogController($scope, $http, dialog, currentBox, domains, contextPath)
 {
  	/*
 	 * handle the addboxdialog (TODO)
 	 */
 	$scope.domains = domains;
-	$scope.currentBox = currentBox; 
+	$scope.contextPath = contextPath;
+	$scope.currentBox = currentBox;
+	$scope.setValues = function()
+	{
+		if($scope.currentBox === undefined)
+		{
+			$http.get($scope.contextPath + '/mail/addBoxData').success
+			(
+				function(data)
+				{
+					$scope.currentBox = data.currentBox;
+				}
+			);
+		}
+	};
+$scope.setValues();
+	
 	$scope.close = function(data)
 	{
 		var chkBoxIdString ='#chkUnlimited' + data.id;
@@ -277,6 +369,7 @@ function TestDialogController($scope, dialog, currentBox, domains)
 		}
 		dialog.close(data);
 	};
+	
 	$scope.dismiss = function()
 	{ // ignore changes, just close the dialog
 		dialog.close();

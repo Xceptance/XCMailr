@@ -54,14 +54,17 @@
 
 <!-- start page -->
 <#import "../layout/macros.ftl.html" as pag/>
-<div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="contextPath='${contextPath}'">
-<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+<div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
-	<!--mailboxoverview-->
+	<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+	<a class="btn btn-mini" ng-click="updateModel()">
+		<i class="icon-repeat"></i> Refresh
+	</a>
+	<!--mailbox-overview-->
 	<table class="table table-hover table-condensed">
 		<thead>
 		    <tr>
-		    	<th></th>
+		    	<th><input type="checkbox" class="bulkChk" id="chk_all" ng-click="selectAllItems()"></th>
 		    	<th class="header"><a ng-click="predicate= 'address'; reverse=!reverse">${i18n("mailbox_Header_Address")}</a></th>	
 		    	<th class="header"><a ng-click="predicate= 'datetime'; reverse=!reverse">${i18n("mailbox_Header_Duration")}</a></th>
 		    	<th class="header"><a ng-click="predicate= 'forwards'; reverse=!reverse">${i18n("mailbox_Header_Forwards")}</a></th>
@@ -70,7 +73,7 @@
 		    </tr>
 	    </thead>
 	    <tbody>
-			<tr ng-repeat= "mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{ true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overM = true; overId=$index" ng-mouseleave="overM=false">   
+			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{ true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overM = true; overId=$index" ng-mouseleave="overM=false">   
 		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]"></td>
 				<td class="mbAddress">
 					{{mBox.address}}&#064;{{mBox.domain}}<br/>
@@ -88,7 +91,7 @@
 		                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index)">
 		    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
 		    			</a>
-			        	<a ng-click="openDialog($index)"  class="btn btn-mini btn-link"> <!-- href="${contextPath}/mail/edit/{{mBox.id}}" -->
+			        	<a ng-click="openEditBoxDialog($index)"  class="btn btn-mini btn-link"> <!-- href="${contextPath}/mail/edit/{{mBox.id}}" -->
 			        		<i class="icon-edit"></i> ${i18n("mailbox_Button_Edit")}
 			        	</a>
 			        </span>
@@ -105,7 +108,8 @@
 		</tbody>
     </table>
 <a href="javascript:;" data-ng-click="showSelected()">Show Selected</a><br/>
-<a href="javascript:;" data-ng-click="showAll()">Show All</a>
+<a href="javascript:;" data-ng-click="showAll()">Show All</a><br/>
+<a href="javascript:;" data-ng-click="openAddBoxDialog()">AddBox</a>
 <!-- end page -->
 	<div class="pagination">
 	    <div class="row-fluid">
@@ -173,6 +177,19 @@
 
 
 <script type="text/javascript">
+		function toggleAll()
+		{
+			if($('#chk_all').is(':checked'))
+			{
+				$('.bulkChk').prop("checked", true);
+
+			} else {
+				$('.bulkChk').prop("checked", false);
+			}
+		};
+
+	
+	
 	$(function() {
 		$('#datetimepicker').datetimepicker({
 			language : '${lang}',
@@ -182,6 +199,7 @@
 	});
 
 	$(document).ready(function() {
+
 		//handle the reset-button
 		$('#createEmailReset.btn').click(function reset() {
 			var chkBxUnlimited = $('#chkUnlimited');

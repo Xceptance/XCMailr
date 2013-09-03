@@ -474,7 +474,6 @@ public class BoxHandler
                                     context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
                                 }
                             }
-
                             return result;
 
                         case delete:
@@ -638,9 +637,9 @@ public class BoxHandler
     }
 
     /**
-     * opens the empty edit-box-dialog (just rendering the template)
+     * opens the empty add- and edit-box-dialog (just rendering the template)
      * 
-     * @return the Edit-Box-Dialog
+     * @return the Add- and Edit-Box-Dialog
      */
 
     public Result editBoxDialog()
@@ -650,7 +649,40 @@ public class BoxHandler
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
         return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour));
     }
+    /**
+     * Shows the "new Mail-Forward"-Page <br/>
+     * GET /mail/addBoxData
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return a prepopulated "Add-Box"-Form
+     */
+    public Result addBoxJsonData(Context context)
+    {
+        JsonMBox jsonMailboxData = new JsonMBox();
+        // set the value of the random-name to 7
+        // use the lowercase, we handle the address as case-insensitive
+        String randomName = HelperUtils.getRandomString(7).toLowerCase();
+        jsonMailboxData.setAddress(randomName);
 
+        // check that the generated mailname-proposal does not exist
+        String[] domains = xcmConfiguration.DOMAIN_LIST;
+        if (domains.length > 0)
+        {// prevent OutOfBoundException
+            while (MBox.mailExists(randomName, domains[0]))
+            {
+                randomName = HelperUtils.getRandomString(7).toLowerCase();
+            }
+        }
+
+        // set a default entry for the validity-period
+        // per default now+1h
+        long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
+        jsonMailboxData.setDateTime(HelperUtils.parseStringTs(nowPlusOneHour));
+        jsonMailboxData.setDomain(domains[0]);
+
+        return Results.json().render("currentBox", jsonMailboxData);
+    }
     /**
      * Adds a Mailbox to the {@link User}-Account <br/>
      * POST /mail/add
@@ -740,8 +772,9 @@ public class BoxHandler
         if (MBox.boxToUser(boxId, user.getId()))
         { // deletes the box from DB
             MBox.delete(boxId);
+            return Results.json().render("success", true);
         }
-        return jsonBox(context);
+        return Results.json().render("success", false);
     }
 
     /**
@@ -975,6 +1008,7 @@ public class BoxHandler
      */
     public Result resetBoxCounterProcessXhr(@PathParam("id") Long boxId, Context context)
     {
+        Result result = Results.json();
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
 
@@ -984,8 +1018,12 @@ public class BoxHandler
             mailBox.resetForwards();
             mailBox.resetSuppressions();
             mailBox.update();
+            return result.render("success", true);
         }
-        return Results.ok();
+        else
+        {
+            return result.render("success", false);
+        }
     }
 
     /**
@@ -1003,21 +1041,25 @@ public class BoxHandler
     {
         MBox mailBox = MBox.getById(boxId);
         User user = context.getAttribute("user", User.class);
-
+        Result result = Results.json();
+        String errorMessage = "";
         if (mailBox.belongsTo(user.getId()))
         {// check, whether the mailbox belongs to the current user
             if ((mailBox.getTs_Active() != 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
             { // if the validity period is over, return the Edit page and give the user a response why he gets there
-
-                context.getFlashCookie().put("info", "expireEmail_Flash_Expired");
-                return Results.json().render("success", false);
-                // return Results.redirect(context.getContextPath() + "/mail/edit/" + boxId);
+                errorMessage = messages.get("expireEmail_Flash_Expired", context, Optional.of(result)).get();
+                return Results.json().render("success", false).render("statusmsg", errorMessage);
             }
             else
             { // otherwise just set the new status
                 mailBox.enable();
+                return result.render("success", true);
             }
         }
-        return Results.json().render("success", true);
+        else
+        { // box does not belong to this user
+            errorMessage = "Box does not belong to this user";
+            return result.render("success", false).render("statusmsg", errorMessage);
+        }
     }
 }
