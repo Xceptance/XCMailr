@@ -72,6 +72,8 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/angmail").with(BoxHandler.class, "showAngularBoxOverview");
         router.GET().route("/mail/angget").with(BoxHandler.class, "jsonBox");
         router.GET().route("/mail/editBoxDialog.html").with(BoxHandler.class, "editBoxDialog");
+        router.GET().route("/mail/deleteBoxDialog.html").with(BoxHandler.class, "deleteBoxDialog");
+        router.GET().route("/mail/newDateDialog.html").with(BoxHandler.class, "newDateDialog");
 
         router.GET().route("/mail/add").with(BoxHandler.class, "addBoxForm");
         router.POST().route("/mail/add").with(BoxHandler.class, "addBoxProcess");
@@ -83,7 +85,8 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/mail/bulkDelete").with(BoxHandler.class, "bulkDeleteBoxes");
         router.POST().route("/mail/bulkReset").with(BoxHandler.class, "bulkResetBoxes");
         router.POST().route("/mail/bulkDisable").with(BoxHandler.class, "bulkDisableBoxes");
-        
+        router.POST().route("/mail/bulkEnablePossible").with(BoxHandler.class, "bulkEnablePossibleBoxes");
+        router.POST().route("/mail/bulkNewDate").with(BoxHandler.class, "bulkNewDate");
         router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxProcess");
         router.POST().route("/mail/delete2/{id}").with(BoxHandler.class, "deleteBoxByJson");
         

@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Results;
@@ -930,45 +929,13 @@ public class BoxHandler
     public Result showAngularBoxOverview(Context context)
     {
         Result result = Results.html();
-        User user = context.getAttribute("user", User.class);
+        // TODO do we need to handle the entryno?
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSessionCookie().get("no"));
-
-        String searchString = context.getParameter("s", "");
-        PageList<MBox> plist = new PageList<MBox>(MBox.findBoxLike(searchString, user.getId()), entries);
-
-        if (!searchString.isEmpty())
-        {
-            result.render("searchValue", searchString);
-        }
-
-        result.render("mboxes", plist);
-
-        long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        result.render("datetime", HelperUtils.parseStringTs(nowPlusOneHour));
-
-        MailBoxFormData mailboxFormData = new MailBoxFormData();
-        // set the value of the random-name to 7
-        // use the lowercase, we handle the address as case-insensitive
-        String randomName = HelperUtils.getRandomString(7).toLowerCase();
-        mailboxFormData.setAddress(randomName);
-
-        // check that the generated mailname-proposal does not exist
-        String[] domains = xcmConfiguration.DOMAIN_LIST;
-        if (domains.length > 0)
-        {// prevent OutOfBoundException
-            while (MBox.mailExists(randomName, domains[0]))
-            {
-                randomName = HelperUtils.getRandomString(7).toLowerCase();
-            }
-        }
-        mailboxFormData.setDatetime(HelperUtils.parseStringTs(nowPlusOneHour));
-        mailboxFormData.setDomain(domains[0]);
-
-        return result.render("domain", domains).render("mbFrmDat", mailboxFormData)
-                     .render("ts_now", DateTime.now().getMillis());
+        // add a mboxes-object (boolean) for the header-menu
+        return result.render("ts_now", DateTime.now().getMillis()).render("mboxes", true);
     }
 
     /**
@@ -1086,7 +1053,7 @@ public class BoxHandler
      * @param action
      *            the action to do (may be 'reset','delete', 'change' or 'enable'
      * @param boxIds
-     *            the IDs of the mailboxes/mailaddresses to modify, separated by a colon
+     *            the IDs of the mailboxes/mail-addresses to modify, separated by a colon
      * @param duration
      *            the new duration for the mailboxes in action 'change', must be in format "dd.MM.yyyy hh:mm"
      * @param context
@@ -1278,6 +1245,84 @@ public class BoxHandler
         }
     }
 
+    /**
+     * Enables all Boxes where it is possible
+     * 
+     * @param boxIds
+     * @param context
+     * @return
+     */
+    public Result bulkEnablePossibleBoxes(JsonObject boxIds, Context context)
+    {
+        Result result = Results.json();
+        String ids = getJsonArrayAsString(boxIds);
+        User user = context.getAttribute("user", User.class);
+
+        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+        { // the list of boxIds have to be in the form of comma-separated-ids
+            int nu = MBox.enableListOfBoxesIfPossible(user.getId(), ids);
+            return result.render("count", nu).render("success", true);
+        }
+        else
+        { // the IDs are not in the expected pattern
+            return result.render("success", false);
+        }
+    }
+
+    /**
+     * Enables all Boxes where it is possible
+     * 
+     * @param boxIds
+     * @param context
+     * @return
+     */
+    public Result bulkNewDate(JsonObject jsobject, Context context)
+    {
+        Result result = Results.json();
+        long dateTime;
+        String[] info = getBoxTimeArrayFromJSon(jsobject);
+        User user = context.getAttribute("user", User.class);
+        dateTime = HelperUtils.parseTimeString(info[1]);
+        String ids = info[0];
+        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+        { // the list of boxIds have to be in the form of comma-separated-ids
+            if (dateTime != -1)
+            {
+                int nu = MBox.setNewDateForListOfBoxes(user.getId(), ids, dateTime);
+                return result.render("count", nu).render("success", true);
+            }
+            else
+            {
+                return result.render("success", false);
+            }
+        }
+        else
+        { // the IDs are not in the expected pattern
+            return result.render("success", false);
+        }
+    }
+
+    /**
+     * opens the empty delete-box-dialog (just rendering the template)
+     * 
+     * @return the Add- and Edit-Box-Dialog
+     */
+    public Result deleteBoxDialog()
+    {
+        return Results.html();
+    }
+
+    /**
+     * opens the empty new-Date-dialog (just rendering the template)
+     * 
+     * @return the Add- and Edit-Box-Dialog
+     */
+    public Result newDateDialog()
+    {
+        long tsNew = DateTime.now().plusHours(1).getMillis();
+        return Results.html().render("timeStampNew", HelperUtils.parseStringTs(tsNew));
+    }
+
     private String getJsonArrayAsString(JsonObject json)
     {
         Set<Entry<String, JsonElement>> entrys = json.entrySet();
@@ -1295,5 +1340,30 @@ public class BoxHandler
         }
         System.out.println(sb.toString());
         return sb.toString();
+    }
+
+    /**
+     * we expect a json-object in the form {"boxes":{ id: boolean, id:boolean,.. }, "newDateTime" : "yyyy-MM-dd hh:mm"}
+     * 
+     * @param json
+     * @return a String Array with two elements, firstly the boxids as string, separated by "," (generated by
+     *         {#getJsonArrayAsString})
+     */
+    private String[] getBoxTimeArrayFromJSon(JsonObject json)
+    {
+        String[] info = new String[2];
+        Set<Entry<String, JsonElement>> entrys = json.entrySet();
+        for (Entry<String, JsonElement> entry : entrys)
+        {
+            if (entry.getKey().equals("boxes"))
+            {
+                info[0] = getJsonArrayAsString(entry.getValue().getAsJsonObject());
+            }
+            else if (entry.getKey().equals("newDateTime"))
+            {
+                info[1] = entry.getValue().getAsString();
+            }
+        }
+        return info;
     }
 }

@@ -684,7 +684,7 @@ public class MBox
             sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
             sqlSb.append(");");
             SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-             
+
             return down.execute();
         }
         else
@@ -692,10 +692,12 @@ public class MBox
             return -1;
         }
     }
+
     public static int resetListOfBoxes(long userId, String boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId).append(" AND (");
+        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId)
+             .append(" AND (");
         String[] boxArray = boxIds.split("\\,");
         if (boxArray.length > 0)
         {
@@ -706,7 +708,7 @@ public class MBox
             sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
             sqlSb.append(");");
             SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-             
+
             return down.execute();
         }
         else
@@ -714,6 +716,7 @@ public class MBox
             return -1;
         }
     }
+
     public static int disableListOfBoxes(long userId, String boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
@@ -728,7 +731,7 @@ public class MBox
             sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
             sqlSb.append(");");
             SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-             
+
             return down.execute();
         }
         else
@@ -736,5 +739,54 @@ public class MBox
             return -1;
         }
     }
-   
+
+    public static int enableListOfBoxesIfPossible(long userId, String boxIds)
+    {
+        StringBuilder sqlSb = new StringBuilder();
+        sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE WHERE USR_ID=").append(userId);
+        sqlSb.append(" AND (TS_ACTIVE > ").append(DateTime.now().getMillis()).append(" OR TS_ACTIVE = 0) ");
+        sqlSb.append(" AND (");
+        String[] boxArray = boxIds.split("\\,");
+        if (boxArray.length > 0)
+        {
+            for (String id : boxArray)
+            {
+                sqlSb.append(" ID=").append(id).append(" OR");
+            }
+            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
+            sqlSb.append(");");
+            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+
+            return down.execute();
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    public static int setNewDateForListOfBoxes(long userId, String boxIds, long ts_Active)
+    {
+        StringBuilder sqlSb = new StringBuilder();
+        sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE, TS_ACTIVE =").append(ts_Active);
+        sqlSb.append("WHERE USR_ID=").append(userId);
+        sqlSb.append(" AND (");
+        String[] boxArray = boxIds.split("\\,");
+        if (boxArray.length > 0)
+        {
+            for (String id : boxArray)
+            {
+                sqlSb.append(" ID=").append(id).append(" OR");
+            }
+            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
+            sqlSb.append(");");
+            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+
+            return down.execute();
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
 }
