@@ -57,36 +57,39 @@
 <div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.message}}</alert>
-	<div class="btn-group pull-right">
-		<a class="btn btn-small" ng-click="updateModel()">
-			<i class="icon-repeat"></i> Refresh
-		</a>
-		<a href="javascript:;" class="btn btn-small" data-ng-click="openAddBoxDialog()">
-			<i class=" icon-plus-sign"></i> AddBox
-		</a>
-	   	<a class="btn btn-small" data-toggle="dropdown" >Actions <span class="caret"></span></a>
-   		<ul class="dropdown-menu">
-			<li><a href="javascript:;" data-ng-click="showSelected()">Show Selected</a></li>
-			<li><a href="javascript:;" data-ng-click="showAll()">Show All</a></li>
-			<li class="divider"></li>
-			<li><a href="javascript:;" data-ng-click="openbulkDeleteBoxDialog()">Delete Selected Boxes</a></li>
-			<li><a href="javascript:;" data-ng-click="bulkResetBox()">Reset Selected Boxes</a></li>
-			<li><a href="javascript:;" data-ng-click="bulkDisableBox()">Disable Selected Boxes</a></li>
-			<li><a href="javascript:;" data-ng-click="bulkEnablePossibleBox()">Enable Selected Boxes If Possible</a></li>
-			<li><a href="javascript:;" data-ng-click="openNewDateDialog()">Set a new Date for teh selected Boxes</a></li>
-		</ul>	
+	<div class="pull-right">
+		<div >
+			<a class="btn btn-small" ng-click="updateModel()">
+				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Refresh")}
+			</a>
+			<a href="javascript:;" class="btn btn-small" data-ng-click="openAddBoxDialog()">
+				<i class=" icon-plus-sign"></i> ${i18n("mailbox_Button_AddAddress")}
+			</a>
+			<div class="btn-group pull right">
+		   	<a class="btn btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></a>
+	   		<ul class="dropdown-menu">
+				<li><a href="javascript:;" data-ng-click="showSelected()">${i18n("mailbox_Dropdown_ShowSelected")}</a></li>
+				<li><a href="javascript:;" data-ng-click="showAll()">${i18n("mailbox_Dropdown_ShowAll")}</a></li>
+				<li class="divider"></li>
+				<li><a href="javascript:;" data-ng-click="openbulkDeleteBoxDialog()">${i18n("mailbox_Button_BulkDelete")}</a></li>
+				<li><a href="javascript:;" data-ng-click="bulkResetBox()">${i18n("mailbox_Button_BulkReset")}</a></li>
+				<li><a href="javascript:;" data-ng-click="bulkDisableBox()">${i18n("mailbox_Button_BulkDisable")}</a></li>
+				<li><a href="javascript:;" data-ng-click="bulkEnablePossibleBox()">${i18n("mailbox_Button_BulkActivate")}</a></li>
+				<li><a href="javascript:;" data-ng-click="openNewDateDialog()">${i18n("mailbox_Button_BulkChange")}</a></li>
+			</ul>
+			</div>	
+		</div>
 	</div>
-
 	<!--mailbox-overview-->
 	<table class="table table-hover table-condensed">
 		<thead>
 		    <tr>
-		    	<th><input type="checkbox" class="bulkChk" id="chk_all" ng-click="selectAllItems()"></th>
-		    	<th class="header"><a ng-click="predicate= 'address'; reverse=!reverse">${i18n("mailbox_Header_Address")}</a></th>	
-		    	<th class="header"><a ng-click="predicate= 'datetime'; reverse=!reverse">${i18n("mailbox_Header_Duration")}</a></th>
-		    	<th class="header"><a ng-click="predicate= 'forwards'; reverse=!reverse">${i18n("mailbox_Header_Forwards")}</a></th>
-		    	<th class="header"><a ng-click="predicate= 'suppressions'; reverse=!reverse">${i18n("mailbox_Header_Suppressions")}</a></th>
-		    	<th class="header"><a ng-click="predicate= '!expired'; reverse=!reverse">${i18n("mailbox_Header_Valid")}</a></th>
+		    	<th class="header span1"><input type="checkbox" class="bulkChk" id="chk_all" ng-click="selectAllItems()"></th>
+		    	<th class="header span5"><a ng-click="predicate= 'address'; reverse=!reverse">${i18n("mailbox_Header_Address")}</a></th>	
+		    	<th class="header span1"><a ng-click="predicate= 'datetime'; reverse=!reverse">${i18n("mailbox_Header_Duration")}</a></th>
+		    	<th class="header span1"><a ng-click="predicate= 'forwards'; reverse=!reverse">${i18n("mailbox_Header_Forwards")}</a></th>
+		    	<th class="header span1"><a ng-click="predicate= 'suppressions'; reverse=!reverse">${i18n("mailbox_Header_Suppressions")}</a></th>
+		    	<th class="header span1"><a ng-click="predicate= '!expired'; reverse=!reverse">${i18n("mailbox_Header_Valid")}</a></th>
 		    </tr>
 	    </thead>
 	    <tbody>

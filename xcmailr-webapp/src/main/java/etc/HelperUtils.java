@@ -39,6 +39,7 @@ public class HelperUtils
 {
 
     private static final Pattern PATTERN_DATEFORMAT = Pattern.compile("(\\d+){4}[\\-](\\d+){1,2}[\\-](\\d+){1,2}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}");
+
     /**
      * Generates a random name, generated with {@link java.util.Random} and an Alphabet of 0-9,a-z,A-Z <br/>
      * e.g. for the Mailbox
@@ -119,6 +120,13 @@ public class HelperUtils
         return formatter.parseDateTime(input).getMillis();
     }
 
+    /**
+     * Takes the Timestamp in milis and parses it to the form "yyyy-MM-dd HH:mm" or to "unlimited", if zero
+     * 
+     * @param ts_Active
+     *            the timestamp
+     * @return the parsed timestamp
+     */
     public static String parseStringTs(long ts_Active)
     {
         if (ts_Active == 0)

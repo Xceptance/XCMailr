@@ -639,7 +639,8 @@ public class BoxHandler
     }
 
     /**
-     * opens the empty add- and edit-box-dialog (just rendering the template)
+     * Opens the empty add- and edit-box-dialog (just rendering the template) <br/>
+     * GET /mail/editBoxDialog.html
      * 
      * @return the Add- and Edit-Box-Dialog
      */
@@ -1047,153 +1048,16 @@ public class BoxHandler
     }
 
     /**
-     * Processes the given action on the given Mail-Addresses<br/>
-     * GET /mail/bulkChange
+     * Deletes the boxes with the given IDs, given as a JSON-Object in the form <br/>
+     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+     * POST /mail/bulkDelete
      * 
-     * @param action
-     *            the action to do (may be 'reset','delete', 'change' or 'enable'
      * @param boxIds
-     *            the IDs of the mailboxes/mail-addresses to modify, separated by a colon
-     * @param duration
-     *            the new duration for the mailboxes in action 'change', must be in format "dd.MM.yyyy hh:mm"
+     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be deleted or not
      * @param context
      *            the context of this request
-     * @return to the mailbox-overview-page
+     * @return a json-object with a "success" key and a boolean value
      */
-    public Result bulkChngBoxes(@Param("action") String action, @Param("ids") String boxIds,
-                                @Param("duration") String duration, Context context)
-    {
-        Result result = Results.redirect(context.getContextPath() + "/mail");
-        User user = context.getAttribute("user", User.class);
-
-        if (!StringUtils.isBlank(action) && !StringUtils.isBlank(boxIds))
-        {
-            if (PATTERN_CS_BOXIDS.matcher(boxIds).matches())
-            {// the list of boxIds have to be in the form of comma-separated-ids
-                String[] splittedIds = boxIds.split("\\,");
-
-                Long boxId;
-                if (splittedIds.length > 0)
-                { // the length of the IDs are at least one
-                    switch (Actions.valueOf(action))
-                    {
-                        case reset: // reset the list of boxes, we'll abort if there's a box with an id that does not
-                                    // belong to the user
-                            for (String boxIdString : splittedIds)
-                            {
-                                boxId = Long.valueOf(boxIdString);
-                                MBox mailBox = MBox.getById(boxId);
-                                if (mailBox.belongsTo(user.getId()))
-                                { // box belongs to the user
-                                    mailBox.resetForwards();
-                                    mailBox.resetSuppressions();
-                                    mailBox.update();
-                                }
-                                else
-                                {
-                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-                                }
-                            }
-                            return result;
-
-                        case delete:
-                            // delete the list of boxes, we'll abort if there's a box with an id, that does not belong
-                            // to this user
-                            for (String boxIdString : splittedIds)
-                            {
-                                boxId = Long.valueOf(boxIdString);
-                                if (MBox.boxToUser(boxId, user.getId()))
-                                { // box belongs to the user
-                                    MBox.delete(boxId);
-                                }
-                                else
-                                {
-                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-                                }
-                            }
-                            return result;
-
-                        case change:
-                            // change the duration of the boxes, we'll abort if there's a box with an id, that does not
-                            // belong to this user
-
-                            Long ts = HelperUtils.parseTimeString(duration);
-                            if (ts == -1L)
-                            { // show an error-page if the timestamp is faulty
-                                context.getFlashCookie().error("mailbox_Wrong_Timestamp");
-                                return result;
-                            }
-                            if ((ts != 0) && (ts < DateTime.now().getMillis()))
-                            { // the Timestamp lays in the past
-                                context.getFlashCookie().error("createEmail_Past_Timestamp");
-                                return result;
-                            }
-
-                            for (String boxIdString : splittedIds)
-                            {
-                                boxId = Long.valueOf(boxIdString);
-                                MBox mailBox = MBox.getById(boxId);
-                                if (mailBox.belongsTo(user.getId()))
-                                { // box belongs to the user
-                                    mailBox.setTs_Active(ts);
-                                    mailBox.setExpired(false);
-                                    mailBox.update();
-                                }
-                                else
-                                { // set an error-message
-                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-                                }
-                            }
-                            return result;
-
-                        case enable:
-                            // enable or disable the boxes
-                            // all active boxes will then be inactive and vice versa
-                            for (String boxIdString : splittedIds)
-                            {
-                                boxId = Long.valueOf(boxIdString);
-                                MBox mailBox = MBox.getById(boxId);
-                                if (mailBox.belongsTo(user.getId()))
-                                { // box belongs to the user
-                                    if ((mailBox.getTs_Active() != 0)
-                                        && (mailBox.getTs_Active() < DateTime.now().getMillis()))
-                                    { // if the validity period is over, return the Edit page
-                                        context.getFlashCookie().error("mailbox_Flash_NotEnabled");
-                                    }
-                                    else
-                                    { // otherwise just set the new status
-                                        mailBox.enable();
-                                    }
-                                }
-                                else
-                                { // box does not belong to the user
-                                    context.getFlashCookie().error("bulkChange_Flash_BoxToUser");
-                                }
-                            }
-                            return result;
-
-                        default:
-                            // we got an action that is not defined
-                            // we're ignoring it and simply redirect to the overview-page
-                            return result;
-                    }// end switch
-                }
-                else
-                { // the IDs have a wrong separator
-                    return result;
-                }
-            }
-            else
-            { // the IDs are not in the expected pattern
-                return result;
-            }
-        }
-        else
-        { // the action or IDs-parameter is empty or null
-            return result;
-        }
-    }
-
     public Result bulkDeleteBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
@@ -1211,6 +1075,18 @@ public class BoxHandler
         }
     }
 
+    /**
+     * Resets the counters (suppressions and forwards) for the boxes with the given IDs, given as a JSON-Object in the
+     * form: <br/>
+     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+     * POST /mail/bulkReset
+     * 
+     * @param boxIds
+     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be reseted or not
+     * @param context
+     *            the context of this request
+     * @return
+     */
     public Result bulkResetBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
@@ -1228,6 +1104,17 @@ public class BoxHandler
         }
     }
 
+    /**
+     * Disables the boxes with the given IDs, given as a JSON-Object in the form: <br/>
+     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+     * POST /mail/bulkDisable
+     * 
+     * @param boxIds
+     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be disabled or not
+     * @param context
+     *            the context of this request
+     * @return
+     */
     public Result bulkDisableBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
@@ -1246,10 +1133,14 @@ public class BoxHandler
     }
 
     /**
-     * Enables all Boxes where it is possible
+     * Enables the boxes with the given IDs, given as a JSON-Object in the form: <br/>
+     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+     * POST /mail/bulkEnablePossible
      * 
      * @param boxIds
+     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be enabled or not
      * @param context
+     *            the context of this request
      * @return
      */
     public Result bulkEnablePossibleBoxes(JsonObject boxIds, Context context)
@@ -1270,10 +1161,15 @@ public class BoxHandler
     }
 
     /**
-     * Enables all Boxes where it is possible
+     * Sets a new validity-period for the boxes with the given IDs, given as a JSON-Object in the form: <br/>
+     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+     * POST /mail/bulkNewDate
      * 
      * @param boxIds
+     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether there will be set a new
+     *            Timestamp or not
      * @param context
+     *            the context of this request
      * @return
      */
     public Result bulkNewDate(JsonObject jsobject, Context context)
@@ -1303,9 +1199,10 @@ public class BoxHandler
     }
 
     /**
-     * opens the empty delete-box-dialog (just rendering the template)
+     * Opens the empty delete-box-dialog (just rendering the template)<br/>
+     * GET /mail/deleteBoxDialog.html
      * 
-     * @return the Add- and Edit-Box-Dialog
+     * @return the Delete-Box-Dialog
      */
     public Result deleteBoxDialog()
     {
@@ -1313,7 +1210,8 @@ public class BoxHandler
     }
 
     /**
-     * opens the empty new-Date-dialog (just rendering the template)
+     * opens the empty new-Date-dialog (just rendering the template)<br/>
+     * GET /mail/newDateDialog.html
      * 
      * @return the Add- and Edit-Box-Dialog
      */
@@ -1323,6 +1221,14 @@ public class BoxHandler
         return Results.html().render("timeStampNew", HelperUtils.parseStringTs(tsNew));
     }
 
+    /**
+     * We expect a JSON-Object in the form <br/>
+     * { id : boolean, id : boolean,... }
+     * 
+     * @param json
+     *            the Json-Object
+     * @return a String in the form "id,id,id,id"
+     */
     private String getJsonArrayAsString(JsonObject json)
     {
         Set<Entry<String, JsonElement>> entrys = json.entrySet();
@@ -1347,7 +1253,7 @@ public class BoxHandler
      * 
      * @param json
      * @return a String Array with two elements, firstly the boxids as string, separated by "," (generated by
-     *         {#getJsonArrayAsString})
+     *         {@link #getJsonArrayAsString})
      */
     private String[] getBoxTimeArrayFromJSon(JsonObject json)
     {

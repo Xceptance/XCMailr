@@ -2,12 +2,12 @@
 <body>
 <div class="modal-header" id="addBoxModal" class="modal" tabindex="-1" role="dialog">
 	<div>
-		<h3>Set a new Date for the Boxes</h3>
+		<h3  class="legendary">${i18n("newDateDialog_Title")}</h3>
 	</div>
 	<!-- row: life-time of the address -->
 	<div class="modal-body">
 		<div class="control-group" ng-init="newDateTime = '${timeStampNew}'">
-			<label class="control-label" for="datetimeNew">${i18n("editEmail_Label_Duration")}* </label>
+			<label class="control-label" for="datetimeNew">${i18n("newDateDialog_Label_Duration")}* </label>
 			<div class="controls" ng-init="unlimitedBoxChecked = false" ng-hide="unlimitedBoxChecked">
 				<div id="datetimepickerNew" class="input-append pickrBoxEdit">
 					<input data-format="yyyy-MM-dd hh:mm" id="datetimeNew" name="datetime" type="text" ng-model="newDateTime" required="required" /> <span id="pickr_spanNew" class="add-on">
@@ -17,12 +17,12 @@
 			</div>
 			<div class="controls">
 				<label class="checkbox" for="chkUnlimitedNew"> 
-					<input type="checkbox"	id="chkUnlimitedNew" ng-checked="unlimitedBoxChecked" ng-model="unlimitedBoxChecked" /> ${i18n("editEmail_Unlimited")}
+					<input type="checkbox"	id="chkUnlimitedNew" ng-checked="unlimitedBoxChecked" ng-model="unlimitedBoxChecked" /> ${i18n("newDateDialog_Unlimited")}
 				</label>
 			</div>
 		</div>
 		<div>
-		Are you sure that you want to apply the above date for the following mailaddress(es): <br/> 
+		${i18n("newDateDialog_Text_Mail")} <br/> 
 				<ul>
 					<li ng-repeat="box in currentBoxes">{{box.address}}@{{box.domain}} </li>
 				</ul>  
@@ -30,9 +30,9 @@
 			
 	</div>
 	<div class="modal-footer">
-		<input type="button" class="btn" id="btnReset" value='${i18n("editEmail_Button_Reset")}'/>
-       <button ng-click="close(newDateTime)" class="btn btn-primary" >${i18n("editEmail_Button_Edit")}</button>
-       	<button ng-click="dismiss()" class="btn btn-primary">Cancel</button>
+		<input type="button" class="btn" id="btnReset" value='${i18n("newDateDialog_Button_Reset")}'/>
+       <button ng-click="close(newDateTime)" class="btn btn-primary" >${i18n("newDateDialog_Button_Submit")}</button>
+       	<button ng-click="dismiss()" class="btn btn-primary">${i18n("newDateDialog_Button_Cancel")}</button>
    	</div>
 </div>
 <script type="text/javascript">

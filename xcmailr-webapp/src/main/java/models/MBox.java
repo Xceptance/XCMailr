@@ -670,6 +670,17 @@ public class MBox
         return csvMail.toString();
     }
 
+    /**
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and deletes all given Boxes<br/>
+     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
+     * correctness of the string (esp. thinking on SQL-Injections, etc.)
+     * 
+     * @param userId
+     *            the userID to whom the boxes should belong (should prevent deletion of 'foreign' boxes)
+     * @param boxIds
+     *            a String of BoxIDs concatenated by a comma
+     * @return the number of boxes removed (or -1 on error)
+     */
     public static int removeListOfBoxes(long userId, String boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
@@ -693,6 +704,18 @@ public class MBox
         }
     }
 
+    /**
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and resets the suppression and forward-counters of the
+     * given Boxes<br/>
+     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
+     * correctness of the string (esp. thinking on SQL-Injections, etc.)
+     * 
+     * @param userId
+     *            the userID to whom the boxes should belong (should prevent reset of 'foreign' boxes)
+     * @param boxIds
+     *            a String of BoxIDs concatenated by a comma
+     * @return the number of boxes reseted (or -1 on error)
+     */
     public static int resetListOfBoxes(long userId, String boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
@@ -717,6 +740,17 @@ public class MBox
         }
     }
 
+    /**
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and disables the given Boxes<br/>
+     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
+     * correctness of the String (esp. thinking on SQL-Injections, etc.)
+     * 
+     * @param userId
+     *            the userID to whom the boxes should belong (should prevent disabling of 'foreign' boxes)
+     * @param boxIds
+     *            a String of BoxIDs concatenated by a comma
+     * @return the number of boxes disabled (or -1 on error)
+     */
     public static int disableListOfBoxes(long userId, String boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
@@ -740,6 +774,17 @@ public class MBox
         }
     }
 
+    /**
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and enables the given Boxes (if not already enabled)<br/>
+     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
+     * correctness of the String (esp. thinking on SQL-Injections, etc.)
+     * 
+     * @param userId
+     *            the userID to whom the boxes should belong (should prevent enabling of 'foreign' boxes)
+     * @param boxIds
+     *            a String of BoxIDs concatenated by a comma
+     * @return the number of boxes enabled (or -1 on error)
+     */
     public static int enableListOfBoxesIfPossible(long userId, String boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
@@ -764,6 +809,20 @@ public class MBox
             return -1;
         }
     }
+
+    /**
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and sets a new timestamp for the given Boxes<br/>
+     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
+     * correctness of the String (esp. thinking on SQL-Injections, etc.)
+     * 
+     * @param userId
+     *            the userID to whom the boxes should belong (should prevent new timestamp for 'foreign' boxes)
+     * @param boxIds
+     *            a String of BoxIDs concatenated by a comma
+     * @param ts_Active
+     *            the timestamp to set
+     * @return the number of boxes where a new timestamp was set (or -1 on error)
+     */
     public static int setNewDateForListOfBoxes(long userId, String boxIds, long ts_Active)
     {
         StringBuilder sqlSb = new StringBuilder();
