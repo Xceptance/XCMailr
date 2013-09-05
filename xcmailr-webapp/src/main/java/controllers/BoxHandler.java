@@ -27,6 +27,7 @@ import ninja.FilterWith;
 import ninja.Results;
 import etc.HelperUtils;
 import filters.SecureFilter;
+import filters.JsonSecureFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import com.google.common.base.Optional;
@@ -51,7 +52,7 @@ import ninja.Result;
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 
-@FilterWith(SecureFilter.class)
+
 @Singleton
 public class BoxHandler
 {
@@ -62,6 +63,54 @@ public class BoxHandler
     Messages messages;
 
     private static final Pattern PATTERN_CS_BOXIDS = Pattern.compile("[(\\d+)][(\\,)(\\d+)]*");
+
+    
+    
+    /**
+     * Opens the empty delete-box-dialog (just rendering the template)<br/>
+     * GET /mail/deleteBoxDialog.html
+     * 
+     * @return the Delete-Box-Dialog
+     */
+    @FilterWith(SecureFilter.class)
+    public Result deleteBoxDialog()
+    {
+        return Results.html();
+    }
+
+    /**
+     * opens the empty new-Date-dialog (just rendering the template)<br/>
+     * GET /mail/newDateDialog.html
+     * 
+     * @return the Add- and Edit-Box-Dialog
+     */    
+    @FilterWith(SecureFilter.class)
+    public Result newDateDialog()
+    {
+        long tsNew = DateTime.now().plusHours(1).getMillis();
+        return Results.html().render("timeStampNew", HelperUtils.parseStringTs(tsNew));
+    }
+
+    /**
+     * Generates the Angularized Mailbox-Overview-Page of a {@link User}. <br/>
+     * GET /angmail
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return the Mailbox-Overview-Page
+     */
+    @FilterWith(SecureFilter.class)
+    public Result showAngularBoxOverview(Context context)
+    {
+        Result result = Results.html();
+        // TODO do we need to handle the entryno?
+        // set a default number or the number which the user had chosen
+        HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
+        // get the default number of entries per page
+        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
+        // add a mboxes-object (boolean) for the header-menu
+        return result.render("ts_now", DateTime.now().getMillis()).render("mboxes", true);
+    }
 
     /**
      * Handles JSON-Requests for the search <br/>
@@ -99,6 +148,7 @@ public class BoxHandler
      *            the Context of this Request
      * @return a text page with all addresses of a user
      */
+    @FilterWith(SecureFilter.class)
     public Result showMailsAsTextList(Context context)
     {
         User user = context.getAttribute("user", User.class);
@@ -113,7 +163,7 @@ public class BoxHandler
      *            the Context of this Request
      * @return a text page with all active addresses of a user
      */
-
+    @FilterWith(SecureFilter.class)
     public Result showActiveMailsAsTextList(Context context)
     {
         User user = context.getAttribute("user", User.class);
@@ -126,7 +176,7 @@ public class BoxHandler
      * 
      * @return the Add- and Edit-Box-Dialog
      */
-
+    @FilterWith(SecureFilter.class)
     public Result editBoxDialog()
     {
         // set a default entry for the validity-period
@@ -143,6 +193,7 @@ public class BoxHandler
      *            the Context of this Request
      * @return a prepopulated "Add-Box"-Form
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result addBoxJsonData(Context context)
     {
         JsonMBox jsonMailboxData = new JsonMBox();
@@ -182,6 +233,7 @@ public class BoxHandler
      *            Form validation
      * @return the Add-Box-Form (on Error) or the Box-Overview
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result addBoxJsonProcess(Context context, @JSR303Validation JsonMBox mailboxFormData, Validation validation)
     {
         String errorMessage;
@@ -265,6 +317,7 @@ public class BoxHandler
      *            the Context of this Request
      * @return the Mailbox-Overview-Page
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result deleteBoxByJson(@PathParam("id") Long boxId, Context context)
     {
         User user = context.getAttribute("user", User.class);
@@ -290,6 +343,7 @@ public class BoxHandler
      *            Form validation
      * @return Mailbox-Overview-Page or the Mailbox-Form with an Error- or Success-Message
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result editBoxJson(Context context, @PathParam("id") Long boxId, @JSR303Validation JsonMBox mailboxFormData,
                               Validation validation)
     {
@@ -401,27 +455,6 @@ public class BoxHandler
     }
 
     /**
-     * Generates the Angularized Mailbox-Overview-Page of a {@link User}. <br/>
-     * GET /angmail
-     * 
-     * @param context
-     *            the Context of this Request
-     * @return the Mailbox-Overview-Page
-     */
-
-    public Result showAngularBoxOverview(Context context)
-    {
-        Result result = Results.html();
-        // TODO do we need to handle the entryno?
-        // set a default number or the number which the user had chosen
-        HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
-        // get the default number of entries per page
-        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
-        // add a mboxes-object (boolean) for the header-menu
-        return result.render("ts_now", DateTime.now().getMillis()).render("mboxes", true);
-    }
-
-    /**
      * Handles JSON-XHR-Requests for the mailbox-overview-page <br/>
      * GET /angget
      * 
@@ -429,6 +462,7 @@ public class BoxHandler
      *            the Context of this Request
      * @return a JSON-Array with the boxes
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result jsonBox(Context context)
     {
         User user = context.getAttribute("user", User.class);
@@ -456,6 +490,7 @@ public class BoxHandler
      *            the Context of this Request
      * @return a JSON-Array with the domainlist
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result jsonDomainList(Context context)
     {
         String[] domains = xcmConfiguration.DOMAIN_LIST;
@@ -472,6 +507,7 @@ public class BoxHandler
      *            the Context of this Request
      * @return the Mailbox-Overview-Page
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result resetBoxCounterProcessXhr(@PathParam("id") Long boxId, Context context)
     {
         Result result = Results.json();
@@ -502,7 +538,7 @@ public class BoxHandler
      *            the Context of this Request
      * @return the rendered Mailbox-Overview-Page
      */
-
+    @FilterWith(JsonSecureFilter.class)
     public Result expireBoxJson(@PathParam("id") Long boxId, Context context)
     {
         MBox mailBox = MBox.getById(boxId);
@@ -540,6 +576,7 @@ public class BoxHandler
      *            the context of this request
      * @return a json-object with a "success" key and a boolean value
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result bulkDeleteBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
@@ -569,6 +606,7 @@ public class BoxHandler
      *            the context of this request
      * @return
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result bulkResetBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
@@ -597,6 +635,7 @@ public class BoxHandler
      *            the context of this request
      * @return
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result bulkDisableBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
@@ -625,6 +664,7 @@ public class BoxHandler
      *            the context of this request
      * @return
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result bulkEnablePossibleBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
@@ -654,6 +694,7 @@ public class BoxHandler
      *            the context of this request
      * @return
      */
+    @FilterWith(JsonSecureFilter.class)
     public Result bulkNewDate(JsonObject jsobject, Context context)
     {
         Result result = Results.json();
@@ -680,28 +721,7 @@ public class BoxHandler
         }
     }
 
-    /**
-     * Opens the empty delete-box-dialog (just rendering the template)<br/>
-     * GET /mail/deleteBoxDialog.html
-     * 
-     * @return the Delete-Box-Dialog
-     */
-    public Result deleteBoxDialog()
-    {
-        return Results.html();
-    }
 
-    /**
-     * opens the empty new-Date-dialog (just rendering the template)<br/>
-     * GET /mail/newDateDialog.html
-     * 
-     * @return the Add- and Edit-Box-Dialog
-     */
-    public Result newDateDialog()
-    {
-        long tsNew = DateTime.now().plusHours(1).getMillis();
-        return Results.html().render("timeStampNew", HelperUtils.parseStringTs(tsNew));
-    }
 
     /**
      * We expect a JSON-Object in the form <br/>

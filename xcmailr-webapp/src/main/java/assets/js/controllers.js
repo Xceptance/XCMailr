@@ -2,7 +2,7 @@ angular.module('BoxHandler', [
 	'ui.bootstrap'
 ]);
 
-function BoxListCtrl($scope, $dialog, $http)
+function BoxListCtrl($scope, $dialog, $http, $window)
 {
 
 	$scope.init = function(cP)
@@ -54,6 +54,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$http.get($scope.contextPath + '/mail/domainlist').success(function(data)
 		{
+			$scope.checkForLogin(data);
 			$scope.domains = data;
 		});
 	};
@@ -63,6 +64,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$http.get($scope.contextPath + '/mail/angget').success(function(data)
 		{
+			$scope.checkForLogin(data);
 			$scope.allBoxes = data;
 			$scope.noOfPages = $scope.setNumPages();
 		});
@@ -73,6 +75,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$http.post($scope.contextPath + '/mail/delete2/' + boxId, null).success(function(returnedData)
 		{
+			$scope.checkForLogin(data);
 			if (returnedData.success)
 			{
 				$scope.allBoxes.splice(elementIdx + (($scope.currentPage - 1) * $scope.maxSize), 1);
@@ -91,6 +94,7 @@ function BoxListCtrl($scope, $dialog, $http)
 		{
 			if (returnedData.success)
 			{
+				$scope.checkForLogin(data);
 				var curBox = $scope.filteredBoxes[elementIdx];
 				curBox.expired = !curBox.expired;
 				// update the allBoxes-model, this should also refresh the filteredboxes
@@ -108,6 +112,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$http.post($scope.contextPath + '/mail/reset2/' + boxId, null).success(function(returnedData)
 		{
+			$scope.checkForLogin(data);
 			if (returnedData.success)
 			{
 				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.maxSize)].suppressions = 0;
@@ -125,6 +130,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$http.post($scope.contextPath + '/mail/edit2/' + boxId, data).success(function(returnedData)
 		{
+			$scope.checkForLogin(data);
 			if (returnedData.success)
 			{
 				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.maxSize)] = returnedData.currentBox;
@@ -139,6 +145,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$http.post($scope.contextPath + '/mail/addJson', data).success(function(returnedData)
 		{
+			$scope.checkForLogin(data);
 			if (returnedData.success)
 			{
 				$scope.allBoxes.push(returnedData.currentBox);
@@ -241,7 +248,7 @@ function BoxListCtrl($scope, $dialog, $http)
 			}
 		});
 	};
-	
+
 	// --------------- Opens the deleteBoxDialog --------------- //
 	$scope.openDeleteBoxDialog = function(elementIdx)
 	{
@@ -271,7 +278,7 @@ function BoxListCtrl($scope, $dialog, $http)
 			}
 		});
 	};
-	
+
 	// --------------- Opens the bulkDeleteBoxDialog --------------- //
 	$scope.openbulkDeleteBoxDialog = function()
 	{
@@ -372,10 +379,11 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$scope.noOfPages = $scope.setNumPages();
 	});
-	
+
 	// --------------- Select All available Items (by checkbox) --------------- //
 	$scope.selectAllItems = function()
 	{
+
 		$scope.allBoxesAreNowSelected = !$scope.allBoxesAreNowSelected;
 		if ($scope.allBoxesAreNowSelected)
 		{
@@ -390,24 +398,26 @@ function BoxListCtrl($scope, $dialog, $http)
 		}
 		$('.bulkChk').prop("checked", $scope.allBoxesAreNowSelected);
 	};
-	
+
 	// --------------- Deletes the selected Boxes --------------- //
 	$scope.bulkDeleteBox = function()
 	{
 		$http.post($scope.contextPath + '/mail/bulkDelete', $scope.selected).success(function(returnedData)
 		{
+			$scope.checkForLogin(data);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
 			}
 		});
 	};
-	
+
 	// --------------- Resets the selected Boxes --------------- //
 	$scope.bulkResetBox = function()
 	{
 		$http.post($scope.contextPath + '/mail/bulkReset', $scope.selected).success(function(returnedData)
 		{
+			$scope.checkForLogin(data);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
@@ -420,6 +430,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$http.post($scope.contextPath + '/mail/bulkDisable', $scope.selected).success(function(returnedData)
 		{
+			$scope.checkForLogin(data);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
@@ -432,6 +443,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$http.post($scope.contextPath + '/mail/bulkEnablePossible', $scope.selected).success(function(returnedData)
 		{
+			$scope.checkForLogin(data);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
@@ -447,6 +459,7 @@ function BoxListCtrl($scope, $dialog, $http)
 		postData["newDateTime"] = newDateTime;
 		$http.post($scope.contextPath + '/mail/bulkNewDate', postData).success(function(returnedData)
 		{
+			$scope.checkForLogin(data);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
@@ -485,6 +498,17 @@ function BoxListCtrl($scope, $dialog, $http)
 		}
 	};
 
+	/*
+	 * Handles the Session-Timeout (or user is not logged in)
+	 */
+	$scope.checkForLogin = function(input)
+	{
+		if (input.error == 'nologin')
+		{
+			$window.location.href = $scope.contextPath + "/login";
+		}
+	};
+
 };
 
 /*
@@ -502,6 +526,7 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 		{
 			$http.get($scope.contextPath + '/mail/addBoxData').success(function(data)
 			{
+				$scope.checkForLogin(data);
 				$scope.currentBox = data.currentBox;
 			});
 		}
@@ -527,6 +552,17 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 	$scope.dismiss = function()
 	{ // ignore changes, just close the dialog
 		dialog.close();
+	};
+
+	/*
+	 * Handles the Session-Timeout (or user is not logged in)
+	 */
+	$scope.checkForLogin = function(input)
+	{
+		if (input.error == 'nologin')
+		{
+			$window.location.href = $scope.contextPath + "/login";
+		}
 	};
 };
 
