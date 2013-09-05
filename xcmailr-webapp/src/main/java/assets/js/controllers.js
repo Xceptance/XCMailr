@@ -50,7 +50,6 @@ function BoxListCtrl($scope, $dialog, $http)
 	};
 
 	// --------------- get the available domains --------------- //
-
 	$scope.loadDomains = function()
 	{
 		$http.get($scope.contextPath + '/mail/domainlist').success(function(data)
@@ -242,6 +241,7 @@ function BoxListCtrl($scope, $dialog, $http)
 			}
 		});
 	};
+	
 	// --------------- Opens the deleteBoxDialog --------------- //
 	$scope.openDeleteBoxDialog = function(elementIdx)
 	{
@@ -271,6 +271,7 @@ function BoxListCtrl($scope, $dialog, $http)
 			}
 		});
 	};
+	
 	// --------------- Opens the bulkDeleteBoxDialog --------------- //
 	$scope.openbulkDeleteBoxDialog = function()
 	{
@@ -371,6 +372,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	{
 		$scope.noOfPages = $scope.setNumPages();
 	});
+	
 	// --------------- Select All available Items (by checkbox) --------------- //
 	$scope.selectAllItems = function()
 	{
@@ -388,6 +390,7 @@ function BoxListCtrl($scope, $dialog, $http)
 		}
 		$('.bulkChk').prop("checked", $scope.allBoxesAreNowSelected);
 	};
+	
 	// --------------- Deletes the selected Boxes --------------- //
 	$scope.bulkDeleteBox = function()
 	{
@@ -399,6 +402,7 @@ function BoxListCtrl($scope, $dialog, $http)
 			}
 		});
 	};
+	
 	// --------------- Resets the selected Boxes --------------- //
 	$scope.bulkResetBox = function()
 	{
@@ -482,6 +486,7 @@ function BoxListCtrl($scope, $dialog, $http)
 	};
 
 };
+
 /*
  * ADD and EDIT Mailaddress Dialog Controller
  */
@@ -524,6 +529,7 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 		dialog.close();
 	};
 };
+
 /*
  * Controller to handle small Dialogs e.g. "are you sure that you want to delete this address?"
  */
@@ -541,7 +547,8 @@ function DeleteDialogsController($scope, dialog, currentBox, contextPath, isBulk
 	{ // ignore changes, just close the dialog
 		dialog.close();
 	};
-}
+};
+
 /*
  * Controller to handle small Dialogs e.g. "are you sure that you want to delete this address?"
  */
@@ -562,4 +569,4 @@ function NewDateController($scope, dialog, currentBoxes, contextPath)
 	{ // ignore changes, just close the dialog
 		dialog.close();
 	};
-}
+};

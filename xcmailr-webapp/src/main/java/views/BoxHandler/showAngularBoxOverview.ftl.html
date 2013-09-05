@@ -79,21 +79,33 @@
 			</ul>
 			</div>	
 		</div>
+		<br/>
 	</div>
+
 	<!--mailbox-overview-->
-	<table class="table table-hover table-condensed">
+	<table class="table table-hover table-condensed tsort">
 		<thead>
 		    <tr>
 		    	<th class="header span1"><input type="checkbox" class="bulkChk" id="chk_all" ng-click="selectAllItems()"></th>
-		    	<th class="header span5"><a ng-click="predicate= 'address'; reverse=!reverse">${i18n("mailbox_Header_Address")}</a></th>	
-		    	<th class="header span1"><a ng-click="predicate= 'datetime'; reverse=!reverse">${i18n("mailbox_Header_Duration")}</a></th>
-		    	<th class="header span1"><a ng-click="predicate= 'forwards'; reverse=!reverse">${i18n("mailbox_Header_Forwards")}</a></th>
-		    	<th class="header span1"><a ng-click="predicate= 'suppressions'; reverse=!reverse">${i18n("mailbox_Header_Suppressions")}</a></th>
-		    	<th class="header span1"><a ng-click="predicate= '!expired'; reverse=!reverse">${i18n("mailbox_Header_Valid")}</a></th>
+		    	<th class="header headerSort span5" ng-class="{headerSortDown : (predicate=='address' && reverse), headerSortUp : (predicate=='address' && !reverse)}" >
+		    		<a ng-click="predicate='address'; reverse=!reverse" >${i18n("mailbox_Header_Address")}</a>
+		    	</th>	
+		    	<th class="header headerSort span1"  ng-class="{headerSortDown : (predicate=='datetime' && reverse), headerSortUp : (predicate=='datetime' && !reverse)}">
+		    		<a ng-click="predicate= 'datetime'; reverse=!reverse">${i18n("mailbox_Header_Duration")}</a>
+		    	</th>
+		    	<th class="header headerSort span1" ng-class="{headerSortDown : (predicate=='forwards' && reverse), headerSortUp : (predicate=='forwards' && !reverse)}">
+		    		<a ng-click="predicate= 'forwards'; reverse=!reverse">${i18n("mailbox_Header_Forwards")}</a>
+		    	</th>
+		    	<th class="header headerSort span1" ng-class="{headerSortDown : (predicate=='suppressions' && reverse), headerSortUp : (predicate=='suppressions' && !reverse)}">
+		    		<a ng-click="predicate= 'suppressions'; reverse=!reverse">${i18n("mailbox_Header_Suppressions")}</a>
+		    	</th>
+		    	<th class="header headerSort span1" ng-class="{headerSortDown : (predicate=='!expired' && reverse), headerSortUp : (predicate=='!expired' && !reverse)}">
+		    		<a ng-click="predicate= '!expired'; reverse=!reverse">${i18n("mailbox_Header_Valid")}</a>
+		    	</th>
 		    </tr>
 	    </thead>
 	    <tbody>
-			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{ true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overMouse = true; overId=$index" ng-mouseleave="overMouse=false">   
+			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overMouse = true; overId=$index" ng-mouseleave="overMouse=false">   
 		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]"></td>
 				<td class="mbAddress">
 					{{mBox.address}}&#064;{{mBox.domain}}<br/>

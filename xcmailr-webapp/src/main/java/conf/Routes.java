@@ -64,10 +64,7 @@ public class Routes implements ApplicationRoutes
 
         /*
          * Routes for the Mail-Handling (Controller: BoxHandler)
-         */
-        router.GET().route("/mail").with(BoxHandler.class, "showBoxOverview");
-        router.POST().route("/mail").with(BoxHandler.class, "showBoxOverview");
-        
+         */        
         router.GET().route("/angmail").with(BoxHandler.class, "showAngularBoxOverview");
         router.POST().route("/angmail").with(BoxHandler.class, "showAngularBoxOverview");
         router.GET().route("/mail/angget").with(BoxHandler.class, "jsonBox");
@@ -75,31 +72,22 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/mail/deleteBoxDialog.html").with(BoxHandler.class, "deleteBoxDialog");
         router.GET().route("/mail/newDateDialog.html").with(BoxHandler.class, "newDateDialog");
 
-        router.GET().route("/mail/add").with(BoxHandler.class, "addBoxForm");
-        router.POST().route("/mail/add").with(BoxHandler.class, "addBoxProcess");
         router.GET().route("/mail/addBoxData").with(BoxHandler.class, "addBoxJsonData");
         router.POST().route("/mail/addJson").with(BoxHandler.class, "addBoxJsonProcess");
 
-        router.GET().route("/mail/bulkChange").with(BoxHandler.class, "bulkChangeBoxes");
         router.POST().route("/mail/bulkDelete").with(BoxHandler.class, "bulkDeleteBoxes");
         router.POST().route("/mail/bulkReset").with(BoxHandler.class, "bulkResetBoxes");
         router.POST().route("/mail/bulkDisable").with(BoxHandler.class, "bulkDisableBoxes");
         router.POST().route("/mail/bulkEnablePossible").with(BoxHandler.class, "bulkEnablePossibleBoxes");
         router.POST().route("/mail/bulkNewDate").with(BoxHandler.class, "bulkNewDate");
-        router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxProcess");
         router.POST().route("/mail/delete2/{id}").with(BoxHandler.class, "deleteBoxByJson");
         
-        router.GET().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxForm");
-        router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxProcess");
         router.POST().route("/mail/edit2/{id}").with(BoxHandler.class, "editBoxJson");
-        
-        router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBoxProcess");
         router.POST().route("/mail/expire2/{id}").with(BoxHandler.class, "expireBoxJson");
         
         router.GET().route("/mail/mymaillist.txt").with(BoxHandler.class, "showMailsAsTextList");
         router.GET().route("/mail/myactivemaillist.txt").with(BoxHandler.class, "showActiveMailsAsTextList");
 
-        router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounterProcess");
         router.POST().route("/mail/reset2/{id}").with(BoxHandler.class, "resetBoxCounterProcessXhr");
 
         router.GET().route("/mail/search").with(BoxHandler.class, "jsonBoxSearch");
