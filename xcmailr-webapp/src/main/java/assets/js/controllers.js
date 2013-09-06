@@ -10,6 +10,8 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 		$scope.contextPath = cP;
 		// execute the domain-load
 		$scope.loadDomains();
+		// init the search-string
+		$scope.searchString = '';
 		/*
 		 * handle the pagination
 		 */
@@ -62,7 +64,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- load all boxes --------------- //
 	$scope.updateModel = function()
 	{
-		$http.get($scope.contextPath + '/mail/angget').success(function(data)
+		$http.get($scope.contextPath + '/mail/getmails').success(function(data)
 		{
 			$scope.checkForLogin(data);
 			$scope.allBoxes = data;
@@ -73,9 +75,9 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- delete a box --------------- //
 	$scope.deleteBox = function(boxId, elementIdx)
 	{
-		$http.post($scope.contextPath + '/mail/delete2/' + boxId, null).success(function(returnedData)
+		$http.post($scope.contextPath + '/mail/delete/' + boxId, null).success(function(returnedData)
 		{
-			$scope.checkForLogin(data);
+			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
 				$scope.allBoxes.splice(elementIdx + (($scope.currentPage - 1) * $scope.maxSize), 1);
@@ -90,11 +92,11 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- activate or deactivate a box --------------- //
 	$scope.expireBox = function(boxId, elementIdx)
 	{
-		$http.post($scope.contextPath + '/mail/expire2/' + boxId, null).success(function(returnedData)
+		$http.post($scope.contextPath + '/mail/expire/' + boxId, null).success(function(returnedData)
 		{
 			if (returnedData.success)
 			{
-				$scope.checkForLogin(data);
+				$scope.checkForLogin(returnedData);
 				var curBox = $scope.filteredBoxes[elementIdx];
 				curBox.expired = !curBox.expired;
 				// update the allBoxes-model, this should also refresh the filteredboxes
@@ -110,9 +112,9 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- reset the forward and suppression-count --------------- //
 	$scope.resetBox = function(boxId, elementIdx)
 	{
-		$http.post($scope.contextPath + '/mail/reset2/' + boxId, null).success(function(returnedData)
+		$http.post($scope.contextPath + '/mail/reset/' + boxId, null).success(function(returnedData)
 		{
-			$scope.checkForLogin(data);
+			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
 				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.maxSize)].suppressions = 0;
@@ -128,9 +130,9 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- edit a box --------------- //
 	$scope.editBox = function(boxId, data, elementIdx)
 	{
-		$http.post($scope.contextPath + '/mail/edit2/' + boxId, data).success(function(returnedData)
+		$http.post($scope.contextPath + '/mail/edit/' + boxId, data).success(function(returnedData)
 		{
-			$scope.checkForLogin(data);
+			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
 				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.maxSize)] = returnedData.currentBox;
@@ -139,13 +141,38 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			$scope.pushAlert(returnedData.success, returnedData.statusmsg);
 		});
 	};
+	// --------------- load all boxes --------------- //
+	$scope.search2 = function()
+	{
+		$http.get($scope.contextPath + '/mail/getmails?s=' + $scope.searchString).success(function(data)
+		{
+			$scope.checkForLogin(data);
+			$scope.allBoxes = data;
+			//$scope.noOfPages = $scope.setNumPages();
+		});
+	};
+	
+	// TODO Selected list of mails as txt-file-function
+	
+	// --------------- show the selected boxes --------------- //
+	$scope.search = function()
+	{
+		if ($scope.searchString == '')
+		{
+			$scope.updateModel();
+		}
+		$scope.allBoxes = $.grep($scope.allBoxes, function(box)
+		{
+			return ~box.fullAddress.indexOf($scope.searchString);
+		});
+	};
 
 	// --------------- add a box --------------- //
 	$scope.addBox = function(boxId, data)
 	{
 		$http.post($scope.contextPath + '/mail/addJson', data).success(function(returnedData)
 		{
-			$scope.checkForLogin(data);
+			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
 				$scope.allBoxes.push(returnedData.currentBox);
@@ -404,7 +431,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	{
 		$http.post($scope.contextPath + '/mail/bulkDelete', $scope.selected).success(function(returnedData)
 		{
-			$scope.checkForLogin(data);
+			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
@@ -417,7 +444,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	{
 		$http.post($scope.contextPath + '/mail/bulkReset', $scope.selected).success(function(returnedData)
 		{
-			$scope.checkForLogin(data);
+			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
@@ -430,7 +457,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	{
 		$http.post($scope.contextPath + '/mail/bulkDisable', $scope.selected).success(function(returnedData)
 		{
-			$scope.checkForLogin(data);
+			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
@@ -443,7 +470,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	{
 		$http.post($scope.contextPath + '/mail/bulkEnablePossible', $scope.selected).success(function(returnedData)
 		{
-			$scope.checkForLogin(data);
+			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
@@ -459,7 +486,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 		postData["newDateTime"] = newDateTime;
 		$http.post($scope.contextPath + '/mail/bulkNewDate', postData).success(function(returnedData)
 		{
-			$scope.checkForLogin(data);
+			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
 				$scope.updateModel();
@@ -524,10 +551,10 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 	{
 		if ($scope.currentBox === undefined)
 		{
-			$http.get($scope.contextPath + '/mail/addBoxData').success(function(data)
+			$http.get($scope.contextPath + '/mail/addBoxData').success(function(returnedData)
 			{
-				$scope.checkForLogin(data);
-				$scope.currentBox = data.currentBox;
+				$scope.checkForLogin(returnedData);
+				$scope.currentBox = returnedData.currentBox;
 			});
 		}
 	};

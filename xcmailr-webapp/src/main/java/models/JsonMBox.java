@@ -16,6 +16,9 @@
  */
 package models;
 
+import javax.validation.constraints.Pattern;
+
+import org.hibernate.validator.constraints.Length;
 import org.joda.time.DateTime;
 import com.avaje.ebean.validation.NotEmpty;
 
@@ -35,6 +38,7 @@ public class JsonMBox
      * Mailaddress of the Box
      */
     @NotEmpty
+    @Pattern(regexp = "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*")
     private String address;
 
     /**
@@ -51,6 +55,8 @@ public class JsonMBox
      * the domain-part of an address
      */
     @NotEmpty
+    @Pattern(regexp = "[A-Za-z-]+(\\.[\\w-]+)+")
+    @Length(min = 1, max = 255)
     private String domain;
 
     /**
@@ -63,7 +69,11 @@ public class JsonMBox
      */
     private int suppressions;
 
+    @NotEmpty
+    @Length(min = 1, max = 255)
     private String datetime;
+
+    private String fullAddress;
 
     /**
      * Default-Constructor
@@ -76,6 +86,7 @@ public class JsonMBox
         this.domain = "";
         this.forwards = 0;
         this.suppressions = 0;
+        this.fullAddress = "";
     }
 
     /**
@@ -99,6 +110,7 @@ public class JsonMBox
         this.domain = domain;
         this.forwards = 0;
         this.suppressions = 0;
+        this.fullAddress = local + '@' + domain;
 
     }
 
@@ -314,6 +326,11 @@ public class JsonMBox
         this.datetime = dateTime;
     }
 
+    public void setFullAddress(String fullAddress)
+    {
+        this.fullAddress = fullAddress;
+    }
+
     /**
      * pre-populates the fields of the current JsonMBox-Object with the given MBox-Object
      * 
@@ -330,6 +347,7 @@ public class JsonMBox
         this.id = mailbox.getId();
         this.suppressions = mailbox.getSuppressions();
         this.ts_Active = mailbox.getTs_Active();
+        this.fullAddress = mailbox.getFullAddress();
     }
 
     /**
@@ -350,6 +368,7 @@ public class JsonMBox
         jsonMailbox.setSuppressions(mailbox.getSuppressions());
         jsonMailbox.setId(mailbox.getId());
         jsonMailbox.setTs_Active(mailbox.getTs_Active());
+        jsonMailbox.setFullAddress(mailbox.getFullAddress());
         return jsonMailbox;
 
     }

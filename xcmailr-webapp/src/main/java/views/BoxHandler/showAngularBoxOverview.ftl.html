@@ -57,8 +57,12 @@
 <div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.message}}</alert>
+	<div class="input-prepend pull-left">
+	<input type="text" ng-model="searchString" ng-change="search2()">
+	<a class="btn" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="icon-remove-circle"></i></a>
+	</div>
 	<div class="pull-right">
-		<div >
+		<div>
 			<a class="btn btn-small" ng-click="updateModel()">
 				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Refresh")}
 			</a>
@@ -139,7 +143,12 @@
 			</tr>
 		</tbody>
     </table>
-
+    <div>
+		<p>
+			<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
+			<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a>
+		</p>
+	</div>
 <!-- end page -->
     <div class="row-fluid">
 	  	<div class="pull-left">
