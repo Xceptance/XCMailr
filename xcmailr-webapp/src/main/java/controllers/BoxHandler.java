@@ -154,7 +154,7 @@ public class BoxHandler
         // set a default entry for the validity-period
         // per default now+1h
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        jsonMailboxData.setDateTime(HelperUtils.parseStringTs(nowPlusOneHour));
+        jsonMailboxData.setDatetime(HelperUtils.parseStringTs(nowPlusOneHour));
         jsonMailboxData.setDomain(domains[0]);
 
         return Results.json().render("currentBox", jsonMailboxData);
@@ -219,7 +219,7 @@ public class BoxHandler
                     result.render("currentBox", addBoxDialogData);
                     return result.render("success", false).render("statusmsg", errorMessage);
                 }
-                Long ts = HelperUtils.parseTimeString(addBoxDialogData.getDateTime());
+                Long ts = HelperUtils.parseTimeString(addBoxDialogData.getDatetime());
                 if (ts == -1L)
                 { // show an error-page if the timestamp is faulty
                     errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
@@ -514,7 +514,7 @@ public class BoxHandler
                         return result.render("statusmsg", errorMessage);
                     }
                 }
-                Long ts = HelperUtils.parseTimeString(mailboxFormData.getDateTime());
+                Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
                 if (ts == -1)
                 { // a faulty timestamp was given -> return an errorpage
                     errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
@@ -554,15 +554,17 @@ public class BoxHandler
 
             }
             else
-            { // box does not belong to this user
-                mailboxFormData.prepopulateJS(mailBox);
+            { // box does not belong to this user or does not exist
+                if (mailBox != null)
+                {
+                    mailboxFormData.prepopulateJS(mailBox);
+                    result.render("currentBox", mailboxFormData);
+                }
                 errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
-                result.render("success", false).render("currentBox", mailboxFormData);
+                result.render("success", false);
                 return result.render("statusmsg", errorMessage);
             }
         }
-        // the given box-id does not exist,
-        // or the editing-process was successful
     }
 
     /**

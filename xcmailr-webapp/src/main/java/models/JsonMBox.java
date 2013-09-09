@@ -16,11 +16,13 @@
  */
 package models;
 
+
 import javax.validation.constraints.Pattern;
 
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
-import com.avaje.ebean.validation.NotEmpty;
+
 
 /**
  * Object for a virtual Mailbox (a Mail-Forward)
@@ -312,7 +314,7 @@ public class JsonMBox
     /**
      * @return the date-time in an easy human-readable way
      */
-    public String getDateTime()
+    public String getDatetime()
     {
         return datetime;
     }
@@ -321,7 +323,7 @@ public class JsonMBox
      * @param dateTime
      *            the date-time in an easy human-readable way
      */
-    public void setDateTime(String dateTime)
+    public void setDatetime(String dateTime)
     {
         this.datetime = dateTime;
     }
@@ -361,7 +363,7 @@ public class JsonMBox
     {
         JsonMBox jsonMailbox = new JsonMBox();
         jsonMailbox.setAddress(mailbox.getAddress());
-        jsonMailbox.setDateTime(mailbox.getTSAsString());
+        jsonMailbox.setDatetime(mailbox.getTSAsString());
         jsonMailbox.setDomain(mailbox.getDomain());
         jsonMailbox.setExpired(mailbox.isExpired());
         jsonMailbox.setForwards(mailbox.getForwards());
