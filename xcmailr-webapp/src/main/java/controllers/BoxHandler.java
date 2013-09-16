@@ -86,7 +86,7 @@ public class BoxHandler
         // set a default entry for the validity-period
         // per default now+1h
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour));
+        return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour)).render("tsMillis", nowPlusOneHour);
     }
 
     /**
@@ -99,7 +99,7 @@ public class BoxHandler
     public Result newDateDialog()
     {
         long tsNew = DateTime.now().plusHours(1).getMillis();
-        return Results.html().render("timeStampNew", HelperUtils.parseStringTs(tsNew));
+        return Results.html().render("timeStampNew", HelperUtils.parseStringTs(tsNew)).render("tsMillis", tsNew);
     }
 
     /**

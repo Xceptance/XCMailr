@@ -45,16 +45,17 @@
 		<script type="text/javascript">
 			$(function() 
 				{
-					var sDate = new Date();
-					sDate.setHours(sDate.getHours()+1);
+					var sDate = new Date(${tsMillis});
 					$('.pickrBoxEdit').datetimepicker(
 						{
 							language : '${lang}',
-							pick12HourFormat : false,
-							startDate : sDate
+							pick12HourFormat : false
 						}
 					);
-				});
+					var picker = $('.pickrBoxEdit').data('datetimepicker');
+					picker.setLocalDate(sDate);
+				}
+			);
 		</script>		
 	</body>
 </html>

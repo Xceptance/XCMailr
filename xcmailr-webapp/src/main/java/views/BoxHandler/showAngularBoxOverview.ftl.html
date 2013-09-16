@@ -8,15 +8,16 @@
     <meta name="author" content="">
     <!-- Le styles -->
     <link href="${contextPath}/assets/css/bootstrap.css" rel="stylesheet">
+    <link href="${contextPath}/assets/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="${contextPath}/assets/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+    <link href="${contextPath}/assets/css/ownStyle.css" rel="stylesheet">
     <style type="text/css">
-      body {
+      body 
+      {
         padding-top: 60px;
         padding-bottom: 40px;
       }
     </style>
-    <link href="${contextPath}/assets/css/bootstrap-responsive.css" rel="stylesheet">
-    <link href="${contextPath}/assets/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
-    <link href="${contextPath}/assets/css/ownStyle.css" rel="stylesheet">
     <script src="${contextPath}/assets/js/jquery.js"></script>
     <script src="${contextPath}/assets/js/bootstrap.js"></script>
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -36,7 +37,6 @@
     <script type="text/javascript" src="${contextPath}/assets/js/controllers.js"> </script>
   </head>
   <body>
-  
   <#include "../layout/header.ftl.html"/>
 <div class="container">
         <div class="container-fluid">
@@ -51,15 +51,14 @@
 				        <p class="alert alert-info"><strong> ${flash_info}</strong></p>
 				</#if>
 			</div>
-
 <!-- start page -->
 <#import "../layout/macros.ftl.html" as pag/>
 <div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.message}}</alert>
 	<div class="input-prepend pull-left">
-	<input type="text" ng-model="searchString" ng-change="search2()">
-	<a class="btn" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="icon-remove-circle"></i></a>
+		<input type="text" ng-model="searchString" ng-change="search2()">
+		<a class="btn" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="icon-remove-circle"></i></a>
 	</div>
 	<div class="pull-right">
 		<div>
@@ -85,7 +84,6 @@
 		</div>
 		<br/>
 	</div>
-
 	<!--mailbox-overview-->
 	<table class="table table-hover table-condensed tsort">
 		<thead>
@@ -157,11 +155,11 @@
 	    <div class="pagination pull-right">
 			<ul>
 				<li class="disabled"><a>${i18n("macro_EntriesPerPage")}</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(5)" >5</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(15)" >15</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(25)" >25</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(50)" >50</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(0)" >all</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(5)">5</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(15)">15</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(25)">25</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(50)">50</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(0)">all</a></li>
 			</ul>
 		</div>
 	</div><!-- /row-fluid -->

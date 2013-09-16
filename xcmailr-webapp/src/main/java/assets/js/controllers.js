@@ -602,6 +602,10 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 		{
 			$scope.unlimitedBoxChecked = false;
 		}
+		if($scope.initialData.datetime=='unlimited')
+		{
+			$scope.unlimitedBoxChecked = true;
+		}
 		$scope.form.$setPristine();
 	};
 };
