@@ -545,6 +545,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 function AddEditDialogController($scope, $http, dialog, currentBox, domains, contextPath)
 {
 	$scope.domains = domains;
+	$scope.initialData = angular.copy(currentBox);
 	$scope.contextPath = contextPath;
 	$scope.currentBox = currentBox;
 	$scope.setValues = function()
@@ -555,9 +556,11 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 			{
 				$scope.checkForLogin(returnedData);
 				$scope.currentBox = returnedData.currentBox;
+				$scope.initialData = angular.copy($scope.currentBox);
 			});
 		}
 	};
+	
 	$scope.setValues();
 
 	$scope.close = function(data)
@@ -590,6 +593,16 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 		{
 			$window.location.href = $scope.contextPath + "/login";
 		}
+	};
+	
+	$scope.reset = function(){
+		$scope.currentBox = angular.copy($scope.initialData);
+		
+		if ($scope.unlimitedBoxChecked && !($scope.initialData.datetime=='unlimited') )
+		{
+			$scope.unlimitedBoxChecked = false;
+		}
+		$scope.form.$setPristine();
 	};
 };
 

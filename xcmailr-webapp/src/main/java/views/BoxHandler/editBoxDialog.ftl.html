@@ -1,7 +1,7 @@
 <html>
 	<body>
 		<div class="modal-header" id="addBoxModal" class="modal" tabindex="-1" role="dialog">
-		<form name="addAddressForm">
+		<form name="form">
 			<div>
 				<h3 class="legendary">${i18n("editEmailDialog_Title")}</h3>
 			</div>
@@ -21,7 +21,7 @@
 			<!-- row: life-time of the address -->
 			<div class="control-group">
 				<label class="control-label" for="datetime{{currentBox.id}}">${i18n("editEmailDialog_Label_Duration")}* </label>
-				<div class="controls" ng-init="unlimitedBoxChecked = (currentBox.datetime=='unlimited')" ng-hide="unlimitedBoxChecked">
+				<div class="controls" ng-init="unlimitedBoxChecked = (currentBox.datetime=='unlimited')" ng-hide="unlimitedBoxChecked" >
 					<div id="datetimepicker{{currentBox.id}}" class="input-append pickrBoxEdit">
 						<span ng-if="unlimitedBoxChecked" ng-init="currentBox.datetime='${timeStamp}'"></span>
 						<input data-format="yyyy-MM-dd hh:mm" id="datetime{{currentBox.id}}" name="datetime" type="text" ng-model="currentBox.datetime" required="required" /> <span id="pickr_span{{currentBox.id}}" class="add-on">
@@ -31,13 +31,12 @@
 				</div>
 				<div class="controls">
 					<label class="checkbox" for="chkUnlimited{{currentBox.id}}"> 
-						<input type="checkbox"	id="chkUnlimited{{currentBox.id}}" ng-checked="unlimitedBoxChecked" ng-model="unlimitedBoxChecked" onClick="toggleBatch(this, {{currentBox.id}})"/> ${i18n("editEmailDialog_Unlimited")}
-					
+						<input type="checkbox" id="chkUnlimited{{currentBox.id}}" ng-checked="unlimitedBoxChecked" ng-model="unlimitedBoxChecked" /> ${i18n("editEmailDialog_Unlimited")}
 					</label>
 				</div>
 			</div>	
 			<div class="modal-footer">
-				<input type="button" class="btn" id="btnReset" ng-click="addAddressForm.$setPristine()" value='${i18n("editEmailDialog_Button_Reset")}'/>
+				<input type="button" class="btn" id="btnReset" ng-click="reset()" value='${i18n("editEmailDialog_Button_Reset")}'/>
 		        <button ng-click="close(currentBox)" class="btn btn-primary" >${i18n("editEmailDialog_Button_Edit")}</button>
 		       	<button ng-click="dismiss()" class="btn btn-primary">${i18n("editEmailDialog_Button_Cancel")} </button>
 		   	</div>
@@ -46,11 +45,13 @@
 		<script type="text/javascript">
 			$(function() 
 				{
+					var sDate = new Date();
+					sDate.setHours(sDate.getHours()+1);
 					$('.pickrBoxEdit').datetimepicker(
 						{
 							language : '${lang}',
 							pick12HourFormat : false,
-							startDate : new Date()
+							startDate : sDate
 						}
 					);
 				});

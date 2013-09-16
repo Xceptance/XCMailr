@@ -169,8 +169,6 @@
 </div> <!-- /container-fluid -->
 <#include "../layout/footer.ftl.html"/>
 </div> <!-- /container -->
-
-
 <script type="text/javascript">
 		function toggleAll()
 		{
@@ -182,58 +180,9 @@
 				$('.bulkChk').prop("checked", false);
 			}
 		};
-
-	
-	
-	$(function() {
-		$('#datetimepicker').datetimepicker({
-			language : '${lang}',
-			pick12HourFormat : false,
-			startDate : new Date()
-		});
-	});
-
-	$(document).ready(function() {
-
-		//handle the reset-button
-		$('#createEmailReset.btn').click(function reset() {
-			var chkBxUnlimited = $('#chkUnlimited');
-
-			if(chkBxUnlimited.is(':checked')){
-				toggle(chkBxUnlimited);
-			}
-
-			$('#mailInvalidErrorSpan').remove();
-			$('#emailRow').removeClass('error');
-			$('#addBoxForm')[0].reset();
-			
-		});
-		
-		//handle the submit-button 
-		$('#createEmailSubmit')
-		.click(
-				function() {
-					var mailRegExp = /^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*$/m
-					var localPart = $('#address').val();
-					var match = mailRegExp.test(localPart);
-					
-					if (match) {
-						$('#addBoxForm')[0].submit();
-						return false;
-					} else {
-						$('#mailInvalidErrorSpan').remove();
-						$('#emailRow').removeClass('error');
-						
-						$('#emailRowControl')
-						.append('<span class="help-inline" id="mailInvalidErrorSpan">${i18n("createEmail_JSValidation_MailInvalid")}</span>')
-						$('#emailRow').addClass("error");
-					}
-				});
-	});			
 </script>
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
-<script type="text/javascript" src="${contextPath}/assets/js/picker-enable.js"></script> 
 </body>
 </html>
 
