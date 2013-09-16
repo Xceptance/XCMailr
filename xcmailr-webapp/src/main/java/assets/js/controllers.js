@@ -30,7 +30,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			backdrop : true,
 			keyboard : true,
 			backdropClick : true,
-			templateUrl : '/mail/editBoxDialog.html',
+			templateUrl : $scope.contextPath + '/mail/editBoxDialog.html',
 			controller : 'AddEditDialogController'
 		};
 		$scope.optsDeleteDialog =
@@ -38,7 +38,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			backdrop : true,
 			keyboard : true,
 			backdropClick : true,
-			templateUrl : '/mail/deleteBoxDialog.html',
+			templateUrl : $scope.contextPath + '/mail/deleteBoxDialog.html',
 			controller : 'DeleteDialogsController'
 		};
 		$scope.optsNewDateDialog =
@@ -46,7 +46,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			backdrop : true,
 			keyboard : true,
 			backdropClick : true,
-			templateUrl : '/mail/newDateDialog.html',
+			templateUrl : $scope.contextPath + '/mail/newDateDialog.html',
 			controller : 'NewDateController'
 		};
 	};

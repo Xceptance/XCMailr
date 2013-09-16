@@ -1,6 +1,7 @@
 <html>
 	<body>
 		<div class="modal-header" id="addBoxModal" class="modal" tabindex="-1" role="dialog">
+		<form name="addAddressForm">
 			<div>
 				<h3 class="legendary">${i18n("editEmailDialog_Title")}</h3>
 			</div>
@@ -36,10 +37,11 @@
 				</div>
 			</div>	
 			<div class="modal-footer">
-				<input type="button" class="btn" id="btnReset" value='${i18n("editEmailDialog_Button_Reset")}'/>
-		       <button ng-click="close(currentBox)" class="btn btn-primary" >${i18n("editEmailDialog_Button_Edit")}</button>
+				<input type="button" class="btn" id="btnReset" ng-click="addAddressForm.$setPristine()" value='${i18n("editEmailDialog_Button_Reset")}'/>
+		        <button ng-click="close(currentBox)" class="btn btn-primary" >${i18n("editEmailDialog_Button_Edit")}</button>
 		       	<button ng-click="dismiss()" class="btn btn-primary">${i18n("editEmailDialog_Button_Cancel")} </button>
 		   	</div>
+		</form>
 		</div>
 		<script type="text/javascript">
 			$(function() 

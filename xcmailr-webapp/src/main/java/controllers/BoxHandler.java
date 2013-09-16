@@ -38,7 +38,6 @@ import com.google.inject.Singleton;
 import conf.XCMailrConf;
 import models.JsonMBox;
 import models.MBox;
-import models.MailBoxFormData;
 import models.User;
 import ninja.i18n.Messages;
 import ninja.params.PathParam;
@@ -538,7 +537,6 @@ public class BoxHandler
                 {
                     mailBox.setExpired(false);
                     mailBox.update();
-                    // context.getFlashCookie().success("flash_DataChangeSuccess");
                     mailboxFormData.prepopulateJS(mailBox);
                     errorMessage = messages.get("flash_DataChangeSuccess", context, Optional.of(result)).get();
                     result.render("success", true).render("currentBox", mailboxFormData);
@@ -616,11 +614,11 @@ public class BoxHandler
     public Result jsonBox(Context context)
     {
         User user = context.getAttribute("user", User.class);
-        List<MBox> boxList;
+
         Result result = Results.json();
         String searchString = context.getParameter("s", "");
 
-        boxList = MBox.findBoxLike(searchString, user.getId());
+        List<MBox> boxList = MBox.findBoxLike(searchString, user.getId());
         // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
         // so we need to transform the data which does not contain the reference
         List<JsonMBox> mbdlist = new ArrayList<JsonMBox>();
@@ -629,34 +627,6 @@ public class BoxHandler
             JsonMBox mailboxdata = new JsonMBox();
             mailboxdata.prepopulateJS(mb);
             mbdlist.add(mailboxdata);
-        }
-        return result.json().render(mbdlist);
-    }
-
-    /**
-     * Handles JSON-Requests for the search <br/>
-     * GET /mail/search
-     * 
-     * @param context
-     *            the Context of this Request
-     * @return a JSON-Array with the boxes
-     */
-    public Result jsonBoxSearch(Context context)
-    {
-        User user = context.getAttribute("user", User.class);
-        List<MBox> boxList;
-        Result result = Results.json();
-        String searchString = context.getParameter("s", "");
-
-        boxList = (searchString.equals("")) ? new ArrayList<MBox>() : MBox.findBoxLike(searchString, user.getId());
-
-        // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
-        // so we need to transform the data which does not contain the reference
-        List<MailBoxFormData> mbdlist = new ArrayList<MailBoxFormData>();
-        for (MBox mb : boxList)
-        {
-            MailBoxFormData mbd = MailBoxFormData.prepopulate(mb);
-            mbdlist.add(mbd);
         }
         return result.json().render(mbdlist);
     }
@@ -765,7 +735,6 @@ public class BoxHandler
         {
             sb.delete(sb.length() - 1, sb.length());
         }
-        System.out.println(sb.toString());
         return sb.toString();
     }
 

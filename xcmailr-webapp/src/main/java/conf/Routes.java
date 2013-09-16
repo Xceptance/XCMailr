@@ -91,7 +91,6 @@ public class Routes implements ApplicationRoutes
 
         router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounterProcessXhr");
 
-        router.GET().route("/mail/search").with(BoxHandler.class, "jsonBoxSearch");
         router.GET().route("/mail/domainlist").with(BoxHandler.class, "jsonDomainList");
 
         /*
