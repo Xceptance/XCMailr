@@ -174,7 +174,7 @@ public class UserHandler
 
                 // update the user
                 user.update();
-
+                
                 // update the entries in the caching-server
                 if (!oldMail.equals(mailFromForm))
                 { // update the cached session-list
@@ -184,16 +184,16 @@ public class UserHandler
                 }
                 // update all user objects for all sessions
                 cachingSessionHandler.updateUsersSessions(user);
-
+                
                 // user-edit was successful
                 context.getFlashCookie().success("flash_DataChangeSuccess");
-                return Results.redirect(context.getContextPath() + "/user/edit");
+                return result.redirect(context.getContextPath() + "/user/edit");
             }
             else
             { // the authorization-process failed
                 userFormData.clearPasswordFields();
                 context.getFlashCookie().error("flash_FormError");
-                return Results.redirect(context.getContextPath() + "/user/edit");
+                return result.redirect(context.getContextPath() + "/user/edit");
             }
         }
     }
