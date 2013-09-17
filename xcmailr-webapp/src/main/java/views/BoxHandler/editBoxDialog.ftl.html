@@ -49,7 +49,8 @@
 					$('.pickrBoxEdit').datetimepicker(
 						{
 							language : '${lang}',
-							pick12HourFormat : false
+							pick12HourFormat : false,
+							startDate : new Date()
 						}
 					);
 					var picker = $('.pickrBoxEdit').data('datetimepicker');
