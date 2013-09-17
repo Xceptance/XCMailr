@@ -652,11 +652,11 @@ public class MBox
     }
 
     /**
-     * Returns a list of all ACTIVE emails of the given user
+     * Returns a list of all ACTIVE e-mails of the given user
      * 
      * @param userId
-     *            the userid
-     * @return a list of emails
+     *            the user-id
+     * @return a list of e-mails
      */
     public static String getActiveMailsForTxt(Long userId)
     {

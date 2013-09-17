@@ -60,6 +60,9 @@
 		<input type="text" ng-model="searchString" ng-change="search2()">
 		<a class="btn" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="icon-remove-circle"></i></a>
 	</div>
+	<form action="${contextPath}/mail/myselectedmaillist.txt" name="selectedMailForm" method="post">
+						<input type="hidden" name="jsonObj" value="{{selected}}"/>
+						</form>
 	<div class="pull-right">
 		<div>
 			<a class="btn btn-small" ng-click="updateModel()">
@@ -72,13 +75,13 @@
 		   	<a class="btn btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></a>
 	   		<ul class="dropdown-menu">
 				<li><a href="javascript:;" data-ng-click="showSelected()">${i18n("mailbox_Dropdown_ShowSelected")}</a></li>
-				<li><a href="javascript:;" data-ng-click="showAll()">${i18n("mailbox_Dropdown_ShowAll")}</a></li>
+				<li><a href="javascript:;" onClick="selectedMailForm.submit()">${i18n("mailbox_Dropdown_ShowSelectedTxt")}</a></li>
 				<li class="divider"></li>
-				<li><a href="javascript:;" data-ng-click="openbulkDeleteBoxDialog()">${i18n("mailbox_Button_BulkDelete")}</a></li>
-				<li><a href="javascript:;" data-ng-click="bulkResetBox()">${i18n("mailbox_Button_BulkReset")}</a></li>
-				<li><a href="javascript:;" data-ng-click="bulkDisableBox()">${i18n("mailbox_Button_BulkDisable")}</a></li>
-				<li><a href="javascript:;" data-ng-click="bulkEnablePossibleBox()">${i18n("mailbox_Button_BulkActivate")}</a></li>
-				<li><a href="javascript:;" data-ng-click="openNewDateDialog()">${i18n("mailbox_Button_BulkChange")}</a></li>
+				<li><a href="javascript:;" data-ng-click="bulkEnablePossibleBox()">${i18n("mailbox_Dropdown_BulkActivate")}</a></li>
+				<li><a href="javascript:;" data-ng-click="bulkDisableBox()">${i18n("mailbox_Dropdown_BulkDisable")}</a></li>
+				<li><a href="javascript:;" data-ng-click="openbulkDeleteBoxDialog()">${i18n("mailbox_Dropdown_BulkDelete")}</a></li>
+				<li><a href="javascript:;" data-ng-click="openNewDateDialog()">${i18n("mailbox_Dropdown_BulkChange")}</a></li>
+				<li><a href="javascript:;" data-ng-click="bulkResetBox()">${i18n("mailbox_Dropdown_BulkReset")}</a></li>
 			</ul>
 			</div>	
 		</div>
@@ -125,7 +128,7 @@
 		                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index)">
 		    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
 		    			</a>
-			        	<a ng-click="openEditBoxDialog($index)"  class="btn btn-mini btn-link"> <!-- href="${contextPath}/mail/edit/{{mBox.id}}" -->
+			        	<a ng-click="openEditBoxDialog($index)"  class="btn btn-mini btn-link">
 			        		<i class="icon-edit"></i> ${i18n("mailbox_Button_Edit")}
 			        	</a>
 			        </span>
@@ -142,14 +145,9 @@
 		</tbody>
     </table>
     <div>
-		<p>
-			<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
-			<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
-			<form action="${contextPath}/mail/myselectedmaillist.txt" method="post">
-				<input type="hidden" name="jsonObj" value="{{selected}}"/>
-				<input type="submit" class="btn btn-link" value="Select!"/>
-			</form>
-		</p>
+   		<a href="javascript:;" data-ng-click="showAll()">${i18n("mailbox_Label_ShowAll")}</a><br/>
+		<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
+		<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
 	</div>
 <!-- end page -->
     <div class="row-fluid">

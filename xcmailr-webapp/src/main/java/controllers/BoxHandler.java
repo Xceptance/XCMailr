@@ -722,10 +722,14 @@ public class BoxHandler
     @FilterWith(SecureFilter.class)
     public Result showSelectedMailsAsTextList(@Param("jsonObj") String stringboxIds, Context context)
     {
+        Result result = Results.contentType("text/plain");
+        if (stringboxIds == null)
+        {
+            return result.render("error!");
+        }
         JsonParser parser = new JsonParser();
         JsonObject boxIds = (JsonObject) parser.parse(stringboxIds);
-        
-        Result result = Results.contentType("text/plain");
+
         if (boxIds == null)
         {
             return result.render("error!");
