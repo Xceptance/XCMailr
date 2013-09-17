@@ -39,18 +39,7 @@
   <body>
   <#include "../layout/header.ftl.html"/>
 <div class="container">
-        <div class="container-fluid">
-	    	<div class="row-fluid">
-				<#if flash_error??>
-				        <p class="alert alert-error"><strong> ${flash_error}</strong></p>
-				</#if>
-				<#if flash_success??>
-				        <p class="alert alert-success"><strong> ${flash_success}</strong></p>
-				</#if>
-				<#if flash_info??>
-				        <p class="alert alert-info"><strong> ${flash_info}</strong></p>
-				</#if>
-			</div>
+<div class="container-fluid">
 <!-- start page -->
 <#import "../layout/macros.ftl.html" as pag/>
 <div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
@@ -111,6 +100,7 @@
 		    </tr>
 	    </thead>
 	    <tbody>
+	    <!-- begin no-addresses-row -->
 	    	<tr class="info" ng-show="(filteredBoxes.length == 0) && (searchString == '')">
 	    	<td></td>
 	    	<td colspan="5">
@@ -120,8 +110,10 @@
 				</a>
 			</td>
 	    	</tr>
+	    <!-- end no-addresses-row -->
+	    
 			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overMouse = true; overId=$index" ng-mouseleave="overMouse=false">   
-		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]"></td>
+		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]" ng-checked="selected[mBox.id]"></td>
 				<td class="mbAddress">
 					{{mBox.address}}&#064;{{mBox.domain}}<br/>
 				<!-- start inline menu -->
@@ -179,7 +171,6 @@
 </div> <!-- /container-fluid -->
 <#include "../layout/footer.ftl.html"/>
 </div> <!-- /container -->
-
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
 </body>

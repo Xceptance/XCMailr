@@ -72,8 +72,8 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/mail/deleteBoxDialog.html").with(BoxHandler.class, "deleteBoxDialog");
         router.GET().route("/mail/newDateDialog.html").with(BoxHandler.class, "newDateDialog");
 
-        router.GET().route("/mail/addBoxData").with(BoxHandler.class, "addBoxJsonData");
-        router.POST().route("/mail/addJson").with(BoxHandler.class, "addBoxJsonProcess");
+        router.GET().route("/mail/addAddressData").with(BoxHandler.class, "addBoxJsonData");
+        router.POST().route("/mail/addAddress").with(BoxHandler.class, "addBoxJsonProcess");
 
         router.POST().route("/mail/bulkDelete").with(BoxHandler.class, "bulkDeleteBoxes");
         router.POST().route("/mail/bulkReset").with(BoxHandler.class, "bulkResetBoxes");

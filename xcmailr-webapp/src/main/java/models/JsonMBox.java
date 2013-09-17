@@ -25,7 +25,7 @@ import org.joda.time.DateTime;
 
 
 /**
- * Object for a virtual Mailbox (a Mail-Forward)
+ * Object for a virtual Mailbox (a Mail-Address)
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */

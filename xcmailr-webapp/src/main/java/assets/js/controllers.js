@@ -6,15 +6,14 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 {
 
 	$scope.init = function(cP)
-	{ // something like a constructor
+	{ // something like a constructor/initializer
 		$scope.contextPath = cP;
 		// execute the domain-load
 		$scope.loadDomains();
 		// init the search-string
 		$scope.searchString = '';
-		/*
-		 * handle the pagination
-		 */
+
+		// handle the pagination
 		$scope.noOfPages = 1;
 		$scope.currentPage = 1;
 		$scope.maxSize = 15;
@@ -33,6 +32,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			templateUrl : $scope.contextPath + '/mail/editBoxDialog.html',
 			controller : 'AddEditDialogController'
 		};
+		// DeleteDialog-Options
 		$scope.optsDeleteDialog =
 		{
 			backdrop : true,
@@ -41,6 +41,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			templateUrl : $scope.contextPath + '/mail/deleteBoxDialog.html',
 			controller : 'DeleteDialogsController'
 		};
+		// NewDateDialog-Options
 		$scope.optsNewDateDialog =
 		{
 			backdrop : true,
@@ -53,7 +54,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 
 	// --------------- get the available domains --------------- //
 	$scope.loadDomains = function()
-	{
+	{ // just load the data
 		$http.get($scope.contextPath + '/mail/domainlist').success(function(data)
 		{
 			$scope.checkForLogin(data);
@@ -79,12 +80,13 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 		{
 			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
-			{
+			{ // remove the address from the list of all addresses and clean the list of selected Elements
 				$scope.allBoxes.splice(elementIdx + (($scope.currentPage - 1) * $scope.maxSize), 1);
+				$scope.selected = {};
 			}
 			else
 			{
-				$scope.pushAlert(returnedData.success, 'errrror!');
+				$scope.pushAlert(returnedData.success, returnedData.statusMsg);
 			}
 		});
 	};
@@ -141,46 +143,21 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			$scope.pushAlert(returnedData.success, returnedData.statusmsg);
 		});
 	};
-	// --------------- load all boxes --------------- //
+	
+	// --------------- Search for the given String --------------- //
 	$scope.search2 = function()
 	{
 		$http.get($scope.contextPath + '/mail/getmails?s=' + $scope.searchString).success(function(data)
 		{
 			$scope.checkForLogin(data);
 			$scope.allBoxes = data;
-			// $scope.noOfPages = $scope.setNumPages();
 		});
 	};
 
-	// TODO Selected list of mails as txt-file-function
-	$scope.getSelectedAsTxt = function()
-	{
-		$window.location.href=$scope.contextPath+"/mail/myselectedmaillist.txt"+$scope.selected;
-//		$http.post($scope.contextPath + '/mail/myselectedmaillist.txt', $scope.selected).success(function(returnedData)
-//		{
-//			$scope.checkForLogin(returnedData);
-//			$window.document = returnedData;
-//		});
-	};
-	
-	
-	// --------------- show the selected boxes --------------- //
-	$scope.search = function()
-	{
-		if ($scope.searchString == '')
-		{
-			$scope.updateModel();
-		}
-		$scope.allBoxes = $.grep($scope.allBoxes, function(box)
-		{
-			return ~box.fullAddress.indexOf($scope.searchString);
-		});
-	};
-
-	// --------------- add a box --------------- //
+	// --------------- add an address --------------- //
 	$scope.addBox = function(boxId, data)
 	{
-		$http.post($scope.contextPath + '/mail/addJson', data).success(function(returnedData)
+		$http.post($scope.contextPath + '/mail/addAddress', data).success(function(returnedData)
 		{
 			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
@@ -204,7 +181,6 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	$scope.showAll = function()
 	{
 		$scope.setMaxSize($scope.allBoxes.length);
-		// $scope.filteredBoxes = $scope.allBoxes;
 	};
 
 	// --------------- set the page --------------- //
@@ -420,7 +396,6 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- Select All available Items (by checkbox) --------------- //
 	$scope.selectAllItems = function()
 	{
-
 		$scope.allBoxesAreNowSelected = !$scope.allBoxesAreNowSelected;
 		if ($scope.allBoxesAreNowSelected)
 		{
@@ -433,7 +408,6 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 		{
 			$scope.selected = {};
 		}
-		$('.bulkChk').prop("checked", $scope.allBoxesAreNowSelected);
 	};
 
 	// --------------- Deletes the selected Boxes --------------- //
@@ -511,7 +485,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	{
 		if (type)
 		{
-			if ($scope.alerts.length >= 5)
+			if ($scope.alerts.length >= 3)
 			{
 				$scope.alerts.shift();
 			}
@@ -523,7 +497,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 		}
 		else
 		{
-			if ($scope.alerts.length >= 5)
+			if ($scope.alerts.length >= 3)
 			{
 				$scope.alerts.shift();
 			}
@@ -562,7 +536,7 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 	{
 		if ($scope.currentBox === undefined)
 		{
-			$http.get($scope.contextPath + '/mail/addBoxData').success(function(returnedData)
+			$http.get($scope.contextPath + '/mail/addAddressData').success(function(returnedData)
 			{
 				$scope.checkForLogin(returnedData);
 				$scope.currentBox = returnedData.currentBox;
@@ -641,7 +615,7 @@ function DeleteDialogsController($scope, dialog, currentBox, contextPath, isBulk
 };
 
 /*
- * Controller to handle small Dialogs e.g. "are you sure that you want to delete this address?"
+ * Controller to handle the "set new date"-dialog
  */
 function NewDateController($scope, dialog, currentBoxes, contextPath)
 {

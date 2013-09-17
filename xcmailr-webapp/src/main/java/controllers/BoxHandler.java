@@ -101,7 +101,9 @@ public class BoxHandler
     @FilterWith(SecureFilter.class)
     public Result newDateDialog()
     {
+        // get the new default-timestamp
         long tsNew = DateTime.now().plusHours(1).getMillis();
+        // render it (as readable String and as millis)
         return Results.html().render("timeStampNew", HelperUtils.parseStringTs(tsNew)).render("tsMillis", tsNew);
     }
 
@@ -117,11 +119,6 @@ public class BoxHandler
     public Result showAngularBoxOverview(Context context)
     {
         Result result = Results.html();
-        // TODO do we need to handle the entryno?
-        // set a default number or the number which the user had chosen
-        // HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
-        // get the default number of entries per page
-        // int entries = Integer.parseInt(context.getSessionCookie().get("no"));
         // add a mboxes-object (boolean) for the header-menu
         return result.render("ts_now", DateTime.now().getMillis()).render("mboxes", true);
     }
@@ -264,6 +261,7 @@ public class BoxHandler
     public Result bulkDeleteBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
+
         if (boxIds == null)
         {
             return result.render("success", false);
@@ -297,6 +295,7 @@ public class BoxHandler
     public Result bulkDisableBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
+
         if (boxIds == null)
         {
             return result.render("success", false);
@@ -330,6 +329,7 @@ public class BoxHandler
     public Result bulkEnablePossibleBoxes(JsonObject boxIds, Context context)
     {
         Result result = Results.json();
+
         if (boxIds == null)
         {
             return result.render("success", false);
@@ -350,7 +350,7 @@ public class BoxHandler
 
     /**
      * Sets a new validity-period for the boxes with the given IDs, given as a JSON-Object in the form: <br/>
-     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+     * {"boxes":{ id: boolean, id:boolean,.. }, "newDateTime" : "yyyy-MM-dd hh:mm"} <br/>
      * POST /mail/bulkNewDate
      * 
      * @param boxIds
@@ -361,19 +361,27 @@ public class BoxHandler
      * @return
      */
     @FilterWith(JsonSecureFilter.class)
-    public Result bulkNewDate(JsonObject jsobject, Context context)
+    public Result bulkNewDate(JsonObject jsObject, Context context)
     {
         Result result = Results.json();
-        String[] info = getBoxTimeArrayFromJSon(jsobject);
         User user = context.getAttribute("user", User.class);
-        long dateTime = HelperUtils.parseTimeString(info[1]);
+
+        if (jsObject == null)
+        {
+            return result.render("success", false);
+        }
+
+        String[] info = getBoxTimeArrayFromJSon(jsObject);
+
         String ids = info[0];
+        long dateTime = HelperUtils.parseTimeString(info[1]);
+
         if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
         { // the list of boxIds have to be in the form of comma-separated-ids
             if (dateTime != -1)
             {
-                int nu = MBox.setNewDateForListOfBoxes(user.getId(), ids, dateTime);
-                return result.render("count", nu).render("success", true);
+                int numberOfItems = MBox.setNewDateForListOfBoxes(user.getId(), ids, dateTime);
+                return result.render("count", numberOfItems).render("success", true);
             }
             else
             {
@@ -406,6 +414,7 @@ public class BoxHandler
         {
             return result.render("success", false);
         }
+
         String ids = getJsonArrayAsString(boxIds);
         User user = context.getAttribute("user", User.class);
 
@@ -433,13 +442,18 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result deleteBoxByJson(@PathParam("id") Long boxId, Context context)
     {
+        Result result = Results.json();
         User user = context.getAttribute("user", User.class);
         if (MBox.boxToUser(boxId, user.getId()))
         { // deletes the box from DB
             MBox.delete(boxId);
-            return Results.json().render("success", true);
+            return result.render("success", true);
         }
-        return Results.json().render("success", false);
+        else
+        {
+            String errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
+            return result.render("success", false).render("statusMsg", errorMessage);
+        }
     }
 
     /**
@@ -712,27 +726,30 @@ public class BoxHandler
     }
 
     /**
-     * returns a text-page with all active addresses of a user<br/>
+     * returns a text-page with all selected addresses of a user<br/>
      * GET /mail/myactivemaillist.txt
      * 
      * @param context
      *            the Context of this Request
-     * @return a text page with all active addresses of a user
+     * @return a text page with all selected addresses of a user
      */
     @FilterWith(SecureFilter.class)
-    public Result showSelectedMailsAsTextList(@Param("jsonObj") String stringboxIds, Context context)
+    public Result showSelectedMailsAsTextList(@Param("jsonObj") String stringBoxIds, Context context)
     {
         Result result = Results.contentType("text/plain");
-        if (stringboxIds == null)
+        String errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
+        ;
+        if (stringBoxIds == null)
         {
-            return result.render("error!");
+            return result.render(errorMessage);
         }
+        // we get the list of BoxIDs as a Json-Object
         JsonParser parser = new JsonParser();
-        JsonObject boxIds = (JsonObject) parser.parse(stringboxIds);
+        JsonObject boxIds = (JsonObject) parser.parse(stringBoxIds);
 
         if (boxIds == null)
         {
-            return result.render("error!");
+            return result.render(errorMessage);
         }
         String ids = getJsonArrayAsString(boxIds);
         User user = context.getAttribute("user", User.class);
@@ -742,7 +759,7 @@ public class BoxHandler
         }
         else
         { // the IDs are not in the expected pattern
-            return result.render("error!");
+            return result.render(errorMessage);
         }
     }
 
@@ -756,19 +773,24 @@ public class BoxHandler
      */
     private String getJsonArrayAsString(JsonObject json)
     {
+        // if the object is null, return an empty string
         if (json == null)
         {
             return "";
         }
+
+        // iterate through the set of json-entries and append the keys (=ids) to the string
         Set<Entry<String, JsonElement>> entrys = json.entrySet();
         StringBuilder sb = new StringBuilder();
         for (Entry<String, JsonElement> entry : entrys)
         {
             if (entry.getValue().getAsBoolean())
-            {
+            { // append only if value is true (which means that the item-related checkbox is checked)
                 sb.append(entry.getKey()).append(",");
             }
         }
+        
+        //remove the last comma 
         if (sb.length() > 0)
         {
             sb.delete(sb.length() - 1, sb.length());
