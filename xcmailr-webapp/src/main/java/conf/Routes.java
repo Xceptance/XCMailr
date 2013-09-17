@@ -88,6 +88,8 @@ public class Routes implements ApplicationRoutes
         
         router.GET().route("/mail/mymaillist.txt").with(BoxHandler.class, "showMailsAsTextList");
         router.GET().route("/mail/myactivemaillist.txt").with(BoxHandler.class, "showActiveMailsAsTextList");
+        router.GET().route("/mail/myselectedmaillist.txt").with(BoxHandler.class, "showSelectedMailsAsTextList");
+        router.POST().route("/mail/myselectedmaillist.txt").with(BoxHandler.class, "showSelectedMailsAsTextList");
 
         router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounterProcessXhr");
 

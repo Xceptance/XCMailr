@@ -660,10 +660,46 @@ public class MBox
      */
     public static String getActiveMailsForTxt(Long userId)
     {
+
         StringBuilder csvMail = new StringBuilder();
         List<MBox> allActiveBoxes = Ebean.find(MBox.class).where().eq("usr_id", userId.toString()).eq("expired", false)
                                          .findList();
         for (MBox mailBox : allActiveBoxes)
+        {
+            csvMail.append(mailBox.getFullAddress()).append("\n");
+        }
+        return csvMail.toString();
+    }
+
+    /**
+     * Returns a list of all selected e-mails of the given user
+     * 
+     * @param userId
+     *            the user-id
+     * @return a list of e-mails
+     */
+    public static String getSelectedMailsForTxt(Long userId, String boxIds)
+    {
+        String[] boxArray = boxIds.split("\\,");
+        StringBuilder query = new StringBuilder();
+        
+        query.append("SELECT m.id, m.address, m.domain FROM MAILBOXES m WHERE ");
+        query.append("m.usr_id = ").append(userId);
+        query.append(" AND (");
+        for (String bId : boxArray)
+        {
+            query.append(" id = ").append(bId);
+            query.append(" OR");
+        }
+        query.delete(query.length() - 2, query.length());
+        query.append(");");
+        
+        RawSql rawSql = RawSqlBuilder.parse(query.toString()).columnMapping("m.id", "id").columnMapping("m.address", "address").columnMapping("m.domain", "domain").create();
+        Query<MBox> quer = Ebean.find(MBox.class).setRawSql(rawSql);
+        List<MBox> selectedBoxes = quer.findList();
+        StringBuilder csvMail = new StringBuilder();
+    
+        for (MBox mailBox : selectedBoxes)
         {
             csvMail.append(mailBox.getFullAddress()).append("\n");
         }

@@ -148,11 +148,21 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 		{
 			$scope.checkForLogin(data);
 			$scope.allBoxes = data;
-			//$scope.noOfPages = $scope.setNumPages();
+			// $scope.noOfPages = $scope.setNumPages();
 		});
 	};
-	
+
 	// TODO Selected list of mails as txt-file-function
+	$scope.getSelectedAsTxt = function()
+	{
+		$window.location.href=$scope.contextPath+"/mail/myselectedmaillist.txt"+$scope.selected;
+//		$http.post($scope.contextPath + '/mail/myselectedmaillist.txt', $scope.selected).success(function(returnedData)
+//		{
+//			$scope.checkForLogin(returnedData);
+//			$window.document = returnedData;
+//		});
+	};
+	
 	
 	// --------------- show the selected boxes --------------- //
 	$scope.search = function()
@@ -560,7 +570,7 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 			});
 		}
 	};
-	
+
 	$scope.setValues();
 
 	$scope.close = function(data)
@@ -594,15 +604,16 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 			$window.location.href = $scope.contextPath + "/login";
 		}
 	};
-	
-	$scope.reset = function(){
+
+	$scope.reset = function()
+	{
 		$scope.currentBox = angular.copy($scope.initialData);
-		
-		if ($scope.unlimitedBoxChecked && !($scope.initialData.datetime=='unlimited') )
+
+		if ($scope.unlimitedBoxChecked && !($scope.initialData.datetime == 'unlimited'))
 		{
 			$scope.unlimitedBoxChecked = false;
 		}
-		if($scope.initialData.datetime=='unlimited')
+		if ($scope.initialData.datetime == 'unlimited')
 		{
 			$scope.unlimitedBoxChecked = true;
 		}

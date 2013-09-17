@@ -144,7 +144,11 @@
     <div>
 		<p>
 			<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
-			<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a>
+			<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
+			<form action="${contextPath}/mail/myselectedmaillist.txt" method="post">
+				<input type="hidden" name="jsonObj" value="{{selected}}"/>
+				<input type="submit" class="btn btn-link" value="Select!"/>
+			</form>
 		</p>
 	</div>
 <!-- end page -->
@@ -167,18 +171,7 @@
 </div> <!-- /container-fluid -->
 <#include "../layout/footer.ftl.html"/>
 </div> <!-- /container -->
-<script type="text/javascript">
-		function toggleAll()
-		{
-			if($('#chk_all').is(':checked'))
-			{
-				$('.bulkChk').prop("checked", true);
 
-			} else {
-				$('.bulkChk').prop("checked", false);
-			}
-		};
-</script>
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
 </body>

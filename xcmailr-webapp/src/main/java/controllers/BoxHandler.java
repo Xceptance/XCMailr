@@ -33,6 +33,7 @@ import org.joda.time.DateTime;
 import com.google.common.base.Optional;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import conf.XCMailrConf;
@@ -40,6 +41,7 @@ import models.JsonMBox;
 import models.MBox;
 import models.User;
 import ninja.i18n.Messages;
+import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
@@ -86,7 +88,8 @@ public class BoxHandler
         // set a default entry for the validity-period
         // per default now+1h
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour)).render("tsMillis", nowPlusOneHour);
+        return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour))
+                      .render("tsMillis", nowPlusOneHour);
     }
 
     /**
@@ -706,6 +709,37 @@ public class BoxHandler
     {
         User user = context.getAttribute("user", User.class);
         return Results.contentType("text/plain").render(MBox.getActiveMailsForTxt(user.getId()));
+    }
+
+    /**
+     * returns a text-page with all active addresses of a user<br/>
+     * GET /mail/myactivemaillist.txt
+     * 
+     * @param context
+     *            the Context of this Request
+     * @return a text page with all active addresses of a user
+     */
+    @FilterWith(SecureFilter.class)
+    public Result showSelectedMailsAsTextList(@Param("jsonObj") String stringboxIds, Context context)
+    {
+        JsonParser parser = new JsonParser();
+        JsonObject boxIds = (JsonObject) parser.parse(stringboxIds);
+        
+        Result result = Results.contentType("text/plain");
+        if (boxIds == null)
+        {
+            return result.render("error!");
+        }
+        String ids = getJsonArrayAsString(boxIds);
+        User user = context.getAttribute("user", User.class);
+        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+        { // the list of boxIds have to be in the form of comma-separated-ids
+            return result.render(MBox.getSelectedMailsForTxt(user.getId(), ids));
+        }
+        else
+        { // the IDs are not in the expected pattern
+            return result.render("error!");
+        }
     }
 
     /**
