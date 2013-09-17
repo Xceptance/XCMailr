@@ -57,12 +57,13 @@
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.message}}</alert>
 	<div class="input-prepend pull-left">
-		<input type="text" ng-model="searchString" ng-change="search2()">
+		<input type="text" placeholder="${i18n('mailbox_Button_Search')}" ng-model="searchString" ng-change="search2()">
 		<a class="btn" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="icon-remove-circle"></i></a>
+
 	</div>
 	<form action="${contextPath}/mail/myselectedmaillist.txt" name="selectedMailForm" method="post">
-						<input type="hidden" name="jsonObj" value="{{selected}}"/>
-						</form>
+		<input type="hidden" name="jsonObj" value="{{selected}}"/>
+	</form>
 	<div class="pull-right">
 		<div>
 			<a class="btn btn-small" ng-click="updateModel()">
@@ -72,17 +73,17 @@
 				<i class=" icon-plus-sign"></i> ${i18n("mailbox_Button_AddAddress")}
 			</a>
 			<div class="btn-group pull right">
-		   	<a class="btn btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></a>
-	   		<ul class="dropdown-menu">
-				<li><a href="javascript:;" data-ng-click="showSelected()">${i18n("mailbox_Dropdown_ShowSelected")}</a></li>
-				<li><a href="javascript:;" onClick="selectedMailForm.submit()">${i18n("mailbox_Dropdown_ShowSelectedTxt")}</a></li>
-				<li class="divider"></li>
-				<li><a href="javascript:;" data-ng-click="bulkEnablePossibleBox()">${i18n("mailbox_Dropdown_BulkActivate")}</a></li>
-				<li><a href="javascript:;" data-ng-click="bulkDisableBox()">${i18n("mailbox_Dropdown_BulkDisable")}</a></li>
-				<li><a href="javascript:;" data-ng-click="openbulkDeleteBoxDialog()">${i18n("mailbox_Dropdown_BulkDelete")}</a></li>
-				<li><a href="javascript:;" data-ng-click="openNewDateDialog()">${i18n("mailbox_Dropdown_BulkChange")}</a></li>
-				<li><a href="javascript:;" data-ng-click="bulkResetBox()">${i18n("mailbox_Dropdown_BulkReset")}</a></li>
-			</ul>
+			   	<a class="btn btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></a>
+		   		<ul class="dropdown-menu">
+					<li><a href="javascript:;" data-ng-click="showSelected()">${i18n("mailbox_Dropdown_ShowSelected")}</a></li>
+					<li><a href="javascript:;" onClick="selectedMailForm.submit()">${i18n("mailbox_Dropdown_ShowSelectedTxt")}</a></li>
+					<li class="divider"></li>
+					<li><a href="javascript:;" data-ng-click="bulkEnablePossibleBox()">${i18n("mailbox_Dropdown_BulkActivate")}</a></li>
+					<li><a href="javascript:;" data-ng-click="bulkDisableBox()">${i18n("mailbox_Dropdown_BulkDisable")}</a></li>
+					<li><a href="javascript:;" data-ng-click="openbulkDeleteBoxDialog()">${i18n("mailbox_Dropdown_BulkDelete")}</a></li>
+					<li><a href="javascript:;" data-ng-click="openNewDateDialog()">${i18n("mailbox_Dropdown_BulkChange")}</a></li>
+					<li><a href="javascript:;" data-ng-click="bulkResetBox()">${i18n("mailbox_Dropdown_BulkReset")}</a></li>
+				</ul>
 			</div>	
 		</div>
 		<br/>
@@ -110,6 +111,15 @@
 		    </tr>
 	    </thead>
 	    <tbody>
+	    	<tr class="info" ng-show="(filteredBoxes.length == 0) && (searchString == '')">
+	    	<td></td>
+	    	<td colspan="5">
+	    		${i18n("mailbox_Label_NoEntries")} 		    	
+		    	<a href="javascript:;" class="btn btn-link" data-ng-click="openAddBoxDialog()">
+						<i class=" icon-plus-sign"></i> ${i18n("mailbox_Label_AskForNewAddress")}
+				</a>
+			</td>
+	    	</tr>
 			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overMouse = true; overId=$index" ng-mouseleave="overMouse=false">   
 		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]"></td>
 				<td class="mbAddress">
@@ -144,13 +154,13 @@
 			</tr>
 		</tbody>
     </table>
-    <div>
+    <div ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
    		<a href="javascript:;" data-ng-click="showAll()">${i18n("mailbox_Label_ShowAll")}</a><br/>
 		<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
 		<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
 	</div>
 <!-- end page -->
-    <div class="row-fluid">
+    <div class="row-fluid" ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
 	  	<div class="pull-left">
 		    <pagination num-pages="noOfPages" current-page="currentPage" max-size="maxSize"></pagination>
 	    </div>
