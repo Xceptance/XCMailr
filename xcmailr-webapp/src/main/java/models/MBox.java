@@ -367,7 +367,11 @@ public class MBox
     // ---------------------------------------------
     // EBean Functions
     // ---------------------------------------------
+    
+    public void increaseFwd()
+    {
 
+    }
     /**
      * Stores the Mailbox in the Database
      */
