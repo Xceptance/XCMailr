@@ -367,6 +367,33 @@ public class MBox
     // ---------------------------------------------
     // EBean Functions
     // ---------------------------------------------
+    /**
+     * increases the forward-count directly in the database
+     */
+    public void increaseFwd()
+    {
+        StringBuilder sqlSb = new StringBuilder();
+        sqlSb.append("UPDATE MAILBOXES SET FORWARDS = FORWARDS + 1 WHERE ID=");
+        sqlSb.append(this.id);
+        sqlSb.append(";");
+        SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+        down.execute();
+        setForwards(getForwards()+1);
+    }
+    
+    /**
+     * increases the suppression-count directly in the database
+     */
+    public void increaseSup()
+    {
+        StringBuilder sqlSb = new StringBuilder();
+        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = SUPPRESSIONS + 1 WHERE ID=");
+        sqlSb.append(this.id);
+        sqlSb.append(";");
+        SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+        down.execute();
+        setSuppressions(getSuppressions()+1);
+    }
 
     /**
      * Stores the Mailbox in the Database
