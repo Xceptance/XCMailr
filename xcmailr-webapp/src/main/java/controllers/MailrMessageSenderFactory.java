@@ -257,7 +257,7 @@ public class MailrMessageSenderFactory
                 }
                 if (!ninjaProperties.isTest()) // no messages will be sent when running in test-mode
                 {
-                    //Transport.send(mail);
+                    Transport.send(mail);
                     if (xcmConfiguration.MTX_MAX_AGE != 0)
                     {// if mailtransaction.maxage is set to 0 -> log nothing
                      // log the transaction
@@ -275,8 +275,7 @@ public class MailrMessageSenderFactory
 
                     if (mailBox != null)
                     { // the message belongs to one of our mailboxes
-                        mailBox.increaseForwards();
-                        mailBox.update();
+                        mailBox.increaseFwd();
                     }
                 }
             }

@@ -91,7 +91,7 @@ public class MessageListener implements SimpleMessageListener
         {
             mail = new MimeMessage(session, data);
 
-            final MailTransaction mtx;
+            MailTransaction mtx;
             final String[] splitAddress;
             final Address forwardAddress;
             final String forwardTarget;
@@ -152,8 +152,15 @@ public class MessageListener implements SimpleMessageListener
                     }
                     catch (IOException e)
                     {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        log.error(e.getMessage());
+                        // the message can't be forwarded (has not the correct format)
+                        // this SHOULD never be the case...
+                        if (xcmConfiguration.MTX_MAX_AGE != 0)
+                        {// if mailtransaction.maxage is set to 0 -> log nothing
+                            mtx = new MailTransaction(400, from, recipient, forwardTarget);
+                            jobController.mtxQueue.add(mtx);
+                        }
+                        
                     }
                 }
                 else
@@ -163,8 +170,8 @@ public class MessageListener implements SimpleMessageListener
                         mtx = new MailTransaction(200, from, recipient, forwardTarget);
                         jobController.mtxQueue.add(mtx);
                     }
-                    mailBox.increaseSuppressions();
-                    mailBox.update();
+                    mailBox.increaseSup();
+                    
                 }
             }
             else
