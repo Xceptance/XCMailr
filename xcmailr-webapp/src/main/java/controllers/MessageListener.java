@@ -113,7 +113,7 @@ public class MessageListener implements SimpleMessageListener
             { // the given mail-address exists in the DB
                 mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
                 forwardTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
-                
+
                 if (mailBox.isActive())
                 { // there's an existing and active mail-address
                   // add the target-address to the list
@@ -121,15 +121,19 @@ public class MessageListener implements SimpleMessageListener
                     try
                     {
                         forwardAddress = new InternetAddress(forwardTarget);
-                        mail = MessageComposer.createQuotedMessage(mail);
+                        //rewrite the message body and wrap the original message in a new one if mail.msg.rewrite is set to true
+                        if (xcmConfiguration.MSG_REWRITE)
+                        {
+                            mail = MessageComposer.createQuotedMessage(mail);
+                        }
                         mail.setRecipient(Message.RecipientType.TO, forwardAddress);
                         mail.removeHeader("Cc");
                         mail.removeHeader("BCC");
-                        
+
                         mail.setSender(new InternetAddress(recipient));
                         mail.setFrom(new InternetAddress(recipient));
-                        mail.setSubject(mail.getSubject()+"[Forward from: "+from+"]");
-                        
+                        mail.addHeader("X-FORWARDED-FROM", from);
+
                         // send the mail in a separate thread
                         MailrMessageSenderFactory.ThreadedMailSend tms = mailrSenderFactory.new ThreadedMailSend(mail,
                                                                                                                  mailBox);

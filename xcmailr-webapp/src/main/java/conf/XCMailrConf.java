@@ -65,7 +65,7 @@ public class XCMailrConf
     /**
      * indicates the use of whitelisting for registration
      */
-    public final boolean APP_WHITELIST;
+    public final Boolean APP_WHITELIST;
 
     /**
      * specified with application.session.expire_time_in_seconds
@@ -88,10 +88,10 @@ public class XCMailrConf
     public final String D_LIST;
 
     /**
-     * specified with mbox.dlist (stringarray)
+     * specified with mbox.dlist (string-array)
      */
     public final String[] DOMAIN_LIST;
-
+    
     /**
      * specified with mbox.host
      */
@@ -112,6 +112,12 @@ public class XCMailrConf
      */
     public final String MEMCA_HOST;
 
+    /**
+     * indicates whether the forward-message should be wrapped in a new mail <br/>
+     * containing the original-message header in the body
+     */
+    public final Boolean MSG_REWRITE;
+    
     /**
      * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.displaylimit
      * Default value is 0 (no limit)
@@ -183,18 +189,18 @@ public class XCMailrConf
         APP_WHITELIST = ninjaProp.getBooleanOrDie("application.whitelist");
         ADMIN_ADDRESS = ninjaProp.getOrDie("mbox.adminaddr");
         ADMIN_PASSWORD = ninjaProp.getOrDie("admin.pass");
+        CONFIRMATION_PERIOD = ninjaProp.getIntegerOrDie("confirm.period");
         COOKIE_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
         COOKIE_EXPIRETIME = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
-        SESSION_EXPIRETIME = COOKIE_EXPIRETIME + "s";
+        D_LIST = ninjaProp.getOrDie("mbox.dlist");
+        DOMAIN_LIST = ninjaProp.getStringArray("mbox.dlist");
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
         MB_INTERVAL = ninjaProp.getIntegerOrDie("mbox.interval");
         MTX_LIMIT = ninjaProp.getIntegerWithDefault("mailtransaction.displaylimit", 0);
         MTX_MAX_AGE = ninjaProp.getIntegerWithDefault("mailtransaction.maxage", -1);
-        D_LIST = ninjaProp.getOrDie("mbox.dlist");
-        DOMAIN_LIST = ninjaProp.getStringArray("mbox.dlist");
-        PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");
-        CONFIRMATION_PERIOD = ninjaProp.getIntegerOrDie("confirm.period");
+        MEMCA_HOST = ninjaProp.getOrDie("memcached.host");
+        MSG_REWRITE = ninjaProp.getBooleanWithDefault("mail.msg.rewrite", false);
         OUT_SMTP_HOST = ninjaProp.getOrDie("mail.smtp.host");
         OUT_SMTP_PORT = ninjaProp.getIntegerOrDie("mail.smtp.port");
         OUT_SMTP_USER = ninjaProp.getOrDie("mail.smtp.user");
@@ -202,8 +208,8 @@ public class XCMailrConf
         OUT_SMTP_AUTH = ninjaProp.getBooleanOrDie("mail.smtp.auth");
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
         OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", true);
-        MEMCA_HOST = ninjaProp.getOrDie("memcached.host");
-
+        PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");
+        SESSION_EXPIRETIME = COOKIE_EXPIRETIME + "s";
         if (DOMAIN_LIST == null)
         {
             throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "
