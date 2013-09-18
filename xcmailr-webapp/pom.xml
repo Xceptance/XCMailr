@@ -39,7 +39,7 @@
 					<stopKey>stop</stopKey>
    					<stopPort>8889</stopPort>					
 					<scanIntervalSeconds>10</scanIntervalSeconds>
-					<reload>automatic</reload>
+					<reload>manual</reload>
 					<classesDirectory>
 						target/classes
 					</classesDirectory>
@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>org.ninjaframework</groupId>
 			<artifactId>ninja-core</artifactId>
-			<version>1.5.1</version>
+			<version>1.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -105,7 +105,7 @@
 		<dependency>
 			<groupId>org.ninjaframework</groupId>
 			<artifactId>ninja-core-test</artifactId>
-			<version>1.5.1</version>
+			<version>1.6.0</version>
 			<scope>test</scope>
 		</dependency>
 	
@@ -117,7 +117,7 @@
 		<dependency>
 			<groupId>org.ninjaframework</groupId>
 			<artifactId>ninja-servlet</artifactId>
-			<version>1.5.1</version>
+			<version>1.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>

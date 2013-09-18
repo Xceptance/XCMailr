@@ -39,6 +39,7 @@ public class HelperUtils
 {
 
     private static final Pattern PATTERN_DATEFORMAT = Pattern.compile("(\\d+){4}[\\-](\\d+){1,2}[\\-](\\d+){1,2}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}");
+
     /**
      * Generates a random name, generated with {@link java.util.Random} and an Alphabet of 0-9,a-z,A-Z <br/>
      * e.g. for the Mailbox
@@ -119,6 +120,13 @@ public class HelperUtils
         return formatter.parseDateTime(input).getMillis();
     }
 
+    /**
+     * Takes the Timestamp in milis and parses it to the form "yyyy-MM-dd HH:mm" or to "unlimited", if zero
+     * 
+     * @param ts_Active
+     *            the timestamp
+     * @return the parsed timestamp
+     */
     public static String parseStringTs(long ts_Active)
     {
         if (ts_Active == 0)
@@ -128,38 +136,36 @@ public class HelperUtils
         else
         {
             DateTime dt = new DateTime(ts_Active);
-            String day = "";
-            String month = "";
-            String hour = "";
-            String minute = "";
+            StringBuilder timeString = new StringBuilder();
             // add a leading "0" if the value is under ten
-            if (dt.getDayOfMonth() < 10)
-            {
-                day += "0";
-            }
-            day += String.valueOf(dt.getDayOfMonth());
+            timeString.append(dt.getYear()).append("-");
 
             if (dt.getMonthOfYear() < 10)
             {
-                month += "0";
+                timeString.append("0");
             }
-            month += String.valueOf(dt.getMonthOfYear());
+            timeString.append(dt.getMonthOfYear()).append("-");
+
+            if (dt.getDayOfMonth() < 10)
+            {
+                timeString.append("0");
+            }
+            timeString.append(dt.getDayOfMonth()).append(" ");
 
             if (dt.getHourOfDay() < 10)
             {
-                hour += "0";
+                timeString.append("0");
             }
-            hour += String.valueOf(dt.getHourOfDay());
+            timeString.append(dt.getHourOfDay()).append(":");
 
             if (dt.getMinuteOfHour() < 10)
             {
-                minute += "0";
+                timeString.append("0");
             }
-            minute += String.valueOf(dt.getMinuteOfHour());
+            timeString.append(dt.getMinuteOfHour());
 
-            return dt.getYear() + "-" + month + "-" + day + " " + hour + ":" + minute;
+            return timeString.toString();
         }
-
     }
 
     /**
@@ -173,12 +179,7 @@ public class HelperUtils
     public static boolean hasCorrectFormat(String input)
     {
         input = input.trim();
-
-        if (PATTERN_DATEFORMAT.matcher(input).matches())
-        {
-            return true;
-        }
-        return false;
+        return PATTERN_DATEFORMAT.matcher(input).matches();
     }
 
     /**
@@ -193,7 +194,6 @@ public class HelperUtils
      */
     public static void parseEntryValue(Context context, Integer defaultNo)
     {
-
         String no = context.getParameter("no");
         String value;
         if (no == null)

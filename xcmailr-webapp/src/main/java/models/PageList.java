@@ -37,7 +37,7 @@ public class PageList<T>
     /**
      * number of entries per page
      */
-    private int pagesize;
+    private int pageSize;
 
     /**
      * Default Constructor
@@ -45,7 +45,7 @@ public class PageList<T>
     public PageList()
     {
         this.allEntrys = new ArrayList<T>();
-        this.pagesize = 0;
+        this.pageSize = 0;
     }
 
     /**
@@ -59,7 +59,7 @@ public class PageList<T>
     public PageList(List<T> in, int size)
     {
         this.allEntrys = in;
-        this.pagesize = size;
+        this.pageSize = size;
     }
 
     /**
@@ -87,7 +87,7 @@ public class PageList<T>
 
     public int getPagesize()
     {
-        return this.pagesize;
+        return this.pageSize;
     }
 
     /**
@@ -99,7 +99,7 @@ public class PageList<T>
 
     public void setPagesize(int size)
     {
-        this.pagesize = size;
+        this.pageSize = size;
     }
 
     /**
@@ -115,19 +115,19 @@ public class PageList<T>
      */
     public int getPageCount()
     {
-        if (pagesize <= 0)
+        if (pageSize <= 0)
         { // return 1 if the number of entries on a page is below 1
             return 1;
         }
 
         int entrys = allEntrys.size();
-        if (entrys < pagesize)
+        if (entrys < pageSize)
         { // return 1 if the number of entries in the list is below the number of entries on a page
             return 1;
         }
         else
         { // calculate the number of pages
-            return (int) Math.ceil((entrys / new Double(pagesize)));
+            return (int) Math.ceil((entrys / new Double(pageSize)));
         }
     }
 
@@ -138,7 +138,7 @@ public class PageList<T>
      */
     public List<T> getPage(int page)
     {
-        if (pagesize <= 0)
+        if (pageSize <= 0)
         { // the number of entries is less than 0, return all
             return allEntrys;
         }
@@ -147,9 +147,9 @@ public class PageList<T>
             return new ArrayList<T>();
         }
         // get the index-number of the last entry on the page
-        int endIndex = (page * pagesize) - 1;
+        int endIndex = (page * pageSize) - 1;
         // get the index-number of the first entry on the page
-        int startIndex = endIndex - pagesize + 1;
+        int startIndex = endIndex - pageSize + 1;
 
         if (endIndex >= getEntryCount())
         { // the calculated last entry is greater than the number of existing entries
