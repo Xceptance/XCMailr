@@ -70,6 +70,10 @@ XCMailr lets you quickly and easily reduce spam in your email account. Simply cr
 * We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it can be reached with this configuration at http://mydomain/xcmailr. 
 
 ## Frameworks/Librarys/Code/etc. Provided by Others
+### AngularJS
+* http://angularjs.org
+* MIT-License: http://github.com/angular/angular.js/blob/master/LICENSE
+
 ### Avaje Ebean 
 * http://www.avaje.org/
 * LGPL: http://www.gnu.org/licenses/lgpl.html
@@ -108,7 +112,7 @@ XCMailr lets you quickly and easily reduce spam in your email account. Simply cr
 * http://www.mindrot.org/projects/jBCrypt/
 * ISC/BSD License: http://www.mindrot.org/files/jBCrypt/LICENSE
 
-###  JodaTime
+### JodaTime
 * http://joda-time.sourceforge.net
 * Apache V2.0 License: http://joda-time.sourceforge.net/license.html
 
