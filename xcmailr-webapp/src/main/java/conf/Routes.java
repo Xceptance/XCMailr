@@ -54,6 +54,7 @@ public class Routes implements ApplicationRoutes
 
         router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
 
+        router.POST().route("/getMessage").with(Application.class, "getStatusMessage");
         /*
          * Routes for UserHandling (after login) (Controller: UserHandler)
          */

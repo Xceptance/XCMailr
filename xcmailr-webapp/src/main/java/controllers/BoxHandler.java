@@ -737,7 +737,7 @@ public class BoxHandler
     public Result showSelectedMailsAsTextList(@Param("jsonObj") String stringBoxIds, Context context)
     {
         Result result = Results.contentType("text/plain");
-        String errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
+        String errorMessage = messages.get("mailbox_Flash_NoBoxSelected", context, Optional.of(result)).get();
         ;
         if (stringBoxIds == null)
         {

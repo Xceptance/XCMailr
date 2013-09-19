@@ -143,7 +143,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			$scope.pushAlert(returnedData.success, returnedData.statusmsg);
 		});
 	};
-	
+
 	// --------------- Search for the given String --------------- //
 	$scope.search2 = function()
 	{
@@ -171,10 +171,30 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- show the selected boxes --------------- //
 	$scope.showSelected = function()
 	{
-		$scope.filteredBoxes = $.grep($scope.allBoxes, function(box)
+		$scope.cleanSelected();
+		if (!jQuery.isEmptyObject($scope.selected))
 		{
-			return $scope.selected[box.id];
-		});
+			$scope.filteredBoxes = $.grep($scope.allBoxes, function(box)
+			{
+				return $scope.selected[box.id];
+			});
+		}
+		else
+		{
+			$scope.getStatusMessageAndPushAlert("mailbox_Flash_NoBoxSelected", false);
+		}
+	};
+
+	// --------------- show the selected boxes --------------- //
+	$scope.cleanSelected = function()
+	{
+		for ( var itm in $scope.selected)
+		{
+			if (!$scope.selected[itm])
+			{
+				delete $scope.selected[itm];
+			}
+		}
 	};
 
 	// --------------- show all boxes on one page --------------- //
@@ -279,7 +299,6 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			{
 				return false;
 			}
-
 		};
 		var d = $dialog.dialog($scope.optsDeleteDialog);
 
@@ -295,62 +314,87 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- Opens the bulkDeleteBoxDialog --------------- //
 	$scope.openbulkDeleteBoxDialog = function()
 	{
-		$scope.optsDeleteDialog.resolve =
+		$scope.cleanSelected();
+		if (!jQuery.isEmptyObject($scope.selected))
 		{
-			currentBox : function()
+			$scope.optsDeleteDialog.resolve =
 			{
-				var boxes = $.grep($scope.allBoxes, function(box)
+				currentBox : function()
 				{
-					return $scope.selected[box.id];
-				});
-				return angular.copy(boxes);
-			},
-			contextPath : function()
-			{
-				return angular.copy($scope.contextPath);
-			},
-			isBulkAction : function()
-			{
-				return true;
-			}
-		};
-		var d = $dialog.dialog($scope.optsDeleteDialog);
+					var boxes = $.grep($scope.allBoxes, function(box)
+					{
+						return $scope.selected[box.id];
+					});
+					return angular.copy(boxes);
+				},
+				contextPath : function()
+				{
+					return angular.copy($scope.contextPath);
+				},
+				isBulkAction : function()
+				{
+					return true;
+				}
+			};
+			var d = $dialog.dialog($scope.optsDeleteDialog);
 
-		d.open().then(function(result)
-		{
-			if (result)
+			d.open().then(function(result)
 			{
-				$scope.bulkDeleteBox();
-			}
-		});
+				if (result)
+				{
+					$scope.bulkDeleteBox();
+				}
+			});
+		}
+		else
+		{
+			$scope.getStatusMessageAndPushAlert("mailbox_Flash_NoBoxSelected", false);
+		}
 	};
 
 	// --------------- Opens the NewDateDialog --------------- //
 	$scope.openNewDateDialog = function()
 	{
-		$scope.optsNewDateDialog.resolve =
+		$scope.cleanSelected();
+		if (!jQuery.isEmptyObject($scope.selected))
 		{
-			currentBoxes : function()
+			$scope.optsNewDateDialog.resolve =
 			{
-				var boxes = $.grep($scope.allBoxes, function(box)
+				currentBoxes : function()
 				{
-					return $scope.selected[box.id];
-				});
-				return angular.copy(boxes);
-			},
-			contextPath : function()
-			{
-				return angular.copy($scope.contextPath);
-			}
-		};
-		var d = $dialog.dialog($scope.optsNewDateDialog);
+					var boxes = $.grep($scope.allBoxes, function(box)
+					{
+						return $scope.selected[box.id];
+					});
+					return angular.copy(boxes);
+				},
+				contextPath : function()
+				{
+					return angular.copy($scope.contextPath);
+				}
+			};
+			var d = $dialog.dialog($scope.optsNewDateDialog);
 
-		d.open().then(function(newDateTime)
-		{
-			if (!(newDateTime === undefined))
+			d.open().then(function(newDateTime)
 			{
-				$scope.bulkSetNewDate(newDateTime);
-			}
+				if (!(newDateTime === undefined))
+				{
+					$scope.bulkSetNewDate(newDateTime);
+				}
+			});
+		}
+		else
+		{
+			$scope.getStatusMessageAndPushAlert("mailbox_Flash_NoBoxSelected", false);
+		}
+	};
+
+	// --------------- Returns the localized message for the given key ---------//
+	$scope.getStatusMessageAndPushAlert = function(messageKey, isSuccess)
+	{
+		$http.post($scope.contextPath + '/getMessage', messageKey).success(function(returnedData)
+		{
+			$scope.pushAlert(isSuccess, returnedData.message);
 		});
 	};
 
@@ -426,40 +470,64 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- Resets the selected Boxes --------------- //
 	$scope.bulkResetBox = function()
 	{
-		$http.post($scope.contextPath + '/mail/bulkReset', $scope.selected).success(function(returnedData)
+		$scope.cleanSelected();
+		if (!jQuery.isEmptyObject($scope.selected))
 		{
-			$scope.checkForLogin(returnedData);
-			if (returnedData.success)
+			$http.post($scope.contextPath + '/mail/bulkReset', $scope.selected).success(function(returnedData)
 			{
-				$scope.updateModel();
-			}
-		});
+				$scope.checkForLogin(returnedData);
+				if (returnedData.success)
+				{
+					$scope.updateModel();
+				}
+			});
+		}
+		else
+		{
+			$scope.getStatusMessageAndPushAlert("mailbox_Flash_NoBoxSelected", false);
+		}
 	};
 
 	// --------------- Disables the selected Boxes --------------- //
 	$scope.bulkDisableBox = function()
 	{
-		$http.post($scope.contextPath + '/mail/bulkDisable', $scope.selected).success(function(returnedData)
+		$scope.cleanSelected();
+		if (!jQuery.isEmptyObject($scope.selected))
 		{
-			$scope.checkForLogin(returnedData);
-			if (returnedData.success)
+			$http.post($scope.contextPath + '/mail/bulkDisable', $scope.selected).success(function(returnedData)
 			{
-				$scope.updateModel();
-			}
-		});
+				$scope.checkForLogin(returnedData);
+				if (returnedData.success)
+				{
+					$scope.updateModel();
+				}
+			});
+		}
+		else
+		{
+			$scope.getStatusMessageAndPushAlert("mailbox_Flash_NoBoxSelected", false);
+		}
 	};
 
 	// --------------- Enables the selected Boxes --------------- //
 	$scope.bulkEnablePossibleBox = function()
 	{
-		$http.post($scope.contextPath + '/mail/bulkEnablePossible', $scope.selected).success(function(returnedData)
+		$scope.cleanSelected();
+		if (!jQuery.isEmptyObject($scope.selected))
 		{
-			$scope.checkForLogin(returnedData);
-			if (returnedData.success)
+			$http.post($scope.contextPath + '/mail/bulkEnablePossible', $scope.selected).success(function(returnedData)
 			{
-				$scope.updateModel();
-			}
-		});
+				$scope.checkForLogin(returnedData);
+				if (returnedData.success)
+				{
+					$scope.updateModel();
+				}
+			});
+		}
+		else
+		{
+			$scope.getStatusMessageAndPushAlert("mailbox_Flash_NoBoxSelected", false);
+		}
 	};
 
 	// --------------- Enables the selected Boxes --------------- //

@@ -249,7 +249,6 @@ public class Application
     }
 
     // -------------------- Login/-out Functions -----------------------------------
-
     /**
      * Shows the Login-Form<br/>
      * GET /login
@@ -394,7 +393,8 @@ public class Application
      *            Form validation
      * @return the Index-Page
      */
-    public Result forgotPasswordProcess(Context context, @JSR303Validation LoginFormData loginData, Validation validation)
+    public Result forgotPasswordProcess(Context context, @JSR303Validation LoginFormData loginData,
+                                        Validation validation)
     {
         if (validation.hasViolations())
         { // some fields weren't filled
@@ -517,16 +517,27 @@ public class Application
         // if the link was wrong -> redirect without any message
         return Results.redirect(context.getContextPath() + "/");
     }
-    
+
     /**
-     * Sets the "password is too short"-message to the context 
-     * @param language the language to use
-     * @param context the context object
+     * Sets the "password is too short"-message to the context
+     * 
+     * @param language
+     *            the language to use
+     * @param context
+     *            the context object
      */
-    private void setShortPwInCtx(String language, Context context){
+    private void setShortPwInCtx(String language, Context context)
+    {
         Optional<String> optionalLanguage = Optional.of(language);
-        String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage,
-                                               xcmConfiguration.PW_LENGTH).get();
+        String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage, xcmConfiguration.PW_LENGTH)
+                                          .get();
         context.getFlashCookie().error(tooShortPassword);
+    }
+
+    public Result getStatusMessage(Context context, String messageKey)
+    {
+        Result result = Results.json();
+        String errorMessage = messages.get(messageKey, context, Optional.of(result)).get();
+        return result.render("message", errorMessage);
     }
 }
