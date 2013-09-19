@@ -77,7 +77,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "abox");
         formParams.put("domain", "xcmailr.test");
         formParams.put("datetime", "0");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // verify that the login-page is shown (check for menu with register-field and the login-form-action)
@@ -109,7 +109,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "abox");
         formParams.put("domain", "xcmailr.test");
         formParams.put("datetime", "0");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox was successful
@@ -128,7 +128,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "abox");
         formParams.put("domain", "xcmailr.test");
         formParams.put("datetime", "0");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox was not successful
@@ -144,7 +144,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "");
         formParams.put("domain", "");
         formParams.put("datetime", "");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox was not successful
@@ -162,7 +162,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "bbox");
         formParams.put("domain", "xcmailr.test");
         formParams.put("datetime", "2x,3d");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox was successful
@@ -181,7 +181,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("domain", "xcmailr.test");
         String ts = HelperUtils.parseStringTs(DateTime.now().minusHours(3).getMillis());
         formParams.put("datetime", ts);
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox was not successful
@@ -203,7 +203,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "$$³@@@..");
         formParams.put("domain", "xcmailr.test");
         formParams.put("datetime", "0");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox failed and the overview-page is shown
@@ -220,7 +220,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a");
         formParams.put("domain", "xcmailr.test");
         formParams.put("datetime", "0");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox failed and the overview-page is shown
@@ -241,7 +241,7 @@ public class BoxHandlerTest extends NinjaTest
                            + "aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa"
                            + "12345678901234567890123456789012345678901234567890123456789012345678901234567890a.test");
         formParams.put("datetime", "0");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox failed and the overview-page is shown
@@ -267,7 +267,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "abox");
         formParams.put("domain", "xcmlr.abc");
         formParams.put("datetime", "0");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox failed and the overview-page is shown
@@ -284,7 +284,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "abox");
         formParams.put("domain", "xcmlr@a.abc");
         formParams.put("datetime", "0");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
 
         // check that the add of the mbox has failed
@@ -307,7 +307,7 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("address", "abox");
         formParams.put("domain", "xcmailr.test");
         formParams.put("datetime", "0");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addJson", headers,
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/addAddress", headers,
                                                                     formParams);
         MBox mb = MBox.getByName("abox", "xcmailr.test");
         assertNotNull(mb);
@@ -337,7 +337,7 @@ public class BoxHandlerTest extends NinjaTest
          assertFalse(result.contains("<title>404 - not found</title>"));
          
          // load the data for an AddBox-Dialog
-         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/addBoxData");
+         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/addAddressData");
          assertFalse(result.contains("FreeMarker template error"));
          assertFalse(result.contains("<title>404 - not found</title>"));
          assertTrue(result.contains("\"currentBox\""));
