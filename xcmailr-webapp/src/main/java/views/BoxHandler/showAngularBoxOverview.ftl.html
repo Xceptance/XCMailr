@@ -151,16 +151,16 @@
 <!-- end page -->
     <div class="row-fluid" ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
 	  	<div class="pull-left">
-		    <pagination num-pages="noOfPages" current-page="currentPage" max-size="maxSize"></pagination>
+		    <pagination num-pages="noOfPages" current-page="currentPage" items-per-page="itemsPerPage" max-size="maxSize"></pagination>
 	    </div>
 	    <div class="pagination pull-right">
 			<ul>
 				<li class="disabled"><a>${i18n("macro_EntriesPerPage")}</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(5)">5</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(15)">15</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(25)">25</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(50)">50</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setMaxSize(0)">all</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(5)">5</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(15)">15</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(25)">25</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(50)">50</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(0)">all</a></li>
 			</ul>
 		</div>
 	</div><!-- /row-fluid -->

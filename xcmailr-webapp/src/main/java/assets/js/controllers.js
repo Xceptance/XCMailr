@@ -16,7 +16,8 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 		// handle the pagination
 		$scope.noOfPages = 1;
 		$scope.currentPage = 1;
-		$scope.maxSize = 15;
+		$scope.maxSize = 5;
+		$scope.itemsPerPage = 15;
 		$scope.selected = {};
 		$scope.allBoxes = {};
 		$scope.alerts = [];
@@ -81,7 +82,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{ // remove the address from the list of all addresses and clean the list of selected Elements
-				$scope.allBoxes.splice(elementIdx + (($scope.currentPage - 1) * $scope.maxSize), 1);
+				$scope.allBoxes.splice(elementIdx + (($scope.currentPage - 1) * $scope.itemsPerPage), 1);
 				$scope.selected = {};
 			}
 			else
@@ -102,7 +103,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 				var curBox = $scope.filteredBoxes[elementIdx];
 				curBox.expired = !curBox.expired;
 				// update the allBoxes-model, this should also refresh the filteredboxes
-				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.maxSize)] = curBox;
+				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.itemsPerPage)] = curBox;
 			}
 			else
 			{
@@ -119,8 +120,8 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
-				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.maxSize)].suppressions = 0;
-				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.maxSize)].forwards = 0;
+				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.itemsPerPage)].suppressions = 0;
+				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.itemsPerPage)].forwards = 0;
 			}
 			else
 			{
@@ -137,7 +138,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
 			{
-				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.maxSize)] = returnedData.currentBox;
+				$scope.allBoxes[elementIdx + (($scope.currentPage - 1) * $scope.itemsPerPage)] = returnedData.currentBox;
 			}
 
 			$scope.pushAlert(returnedData.success, returnedData.statusmsg);
@@ -200,7 +201,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- show all boxes on one page --------------- //
 	$scope.showAll = function()
 	{
-		$scope.setMaxSize($scope.allBoxes.length);
+		$scope.setItemsPerPage($scope.allBoxes.length);
 	};
 
 	// --------------- set the page --------------- //
@@ -210,9 +211,9 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	};
 
 	// --------------- set the page-size --------------- //
-	$scope.setMaxSize = function(size)
+	$scope.setItemsPerPage = function(size)
 	{
-		$scope.maxSize = size;
+		$scope.itemsPerPage = size;
 		$scope.noOfPages = $scope.setNumPages();
 		$scope.currentPage = 1;
 	};
@@ -220,7 +221,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- set the number of pages --------------- //
 	$scope.setNumPages = function()
 	{
-		return ($scope.maxSize != 0) ? Math.ceil($scope.allBoxes.length / $scope.maxSize) : 1;
+		return ($scope.itemsPerPage != 0) ? Math.ceil($scope.allBoxes.length / $scope.itemsPerPage) : 1;
 	};
 
 	// --------------- Opens the EditBoxDialog --------------- //
@@ -405,7 +406,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	};
 
 	// --------------- Page-Change Listener --------------- //
-	$scope.paginationListener = $scope.$watch('currentPage + maxSize', function()
+	$scope.paginationListener = $scope.$watch('currentPage + itemsPerPage', function()
 	{
 		$scope.updateView();
 	}, true);
@@ -419,10 +420,10 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- Update the View --------------- //
 	$scope.updateView = function()
 	{
-		if ($scope.maxSize > 0 && $scope.allBoxes.length > 0)
+		if ($scope.itemsPerPage > 0 && $scope.allBoxes.length > 0)
 		{
-			var begin = (($scope.currentPage - 1) * $scope.maxSize);
-			var end = begin + $scope.maxSize;
+			var begin = (($scope.currentPage - 1) * $scope.itemsPerPage);
+			var end = begin + $scope.itemsPerPage;
 			$scope.filteredBoxes = $scope.allBoxes.slice(begin, end);
 		}
 		else
