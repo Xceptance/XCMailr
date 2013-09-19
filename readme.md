@@ -1,8 +1,8 @@
 # XCMailr
 ## Summary
 * Name: XCMailr
-* Version: 1.1.3
-* Release: July 2013
+* Version: 1.1.4
+* Release: Sept. 2013
 * License: Apache V2.0
 * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
 * Tags: AntiSpam, Testutility
@@ -14,7 +14,7 @@
 XCMailr lets you quickly and easily reduce spam in your email account. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming mail will be silently dropped. XCMailr doesn't store any email content and and won't notify the sender if the address is no longer valid. 
 
 ## Requirements
-* [Memcached](http://memcached.org/)
+* [Memcached](http://memcached.org/), optional since V1.1.3 but recommended
 
 ## Configuration
 * Open and edit the application.conf in conf/ . 

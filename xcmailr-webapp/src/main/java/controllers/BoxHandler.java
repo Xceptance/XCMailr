@@ -289,7 +289,8 @@ public class BoxHandler
      *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be disabled or not
      * @param context
      *            the context of this request
-     * @return
+     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
+     *         the number of changed items
      */
     @FilterWith(JsonSecureFilter.class)
     public Result bulkDisableBoxes(JsonObject boxIds, Context context)
@@ -323,7 +324,8 @@ public class BoxHandler
      *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be enabled or not
      * @param context
      *            the context of this request
-     * @return
+     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
+     *         the number of changed items
      */
     @FilterWith(JsonSecureFilter.class)
     public Result bulkEnablePossibleBoxes(JsonObject boxIds, Context context)
@@ -353,12 +355,13 @@ public class BoxHandler
      * {"boxes":{ id: boolean, id:boolean,.. }, "newDateTime" : "yyyy-MM-dd hh:mm"} <br/>
      * POST /mail/bulkNewDate
      * 
-     * @param boxIds
+     * @param jsObject
      *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether there will be set a new
      *            Timestamp or not
      * @param context
      *            the context of this request
-     * @return
+     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
+     *         the number of changed items
      */
     @FilterWith(JsonSecureFilter.class)
     public Result bulkNewDate(JsonObject jsObject, Context context)
@@ -404,7 +407,8 @@ public class BoxHandler
      *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be reseted or not
      * @param context
      *            the context of this request
-     * @return
+     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
+     *         the number of changed items
      */
     @FilterWith(JsonSecureFilter.class)
     public Result bulkResetBoxes(JsonObject boxIds, Context context)
@@ -437,7 +441,7 @@ public class BoxHandler
      *            the ID of the Mailbox
      * @param context
      *            the Context of this Request
-     * @return the Mailbox-Overview-Page
+     * @return A Json-object, containing the key "success" with a boolean value whether it was successful
      */
     @FilterWith(JsonSecureFilter.class)
     public Result deleteBoxByJson(@PathParam("id") Long boxId, Context context)
@@ -789,8 +793,8 @@ public class BoxHandler
                 sb.append(entry.getKey()).append(",");
             }
         }
-        
-        //remove the last comma 
+
+        // remove the last comma
         if (sb.length() > 0)
         {
             sb.delete(sb.length() - 1, sb.length());
