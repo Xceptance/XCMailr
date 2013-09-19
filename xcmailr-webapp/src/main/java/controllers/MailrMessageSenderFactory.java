@@ -275,8 +275,7 @@ public class MailrMessageSenderFactory
 
                     if (mailBox != null)
                     { // the message belongs to one of our mailboxes
-                        mailBox.increaseForwards();
-                        mailBox.update();
+                        mailBox.increaseFwd();
                     }
                 }
             }

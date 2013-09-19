@@ -60,12 +60,12 @@ public class CachingSessionHandler
      */
     public void set(String key, int timeToLive, final Object object)
     {
-        ninjaCache.add(xcmConf.APP_NAME + key, object, timeToLive + "s");
+        ninjaCache.safeSet(xcmConf.APP_NAME + key, object, timeToLive + "s");
     }
 
     public void replace(String key, int timeToLive, final Object object)
     {
-        ninjaCache.replace(xcmConf.APP_NAME + key, object, timeToLive + "s");
+        ninjaCache.safeReplace(xcmConf.APP_NAME + key, object, timeToLive + "s");
     }
 
     /**
@@ -80,9 +80,8 @@ public class CachingSessionHandler
      */
     public void setSessionUser(final User user, String sessionId, int timeToLive)
     {
-
         @SuppressWarnings("unchecked")
-        List<String> sessions = ninjaCache.get(user.getMail(), List.class);
+        List<String> sessions = (List<String>) get(user.getMail());
         // if there's no list, create a new one and add the session
         if (sessions == null)
         {
@@ -108,7 +107,7 @@ public class CachingSessionHandler
     {
         @SuppressWarnings("unchecked")
         // get the sessions of this user
-        List<String> sessions = ninjaCache.get(user.getMail(), List.class);
+        List<String> sessions = (List<String>) get(user.getMail());
 
         if (sessions != null)
         { // delete the sessionKeys of this user at caching-server
@@ -133,7 +132,7 @@ public class CachingSessionHandler
     {
         @SuppressWarnings("unchecked")
         // get the sessions of this user
-        List<String> sessions = ninjaCache.get(user.getMail(), List.class);
+        List<String> sessions = (List<String>) get(user.getMail());
         if (sessions != null)
         { // update all sessions of this user at memCached
             for (String sessionKey : sessions)
@@ -178,7 +177,6 @@ public class CachingSessionHandler
             { // no new session-> create a new mapping for the new address
                 set(newEmail, xcmConf.COOKIE_EXPIRETIME, oldAddressSessions);
             }
-
             // delete the session entries for the old email
             delete(oldEmail);
         }
@@ -210,6 +208,6 @@ public class CachingSessionHandler
 
     public void delete(String key)
     {
-        ninjaCache.delete(xcmConf.APP_NAME + key);
+        ninjaCache.safeDelete(xcmConf.APP_NAME + key);
     }
 }

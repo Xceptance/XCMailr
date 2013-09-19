@@ -2,22 +2,19 @@
 
 <#macro entrycount>
 <!-- begin menu entries/page -->
-<div class="pagination">
-	<div class="row-fluid">
-		<ul class ="pull-right">
-			<li>${i18n("macro_EntriesPerPage")}</li>
-			<li><input type="submit" class="btn btn-link btn-small" value="5" name="no"/> </li>
-			<li> <input type="submit" class="btn btn-link btn-small" value="15" name="no"/></li>
-			<li><input type="submit" class="btn btn-link btn-small" value="25" name="no"/></li>
-			<li><input type="submit" class="btn btn-link btn-small" value="all" name="no"/></li>
-		</ul>
-	</div> <!-- /row-fluid -->
+<div class="pagination pull-right">
+	<ul>
+		<li class="disabled"><a>${i18n("macro_EntriesPerPage")}</a></li>
+		<li><a class="btn btn-link btn-small" href="?no=5">5</a></li>
+		<li><a class="btn btn-link btn-small" href="?no=15">15</a></li>
+		<li><a class="btn btn-link btn-small" href="?no=25">25</a></li>
+		<li><a class="btn btn-link btn-small" href="?no=all">all</a></li>
+	</ul>
 </div><!-- /pagination -->
 <!-- end menu entries/page -->
 </#macro>
 
 <!-- Pager  -->
-
 <#macro pager name="plist">
 <!-- start pager-list -->
 <div class="pagination">
@@ -73,36 +70,18 @@
 </#macro>
 
 <#macro incSorter vals=[]>
-
-    <script type="text/javascript" src="${contextPath}/assets/js/jquery.tablesorter.js"></script> 
-    <script type="text/javascript" id="js">
-    $(document).ready(function() 
-	    { 
-	        $("table").tablesorter(
-	        		{
-	                	headers: { 
-                			<#list vals as columnNo>
-                				${columnNo}: { sorter: false }<#if columnNo_has_next>,</#if>
-                			</#list>
-                			}
-	        		}); 
-	    }); 
-    </script>
-
-</#macro>
-
-<!-- Shows the delete MTX-Form -->
-<#macro mtxDeleter>
-<!-- begin delete mtx-entries -->
-<div class="btn-group">
-	<button class="btn dropdown-toggle btn-small" data-toggle="dropdown">${i18n("admin_RemoveMtx")}<span class="caret"></span></button>
-	<ul class="dropdown-menu">
-		<li><a href="${contextPath}/admin/mtxs/delete/7">1 ${i18n("admin_Week")}</a></li>
-		<li><a href="${contextPath}/admin/mtxs/delete/14">2 ${i18n("admin_Week")}</a></li>
-		<li><a href="${contextPath}/admin/mtxs/delete/21">3 ${i18n("admin_Week")}</a></li>
-		<li><a href="${contextPath}/admin/mtxs/delete/28">4 ${i18n("admin_Week")}</a></li>
-		<li><a href="${contextPath}/admin/mtxs/delete/-1">All</a></li>
-	</ul>
-</div><!-- /btn-group -->
-<!-- end delete mtx-entries -->
+  <script type="text/javascript" src="${contextPath}/assets/js/jquery.tablesorter.js"></script> 
+  <script type="text/javascript" id="js">
+  $(document).ready(function() 
+   { 
+       $("table").tablesorter(
+       		{
+               	headers: { 
+              			<#list vals as columnNo>
+              				${columnNo}: { sorter: false }<#if columnNo_has_next>,</#if>
+              			</#list>
+              			}
+       		}); 
+   }); 
+  </script>
 </#macro>

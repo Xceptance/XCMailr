@@ -23,7 +23,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  * Holds the Data for the Mailbox Forms
- * 
+ * @deprecated Use {@link JsonMBox} instead
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 public class MailBoxFormData

@@ -1,10 +1,12 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> 
 <@layout.xcLayout title=i18n("editUser_Title")>
-<div class="row">
-<div class="span7">
 	<form action="${contextPath}/user/edit" method="post" id="editUserForm" class="form-horizontal">
 		<fieldset>
 			<legend>${i18n("editUser_Title")}</legend>  
+				<div class="pull-right">
+					<a href="#deleteUserModal" role="button" class="btn btn-danger" data-toggle="modal">${i18n("editUser_Button_DeleteAccount")}</a>
+				</div>
+
 			<div class="control-group"> 
 				<label class="control-label" for="password">${i18n("editUser_Label_CurrentPassword")}*</label>
 				<div class="controls">  
@@ -44,7 +46,7 @@
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label"  for="language2"> ${i18n("editUser_Label_Language")} </label>
+				<label class="control-label" for="language"> ${i18n("editUser_Label_Language")} </label>
 				<div class="controls">
 				<select name="language" id="language" >
 				<#list available_langs as lng>
@@ -64,20 +66,13 @@
 			<div class="control-group"> 
 				<label class="control-label" >* ${i18n("editUser_Label_RequiredDescription")}</label>
 			</div>
-	
 			<div class="form-actions"> 
 				<input type="button" id="editUserReset" class="btn" value='${i18n("editUser_Button_Reset")}'/>
 				<input type="button" id="editUserSubmit" class="btn btn-primary" value='${i18n("editUser_Button_Save")}'/>  
 			</div>
 		</fieldset>
 	</form>
-	
-	<p><br/></p>
-
-	<a href="#deleteUserModal" role="button" class="btn btn-danger" data-toggle="modal">${i18n("editUser_Button_DeleteAccount")}</a>
-
 <#include "deleteUserModal.ftl.html"/>
-	
 <script type="text/javascript">
 	$('#editUserSubmit')
 	.click(
@@ -102,6 +97,4 @@
 		$('#editUserForm')[0].reset();
 	});
 	</script>
-</div>
-</div>
 </@layout.xcLayout>

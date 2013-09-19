@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html ng-app="BoxHandler">
+<head>
+  <meta charset="utf-8">
+  <title>XCMailr - ${i18n("mailbox_Title")}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <!-- Le styles -->
+  <link href="${contextPath}/assets/css/bootstrap.css" rel="stylesheet">
+   <style type="text/css">
+    body 
+    {
+      padding-top: 60px;
+      padding-bottom: 40px;
+    }
+  </style>
+  <link href="${contextPath}/assets/css/bootstrap-responsive.css" rel="stylesheet">
+  <link href="${contextPath}/assets/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+  <link href="${contextPath}/assets/css/ownStyle.css" rel="stylesheet">
+
+  <script src="${contextPath}/assets/js/jquery.js"></script>
+  <script src="${contextPath}/assets/js/bootstrap.js"></script>
+  <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <!-- Le fav and touch icons -->
+  <link rel="shortcut icon" href="${contextPath}/assets/ico/favicon.ico">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="${contextPath}/assets/ico/apple-touch-icon-144-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="${contextPath}/assets/ico/apple-touch-icon-114-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="${contextPath}/assets/ico/apple-touch-icon-72-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" href="${contextPath}/assets/ico/apple-touch-icon-57-precomposed.png">
+  <script type="text/javascript" src="${contextPath}/assets/js/angular.min.js"> </script>
+  <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-0.4.0.js"> </script>
+  <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-tpls-0.4.0.js"> </script>
+  <script type="text/javascript" src="${contextPath}/assets/js/controllers.js"> </script>
+</head>
+<body>
+<#include "../layout/header.ftl.html"/>
+<div class="container">
+<div class="container-fluid">
+<!-- start page -->
+<div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
+	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
+	<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.message}}</alert>
+	<div class="input-prepend pull-left">
+		<input type="text" placeholder="${i18n('mailbox_Button_Search')}" ng-model="searchString" ng-change="search2()">
+		<a class="btn" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="icon-remove-circle"></i></a>
+	</div>
+	<form action="${contextPath}/mail/myselectedmaillist.txt" name="selectedMailForm" method="post">
+		<input type="hidden" name="jsonObj" value="{{selected}}"/>
+	</form>
+	<div class="pull-right">
+		<div>
+			<div class="btn-group pull-right">
+				<a class="btn btn-small" ng-click="updateModel()">
+					<i class="icon-repeat"></i> ${i18n("mailbox_Button_Refresh")}
+				</a>
+				<a href="javascript:;" class="btn btn-small" data-ng-click="openAddBoxDialog()">
+					<i class="icon-plus-sign"></i> ${i18n("mailbox_Button_AddAddress")} 
+				</a>
+			   	<a class="btn btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></a>
+		   		<ul class="dropdown-menu">
+					<li><a href="javascript:;" data-ng-click="showSelected()">${i18n("mailbox_Dropdown_ShowSelected")}</a></li>
+					<li><a href="javascript:;" onClick="selectedMailForm.submit()">${i18n("mailbox_Dropdown_ShowSelectedTxt")}</a></li>
+					<li class="divider"></li>
+					<li><a href="javascript:;" data-ng-click="bulkEnablePossibleBox()">${i18n("mailbox_Dropdown_BulkActivate")}</a></li>
+					<li><a href="javascript:;" data-ng-click="bulkDisableBox()">${i18n("mailbox_Dropdown_BulkDisable")}</a></li>
+					<li><a href="javascript:;" data-ng-click="openbulkDeleteBoxDialog()">${i18n("mailbox_Dropdown_BulkDelete")}</a></li>
+					<li><a href="javascript:;" data-ng-click="openNewDateDialog()">${i18n("mailbox_Dropdown_BulkChange")}</a></li>
+					<li><a href="javascript:;" data-ng-click="bulkResetBox()">${i18n("mailbox_Dropdown_BulkReset")}</a></li>
+				</ul>
+			</div>	
+		</div>
+		<br/>
+	</div>
+	<!--mailbox-overview-->
+	<table class="table table-hover table-condensed tsort">
+		<thead>
+		    <tr>
+		    	<th class="header span1"><input type="checkbox" class="bulkChk" id="chk_all" ng-click="selectAllItems()"></th>
+		    	<th class="header headerSort span5" ng-class="{headerSortDown : (predicate=='address' && reverse), headerSortUp : (predicate=='address' && !reverse)}" >
+		    		<a ng-click="predicate='address'; reverse=!reverse" >${i18n("mailbox_Header_Address")}</a>
+		    	</th>	
+		    	<th class="header headerSort span1"  ng-class="{headerSortDown : (predicate=='datetime' && reverse), headerSortUp : (predicate=='datetime' && !reverse)}">
+		    		<a ng-click="predicate= 'datetime'; reverse=!reverse">${i18n("mailbox_Header_Duration")}</a>
+		    	</th>
+		    	<th class="header headerSort span1" ng-class="{headerSortDown : (predicate=='forwards' && reverse), headerSortUp : (predicate=='forwards' && !reverse)}">
+		    		<a ng-click="predicate= 'forwards'; reverse=!reverse">${i18n("mailbox_Header_Forwards")}</a>
+		    	</th>
+		    	<th class="header headerSort span1" ng-class="{headerSortDown : (predicate=='suppressions' && reverse), headerSortUp : (predicate=='suppressions' && !reverse)}">
+		    		<a ng-click="predicate= 'suppressions'; reverse=!reverse">${i18n("mailbox_Header_Suppressions")}</a>
+		    	</th>
+		    	<th class="header headerSort span1" ng-class="{headerSortDown : (predicate=='!expired' && reverse), headerSortUp : (predicate=='!expired' && !reverse)}">
+		    		<a ng-click="predicate= '!expired'; reverse=!reverse">${i18n("mailbox_Header_Valid")}</a>
+		    	</th>
+		    </tr>
+	    </thead>
+	    <tbody>
+	    <!-- begin no-addresses-row -->
+	    	<tr class="info" ng-show="(filteredBoxes.length == 0) && (searchString == '')">
+	    	<td></td>
+	    	<td colspan="5">
+	    		${i18n("mailbox_Label_NoEntries")} 		    	
+		    	<a href="javascript:;" class="btn btn-link" data-ng-click="openAddBoxDialog()">
+						<i class=" icon-plus-sign"></i> ${i18n("mailbox_Label_AskForNewAddress")}
+				</a>
+			</td>
+	    	</tr>
+	    <!-- end no-addresses-row -->
+			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overMouse = true; overId=$index" ng-mouseleave="overMouse=false">   
+		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]" ng-checked="selected[mBox.id]"></td>
+				<td class="mbAddress">
+					{{mBox.address}}&#064;{{mBox.domain}}<br/>
+				<!-- start inline menu -->
+			        <span ng-show="overMouse && ($index == overId)" > 
+		                <a class="btn btn-mini btn-link" ng-if="!mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" value='${i18n("mailbox_Button_Deactivate")}'>  
+		                	<i class="icon-pause"></i> ${i18n("mailbox_Button_Deactivate")}
+		                </a>
+						<a  class="btn btn-mini btn-link" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, $index)" value='${i18n("mailbox_Button_Deactivate")}'>  
+		                	<i class="icon-play"></i> ${i18n("mailbox_Button_Activate")}
+		                </a> 
+		    			<a class="btn btn-mini btn-link" ng-click="openDeleteBoxDialog($index)">
+		    				<i class="icon-trash"></i> ${i18n("mailbox_Button_Delete")}
+		    			</a>
+		                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index)">
+		    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
+		    			</a>
+			        	<a ng-click="openEditBoxDialog($index)"  class="btn btn-mini btn-link">
+			        		<i class="icon-edit"></i> ${i18n("mailbox_Button_Edit")}
+			        	</a>
+			        </span>
+				<!-- end inline menu -->
+				</td>
+				<td ng-if="mBox.datetime=='unlimited'">${i18n("mailbox_Label_Unlimited")}</td>
+				<td ng-if="mBox.datetime!='unlimited'">{{mBox.datetime}}</td>						
+				<td>{{mBox.forwards}}</td>
+				<td>{{mBox.suppressions}}</td>
+				<td ng-if="!mBox.expired"> ${i18n("mailbox_Label_MailActive")} </td>
+   				<td ng-if="mBox.expired && (${ts_now} > mBox.ts_Active)"> ${i18n("mailbox_Label_MailExpired")} </td>
+   				<td ng-if="mBox.expired && (${ts_now} < mBox.ts_Active)"> ${i18n("mailbox_Label_MailInactive")} </td>
+			</tr>
+		</tbody>
+    </table>
+    <div ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
+   		<a href="javascript:;" data-ng-click="showAll()">${i18n("mailbox_Label_ShowAll")}</a><br/>
+		<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
+		<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
+	</div>
+<!-- end page -->
+    <div class="row-fluid" ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
+	  	<div class="pull-left">
+		    <pagination num-pages="noOfPages" current-page="currentPage" items-per-page="itemsPerPage" max-size="maxSize"></pagination>
+	    </div>
+	    <div class="pagination pull-right">
+			<ul>
+				<li class="disabled"><a>${i18n("macro_EntriesPerPage")}</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(5)">5</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(15)">15</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(25)">25</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(50)">50</a></li>
+				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(0)">all</a></li>
+			</ul>
+		</div>
+	</div><!-- /row-fluid -->
+</div><!-- /row-fluid (of boxctrl) -->
+</div> <!-- /container-fluid -->
+<#include "../layout/footer.ftl.html"/>
+</div> <!-- /container -->
+<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
+<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
+</body>
+</html>
+

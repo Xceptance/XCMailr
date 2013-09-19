@@ -1,10 +1,7 @@
-<#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
-title=i18n("admin_Title_SummedStatistics")>
+<#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout title=i18n("admin_Title_SummedStatistics")>
 <#import "../layout/macros.ftl.html" as pag/>
-
 <h1 class="legendary">${i18n("admin_Title_SummedStatistics")}</h1>
-
-<div class="span4">
+<div class="span5">
 <#if ((stats?size) > 0) > 
 <table class="table tablesorter table-hover table-condensed">
 	<thead>
@@ -18,12 +15,12 @@ title=i18n("admin_Title_SummedStatistics")>
 	    		<#case 300><tr class="success" id="mtxStatus300"><#break>
 	    		<#case 400><tr class="error" id="mtxStatus400"><#break>
 	    		<#case 500><tr class="error" id="mtxStatus500"><#break>
-	    		<#default><tr  id="mtxStatusDefault"><#break>
+	    		<#default><tr id="mtxStatusDefault"><#break>
 	    	</#switch>
  		    	<td>
 			    	<#switch stat.statuscode>
-			    		<#case 100> ${i18n("admin_MtxStatus100")}	<#break>
-			    		<#case 200> ${i18n("admin_MtxStatus200")}	<#break>
+			    		<#case 100> ${i18n("admin_MtxStatus100")} <#break>
+			    		<#case 200> ${i18n("admin_MtxStatus200")} <#break>
 			    		<#case 300> ${i18n("admin_MtxStatus300")} <#break>
 			    		<#case 400> ${i18n("admin_MtxStatus400")} <#break>
 			    		<#case 500> ${i18n("admin_MtxStatus500")} <#break>
@@ -35,12 +32,9 @@ title=i18n("admin_Title_SummedStatistics")>
     	</#list>
     	</tbody>
     </table>
-</div><!-- /span4 -->
-
+</div><!-- /span5 -->
  <@pag.incSorter/>
- 
   <#else>
   ${i18n("admin_Label_NoEntries")}
 </#if>
-
 </@layout.adminLayout>	

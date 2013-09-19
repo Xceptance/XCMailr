@@ -1,8 +1,8 @@
 # XCMailr
 ## Summary
 * Name: XCMailr
-* Version: 1.1.3
-* Release: July 2013
+* Version: 1.1.4
+* Release: Sept. 2013
 * License: Apache V2.0
 * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
 * Tags: AntiSpam, Testutility
@@ -14,7 +14,7 @@
 XCMailr lets you quickly and easily reduce spam in your email account. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming mail will be silently dropped. XCMailr doesn't store any email content and and won't notify the sender if the address is no longer valid. 
 
 ## Requirements
-* [Memcached](http://memcached.org/)
+* [Memcached](http://memcached.org/), optional since V1.1.3 but recommended
 
 ## Configuration
 * Open and edit the application.conf in conf/ . 
@@ -70,6 +70,10 @@ XCMailr lets you quickly and easily reduce spam in your email account. Simply cr
 * We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it can be reached with this configuration at http://mydomain/xcmailr. 
 
 ## Frameworks/Librarys/Code/etc. Provided by Others
+### AngularJS
+* http://angularjs.org
+* MIT-License: http://github.com/angular/angular.js/blob/master/LICENSE
+
 ### Avaje Ebean 
 * http://www.avaje.org/
 * LGPL: http://www.gnu.org/licenses/lgpl.html
@@ -108,7 +112,7 @@ XCMailr lets you quickly and easily reduce spam in your email account. Simply cr
 * http://www.mindrot.org/projects/jBCrypt/
 * ISC/BSD License: http://www.mindrot.org/files/jBCrypt/LICENSE
 
-###  JodaTime
+### JodaTime
 * http://joda-time.sourceforge.net
 * Apache V2.0 License: http://joda-time.sourceforge.net/license.html
 
