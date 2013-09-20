@@ -36,8 +36,8 @@
 
 <ul>
 <li>Name: XCMailr</li>
-<li>Version: 1.1.0</li>
-<li>Release: July 2013</li>
+<li>Version: 1.1.4</li>
+<li>Release: Sept. 2013</li>
 <li>License: Apache V2.0</li>
 <li>License URI: <a href="http://www.apache.org/licenses/LICENSE-2.0.txt">http://www.apache.org/licenses/LICENSE-2.0.txt</a>
 </li>
@@ -58,7 +58,8 @@
 <a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
 
 <ul>
-<li><a href="http://memcached.org/">Memcached</a></li>
+<li>
+<a href="http://memcached.org/">Memcached</a>, optional since V1.1.3 but recommended</li>
 </ul><h2>
 <a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h2>
 
@@ -122,7 +123,7 @@
 <li>For instance, if it will be available externally at "<a href="http://reverse.proxy/path/to/app">http://reverse.proxy/path/to/app</a>", then you can set the basedir to "path/to/app" and it will run locally at "http://localhost:port/path/to/app".</li>
 <li>The advantage is that you don't have to use the mod_proxy_html-module to rewrite every link and file-paths on all html-pages.</li>
 <li>After setting up the Apache2 with all necessary Proxy-Modules (especially you have to enable proxy and proxy_http), you'll have to create a VirtualHost-Configuration for your site. Here's a small example for that:</li>
-</ul><div class="highlight"><pre><span class="nt">&lt;VirtualHost</span> <span class="s">*:80</span><span class="nt">&gt;</span>  
+</ul><div class="highlight highlight-apache"><pre><span class="nt">&lt;VirtualHost</span> <span class="s">*:80</span><span class="nt">&gt;</span>  
     <span class="nb">ProxyRequests</span> <span class="k">off</span>  
     <span class="nb">ProxyPass</span> <span class="sx">/xcmailr/</span> http://localhost:8080/xcmailr/  
     <span class="nb">ProxyPassReverse</span> <span class="sx">/xcmailr/</span> http://localhost:8080/xcmailr/  
@@ -142,6 +143,13 @@
 <a name="frameworkslibraryscodeetc-provided-by-others" class="anchor" href="#frameworkslibraryscodeetc-provided-by-others"><span class="octicon octicon-link"></span></a>Frameworks/Librarys/Code/etc. Provided by Others</h2>
 
 <h3>
+<a name="angularjs" class="anchor" href="#angularjs"><span class="octicon octicon-link"></span></a>AngularJS</h3>
+
+<ul>
+<li><a href="http://angularjs.org">http://angularjs.org</a></li>
+<li>MIT-License: <a href="http://github.com/angular/angular.js/blob/master/LICENSE">http://github.com/angular/angular.js/blob/master/LICENSE</a>
+</li>
+</ul><h3>
 <a name="avaje-ebean" class="anchor" href="#avaje-ebean"><span class="octicon octicon-link"></span></a>Avaje Ebean</h3>
 
 <ul>
