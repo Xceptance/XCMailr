@@ -16,22 +16,15 @@
  */
 package controllers;
 
-import java.util.List;
 import java.util.Arrays;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import conf.XCMailrConf;
-import etc.HelperUtils;
-import filters.NoLoginFilter;
+import java.util.List;
+
 import models.Domain;
-import models.UserFormData;
 import models.LoginFormData;
 import models.PasswordFormData;
-import ninja.Context;
 import models.User;
+import models.UserFormData;
+import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
 import ninja.Results;
@@ -41,6 +34,17 @@ import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+
+import com.google.common.base.Optional;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
+import etc.HelperUtils;
+import filters.NoLoginFilter;
 
 /**
  * Handles all general application actions like login, logout, forgot password or index page
@@ -131,7 +135,7 @@ public class Application
         { // the form contains errors
 
             registerFormData.clearPasswordFields();
-            context.getFlashCookie().error("flash_FormError");
+            context.getFlashScope().error("flash_FormError");
 
             return result.render("registerUserData", registerFormData);
         }
@@ -147,7 +151,7 @@ public class Application
 
                 if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
                 {
-                    context.getFlashCookie().error("flash_NoLoop");
+                    context.getFlashScope().error("flash_NoLoop");
                     registerFormData.setMail("");
                     registerFormData.clearPasswordFields();
 
@@ -158,7 +162,7 @@ public class Application
                 { // whitelisting is active
                     if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
                     { // the domain is not in the whitelist and the whitelist is not empty
-                        context.getFlashCookie().error("registerUser_Flash_NotWhitelisted");
+                        context.getFlashScope().error("registerUser_Flash_NotWhitelisted");
                         registerFormData.clearPasswordFields();
 
                         return result.render("registerUserData", registerFormData);
@@ -182,7 +186,7 @@ public class Application
                     if (!Arrays.asList(xcmConfiguration.APP_LANGS).contains(user.getLanguage()))
                     { // the language stored in the user-object does not exist in the app
                         registerFormData.clearPasswordFields();
-                        context.getFlashCookie().error("flash_PasswordsUnequal");
+                        context.getFlashScope().error("flash_PasswordsUnequal");
 
                         return result.render("registerUserData", registerFormData);
                     }
@@ -196,7 +200,7 @@ public class Application
                     mailrSenderFactory.sendConfirmAddressMail(user.getMail(), user.getForename(),
                                                               String.valueOf(user.getId()), user.getConfirmation(),
                                                               language);
-                    context.getFlashCookie().success("registerUser_Flash_Successful");
+                    context.getFlashScope().success("registerUser_Flash_Successful");
 
                     lang.setLanguage(user.getLanguage(), result);
                     return Results.redirect(context.getContextPath() + "/");
@@ -204,14 +208,14 @@ public class Application
                 else
                 { // password mismatch
                     registerFormData.clearPasswordFields();
-                    context.getFlashCookie().error("flash_PasswordsUnequal");
+                    context.getFlashScope().error("flash_PasswordsUnequal");
 
                     return result.render("registerUserData", registerFormData);
                 }
             }
             else
             { // mailadress already exists
-                context.getFlashCookie().error("flash_MailExists");
+                context.getFlashScope().error("flash_MailExists");
                 return result.render("registerUserData", registerFormData);
             }
         }
@@ -239,7 +243,7 @@ public class Application
             { // the passed token is the right one -> activate the user
                 user.setActive(true);
                 user.update();
-                context.getFlashCookie().success("user_Verify_Success");
+                context.getFlashScope().success("user_Verify_Success");
                 lang.setLanguage(user.getLanguage(), result);
                 return result.redirect(context.getContextPath() + "/login");
             }
@@ -282,7 +286,7 @@ public class Application
         if (validation.hasViolations())
         {
             loginData.setPassword("");
-            context.getFlashCookie().error("flash_FormError");
+            context.getFlashScope().error("flash_FormError");
             return result.render(loginData);
         }
         else
@@ -294,28 +298,28 @@ public class Application
                 { // correct login
                     if (!loginUser.isActive())
                     {
-                        context.getFlashCookie().error("user_Inactive");
+                        context.getFlashScope().error("user_Inactive");
                         return result.redirect(context.getContextPath() + "/");
                     }
 
                     // we put the username into the cookie, but use the id of the cookie for authentication
-                    String sessionKey = context.getSessionCookie().getId();
+                    String sessionKey = context.getSession().getId();
                     cachingSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, loginUser);
                     // set a reverse mapped user-mail -> sessionId-list in the memcached server to handle
                     // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
                     // logged-in)
                     cachingSessionHandler.setSessionUser(loginUser, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
 
-                    context.getSessionCookie().put("username", loginUser.getMail());
+                    context.getSession().put("username", loginUser.getMail());
 
                     if (loginUser.isAdmin())
                     { // set a admin-flag at the cookie if the user is admin
                       // we use this only to change the header-menu-view, but not for "real admin-actions"
-                        context.getSessionCookie().put("adm", "1");
+                        context.getSession().put("adm", "1");
                     }
                     loginUser.setBadPwCount(0);
                     loginUser.update();
-                    context.getFlashCookie().success("login_Flash_LogIn");
+                    context.getFlashScope().success("login_Flash_LogIn");
 
                     // set the language the user wants to have
                     lang.setLanguage(loginUser.getLanguage(), result);
@@ -331,20 +335,20 @@ public class Application
                         loginUser.update();
 
                         // show the disabled message and return to the forgot-pw-page
-                        context.getFlashCookie().error("login_Flash_UserDisabled");
+                        context.getFlashScope().error("login_Flash_UserDisabled");
                         return result.redirect(context.getContextPath() + "/pwresend");
                     }
                     // update the user here
                     loginUser.update();
                     loginData.setPassword("");
-                    context.getFlashCookie().error("flash_FormError");
+                    context.getFlashScope().error("flash_FormError");
                     return result.render(loginData);
                 }
             }
             else
             {// the user does not exist
                 loginData.setPassword("");
-                context.getFlashCookie().error("flash_FormError");
+                context.getFlashScope().error("flash_FormError");
                 return result.render(loginData);
             }
         }
@@ -361,12 +365,12 @@ public class Application
     public Result logoutProcess(Context context)
     {
         // remove the session (cachingServer and cookie)
-        String sessionKey = context.getSessionCookie().getId();
-        context.getSessionCookie().clear();
+        String sessionKey = context.getSession().getId();
+        context.getSession().clear();
         cachingSessionHandler.delete(sessionKey);
 
         // show the index-page
-        context.getFlashCookie().success("logout_Flash_LogOut");
+        context.getFlashScope().success("logout_Flash_LogOut");
         return Results.redirect(context.getContextPath() + "/");
     }
 
@@ -398,7 +402,7 @@ public class Application
     {
         if (validation.hasViolations())
         { // some fields weren't filled
-            context.getFlashCookie().error("flash_FormError");
+            context.getFlashScope().error("flash_FormError");
             return Results.redirect(context.getContextPath() + "/pwresend");
         }
         else
@@ -420,7 +424,7 @@ public class Application
             }
 
             // We always show the success-message, even when the user does not exist
-            context.getFlashCookie().success("forgotPassword_Flash_Success");
+            context.getFlashScope().success("forgotPassword_Flash_Success");
             return Results.redirect(context.getContextPath() + "/");
         }
     }
@@ -498,18 +502,18 @@ public class Application
                         // set the confirm-period-timestamp to now to prevent the reuse of the link
                         user.setTs_confirm(DateTime.now().getMillis());
                         user.update();
-                        context.getFlashCookie().success("flash_DataChangeSuccess");
+                        context.getFlashScope().success("flash_DataChangeSuccess");
                         return Results.redirect(context.getContextPath() + "/");
                     }
                     else
                     { // the passwords are not equal
-                        context.getFlashCookie().error("flash_PasswordsUnequal");
+                        context.getFlashScope().error("flash_PasswordsUnequal");
                         return Results.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
                     }
                 }
                 else
                 { // the form has errors
-                    context.getFlashCookie().error("flash_FormError");
+                    context.getFlashScope().error("flash_FormError");
                     return Results.redirect(context.getContextPath() + "/lostpw/" + id + "/" + token);
                 }
             }
@@ -531,7 +535,7 @@ public class Application
         Optional<String> optionalLanguage = Optional.of(language);
         String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage, xcmConfiguration.PW_LENGTH)
                                           .get();
-        context.getFlashCookie().error(tooShortPassword);
+        context.getFlashScope().error(tooShortPassword);
     }
 
     public Result getStatusMessage(Context context, String messageKey)

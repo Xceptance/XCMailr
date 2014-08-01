@@ -18,14 +18,10 @@ package controllers;
 
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import conf.XCMailrConf;
+
 import models.Domain;
-import models.UserFormData;
 import models.User;
+import models.UserFormData;
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
@@ -34,6 +30,14 @@ import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.google.common.base.Optional;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 import etc.HelperUtils;
 import filters.SecureFilter;
 
@@ -87,7 +91,7 @@ public class UserHandler
         String oldMail = user.getMail();
         if (validation.hasViolations())
         { // the filled form has errors
-            context.getFlashCookie().error("flash_FormError");
+            context.getFlashScope().error("flash_FormError");
             return Results.redirect(context.getContextPath() + "/user/edit");
         }
         else
@@ -99,7 +103,7 @@ public class UserHandler
             String domainPart = mailFromForm.split("@")[1];
             if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
             {
-                context.getFlashCookie().error("flash_NoLoop");
+                context.getFlashScope().error("flash_NoLoop");
                 userFormData.setMail(user.getMail());
                 userFormData.clearPasswordFields();
                 return result.render(userFormData);
@@ -110,7 +114,7 @@ public class UserHandler
             { // whitelisting is active
                 if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
                 { // the domain is not in the whitelist and the whitelist is not empty
-                    context.getFlashCookie().error("editUser_Flash_NotWhitelisted");
+                    context.getFlashScope().error("editUser_Flash_NotWhitelisted");
                     userFormData.clearPasswordFields();
                     return result.render(userFormData);
                 }
@@ -123,7 +127,7 @@ public class UserHandler
                 { // the user's mail-address changed
                     if (User.mailExists(mailFromForm))
                     {// return an error that the mail exists
-                        context.getFlashCookie().error("flash_MailExists");
+                        context.getFlashScope().error("flash_MailExists");
                         userFormData.clearPasswordFields();
 
                         return result.render(userFormData);
@@ -157,7 +161,7 @@ public class UserHandler
                             Optional<String> opt = Optional.of(user.getLanguage());
                             String tooShortPassword = msg.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH)
                                                          .get();
-                            context.getFlashCookie().error(tooShortPassword);
+                            context.getFlashScope().error(tooShortPassword);
                             userFormData.clearPasswordFields();
 
                             return result.render(userFormData);
@@ -166,7 +170,7 @@ public class UserHandler
                     }
                     else
                     { // the passwords are not equal
-                        context.getFlashCookie().error("flash_PasswordsUnequal");
+                        context.getFlashScope().error("flash_PasswordsUnequal");
                         userFormData.clearPasswordFields();
                         return result.render(userFormData);
                     }
@@ -180,19 +184,19 @@ public class UserHandler
                 { // update the cached session-list
                     cachingSessionHandler.updateUsersSessionsOnChangedMail(oldMail, user.getMail());
                     // set the new mail if it has changed correctly
-                    context.getSessionCookie().put("username", user.getMail());
+                    context.getSession().put("username", user.getMail());
                 }
                 // update all user objects for all sessions
                 cachingSessionHandler.updateUsersSessions(user);
                 
                 // user-edit was successful
-                context.getFlashCookie().success("flash_DataChangeSuccess");
+                context.getFlashScope().success("flash_DataChangeSuccess");
                 return result.redirect(context.getContextPath() + "/user/edit");
             }
             else
             { // the authorization-process failed
                 userFormData.clearPasswordFields();
-                context.getFlashCookie().error("flash_FormError");
+                context.getFlashScope().error("flash_FormError");
                 return result.redirect(context.getContextPath() + "/user/edit");
             }
         }
@@ -222,7 +226,7 @@ public class UserHandler
             Optional<Result> opt = Optional.of(result);
             user.setLanguage(lang.getLanguage(context, opt).get());
             user.update();
-            cachingSessionHandler.replace(context.getSessionCookie().getId(), xcmConfiguration.COOKIE_EXPIRETIME, user);
+            cachingSessionHandler.replace(context.getSession().getId(), xcmConfiguration.COOKIE_EXPIRETIME, user);
         }
 
         UserFormData userFormData = UserFormData.prepopulate(user);
@@ -247,21 +251,21 @@ public class UserHandler
             {
                 if (!user.isLastAdmin())
                 { // delete the session
-                    context.getSessionCookie().clear();
+                    context.getSession().clear();
                     cachingSessionHandler.deleteUsersSessions(user);
                     // delete the user-account
                     User.delete(user.getId());
-                    context.getFlashCookie().success("deleteUser_Flash_Success");
+                    context.getFlashScope().success("deleteUser_Flash_Success");
                     return Results.redirect(context.getContextPath() + "/");
                 }
                 else
                 { // can't delete the user, because he's the last admin
-                    context.getFlashCookie().error("deleteUser_Flash_Failed");
+                    context.getFlashScope().error("deleteUser_Flash_Failed");
                 }
             }
             else
             { // the entered password was wrong
-                context.getFlashCookie().error("deleteUser_Flash_WrongPassword");
+                context.getFlashScope().error("deleteUser_Flash_WrongPassword");
             }
         }
         else

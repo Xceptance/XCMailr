@@ -16,16 +16,16 @@
  */
 package filters;
 
-import com.google.inject.Inject;
-
-import controllers.CachingSessionHandler;
-
 import models.User;
 import ninja.Context;
 import ninja.Filter;
 import ninja.FilterChain;
 import ninja.Result;
 import ninja.Results;
+
+import com.google.inject.Inject;
+
+import controllers.CachingSessionHandler;
 
 /**
  * Ensures that the user is NOT logged in, otherwise it will redirect to the index-page
@@ -40,7 +40,7 @@ public class NoLoginFilter implements Filter
     @Override
     public Result filter(FilterChain chain, Context context)
     {
-        User usr = (User) csh.get(context.getSessionCookie().getId());
+        User usr = (User) csh.get(context.getSession().getId());
         if (usr == null)
         {
             return chain.next(context);

@@ -201,7 +201,7 @@ public class HelperUtils
         if (no == null)
         {// no number-param was delivered
 
-            if (context.getSessionCookie().get("no") != null)
+            if (context.getSession().get("no") != null)
             { // return with no action, because there is already a value set
                 return;
             }
@@ -230,7 +230,7 @@ public class HelperUtils
             }
         }
         // set the number to the session-cookie
-        context.getSessionCookie().put("no", value);
+        context.getSession().put("no", value);
     }
 
     /**

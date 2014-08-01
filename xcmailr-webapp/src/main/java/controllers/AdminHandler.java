@@ -20,13 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import conf.XCMailrConf;
+import models.Domain;
+import models.MailTransaction;
+import models.PageList;
+import models.User;
+import models.UserFormData;
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
@@ -34,15 +32,19 @@ import ninja.Results;
 import ninja.i18n.Messages;
 import ninja.params.Param;
 import ninja.params.PathParam;
+
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+
+import com.google.common.base.Optional;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
 import filters.WhitelistFilter;
-import models.Domain;
-import models.MailTransaction;
-import models.PageList;
-import models.User;
-import models.UserFormData;
 
 /**
  * Handles all Actions for the Administration-Section
@@ -102,7 +104,7 @@ public class AdminHandler
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
 
         // get the default number of entries per page
-        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
+        int entries = Integer.parseInt(context.getSession().get("no"));
 
         String searchString = context.getParameter("s", "");
         // generate the paged-list to get pagination in the template
@@ -143,7 +145,7 @@ public class AdminHandler
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
-        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
+        int entries = Integer.parseInt(context.getSession().get("no"));
 
         // set a default value if there's no one given
         page = (page == 0) ? 1 : page;
@@ -408,21 +410,21 @@ public class AdminHandler
                 {
                     Domain domain = new Domain(domainName);
                     domain.save();
-                    context.getFlashCookie().success("adminAddDomain_Flash_Success");
+                    context.getFlashScope().success("adminAddDomain_Flash_Success");
                 }
                 else
                 { // the domain-name is already part of the domain-list
-                    context.getFlashCookie().error("adminAddDomain_Flash_DomainExists");
+                    context.getFlashScope().error("adminAddDomain_Flash_DomainExists");
                 }
             }
             else
             { // the validation of the domain-name failed
-                context.getFlashCookie().error("adminAddDomain_Flash_InvalidDomain");
+                context.getFlashScope().error("adminAddDomain_Flash_InvalidDomain");
             }
         }
         else
         { // the input-string was empty
-            context.getFlashCookie().error("adminAddDomain_Flash_EmptyField");
+            context.getFlashScope().error("adminAddDomain_Flash_EmptyField");
         }
         return Results.redirect(context.getContextPath() + "/admin/whitelist");
     }
