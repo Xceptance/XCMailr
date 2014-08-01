@@ -758,9 +758,9 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.contains("\"success\":true"));
         // the boxes should now be active
         assertTrue(mailbox1new.isActive());
-        assertTrue(mailbox1new.getTSAsString().equals(timeStamp));
-        assertTrue(mailbox2new.getTSAsString().equals(timeStamp));
-        assertTrue(mailbox3new.getTSAsString().equals(timeStamp));
+        assertTrue(mailbox1new.getDatetime().equals(timeStamp));
+        assertTrue(mailbox2new.getDatetime().equals(timeStamp));
+        assertTrue(mailbox3new.getDatetime().equals(timeStamp));
 
         assertTrue(result.contains("\"success\":true"));
         assertFalse(result.contains("FreeMarker template error"));

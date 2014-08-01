@@ -342,7 +342,7 @@ public class JsonMBox
     public void prepopulateJS(MBox mailbox)
     {
         this.address = mailbox.getAddress();
-        this.datetime = mailbox.getTSAsString();
+        this.datetime = mailbox.getDatetime();
         this.domain = mailbox.getDomain();
         this.expired = mailbox.isExpired();
         this.forwards = mailbox.getForwards();
@@ -363,7 +363,7 @@ public class JsonMBox
     {
         JsonMBox jsonMailbox = new JsonMBox();
         jsonMailbox.setAddress(mailbox.getAddress());
-        jsonMailbox.setDatetime(mailbox.getTSAsString());
+        jsonMailbox.setDatetime(mailbox.getDatetime());
         jsonMailbox.setDomain(mailbox.getDomain());
         jsonMailbox.setExpired(mailbox.isExpired());
         jsonMailbox.setForwards(mailbox.getForwards());

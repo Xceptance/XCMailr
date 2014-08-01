@@ -17,6 +17,7 @@
 package models;
 
 import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -25,8 +26,16 @@ import javax.persistence.Table;
 import javax.persistence.Version;
 
 import org.joda.time.DateTime;
-import com.avaje.ebean.*;
+
+import com.avaje.ebean.Ebean;
+import com.avaje.ebean.Expr;
+import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Query;
+import com.avaje.ebean.RawSql;
+import com.avaje.ebean.RawSqlBuilder;
+import com.avaje.ebean.SqlUpdate;
 import com.avaje.ebean.validation.NotEmpty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Object for a virtual Mailbox (a Mail-Forward)
@@ -78,12 +87,14 @@ public class MBox
     /**
      * the version of this box (used for optimisticLock)
      */
+    @JsonIgnore
     @Version
     private Long version;
 
     /**
      * the owner of the address/box
      */
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "usr_id", nullable = false)
     private User usr;
@@ -178,6 +189,7 @@ public class MBox
      * 
      * @return true if the Box is active
      */
+    @JsonIgnore
     public boolean isActive()
     {
         return !expired;
@@ -187,16 +199,10 @@ public class MBox
      * @return true, if the mail is inactive and the TS has a value in the past<br/>
      *         false, else
      */
+    @JsonIgnore
     public boolean isExpiredByTimestamp()
     {
-        if (expired && (ts_Active != 0) && (DateTime.now().isAfter(ts_Active)))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return (expired && (ts_Active != 0) && (DateTime.now().isAfter(ts_Active)));
     }
 
     /**
@@ -533,6 +539,7 @@ public class MBox
      * @return the timestamp as string in the format "yyyy-MM-dd hh:mm" <br/>
      *         if its 0, then also 0 is returned
      */
+    @JsonIgnore
     public String getTSAsStringWithNull()
     {
         if (this.ts_Active == 0)
@@ -579,7 +586,8 @@ public class MBox
      * @return the timestamp as string in the format "yyyy-MM-dd hh:mm"<br/>
      *         if its 0, then "unlimited" is returned
      */
-    public String getTSAsString()
+
+    public String getDatetime()
     {
         String tsString = getTSAsStringWithNull();
         if (tsString.equals("0"))
