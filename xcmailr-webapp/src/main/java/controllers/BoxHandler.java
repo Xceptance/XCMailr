@@ -22,30 +22,34 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import models.JsonMBox;
+import models.MBox;
+import models.User;
 import ninja.Context;
 import ninja.FilterWith;
+import ninja.Result;
 import ninja.Results;
-import etc.HelperUtils;
-import filters.SecureFilter;
-import filters.JsonSecureFilter;
+import ninja.i18n.Messages;
+import ninja.params.Param;
+import ninja.params.PathParam;
+import ninja.validation.JSR303Validation;
+import ninja.validation.Validation;
+
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+
 import com.google.common.base.Optional;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
 import conf.XCMailrConf;
-import models.JsonMBox;
-import models.MBox;
-import models.User;
-import ninja.i18n.Messages;
-import ninja.params.Param;
-import ninja.params.PathParam;
-import ninja.validation.JSR303Validation;
-import ninja.validation.Validation;
-import ninja.Result;
+import etc.HelperUtils;
+import filters.JsonSecureFilter;
+import filters.SecureFilter;
 
 /**
  * Handles all actions for the (virtual) Mailboxes like add, delete and edit box
@@ -246,192 +250,192 @@ public class BoxHandler
         }
     }
 
-    /**
-     * Deletes the boxes with the given IDs, given as a JSON-Object in the form <br/>
-     * {id : boolean, id : boolean, id : boolean, ...} <br/>
-     * POST /mail/bulkDelete
-     * 
-     * @param boxIds
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be deleted or not
-     * @param context
-     *            the context of this request
-     * @return a json-object with a "success" key and a boolean value
-     */
-    @FilterWith(JsonSecureFilter.class)
-    public Result bulkDeleteBoxes(JsonObject boxIds, Context context)
-    {
-        Result result = Results.json();
+//    /**
+//     * Deletes the boxes with the given IDs, given as a JSON-Object in the form <br/>
+//     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+//     * POST /mail/bulkDelete
+//     * 
+//     * @param boxIds
+//     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be deleted or not
+//     * @param context
+//     *            the context of this request
+//     * @return a json-object with a "success" key and a boolean value
+//     */
+//    @FilterWith(JsonSecureFilter.class)
+//    public Result bulkDeleteBoxes(JsonObject boxIds, Context context)
+//    {
+//        Result result = Results.json();
+//
+//        if (boxIds == null)
+//        {
+//            return result.render("success", false);
+//        }
+//        String ids = getJsonArrayAsString(boxIds);
+//        User user = context.getAttribute("user", User.class);
+//
+//        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+//        { // the list of boxIds have to be in the form of comma-separated-ids
+//            int nu = MBox.removeListOfBoxes(user.getId(), ids);
+//            return result.render("count", nu).render("success", true);
+//        }
+//        else
+//        { // the IDs are not in the expected pattern
+//            return result.render("success", false);
+//        }
+//    }
 
-        if (boxIds == null)
-        {
-            return result.render("success", false);
-        }
-        String ids = getJsonArrayAsString(boxIds);
-        User user = context.getAttribute("user", User.class);
+//    /**
+//     * Disables the boxes with the given IDs, given as a JSON-Object in the form: <br/>
+//     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+//     * POST /mail/bulkDisable
+//     * 
+//     * @param boxIds
+//     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be disabled or not
+//     * @param context
+//     *            the context of this request
+//     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
+//     *         the number of changed items
+//     */
+//    @FilterWith(JsonSecureFilter.class)
+//    public Result bulkDisableBoxes(JsonObject boxIds, Context context)
+//    {
+//        Result result = Results.json();
+//
+//        if (boxIds == null)
+//        {
+//            return result.render("success", false);
+//        }
+//        String ids = getJsonArrayAsString(boxIds);
+//        User user = context.getAttribute("user", User.class);
+//
+//        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+//        { // the list of boxIds have to be in the form of comma-separated-ids
+//            int nu = MBox.disableListOfBoxes(user.getId(), ids);
+//            return result.render("count", nu).render("success", true);
+//        }
+//        else
+//        { // the IDs are not in the expected pattern
+//            return result.render("success", false);
+//        }
+//    }
 
-        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
-        { // the list of boxIds have to be in the form of comma-separated-ids
-            int nu = MBox.removeListOfBoxes(user.getId(), ids);
-            return result.render("count", nu).render("success", true);
-        }
-        else
-        { // the IDs are not in the expected pattern
-            return result.render("success", false);
-        }
-    }
+//    /**
+//     * Enables the boxes with the given IDs, given as a JSON-Object in the form: <br/>
+//     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+//     * POST /mail/bulkEnablePossible
+//     * 
+//     * @param boxIds
+//     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be enabled or not
+//     * @param context
+//     *            the context of this request
+//     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
+//     *         the number of changed items
+//     */
+//    @FilterWith(JsonSecureFilter.class)
+//    public Result bulkEnablePossibleBoxes(JsonObject boxIds, Context context)
+//    {
+//        Result result = Results.json();
+//
+//        if (boxIds == null)
+//        {
+//            return result.render("success", false);
+//        }
+//        String ids = getJsonArrayAsString(boxIds);
+//        User user = context.getAttribute("user", User.class);
+//
+//        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+//        { // the list of boxIds have to be in the form of comma-separated-ids
+//            int nu = MBox.enableListOfBoxesIfPossible(user.getId(), ids);
+//            return result.render("count", nu).render("success", true);
+//        }
+//        else
+//        { // the IDs are not in the expected pattern
+//            return result.render("success", false);
+//        }
+//    }
 
-    /**
-     * Disables the boxes with the given IDs, given as a JSON-Object in the form: <br/>
-     * {id : boolean, id : boolean, id : boolean, ...} <br/>
-     * POST /mail/bulkDisable
-     * 
-     * @param boxIds
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be disabled or not
-     * @param context
-     *            the context of this request
-     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
-     *         the number of changed items
-     */
-    @FilterWith(JsonSecureFilter.class)
-    public Result bulkDisableBoxes(JsonObject boxIds, Context context)
-    {
-        Result result = Results.json();
-
-        if (boxIds == null)
-        {
-            return result.render("success", false);
-        }
-        String ids = getJsonArrayAsString(boxIds);
-        User user = context.getAttribute("user", User.class);
-
-        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
-        { // the list of boxIds have to be in the form of comma-separated-ids
-            int nu = MBox.disableListOfBoxes(user.getId(), ids);
-            return result.render("count", nu).render("success", true);
-        }
-        else
-        { // the IDs are not in the expected pattern
-            return result.render("success", false);
-        }
-    }
-
-    /**
-     * Enables the boxes with the given IDs, given as a JSON-Object in the form: <br/>
-     * {id : boolean, id : boolean, id : boolean, ...} <br/>
-     * POST /mail/bulkEnablePossible
-     * 
-     * @param boxIds
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be enabled or not
-     * @param context
-     *            the context of this request
-     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
-     *         the number of changed items
-     */
-    @FilterWith(JsonSecureFilter.class)
-    public Result bulkEnablePossibleBoxes(JsonObject boxIds, Context context)
-    {
-        Result result = Results.json();
-
-        if (boxIds == null)
-        {
-            return result.render("success", false);
-        }
-        String ids = getJsonArrayAsString(boxIds);
-        User user = context.getAttribute("user", User.class);
-
-        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
-        { // the list of boxIds have to be in the form of comma-separated-ids
-            int nu = MBox.enableListOfBoxesIfPossible(user.getId(), ids);
-            return result.render("count", nu).render("success", true);
-        }
-        else
-        { // the IDs are not in the expected pattern
-            return result.render("success", false);
-        }
-    }
-
-    /**
-     * Sets a new validity-period for the boxes with the given IDs, given as a JSON-Object in the form: <br/>
-     * {"boxes":{ id: boolean, id:boolean,.. }, "newDateTime" : "yyyy-MM-dd hh:mm"} <br/>
-     * POST /mail/bulkNewDate
-     * 
-     * @param jsObject
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether there will be set a new
-     *            Timestamp or not
-     * @param context
-     *            the context of this request
-     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
-     *         the number of changed items
-     */
-    @FilterWith(JsonSecureFilter.class)
-    public Result bulkNewDate(JsonObject jsObject, Context context)
-    {
-        Result result = Results.json();
-        User user = context.getAttribute("user", User.class);
-
-        if (jsObject == null)
-        {
-            return result.render("success", false);
-        }
-
-        String[] info = getBoxTimeArrayFromJSon(jsObject);
-
-        String ids = info[0];
-        long dateTime = HelperUtils.parseTimeString(info[1]);
-
-        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
-        { // the list of boxIds have to be in the form of comma-separated-ids
-            if (dateTime != -1)
-            {
-                int numberOfItems = MBox.setNewDateForListOfBoxes(user.getId(), ids, dateTime);
-                return result.render("count", numberOfItems).render("success", true);
-            }
-            else
-            {
-                return result.render("success", false);
-            }
-        }
-        else
-        { // the IDs are not in the expected pattern
-            return result.render("success", false);
-        }
-    }
-
-    /**
-     * Resets the counters (suppressions and forwards) for the boxes with the given IDs, given as a JSON-Object in the
-     * form: <br/>
-     * {id : boolean, id : boolean, id : boolean, ...} <br/>
-     * POST /mail/bulkReset
-     * 
-     * @param boxIds
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be reseted or not
-     * @param context
-     *            the context of this request
-     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
-     *         the number of changed items
-     */
-    @FilterWith(JsonSecureFilter.class)
-    public Result bulkResetBoxes(JsonObject boxIds, Context context)
-    {
-        Result result = Results.json();
-        if (boxIds == null)
-        {
-            return result.render("success", false);
-        }
-
-        String ids = getJsonArrayAsString(boxIds);
-        User user = context.getAttribute("user", User.class);
-
-        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
-        { // the list of boxIds have to be in the form of comma-separated-ids
-            int nu = MBox.resetListOfBoxes(user.getId(), ids);
-            return result.render("count", nu).render("success", true);
-        }
-        else
-        { // the IDs are not in the expected pattern
-            return result.render("success", false);
-        }
-    }
+//    /**
+//     * Sets a new validity-period for the boxes with the given IDs, given as a JSON-Object in the form: <br/>
+//     * {"boxes":{ id: boolean, id:boolean,.. }, "newDateTime" : "yyyy-MM-dd hh:mm"} <br/>
+//     * POST /mail/bulkNewDate
+//     * 
+//     * @param jsObject
+//     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether there will be set a new
+//     *            Timestamp or not
+//     * @param context
+//     *            the context of this request
+//     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
+//     *         the number of changed items
+//     */
+//    @FilterWith(JsonSecureFilter.class)
+//    public Result bulkNewDate(JsonObject jsObject, Context context)
+//    {
+//        Result result = Results.json();
+//        User user = context.getAttribute("user", User.class);
+//
+//        if (jsObject == null)
+//        {
+//            return result.render("success", false);
+//        }
+//
+//        String[] info = getBoxTimeArrayFromJSon(jsObject);
+//
+//        String ids = info[0];
+//        long dateTime = HelperUtils.parseTimeString(info[1]);
+//
+//        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+//        { // the list of boxIds have to be in the form of comma-separated-ids
+//            if (dateTime != -1)
+//            {
+//                int numberOfItems = MBox.setNewDateForListOfBoxes(user.getId(), ids, dateTime);
+//                return result.render("count", numberOfItems).render("success", true);
+//            }
+//            else
+//            {
+//                return result.render("success", false);
+//            }
+//        }
+//        else
+//        { // the IDs are not in the expected pattern
+//            return result.render("success", false);
+//        }
+//    }
+//
+//    /**
+//     * Resets the counters (suppressions and forwards) for the boxes with the given IDs, given as a JSON-Object in the
+//     * form: <br/>
+//     * {id : boolean, id : boolean, id : boolean, ...} <br/>
+//     * POST /mail/bulkReset
+//     * 
+//     * @param boxIds
+//     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be reseted or not
+//     * @param context
+//     *            the context of this request
+//     * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
+//     *         the number of changed items
+//     */
+//    @FilterWith(JsonSecureFilter.class)
+//    public Result bulkResetBoxes(JsonObject boxIds, Context context)
+//    {
+//        Result result = Results.json();
+//        if (boxIds == null)
+//        {
+//            return result.render("success", false);
+//        }
+//
+//        String ids = getJsonArrayAsString(boxIds);
+//        User user = context.getAttribute("user", User.class);
+//
+//        if (!StringUtils.isBlank(ids) && PATTERN_CS_BOXIDS.matcher(ids).matches())
+//        { // the list of boxIds have to be in the form of comma-separated-ids
+//            int nu = MBox.resetListOfBoxes(user.getId(), ids);
+//            return result.render("count", nu).render("success", true);
+//        }
+//        else
+//        { // the IDs are not in the expected pattern
+//            return result.render("success", false);
+//        }
+//    }
 
     /**
      * Deletes a Box from the DB <br/>

@@ -1,18 +1,22 @@
 package models;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
+
 import java.util.List;
+
+import ninja.NinjaTest;
+import ninja.utils.NinjaMode;
+import ninja.utils.NinjaProperties;
+import ninja.utils.NinjaPropertiesImpl;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import ninja.NinjaTest;
-import ninja.utils.NinjaProperties;
-import ninja.utils.NinjaPropertiesImpl;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UserTest extends NinjaTest
@@ -34,7 +38,7 @@ public class UserTest extends NinjaTest
     @Test
     public void UsersTest()
     {
-        ninjaProperties = spy(new NinjaPropertiesImpl());
+        ninjaProperties = spy(new NinjaPropertiesImpl(NinjaMode.test));
         /*
          * TEST: create, persist and find a user-object
          */
