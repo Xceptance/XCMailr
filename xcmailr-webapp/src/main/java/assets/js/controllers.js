@@ -621,7 +621,7 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 		var chkBoxIdString = '#chkUnlimited' + data.id;
 		if ($(chkBoxIdString).is(':checked'))
 		{
-			data.datetime = 0;
+			data.datetime = "0";
 		}
 		else
 		{
@@ -694,7 +694,7 @@ function NewDateController($scope, dialog, currentBoxes, contextPath)
 	{
 		if ($('#chkUnlimitedNew').is(':checked'))
 		{
-			newDateTime = 0;
+			newDateTime = "0";
 		}
 		dialog.close(newDateTime);
 	};

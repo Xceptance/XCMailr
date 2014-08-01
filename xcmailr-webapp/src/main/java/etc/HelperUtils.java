@@ -22,12 +22,14 @@ import java.util.List;
 import java.util.Random;
 import java.util.regex.Pattern;
 
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import ninja.Context;
 import ninja.Result;
 import ninja.i18n.Messages;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 
@@ -107,7 +109,7 @@ public class HelperUtils
      */
     public static Long parseTimeString(String input)
     {
-        if (input.equals("0"))
+        if (input.equals("0")||input.equals("unlimited"))
         { // return the "TS" for an unlimited Box
             return 0L;
         }

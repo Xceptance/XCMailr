@@ -35,13 +35,19 @@ import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
 import com.avaje.ebean.SqlUpdate;
 import com.avaje.ebean.validation.NotEmpty;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import etc.MBoxDeserializer;
+import etc.MBoxSerializer;
 
 /**
  * Object for a virtual Mailbox (a Mail-Forward)
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
+@JsonSerialize(using = MBoxSerializer.class)
+@JsonDeserialize(using = MBoxDeserializer.class)
 @Entity
 @Table(name = "mailboxes")
 public class MBox
@@ -87,14 +93,12 @@ public class MBox
     /**
      * the version of this box (used for optimisticLock)
      */
-    @JsonIgnore
     @Version
     private Long version;
 
     /**
      * the owner of the address/box
      */
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "usr_id", nullable = false)
     private User usr;
@@ -189,7 +193,7 @@ public class MBox
      * 
      * @return true if the Box is active
      */
-    @JsonIgnore
+
     public boolean isActive()
     {
         return !expired;
@@ -199,7 +203,7 @@ public class MBox
      * @return true, if the mail is inactive and the TS has a value in the past<br/>
      *         false, else
      */
-    @JsonIgnore
+
     public boolean isExpiredByTimestamp()
     {
         return (expired && (ts_Active != 0) && (DateTime.now().isAfter(ts_Active)));
@@ -384,9 +388,9 @@ public class MBox
         sqlSb.append(";");
         SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
         down.execute();
-        setForwards(getForwards()+1);
+        setForwards(getForwards() + 1);
     }
-    
+
     /**
      * increases the suppression-count directly in the database
      */
@@ -398,7 +402,7 @@ public class MBox
         sqlSb.append(";");
         SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
         down.execute();
-        setSuppressions(getSuppressions()+1);
+        setSuppressions(getSuppressions() + 1);
     }
 
     /**
@@ -539,7 +543,6 @@ public class MBox
      * @return the timestamp as string in the format "yyyy-MM-dd hh:mm" <br/>
      *         if its 0, then also 0 is returned
      */
-    @JsonIgnore
     public String getTSAsStringWithNull()
     {
         if (this.ts_Active == 0)
@@ -595,6 +598,13 @@ public class MBox
             tsString = "unlimited";
         }
         return tsString;
+    }
+
+    public void resetIdAndCounterFields()
+    {
+        this.setId(0);
+        resetForwards();
+        resetSuppressions();
     }
 
     /**
@@ -735,18 +745,23 @@ public class MBox
                                          .create();
             Query<MBox> quer = Ebean.find(MBox.class).setRawSql(rawSql);
             List<MBox> selectedBoxes = quer.findList();
-            StringBuilder csvMail = new StringBuilder();
-
-            for (MBox mailBox : selectedBoxes)
-            {
-                csvMail.append(mailBox.getFullAddress()).append("\n");
-            }
-            return csvMail.toString();
+            return getBoxListToText(selectedBoxes);
         }
         else
         {
             return "";
         }
+    }
+
+    public static String getBoxListToText(List<MBox> boxes)
+    {
+        StringBuilder csvMail = new StringBuilder();
+
+        for (MBox mailBox : boxes)
+        {
+            csvMail.append(mailBox.getFullAddress()).append("\n");
+        }
+        return csvMail.toString();
     }
 
     /**
