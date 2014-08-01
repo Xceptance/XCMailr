@@ -126,7 +126,8 @@ public class Routes implements ApplicationRoutes
         /*
          * Assets-Handling (Ninja's AssetsController)
          */
-        router.GET().route("/assets/.*").with(AssetsController.class, "serve");
+        router.GET().route("/assets/webjars/{fileName: .*}").with(AssetsController.class, "serveWebJars");
+        router.GET().route("/assets/{fileName: .*}").with(AssetsController.class, "serveStatic");
 
     }
 
