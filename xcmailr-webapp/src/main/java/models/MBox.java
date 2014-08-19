@@ -25,6 +25,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
+import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
 
 import com.avaje.ebean.Ebean;
@@ -34,7 +35,6 @@ import com.avaje.ebean.Query;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
 import com.avaje.ebean.SqlUpdate;
-import com.avaje.ebean.validation.NotEmpty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -52,53 +52,35 @@ import etc.MBoxSerializer;
 @Table(name = "mailboxes")
 public class MBox
 {
-    /**
-     * Mailbox ID
-     */
+    /** Mailbox ID */
     @Id
     private long id;
 
-    /**
-     * Mailaddress of the Box
-     */
+    /** Mailaddress of the Box */
     @NotEmpty
     private String address;
 
-    /**
-     * Timestamp for the end of the validity period
-     */
+    /** Timestamp for the end of the validity period */
     private long ts_Active;
 
-    /**
-     * Flag for the validity
-     */
+    /** Flag for the validity */
     private boolean expired;
 
-    /**
-     * the domain-part of an address
-     */
+    /** the domain-part of an address */
     @NotEmpty
     private String domain;
 
-    /**
-     * the number of forwards for this box
-     */
+    /** the number of forwards for this box */
     private int forwards;
 
-    /**
-     * the number of suppressions for this box
-     */
+    /** the number of suppressions for this box */
     private int suppressions;
 
-    /**
-     * the version of this box (used for optimisticLock)
-     */
+    /** the version of this box (used for optimisticLock) */
     @Version
     private Long version;
 
-    /**
-     * the owner of the address/box
-     */
+    /** the owner of the address/box */
     @ManyToOne
     @JoinColumn(name = "usr_id", nullable = false)
     private User usr;
@@ -753,6 +735,43 @@ public class MBox
         }
     }
 
+    /**
+     * Returns a list of all selected e-mails of the given user
+     * 
+     * @param userId
+     *            the user-id
+     * @return a list of e-mails
+     */
+    public static String getSelectedMailsForTxt(Long userId, List<Long> boxIds)
+    {
+
+        StringBuilder query = new StringBuilder();
+        if (boxIds.size() > 0)
+        {
+            query.append("SELECT m.id, m.address, m.domain FROM MAILBOXES m WHERE ");
+            query.append("m.usr_id = ").append(userId);
+            query.append(" AND (");
+            for (Long bId : boxIds)
+            {
+                query.append(" id = ").append(bId);
+                query.append(" OR");
+            }
+            query.delete(query.length() - 2, query.length());
+            query.append(");");
+
+            RawSql rawSql = RawSqlBuilder.parse(query.toString()).columnMapping("m.id", "id")
+                                         .columnMapping("m.address", "address").columnMapping("m.domain", "domain")
+                                         .create();
+            Query<MBox> quer = Ebean.find(MBox.class).setRawSql(rawSql);
+            List<MBox> selectedBoxes = quer.findList();
+            return getBoxListToText(selectedBoxes);
+        }
+        else
+        {
+            return "";
+        }
+    }
+
     public static String getBoxListToText(List<MBox> boxes)
     {
         StringBuilder csvMail = new StringBuilder();
@@ -775,14 +794,13 @@ public class MBox
      *            a String of BoxIDs concatenated by a comma
      * @return the number of boxes removed (or -1 on error)
      */
-    public static int removeListOfBoxes(long userId, String boxIds)
+    public static int removeListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("DELETE FROM MAILBOXES WHERE USR_ID=").append(userId).append(" AND (");
-        String[] boxArray = boxIds.split("\\,");
-        if (boxArray.length > 0)
+        if (boxIds.size() > 0)
         {
-            for (String id : boxArray)
+            for (Long id : boxIds)
             {
                 sqlSb.append(" ID=").append(id).append(" OR");
             }
@@ -834,6 +852,29 @@ public class MBox
         }
     }
 
+    public static int resetListOfBoxes(long userId, List<Long> boxIds)
+    {
+        StringBuilder sqlSb = new StringBuilder();
+        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId)
+             .append(" AND (");
+        if (!boxIds.isEmpty())
+        {
+            for (Long id : boxIds)
+            {
+                sqlSb.append(" ID=").append(id).append(" OR");
+            }
+            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
+            sqlSb.append(");");
+            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+
+            return down.execute();
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
     /**
      * Takes the user-ID and Box-IDs, builds an SQL-Statement and disables the given Boxes<br/>
      * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
@@ -845,14 +886,14 @@ public class MBox
      *            a String of BoxIDs concatenated by a comma
      * @return the number of boxes disabled (or -1 on error)
      */
-    public static int disableListOfBoxes(long userId, String boxIds)
+    public static int disableListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = TRUE WHERE USR_ID=").append(userId).append(" AND (");
-        String[] boxArray = boxIds.split("\\,");
-        if (boxArray.length > 0)
+
+        if (boxIds.size() > 0)
         {
-            for (String id : boxArray)
+            for (Long id : boxIds)
             {
                 sqlSb.append(" ID=").append(id).append(" OR");
             }
@@ -879,16 +920,15 @@ public class MBox
      *            a String of BoxIDs concatenated by a comma
      * @return the number of boxes enabled (or -1 on error)
      */
-    public static int enableListOfBoxesIfPossible(long userId, String boxIds)
+    public static int enableListOfBoxesIfPossible(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE WHERE USR_ID=").append(userId);
         sqlSb.append(" AND (TS_ACTIVE > ").append(DateTime.now().getMillis()).append(" OR TS_ACTIVE = 0) ");
         sqlSb.append(" AND (");
-        String[] boxArray = boxIds.split("\\,");
-        if (boxArray.length > 0)
+        if (boxIds.size() > 0)
         {
-            for (String id : boxArray)
+            for (Long id : boxIds)
             {
                 sqlSb.append(" ID=").append(id).append(" OR");
             }
@@ -917,16 +957,15 @@ public class MBox
      *            the timestamp to set
      * @return the number of boxes where a new timestamp was set (or -1 on error)
      */
-    public static int setNewDateForListOfBoxes(long userId, String boxIds, long ts_Active)
+    public static int setNewDateForListOfBoxes(long userId, List<Long> boxIds, long ts_Active)
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE, TS_ACTIVE =").append(ts_Active);
         sqlSb.append("WHERE USR_ID=").append(userId);
         sqlSb.append(" AND (");
-        String[] boxArray = boxIds.split("\\,");
-        if (boxArray.length > 0)
+        if (boxIds.size() > 0)
         {
-            for (String id : boxArray)
+            for (Long id : boxIds)
             {
                 sqlSb.append(" ID=").append(id).append(" OR");
             }

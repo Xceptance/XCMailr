@@ -19,11 +19,19 @@ package models;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.*;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.mindrot.jbcrypt.BCrypt;
-import com.avaje.ebean.*;
-import com.avaje.ebean.validation.Email;
-import com.avaje.ebean.validation.NotEmpty;
+
+import com.avaje.ebean.Ebean;
+
 
 /**
  * User Object

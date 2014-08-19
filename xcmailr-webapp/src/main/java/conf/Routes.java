@@ -76,11 +76,11 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/mail/addAddressData").with(BoxHandler.class, "addBoxJsonData");
         router.POST().route("/mail/addAddress").with(BoxHandler.class, "addBoxJsonProcess");
 
-//        router.POST().route("/mail/bulkDelete").with(BoxHandler.class, "bulkDeleteBoxes");
-//        router.POST().route("/mail/bulkReset").with(BoxHandler.class, "bulkResetBoxes");
-//        router.POST().route("/mail/bulkDisable").with(BoxHandler.class, "bulkDisableBoxes");
-//        router.POST().route("/mail/bulkEnablePossible").with(BoxHandler.class, "bulkEnablePossibleBoxes");
-//        router.POST().route("/mail/bulkNewDate").with(BoxHandler.class, "bulkNewDate");
+        router.POST().route("/mail/bulkDelete").with(BoxHandler.class, "bulkDeleteBoxes");
+        router.POST().route("/mail/bulkReset").with(BoxHandler.class, "bulkResetBoxes");
+        router.POST().route("/mail/bulkDisable").with(BoxHandler.class, "bulkDisableBoxes");
+        router.POST().route("/mail/bulkEnablePossible").with(BoxHandler.class, "bulkEnablePossibleBoxes");
+        router.POST().route("/mail/bulkNewDate").with(BoxHandler.class, "bulkNewDate");
         
         router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxByJson");
 //        

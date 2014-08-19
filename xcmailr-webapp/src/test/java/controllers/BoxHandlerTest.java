@@ -10,15 +10,17 @@ import static org.junit.Assert.fail;
 import java.util.HashMap;
 import java.util.Map;
 
-import models.JsonMBox;
 import models.MBox;
 import models.User;
 import ninja.NinjaTest;
+
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import com.google.common.collect.Maps;
+
 import etc.HelperUtils;
 
 public class BoxHandlerTest extends NinjaTest
@@ -401,9 +403,9 @@ public class BoxHandlerTest extends NinjaTest
         }
         // try to edit a mailbox that does not exist
         formParams.clear();
-        JsonMBox jsm = new JsonMBox();
+        MBox jsm = new MBox();
         jsm.setAddress("fdjskla");
-        jsm.setDatetime("0");
+        jsm.setTs_Active(0);
         jsm.setDomain("xcmailr.test");
         jsm.setId(mailBoxId);
         jsm.setExpired(false);
@@ -422,7 +424,7 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: Form with a wrong domain
          */
-        jsm.prepopulateJS(mailbox);
+//        jsm.prepopulateJS(mailbox);
         jsm.setDomain("xcmailr.null");
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
         assertNull(MBox.getByName("abcdefg", "xcmailr.null"));
@@ -444,10 +446,10 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: correct edit of a box
          */
         // change the local-part of the mbox and the timestamp
-        jsm.prepopulateJS(mailbox);
+//        jsm.prepopulateJS(mailbox);
         jsm.setAddress("abcde");
         DateTime dt = new DateTime().plusHours(1);
-        jsm.setDatetime(HelperUtils.parseStringTs(dt.getMillis()));
+//        jsm.setDatetime(HelperUtils.parseStringTs(dt.getMillis()));
 
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
         assertTrue(result.contains("\"success\":true"));
@@ -458,7 +460,7 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: a wrong timestamp
          */
 
-        jsm.setDatetime("01-01-00");
+//        jsm.setDatetime("01-01-00");
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
         assertTrue(result.contains("\"success\":false"));
         assertFalse(result.contains("FreeMarker template error"));
@@ -472,7 +474,7 @@ public class BoxHandlerTest extends NinjaTest
         user2.save();
         MBox mbox2 = new MBox("mbox2", "xcmailr.test", 0L, false, user2);
         mbox2.save();
-        jsm.prepopulateJS(mbox2);
+//        jsm.prepopulateJS(mbox2);
 
         // try to edit this box (POST to /mail/edit/id)
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);

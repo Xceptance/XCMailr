@@ -458,7 +458,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 	// --------------- Deletes the selected Boxes --------------- //
 	$scope.bulkDeleteBox = function()
 	{
-		$http.post($scope.contextPath + '/mail/bulkDelete', $scope.selected).success(function(returnedData)
+		$http.post($scope.contextPath + '/mail/bulkDelete',  $scope.selected).success(function(returnedData)
 		{
 			$scope.checkForLogin(returnedData);
 			if (returnedData.success)
@@ -474,7 +474,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 		$scope.cleanSelected();
 		if (!jQuery.isEmptyObject($scope.selected))
 		{
-			$http.post($scope.contextPath + '/mail/bulkReset', $scope.selected).success(function(returnedData)
+			$http.post($scope.contextPath + '/mail/bulkReset',$scope.selected).success(function(returnedData)
 			{
 				$scope.checkForLogin(returnedData);
 				if (returnedData.success)
