@@ -109,7 +109,7 @@ public class HelperUtils
      */
     public static Long parseTimeString(String input)
     {
-        if (input.equals("0")||input.equals("unlimited"))
+        if (input.equals("0") || input.equals("unlimited"))
         { // return the "TS" for an unlimited Box
             return 0L;
         }
@@ -141,33 +141,27 @@ public class HelperUtils
             StringBuilder timeString = new StringBuilder();
             // add a leading "0" if the value is under ten
             timeString.append(dt.getYear()).append("-");
-
-            if (dt.getMonthOfYear() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getMonthOfYear()).append("-");
-
-            if (dt.getDayOfMonth() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getDayOfMonth()).append(" ");
-
-            if (dt.getHourOfDay() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getHourOfDay()).append(":");
-
-            if (dt.getMinuteOfHour() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getMinuteOfHour());
-
+            timeString.append(addZero(dt.getMonthOfYear()));
+            timeString.append("-");
+            timeString.append(addZero(dt.getDayOfMonth()));
+            timeString.append(" ");
+            timeString.append(addZero(dt.getHourOfDay()));
+            timeString.append(":");
+            timeString.append(addZero(dt.getMinuteOfHour()));
             return timeString.toString();
         }
+    }
+
+    /**
+     * Returns a String with the given number and an appended "0" if the number is between 0 and 9
+     * 
+     * @param no
+     *            the input number
+     * @return the number with a leading zero if between 0 and 9
+     */
+    public static String addZero(int no)
+    {
+        return no < 10 && no >= 0 ? "0" + no : "" + no;
     }
 
     /**

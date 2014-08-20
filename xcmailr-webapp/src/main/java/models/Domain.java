@@ -16,10 +16,10 @@
  */
 package models;
 
+import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.avaje.ebean.Ebean;
@@ -31,14 +31,10 @@ import com.avaje.ebean.Ebean;
  */
 @Entity
 @Table(name = "register_domains")
-public class Domain
+public class Domain extends AbstractEntity implements Serializable
 {
-    /**
-     * The ID of this domain
-     */
-    @Id
-    private long id;
-
+    /** UID to serialize this object */
+    private static final long serialVersionUID = 2659762572278339375L;
     /**
      * the domainname
      */
@@ -46,7 +42,6 @@ public class Domain
 
     public Domain()
     {
-        this.id = 0L;
         this.domainname = "";
     }
 
@@ -55,48 +50,15 @@ public class Domain
         this.domainname = domainname;
     }
 
-    public long getId()
-    {
-        return id;
-    }
 
     public String getDomainname()
     {
         return domainname;
     }
 
-    public void setId(long id)
-    {
-        this.id = id;
-    }
-
     public void setDomainname(String domainname)
     {
         this.domainname = domainname;
-    }
-
-    /**
-     * Persists the domain-object in the database
-     */
-    public void save()
-    {
-        Ebean.save(this);
-    }
-
-    /**
-     * Updates the domain-object in the database
-     */
-    public void update()
-    {
-        Ebean.update(this);
-    }
-
-    /**
-     * Deletes the domain-object from the database
-     */
-    public void delete()
-    {
-        Ebean.delete(this);
     }
 
     /**

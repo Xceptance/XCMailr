@@ -16,15 +16,17 @@
  */
 package models;
 
+import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Version;
+import javax.validation.constraints.Pattern;
 
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
 
@@ -38,6 +40,7 @@ import com.avaje.ebean.SqlUpdate;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import etc.HelperUtils;
 import etc.MBoxDeserializer;
 import etc.MBoxSerializer;
 
@@ -50,14 +53,14 @@ import etc.MBoxSerializer;
 @JsonDeserialize(using = MBoxDeserializer.class)
 @Entity
 @Table(name = "mailboxes")
-public class MBox
+public class MBox extends AbstractEntity implements Serializable
 {
-    /** Mailbox ID */
-    @Id
-    private long id;
+    /** UID to serialize this object */
+    private static final long serialVersionUID = 6111058118487675662L;
 
     /** Mailaddress of the Box */
     @NotEmpty
+    @Pattern(regexp = "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*")
     private String address;
 
     /** Timestamp for the end of the validity period */
@@ -68,6 +71,8 @@ public class MBox
 
     /** the domain-part of an address */
     @NotEmpty
+    @Pattern(regexp = "[A-Za-z-]+(\\.[\\w-]+)+")
+    @Length(min = 1, max = 255)
     private String domain;
 
     /** the number of forwards for this box */
@@ -125,22 +130,6 @@ public class MBox
     // -------------------------------------
     // Getters and Setters
     // -------------------------------------
-    /**
-     * @return the ID of this MBox (primary key in the DB)
-     */
-    public long getId()
-    {
-        return id;
-    }
-
-    /**
-     * @param id
-     *            the ID of this MBox to set
-     */
-    public void setId(long id)
-    {
-        this.id = id;
-    }
 
     /**
      * @return the Local-Part of this MBox
@@ -366,7 +355,7 @@ public class MBox
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET FORWARDS = FORWARDS + 1 WHERE ID=");
-        sqlSb.append(this.id);
+        sqlSb.append(getId());
         sqlSb.append(";");
         SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
         down.execute();
@@ -380,28 +369,11 @@ public class MBox
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = SUPPRESSIONS + 1 WHERE ID=");
-        sqlSb.append(this.id);
+        sqlSb.append(getId());
         sqlSb.append(";");
         SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
         down.execute();
         setSuppressions(getSuppressions() + 1);
-    }
-
-    /**
-     * Stores the Mailbox in the Database
-     */
-
-    public void save()
-    {
-        Ebean.save(this);
-    }
-
-    /**
-     * Updates the Mailbox in the DB
-     */
-    public void update()
-    {
-        Ebean.update(this);
     }
 
     /**
@@ -453,15 +425,7 @@ public class MBox
     public static boolean boxToUser(long bId, long uId)
     {
         MBox mb = Ebean.find(MBox.class, bId);
-
-        if (mb != null)
-        { // the box exists, return true if the id belongs to the user
-            return (mb.getUsr().getId() == uId);
-        }
-        else
-        { // there's no box with that ID
-            return false;
-        }
+        return (mb != null && (mb.getUsr() != null) && (mb.getUsr().getId() == uId));
     }
 
     /**
@@ -476,14 +440,7 @@ public class MBox
     public static String getFwdByName(String mail, String domain)
     {
         MBox mb = Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findUnique();
-        if (mb != null)
-        { // the requested mailaddress exists
-            return mb.getUsr().getMail();
-        }
-        else
-        {// there's no mailaddress
-            return "";
-        }
+        return (mb != null && mb.getUsr() != null) ? mb.getUsr().getMail() : "";
     }
 
     /**
@@ -517,8 +474,8 @@ public class MBox
      */
     public static boolean mailExists(String mail, String domain)
     {
-        return !Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findList()
-                     .isEmpty();
+        return (!Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findList()
+                      .isEmpty());
     }
 
     /**
@@ -531,37 +488,23 @@ public class MBox
         {
             return "0";
         }
+        else if (this.ts_Active == -1)
+        {
+            return "-1";
+        }
         else
         {
             DateTime dt = new DateTime(this.ts_Active);
             StringBuilder timeString = new StringBuilder();
             // add a leading "0" if the value is under ten
             timeString.append(dt.getYear()).append("-");
-
-            if (dt.getMonthOfYear() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getMonthOfYear()).append("-");
-
-            if (dt.getDayOfMonth() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getDayOfMonth()).append(" ");
-
-            if (dt.getHourOfDay() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getHourOfDay()).append(":");
-
-            if (dt.getMinuteOfHour() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getMinuteOfHour());
-
+            timeString.append(HelperUtils.addZero(dt.getMonthOfYear()));
+            timeString.append("-");
+            timeString.append(HelperUtils.addZero(dt.getDayOfMonth()));
+            timeString.append(" ");
+            timeString.append(HelperUtils.addZero(dt.getHourOfDay()));
+            timeString.append(":");
+            timeString.append(HelperUtils.addZero(dt.getMinuteOfHour()));
             return timeString.toString();
         }
 
@@ -578,6 +521,10 @@ public class MBox
         if (tsString.equals("0"))
         {
             tsString = "unlimited";
+        }
+        else if (tsString.equals("-1"))
+        {// TODO is this correct?
+            return "wrong timestamp";
         }
         return tsString;
     }
@@ -668,14 +615,8 @@ public class MBox
 
     public static String getMailsForTxt(long userId)
     {
-        StringBuilder csvMail = new StringBuilder();
         List<MBox> allBoxes = MBox.allUser(userId);
-        for (MBox mailBox : allBoxes)
-        {
-            csvMail.append(mailBox.getFullAddress()).append("\n");
-        }
-
-        return csvMail.toString();
+        return getBoxListToText(allBoxes);
     }
 
     /**
@@ -687,52 +628,9 @@ public class MBox
      */
     public static String getActiveMailsForTxt(Long userId)
     {
-
-        StringBuilder csvMail = new StringBuilder();
         List<MBox> allActiveBoxes = Ebean.find(MBox.class).where().eq("usr_id", userId.toString()).eq("expired", false)
                                          .findList();
-        for (MBox mailBox : allActiveBoxes)
-        {
-            csvMail.append(mailBox.getFullAddress()).append("\n");
-        }
-        return csvMail.toString();
-    }
-
-    /**
-     * Returns a list of all selected e-mails of the given user
-     * 
-     * @param userId
-     *            the user-id
-     * @return a list of e-mails
-     */
-    public static String getSelectedMailsForTxt(Long userId, String boxIds)
-    {
-        String[] boxArray = boxIds.split("\\,");
-        StringBuilder query = new StringBuilder();
-        if (boxArray.length > 0)
-        {
-            query.append("SELECT m.id, m.address, m.domain FROM MAILBOXES m WHERE ");
-            query.append("m.usr_id = ").append(userId);
-            query.append(" AND (");
-            for (String bId : boxArray)
-            {
-                query.append(" id = ").append(bId);
-                query.append(" OR");
-            }
-            query.delete(query.length() - 2, query.length());
-            query.append(");");
-
-            RawSql rawSql = RawSqlBuilder.parse(query.toString()).columnMapping("m.id", "id")
-                                         .columnMapping("m.address", "address").columnMapping("m.domain", "domain")
-                                         .create();
-            Query<MBox> quer = Ebean.find(MBox.class).setRawSql(rawSql);
-            List<MBox> selectedBoxes = quer.findList();
-            return getBoxListToText(selectedBoxes);
-        }
-        else
-        {
-            return "";
-        }
+        return getBoxListToText(allActiveBoxes);
     }
 
     /**
@@ -772,10 +670,14 @@ public class MBox
         }
     }
 
+    /**
+     * @param mailList
+     *            the List of Mails
+     * @return the List of Mails as Text
+     */
     public static String getBoxListToText(List<MBox> boxes)
     {
         StringBuilder csvMail = new StringBuilder();
-
         for (MBox mailBox : boxes)
         {
             csvMail.append(mailBox.getFullAddress()).append("\n");
@@ -791,29 +693,14 @@ public class MBox
      * @param userId
      *            the userID to whom the boxes should belong (should prevent deletion of 'foreign' boxes)
      * @param boxIds
-     *            a String of BoxIDs concatenated by a comma
+     *            a List of BoxIDs
      * @return the number of boxes removed (or -1 on error)
      */
     public static int removeListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("DELETE FROM MAILBOXES WHERE USR_ID=").append(userId).append(" AND (");
-        if (boxIds.size() > 0)
-        {
-            for (Long id : boxIds)
-            {
-                sqlSb.append(" ID=").append(id).append(" OR");
-            }
-            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
-            sqlSb.append(");");
-            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-
-            return down.execute();
-        }
-        else
-        {
-            return -1;
-        }
+        return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
     /**
@@ -825,54 +712,15 @@ public class MBox
      * @param userId
      *            the userID to whom the boxes should belong (should prevent reset of 'foreign' boxes)
      * @param boxIds
-     *            a String of BoxIDs concatenated by a comma
+     *            a List of BoxIDs to process
      * @return the number of boxes reseted (or -1 on error)
      */
-    public static int resetListOfBoxes(long userId, String boxIds)
-    {
-        StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId)
-             .append(" AND (");
-        String[] boxArray = boxIds.split("\\,");
-        if (boxArray.length > 0)
-        {
-            for (String id : boxArray)
-            {
-                sqlSb.append(" ID=").append(id).append(" OR");
-            }
-            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
-            sqlSb.append(");");
-            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-
-            return down.execute();
-        }
-        else
-        {
-            return -1;
-        }
-    }
-
     public static int resetListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId)
              .append(" AND (");
-        if (!boxIds.isEmpty())
-        {
-            for (Long id : boxIds)
-            {
-                sqlSb.append(" ID=").append(id).append(" OR");
-            }
-            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
-            sqlSb.append(");");
-            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-
-            return down.execute();
-        }
-        else
-        {
-            return -1;
-        }
+        return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
     /**
@@ -890,23 +738,7 @@ public class MBox
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = TRUE WHERE USR_ID=").append(userId).append(" AND (");
-
-        if (boxIds.size() > 0)
-        {
-            for (Long id : boxIds)
-            {
-                sqlSb.append(" ID=").append(id).append(" OR");
-            }
-            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
-            sqlSb.append(");");
-            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-
-            return down.execute();
-        }
-        else
-        {
-            return -1;
-        }
+        return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
     /**
@@ -926,22 +758,7 @@ public class MBox
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE WHERE USR_ID=").append(userId);
         sqlSb.append(" AND (TS_ACTIVE > ").append(DateTime.now().getMillis()).append(" OR TS_ACTIVE = 0) ");
         sqlSb.append(" AND (");
-        if (boxIds.size() > 0)
-        {
-            for (Long id : boxIds)
-            {
-                sqlSb.append(" ID=").append(id).append(" OR");
-            }
-            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
-            sqlSb.append(");");
-            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-
-            return down.execute();
-        }
-        else
-        {
-            return -1;
-        }
+        return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
     /**
@@ -963,7 +780,12 @@ public class MBox
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE, TS_ACTIVE =").append(ts_Active);
         sqlSb.append("WHERE USR_ID=").append(userId);
         sqlSb.append(" AND (");
-        if (boxIds.size() > 0)
+        return appendIdsAndExecuteSql(sqlSb, boxIds);
+    }
+
+    private static int appendIdsAndExecuteSql(StringBuilder sqlSb, List<Long> boxIds)
+    {
+        if (!boxIds.isEmpty())
         {
             for (Long id : boxIds)
             {
@@ -980,5 +802,4 @@ public class MBox
             return -1;
         }
     }
-
 }

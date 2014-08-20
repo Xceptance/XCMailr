@@ -239,7 +239,8 @@ public class Application
         User user = User.getById(userId);
         if (user != null)
         { // the user exists
-            if ((user.getConfirmation().equals(token)) && (user.getTs_confirm() >= DateTime.now().getMillis()))
+            if (user.getConfirmation() != null && (user.getConfirmation().equals(token))
+                && (user.getTs_confirm() >= DateTime.now().getMillis()))
             { // the passed token is the right one -> activate the user
                 user.setActive(true);
                 user.update();
