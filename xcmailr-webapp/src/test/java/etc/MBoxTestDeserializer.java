@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
 
-public class MBoxDeserializer extends JsonDeserializer<MBox> implements ContextualDeserializer
+public class MBoxTestDeserializer extends JsonDeserializer<MBox> implements ContextualDeserializer
 {
 
     @Override

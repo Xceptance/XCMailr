@@ -802,4 +802,8 @@ public class MBox extends AbstractEntity implements Serializable
             return -1;
         }
     }
+    
+    public String toString(){
+        return getFullAddress()+" "+getTSAsStringWithNull()+" expired:"+isExpired();
+    }
 }

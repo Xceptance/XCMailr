@@ -133,7 +133,7 @@ public class BoxHandler
 
     /**
      * Shows the "new Mail-Forward"-Page <br/>
-     * GET /mail/addBoxData
+     * GET /mail/addAddressData
      * 
      * @param context
      *            the Context of this Request
@@ -142,11 +142,11 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result addBoxJsonData(Context context)
     {
-        MBox jsonMailboxData = new MBox();
+        MBox mailboxData = new MBox();
         // set the value of the random-name to 7
         // use the lowercase, we handle the address as case-insensitive
         String randomName = HelperUtils.getRandomString(7).toLowerCase();
-        jsonMailboxData.setAddress(randomName);
+        mailboxData.setAddress(randomName);
 
         // check that the generated mailname-proposal does not exist
         String[] domains = xcmConfiguration.DOMAIN_LIST;
@@ -161,15 +161,15 @@ public class BoxHandler
         // set a default entry for the validity-period
         // per default now+1h
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        jsonMailboxData.setTs_Active(nowPlusOneHour);
-        jsonMailboxData.setDomain(domains[0]);
+        mailboxData.setTs_Active(nowPlusOneHour);
+        mailboxData.setDomain(domains[0]);
 
-        return Results.json().render("currentBox", jsonMailboxData);
+        return Results.json().render("currentBox", mailboxData);
     }
 
     /**
      * Adds a Mailbox to the {@link User}-Account <br/>
-     * POST /mail/addJson
+     * POST /mail/addAddress
      * 
      * @param context
      *            the Context of this Request
