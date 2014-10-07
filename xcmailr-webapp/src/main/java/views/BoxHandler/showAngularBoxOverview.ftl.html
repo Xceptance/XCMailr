@@ -15,7 +15,7 @@
       padding-bottom: 40px;
     }
   </style>
-  <link href="${contextPath}/assets/css/bootstrap-responsive.css" rel="stylesheet">
+  <link href="${contextPath}/assets/css/bootstrap-theme.css" rel="stylesheet">
   <link href="${contextPath}/assets/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
   <link href="${contextPath}/assets/css/ownStyle.css" rel="stylesheet">
 
@@ -32,8 +32,8 @@
   <link rel="apple-touch-icon-precomposed" sizes="72x72" href="${contextPath}/assets/ico/apple-touch-icon-72-precomposed.png">
   <link rel="apple-touch-icon-precomposed" href="${contextPath}/assets/ico/apple-touch-icon-57-precomposed.png">
   <script type="text/javascript" src="${contextPath}/assets/js/angular.min.js"> </script>
-  <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-0.4.0.js"> </script>
-  <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-tpls-0.4.0.js"> </script>
+  <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-tpls-0.11.2.min.js"> </script>
+<!--   <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-tpls-0.4.0.js"> </script> -->
   <script type="text/javascript" src="${contextPath}/assets/js/controllers.js"> </script>
 </head>
 <body>
@@ -41,7 +41,7 @@
 <div class="container">
 <div class="container-fluid">
 <!-- start page -->
-<div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
+<div class="row" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.message}}</alert>
 	<div class="input-prepend pull-left">
@@ -53,14 +53,15 @@
 	</form>
 	<div class="pull-right">
 		<div>
+		<div class="btn-toolbar" role="toolbar">
 			<div class="btn-group pull-right">
-				<a class="btn btn-small" ng-click="updateModel()">
-					<i class="icon-repeat"></i> ${i18n("mailbox_Button_Refresh")}
-				</a>
-				<a href="javascript:;" class="btn btn-small" data-ng-click="openAddBoxDialog()">
-					<i class="icon-plus-sign"></i> ${i18n("mailbox_Button_AddAddress")} 
-				</a>
-			   	<a class="btn btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></a>
+				<button class="btn btn-default btn-small" ng-click="updateModel()">
+					<i class="glyphicon glyphicon-repeat"></i> ${i18n("mailbox_Button_Refresh")}
+				</button>
+				<button class="btn btn-default btn-small" data-ng-click="openAddBoxDialog()">
+					<i class="glyphicon glyphicon-plus-sign"></i> ${i18n("mailbox_Button_AddAddress")} 
+				</button>
+			   	<button class="btn btn-default btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></button>
 		   		<ul class="dropdown-menu">
 					<li><a href="javascript:;" data-ng-click="showSelected()">${i18n("mailbox_Dropdown_ShowSelected")}</a></li>
 					<li><a href="javascript:;" onClick="selectedMailForm.submit()">${i18n("mailbox_Dropdown_ShowSelectedTxt")}</a></li>
@@ -72,6 +73,7 @@
 					<li><a href="javascript:;" data-ng-click="bulkResetBox()">${i18n("mailbox_Dropdown_BulkReset")}</a></li>
 				</ul>
 			</div>	
+			</div>
 		</div>
 		<br/>
 	</div>
@@ -149,18 +151,18 @@
 		<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
 	</div>
 <!-- end page -->
-    <div class="row-fluid" ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
+    <div class="row" ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
 	  	<div class="pull-left">
 		    <pagination num-pages="noOfPages" current-page="currentPage" items-per-page="itemsPerPage" max-size="maxSize"></pagination>
 	    </div>
-	    <div class="pagination pull-right">
-			<ul>
+	    <div class=" pull-right">
+			<ul class="pagination">
 				<li class="disabled"><a>${i18n("macro_EntriesPerPage")}</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(5)">5</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(15)">15</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(25)">25</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(50)">50</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(0)">all</a></li>
+				<li><a ng-click="setItemsPerPage(5)">5</a></li>
+				<li><a ng-click="setItemsPerPage(15)">15</a></li>
+				<li><a ng-click="setItemsPerPage(25)">25</a></li>
+				<li><a ng-click="setItemsPerPage(50)">50</a></li>
+				<li><a ng-click="setItemsPerPage(0)">all</a></li>
 			</ul>
 		</div>
 	</div><!-- /row-fluid -->

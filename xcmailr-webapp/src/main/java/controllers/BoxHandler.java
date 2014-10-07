@@ -47,6 +47,7 @@ import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
 import etc.HelperUtils;
+import etc.TypeRef;
 import filters.JsonSecureFilter;
 import filters.SecureFilter;
 
@@ -70,7 +71,6 @@ public class BoxHandler
 
     @Inject
     ObjectMapper objectMapper;
-
 
     /**
      * Opens the empty delete-box-dialog (just rendering the template)<br/>
@@ -196,7 +196,6 @@ public class BoxHandler
         {
             // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
             String completeAddress = addBoxDialogData.getAddress() + "@" + addBoxDialogData.getDomain();
-
             if (addBoxDialogData.getAddress().length() > 64 || completeAddress.length() > 254)
             {
                 errorMessage = messages.get("createEmail_Flash_MailTooLong", context, Optional.of(result)).get();
@@ -213,7 +212,6 @@ public class BoxHandler
             }
             else
             {
-                String mailBoxName = addBoxDialogData.getAddress().toLowerCase();
                 // set the data of the box
                 String[] domains = xcmConfiguration.DOMAIN_LIST;
                 if (!Arrays.asList(domains).contains(addBoxDialogData.getDomain()))
@@ -352,11 +350,8 @@ public class BoxHandler
         {
             return result.render("success", false);
         }
-
         String newDate = (String) input.get("newDateTime");
-        // TODO unsafe
-        Map<String, Boolean> boxIds = (Map<String, Boolean>) input.get("boxes");
-
+        Map<String, Boolean> boxIds = objectMapper.convertValue(input.get("boxes"), TypeRef.MAP_STRING_BOOLEAN);
         long dateTime = HelperUtils.parseTimeString(newDate);
         if (dateTime != -1 && boxIds != null)
         {

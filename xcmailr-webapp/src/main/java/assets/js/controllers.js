@@ -2,7 +2,7 @@ angular.module('BoxHandler', [
 	'ui.bootstrap'
 ]);
 
-function BoxListCtrl($scope, $dialog, $http, $window)
+function BoxListCtrl($scope, $modal, $http, $window)
 {
 
 	$scope.init = function(cP)
@@ -243,9 +243,9 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 				return angular.copy($scope.contextPath);
 			}
 		};
-		var d = $dialog.dialog($scope.opts);
+		var d = $modal.open($scope.opts);
 
-		d.open().then(function(result)
+		d.result.then(function(result)
 		{
 			if (result)
 			{
@@ -272,9 +272,9 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 				return angular.copy($scope.contextPath);
 			}
 		};
-		var d = $dialog.dialog($scope.opts);
+		var d = $modal.open($scope.opts);
 
-		d.open().then(function(result)
+		d.result.then(function(result)
 		{
 			if (result)
 			{
@@ -301,9 +301,9 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 				return false;
 			}
 		};
-		var d = $dialog.dialog($scope.optsDeleteDialog);
+		var d = $modal.open($scope.optsDeleteDialog);
 
-		d.open().then(function(result)
+		d.result.then(function(result)
 		{
 			if (result)
 			{
@@ -337,9 +337,9 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 					return true;
 				}
 			};
-			var d = $dialog.dialog($scope.optsDeleteDialog);
+			var d = $modal.open($scope.optsDeleteDialog);
 
-			d.open().then(function(result)
+			d.result.then(function(result)
 			{
 				if (result)
 				{
@@ -374,9 +374,9 @@ function BoxListCtrl($scope, $dialog, $http, $window)
 					return angular.copy($scope.contextPath);
 				}
 			};
-			var d = $dialog.dialog($scope.optsNewDateDialog);
+			var d = $modal.open($scope.optsNewDateDialog);
 
-			d.open().then(function(newDateTime)
+			d.result.then(function(newDateTime)
 			{
 				if (!(newDateTime === undefined))
 				{
@@ -595,7 +595,7 @@ function BoxListCtrl($scope, $dialog, $http, $window)
  * ADD and EDIT Mailaddress Dialog Controller
  */
 // the dialog is injected in the specified controller
-function AddEditDialogController($scope, $http, dialog, currentBox, domains, contextPath)
+function AddEditDialogController($scope, $http, $modalInstance, currentBox, domains, contextPath)
 {
 	$scope.domains = domains;
 	$scope.initialData = angular.copy(currentBox);
@@ -629,12 +629,12 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 			var newTime = $(idString).val();
 			data.datetime = newTime;
 		}
-		dialog.close(data);
+		$modalInstance.close(data);
 	};
 
 	$scope.dismiss = function()
 	{ // ignore changes, just close the dialog
-		dialog.close();
+		$modalInstance.close();
 	};
 
 	/*
@@ -667,26 +667,26 @@ function AddEditDialogController($scope, $http, dialog, currentBox, domains, con
 /*
  * Controller to handle small Dialogs e.g. "are you sure that you want to delete this address?"
  */
-function DeleteDialogsController($scope, dialog, currentBox, contextPath, isBulkAction)
+function DeleteDialogsController($scope, $modalInstance, currentBox, contextPath, isBulkAction)
 {
 	$scope.contextPath = contextPath;
 	$scope.currentBox = currentBox;
 	$scope.isBulkAction = isBulkAction;
 	$scope.close = function(result)
 	{
-		dialog.close(result);
+		$modalInstance.close(result);
 	};
 
 	$scope.dismiss = function()
 	{ // ignore changes, just close the dialog
-		dialog.close();
+		$modalInstance.close();
 	};
 };
 
 /*
  * Controller to handle the "set new date"-dialog
  */
-function NewDateController($scope, dialog, currentBoxes, contextPath)
+function NewDateController($scope, $modalInstance, currentBoxes, contextPath)
 {
 	$scope.contextPath = contextPath;
 	$scope.currentBoxes = currentBoxes;
@@ -696,11 +696,11 @@ function NewDateController($scope, dialog, currentBoxes, contextPath)
 		{
 			newDateTime = "0";
 		}
-		dialog.close(newDateTime);
+		$modalInstance.close(newDateTime);
 	};
 
 	$scope.dismiss = function()
 	{ // ignore changes, just close the dialog
-		dialog.close();
+		$modalInstance.close();
 	};
 };
