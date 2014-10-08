@@ -393,7 +393,7 @@ function BoxListCtrl($scope, $modal, $http, $window)
 	// --------------- Returns the localized message for the given key ---------//
 	$scope.getStatusMessageAndPushAlert = function(messageKey, isSuccess)
 	{
-		$http.post($scope.contextPath + '/getMessage', messageKey).success(function(returnedData)
+		$http.post($scope.contextPath + '/getMessage', '"'+messageKey+'"').success(function(returnedData)
 		{
 			$scope.pushAlert(isSuccess, returnedData.message);
 		});
@@ -572,7 +572,7 @@ function BoxListCtrl($scope, $modal, $http, $window)
 			}
 			$scope.alerts.push(
 			{
-				'type' : 'error',
+				'type' : 'danger',
 				'message' : message
 			});
 		}
