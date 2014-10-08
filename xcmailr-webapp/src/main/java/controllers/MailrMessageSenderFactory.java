@@ -16,17 +16,8 @@
  */
 package controllers;
 
-import models.MBox;
-import models.MailTransaction;
-import models.User;
-import ninja.i18n.Messages;
-import ninja.utils.NinjaProperties;
-import org.slf4j.Logger;
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import conf.XCMailrConf;
 import java.util.Properties;
+
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
@@ -35,6 +26,20 @@ import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+
+import models.MBox;
+import models.MailTransaction;
+import models.User;
+import ninja.i18n.Messages;
+import ninja.utils.NinjaProperties;
+
+import org.slf4j.Logger;
+
+import com.google.common.base.Optional;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 
 /**
  * Handles all Actions for outgoing Mails
@@ -283,7 +288,7 @@ public class MailrMessageSenderFactory
             {
                 // the message sending-process failed
                 // log it
-                if (xcmConfiguration.MTX_MAX_AGE != 0)
+                if (xcmConfiguration.MTX_MAX_AGE != 0 && mailBox != null)
                 { // if mailtransaction.maxage is set to 0 -> log nothing
                     mtx = new MailTransaction(400, from, mailBox.getFullAddress(), recipient);
                     addMtxToJCList(mtx);
