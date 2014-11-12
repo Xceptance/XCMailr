@@ -644,30 +644,27 @@ public class MBox extends AbstractEntity implements Serializable
     {
 
         StringBuilder query = new StringBuilder();
-        if (boxIds.size() > 0)
-        {
-            query.append("SELECT m.id, m.address, m.domain FROM MAILBOXES m WHERE ");
-            query.append("m.usr_id = ").append(userId);
-            query.append(" AND (");
-            for (Long bId : boxIds)
-            {
-                query.append(" id = ").append(bId);
-                query.append(" OR");
-            }
-            query.delete(query.length() - 2, query.length());
-            query.append(");");
-
-            RawSql rawSql = RawSqlBuilder.parse(query.toString()).columnMapping("m.id", "id")
-                                         .columnMapping("m.address", "address").columnMapping("m.domain", "domain")
-                                         .create();
-            Query<MBox> quer = Ebean.find(MBox.class).setRawSql(rawSql);
-            List<MBox> selectedBoxes = quer.findList();
-            return getBoxListToText(selectedBoxes);
-        }
-        else
-        {
+        if (boxIds.size() <= 0)
             return "";
+
+        query.append("SELECT m.id, m.address, m.domain FROM MAILBOXES m WHERE ");
+        query.append("m.usr_id = ").append(userId);
+        query.append(" AND (");
+        for (Long bId : boxIds)
+        {
+            query.append(" id = ").append(bId);
+            query.append(" OR");
         }
+        query.delete(query.length() - 2, query.length());
+        query.append(");");
+
+        RawSql rawSql = RawSqlBuilder.parse(query.toString()).columnMapping("m.id", "id")
+                                     .columnMapping("m.address", "address").columnMapping("m.domain", "domain")
+                                     .create();
+        Query<MBox> quer = Ebean.find(MBox.class).setRawSql(rawSql);
+        List<MBox> selectedBoxes = quer.findList();
+        return getBoxListToText(selectedBoxes);
+
     }
 
     /**
@@ -785,25 +782,22 @@ public class MBox extends AbstractEntity implements Serializable
 
     private static int appendIdsAndExecuteSql(StringBuilder sqlSb, List<Long> boxIds)
     {
-        if (!boxIds.isEmpty())
-        {
-            for (Long id : boxIds)
-            {
-                sqlSb.append(" ID=").append(id).append(" OR");
-            }
-            sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
-            sqlSb.append(");");
-            SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-
-            return down.execute();
-        }
-        else
-        {
+        if (boxIds.isEmpty())
             return -1;
+
+        for (Long id : boxIds)
+        {
+            sqlSb.append(" ID=").append(id).append(" OR");
         }
+        sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
+        sqlSb.append(");");
+        SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+
+        return down.execute();
     }
-    
-    public String toString(){
-        return getFullAddress()+" "+getTSAsStringWithNull()+" expired:"+isExpired();
+
+    public String toString()
+    {
+        return getFullAddress() + " " + getTSAsStringWithNull() + " expired:" + isExpired();
     }
 }

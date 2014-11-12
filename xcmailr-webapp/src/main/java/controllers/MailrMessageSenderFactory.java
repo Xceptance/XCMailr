@@ -73,24 +73,24 @@ public class MailrMessageSenderFactory
      */
     public Session getSession()
     {
-        if (session == null)
-        {
-            // set the data from application.conf
-            Properties properties = System.getProperties();
-            properties.put("mail.smtp.host", xcmConfiguration.OUT_SMTP_HOST);
-            properties.put("mail.smtp.port", xcmConfiguration.OUT_SMTP_PORT);
-            properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
-            properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
-            properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
+        if (session != null)
+            return session;
 
-            session = Session.getInstance(properties, new javax.mail.Authenticator()
+        // set the data from application.conf
+        Properties properties = System.getProperties();
+        properties.put("mail.smtp.host", xcmConfiguration.OUT_SMTP_HOST);
+        properties.put("mail.smtp.port", xcmConfiguration.OUT_SMTP_PORT);
+        properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
+        properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
+        properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
+
+        session = Session.getInstance(properties, new javax.mail.Authenticator()
+        {
+            protected PasswordAuthentication getPasswordAuthentication()
             {
-                protected PasswordAuthentication getPasswordAuthentication()
-                {
-                    return new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER, xcmConfiguration.OUT_SMTP_PASS);
-                }
-            });
-        }
+                return new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER, xcmConfiguration.OUT_SMTP_PASS);
+            }
+        });
         return session;
     }
 
@@ -266,14 +266,9 @@ public class MailrMessageSenderFactory
                     if (xcmConfiguration.MTX_MAX_AGE != 0)
                     {// if mailtransaction.maxage is set to 0 -> log nothing
                      // log the transaction
-                        if (mailBox != null)
-                        {
-                            mtx = new MailTransaction(300, from, mailBox.getFullAddress(), recipient);
-                        }
-                        else
-                        {
-                            mtx = new MailTransaction(300, from, null, recipient);
-                        }
+                        mtx = new MailTransaction(300, from, mailBox == null ? null : mailBox.getFullAddress(),
+                                                  recipient);
+
                         addMtxToJCList(mtx);
                     }
                     log.info("Message sent, From: " + from + " To:" + recipient);

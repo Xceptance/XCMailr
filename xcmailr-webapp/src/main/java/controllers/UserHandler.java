@@ -84,7 +84,8 @@ public class UserHandler
         // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.
         // then you would likely get a NullPointerException
-        List<String[]> availableLanguages = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, msg);
+        List<String[]> availableLanguages = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result,
+                                                                        msg);
         result.render("available_langs", availableLanguages);
 
         User user = context.getAttribute("user", User.class);
@@ -94,112 +95,102 @@ public class UserHandler
             context.getFlashScope().error("flash_FormError");
             return Results.redirect(context.getContextPath() + "/user/edit");
         }
-        else
-        { // the form is filled correctly
 
-            // don't let the user register with one of our domains
-            // (prevent mail-loops)
-            String mailFromForm = userFormData.getMail();
-            String domainPart = mailFromForm.split("@")[1];
-            if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
-            {
-                context.getFlashScope().error("flash_NoLoop");
-                userFormData.setMail(user.getMail());
+        // don't let the user register with one of our domains
+        // (prevent mail-loops)
+        String mailFromForm = userFormData.getMail();
+        String domainPart = mailFromForm.split("@")[1];
+        if (Arrays.asList(xcmConfiguration.DOMAIN_LIST).contains(domainPart))
+        {
+            context.getFlashScope().error("flash_NoLoop");
+            userFormData.setMail(user.getMail());
+            userFormData.clearPasswordFields();
+            return result.render(userFormData);
+        }
+
+        // block the editing, if the domain is not on the whitelist (and the whitelisting is active)
+        if (xcmConfiguration.APP_WHITELIST)
+        { // whitelisting is active
+            if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
+            { // the domain is not in the whitelist and the whitelist is not empty
+                context.getFlashScope().error("editUser_Flash_NotWhitelisted");
                 userFormData.clearPasswordFields();
                 return result.render(userFormData);
             }
+        }
 
-            // block the editing, if the domain is not on the whitelist (and the whitelisting is active)
-            if (xcmConfiguration.APP_WHITELIST)
-            { // whitelisting is active
-                if (!Domain.getAll().isEmpty() && !Domain.exists(domainPart))
-                { // the domain is not in the whitelist and the whitelist is not empty
-                    context.getFlashScope().error("editUser_Flash_NotWhitelisted");
-                    userFormData.clearPasswordFields();
-                    return result.render(userFormData);
-                }
-            }
+        if (!user.checkPasswd(userFormData.getPassword()))
+        { // the authorization-process failed
+            userFormData.clearPasswordFields();
+            context.getFlashScope().error("flash_FormError");
+            return result.redirect(context.getContextPath() + "/user/edit");
+        }
 
-            if (user.checkPasswd(userFormData.getPassword()))
-            { // the user authorized himself
-
-                if (!mailFromForm.equals(oldMail))
-                { // the user's mail-address changed
-                    if (User.mailExists(mailFromForm))
-                    {// return an error that the mail exists
-                        context.getFlashScope().error("flash_MailExists");
-                        userFormData.clearPasswordFields();
-
-                        return result.render(userFormData);
-                    }
-                    else
-                    { // the address does not exist -> success!
-                        user.setMail(userFormData.getMail());
-                    }
-                }
-                // set the language
-                if (Arrays.asList(xcmConfiguration.APP_LANGS).contains(userFormData.getLanguage()))
-                { // set the selected language in the user-object and also in the application
-                    user.setLanguage(userFormData.getLanguage());
-                    lang.setLanguage(userFormData.getLanguage(), result);
-                }
-
-                // update the fore- and surname
-                user.setForename(userFormData.getFirstName());
-                user.setSurname(userFormData.getSurName());
-
-                String password1 = userFormData.getPasswordNew1();
-                String password2 = userFormData.getPasswordNew2();
-
-                // check whether the new passwords are whitespace, null or empty strings
-                if (!StringUtils.isBlank(password1) && !StringUtils.isBlank(password2))
-                { // new password has been entered
-                    if (password1.equals(password2))
-                    { // the repetition is equal to the new pw
-                        if (password1.length() < xcmConfiguration.PW_LENGTH)
-                        { // the new password is too short
-                            Optional<String> opt = Optional.of(user.getLanguage());
-                            String tooShortPassword = msg.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH)
-                                                         .get();
-                            context.getFlashScope().error(tooShortPassword);
-                            userFormData.clearPasswordFields();
-
-                            return result.render(userFormData);
-                        }
-                        user.hashPasswd(password2);
-                    }
-                    else
-                    { // the passwords are not equal
-                        context.getFlashScope().error("flash_PasswordsUnequal");
-                        userFormData.clearPasswordFields();
-                        return result.render(userFormData);
-                    }
-                }
-
-                // update the user
-                user.update();
-                
-                // update the entries in the caching-server
-                if (!oldMail.equals(mailFromForm))
-                { // update the cached session-list
-                    cachingSessionHandler.updateUsersSessionsOnChangedMail(oldMail, user.getMail());
-                    // set the new mail if it has changed correctly
-                    context.getSession().put("username", user.getMail());
-                }
-                // update all user objects for all sessions
-                cachingSessionHandler.updateUsersSessions(user);
-                
-                // user-edit was successful
-                context.getFlashScope().success("flash_DataChangeSuccess");
-                return result.redirect(context.getContextPath() + "/user/edit");
+        if (!mailFromForm.equals(oldMail))
+        { // the user's mail-address changed
+            if (User.mailExists(mailFromForm))
+            {// return an error that the mail exists
+                context.getFlashScope().error("flash_MailExists");
+                userFormData.clearPasswordFields();
+                return result.render(userFormData);
             }
             else
-            { // the authorization-process failed
-                userFormData.clearPasswordFields();
-                context.getFlashScope().error("flash_FormError");
-                return result.redirect(context.getContextPath() + "/user/edit");
+            { // the address does not exist -> success!
+                user.setMail(userFormData.getMail());
             }
         }
+        // set the language
+        if (Arrays.asList(xcmConfiguration.APP_LANGS).contains(userFormData.getLanguage()))
+        { // set the selected language in the user-object and also in the application
+            user.setLanguage(userFormData.getLanguage());
+            lang.setLanguage(userFormData.getLanguage(), result);
+        }
+
+        // update the fore- and surname
+        user.setForename(userFormData.getFirstName());
+        user.setSurname(userFormData.getSurName());
+
+        String password1 = userFormData.getPasswordNew1();
+        String password2 = userFormData.getPasswordNew2();
+
+        // check whether the new passwords are whitespace, null or empty strings
+        if (!StringUtils.isBlank(password1) && !StringUtils.isBlank(password2))
+        { // new password has been entered
+            if (!password1.equals(password2))
+            { // the passwords are not equal
+                context.getFlashScope().error("flash_PasswordsUnequal");
+                userFormData.clearPasswordFields();
+                return result.render(userFormData);
+            }
+            // the repetition is equal to the new pw
+            if (password1.length() < xcmConfiguration.PW_LENGTH)
+            { // the new password is too short
+                Optional<String> opt = Optional.of(user.getLanguage());
+                String tooShortPassword = msg.get("flash_PasswordTooShort", opt, xcmConfiguration.PW_LENGTH).get();
+                context.getFlashScope().error(tooShortPassword);
+                userFormData.clearPasswordFields();
+                return result.render(userFormData);
+            }
+            user.hashPasswd(password2);
+        }
+
+        // update the user
+        user.update();
+
+        // update the entries in the caching-server
+        if (!oldMail.equals(mailFromForm))
+        { // update the cached session-list
+            cachingSessionHandler.updateUsersSessionsOnChangedMail(oldMail, user.getMail());
+            // set the new mail if it has changed correctly
+            context.getSession().put("username", user.getMail());
+        }
+        // update all user objects for all sessions
+        cachingSessionHandler.updateUsersSessions(user);
+
+        // user-edit was successful
+        context.getFlashScope().success("flash_DataChangeSuccess");
+        return result.redirect(context.getContextPath() + "/user/edit");
+
     }
 
     /**
@@ -243,34 +234,31 @@ public class UserHandler
      */
     public Result deleteUserProcess(Context context)
     {
+        Result editUserResult = Results.redirect(context.getContextPath() + "/user/edit");
+
         String password = context.getParameter("password");
         User user = context.getAttribute("user", User.class);
-        if (!StringUtils.isBlank(password))
-        {
-            if (user.checkPasswd(password))
-            {
-                if (!user.isLastAdmin())
-                { // delete the session
-                    context.getSession().clear();
-                    cachingSessionHandler.deleteUsersSessions(user);
-                    // delete the user-account
-                    User.delete(user.getId());
-                    context.getFlashScope().success("deleteUser_Flash_Success");
-                    return Results.redirect(context.getContextPath() + "/");
-                }
-                else
-                { // can't delete the user, because he's the last admin
-                    context.getFlashScope().error("deleteUser_Flash_Failed");
-                }
-            }
-            else
-            { // the entered password was wrong
-                context.getFlashScope().error("deleteUser_Flash_WrongPassword");
-            }
+        if (StringUtils.isBlank(password))
+            return editUserResult;// no password entered
+
+        if (!user.checkPasswd(password))
+        { // the entered password was wrong
+            context.getFlashScope().error("deleteUser_Flash_WrongPassword");
+            return editUserResult;
         }
-        else
-        { // no password entered
+
+        if (user.isLastAdmin())
+        { // can't delete the user, because he's the last admin
+            context.getFlashScope().error("deleteUser_Flash_Failed");
+            return editUserResult;
         }
-        return Results.redirect(context.getContextPath() + "/user/edit");
+
+        // delete the session
+        context.getSession().clear();
+        cachingSessionHandler.deleteUsersSessions(user);
+        // delete the user-account
+        User.delete(user.getId());
+        context.getFlashScope().success("deleteUser_Flash_Success");
+        return Results.redirect(context.getContextPath() + "/");
     }
 }

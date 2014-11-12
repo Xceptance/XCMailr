@@ -38,13 +38,9 @@ public class AdminFilter implements Filter
         User user = context.getAttribute("user", User.class);
 
         if (!(user == null) && user.isActive() && user.isAdmin())
-        {
             return chain.next(context);
-        }
-        else
-        {
-            Result result = Results.html().template("/views/system/noContent.ftl.html");
-            return result.redirect(context.getContextPath() + "/");
-        }
+
+        Result result = Results.html().template("/views/system/noContent.ftl.html");
+        return result.redirect(context.getContextPath() + "/");
     }
 }

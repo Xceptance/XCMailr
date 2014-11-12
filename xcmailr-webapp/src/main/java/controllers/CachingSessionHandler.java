@@ -18,10 +18,11 @@ package controllers;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.slf4j.Logger;
 
 import models.User;
 import ninja.cache.NinjaCache;
+
+import org.slf4j.Logger;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -133,14 +134,15 @@ public class CachingSessionHandler
         @SuppressWarnings("unchecked")
         // get the sessions of this user
         List<String> sessions = (List<String>) get(user.getMail());
-        if (sessions != null)
-        { // update all sessions of this user at memCached
-            for (String sessionKey : sessions)
-            {
-                // replace all user-objects for all sessions
-                replace(sessionKey, xcmConf.COOKIE_EXPIRETIME, user);
-            }
+        if (sessions == null)
+            return;
+        // update all sessions of this user at memCached
+        for (String sessionKey : sessions)
+        {
+            // replace all user-objects for all sessions
+            replace(sessionKey, xcmConf.COOKIE_EXPIRETIME, user);
         }
+
     }
 
     /**

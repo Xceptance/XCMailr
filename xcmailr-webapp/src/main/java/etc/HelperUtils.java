@@ -132,24 +132,21 @@ public class HelperUtils
     public static String parseStringTs(long ts_Active)
     {
         if (ts_Active == 0)
-        {
             return "unlimited";
-        }
-        else
-        {
-            DateTime dt = new DateTime(ts_Active);
-            StringBuilder timeString = new StringBuilder();
-            // add a leading "0" if the value is under ten
-            timeString.append(dt.getYear()).append("-");
-            timeString.append(addZero(dt.getMonthOfYear()));
-            timeString.append("-");
-            timeString.append(addZero(dt.getDayOfMonth()));
-            timeString.append(" ");
-            timeString.append(addZero(dt.getHourOfDay()));
-            timeString.append(":");
-            timeString.append(addZero(dt.getMinuteOfHour()));
-            return timeString.toString();
-        }
+
+        DateTime dt = new DateTime(ts_Active);
+        StringBuilder timeString = new StringBuilder();
+        // add a leading "0" if the value is under ten
+        timeString.append(dt.getYear()).append("-");
+        timeString.append(addZero(dt.getMonthOfYear()));
+        timeString.append("-");
+        timeString.append(addZero(dt.getDayOfMonth()));
+        timeString.append(" ");
+        timeString.append(addZero(dt.getHourOfDay()));
+        timeString.append(":");
+        timeString.append(addZero(dt.getMinuteOfHour()));
+        return timeString.toString();
+
     }
 
     /**
