@@ -10,16 +10,14 @@ title=i18n("adminUserPage_Title")>
 <div class="pull-left">
 <form action="${contextPath}/admin/users" id="userSearchForm">
 	<div class="input-group">
-		<input type="text"  class="form-control" id="userSearchInput" name ="s" data-provide="typeahead" value="${(searchValue)!}" onClick="this.select();" autocomplete="off"/>
-		
-		<#if (searchValue)??>
+<!-- 		<input type="text"  class="form-control typeahead" data-provide="typeahead" id="userSearchInput" name ="s" value="${(searchValue)!}" onClick="this.select();" autocomplete="off"/> -->
+<input type="text" class="form-control" data-provide="typeahead" id="userSearchInput" name ="s" value="${(searchValue)!}"  autocomplete="off"/>
 		 <span class="input-group-btn">
+		 <#if (searchValue)??>
 			<a class="btn btn-default" id="userSearchResetButton" href="${contextPath}/admin/users"><i class="glyphicon glyphicon-remove-circle"></i></a>
-			</span>
 		</#if>
-		<span class="input-group-btn">
-		<button class="btn btn-default" id="userSearchButton" type="submit"><i class="icon-search"></i> ${i18n("adminUserPage_Button_Search")}</button>
-		</span>
+			<button class="btn btn-default" id="userSearchButton" type="submit"><i class="glyphicon glyphicon-search"></i> ${i18n("adminUserPage_Button_Search")}</button>
+			</span>
 	</div>
 </form>
 </div>
@@ -102,9 +100,9 @@ title=i18n("adminUserPage_Title")>
 </#list>
 </div><!-- /tab-content -->
 <!-- end user table -->
-</div>
+</div><!-- end row -->
 <#include "deleteUserModal.ftl.html"/>
-</div>
+
 <script>
 function showModal(userId, userMail){
 	$('#modalUserName').text(userMail);
@@ -113,41 +111,37 @@ function showModal(userId, userMail){
 	$('#deleteUserModal').modal('show');
 }
 
-	$(document).ready(
-	function(){
-		$('#userSearchInput').typeahead({
-		    source: function(query, process){
-		        		return $.get('${contextPath}/admin/usersearch', {s: query}, 
-		        				function(response) {
-						            var data = new Array;
-						            for(var i in response) {
-						                data.push(response[i]['userId'] +"#"+ response[i]['firstName'] +"#"+ response[i]['surName'] +"#"+ response[i]['mail']);
-						            }
-						            return process(data);
-		        				});
-		    	},
-		    matcher: function(item){
-		        var parts = item.split('#');
-		        if(parts[3].indexOf(this.query.trim().toLowerCase())!=-1){
-		        	return true;
-		        }
-		    },		    	
-		    highlighter: function(item) {
-		        var parts = item.split('#');
-		        var regex = new RegExp( '(' + this.query + ')', 'gi' );		  
-				var emailAddress = parts[3].replace(regex, "<strong>$1</strong>");
-			        html = emailAddress+'<br/>';
-				    html += parts[2]+", "+parts[1];
-			return html;
-		    },
-		    updater: function(item) {
-		        var parts = item.split('#');
-		        return parts[3];
-		    },
+var engine = new Bloodhound({
+	  name: 'users',
+	  local: [],
+	  remote: {url: '${contextPath}/admin/usersearch?s=%QUERY',
+		  filter:function(response) {
+	            var data = new Array;
+	            console.log(response);
+	            for(var i in response) {
+	            	var str = response[i]['mail'];
+	                data.push( str );
+	            }
+	            console.log(data);
+	            return data;
+			} 	  
+	  },
+	    datumTokenizer: function (data) {
+	    return  Bloodhound.tokenizers.whitespace(data.value);
+	  },
+	  queryTokenizer: Bloodhound.tokenizers.whitespace
+	});
+//kicks off the loading/processing of `local` and `prefetch`
+engine.initialize();
+
+$(document).ready(
+		function(){   
+			$('#userSearchInput').typeahead({
+				  source: engine.ttAdapter()
+				});
 		});
-	});//doc ready 
 </script> 
-<script type="text/javascript" src="${contextPath}/assets/js/typeaheadpreventautoselect.js"></script>
+<!-- <script type="text/javascript" src="${contextPath}/assets/js/typeaheadpreventautoselect.js"></script> -->
 <@pag.pager name=users/> 
 <@pag.incSorter vals=[6,7,8]/>
 </@layout.adminLayout>
