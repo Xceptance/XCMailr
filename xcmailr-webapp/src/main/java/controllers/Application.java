@@ -221,7 +221,7 @@ public class Application
      */
     public Result verifyActivation(@PathParam("id") Long userId, @PathParam("token") String token, Context context)
     {
-        Result result = Results.html().redirect(context.getContextPath() + "/login");
+        Result result = Results.redirect(context.getContextPath() + "/login");
         User user = User.getById(userId);
         if (user == null) // user does not exist
             return result;

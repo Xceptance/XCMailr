@@ -3,14 +3,17 @@ package controllers;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
 import java.util.Map;
 
 import models.User;
 import ninja.NinjaTest;
+
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import com.google.common.collect.Maps;
 
 public class UserHandlerTest extends NinjaTest
@@ -76,7 +79,7 @@ public class UserHandlerTest extends NinjaTest
 
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -95,7 +98,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -114,7 +117,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -133,7 +136,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -152,7 +155,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -171,7 +174,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -190,7 +193,7 @@ public class UserHandlerTest extends NinjaTest
                                                                     formParams);
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -210,7 +213,7 @@ public class UserHandlerTest extends NinjaTest
 
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -233,7 +236,7 @@ public class UserHandlerTest extends NinjaTest
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
 
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
@@ -256,7 +259,7 @@ public class UserHandlerTest extends NinjaTest
         returnedData = HtmlUtils.readInputFormData(result);
         // check that the user-data-edit had failed
 
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));  
         
@@ -330,7 +333,7 @@ public class UserHandlerTest extends NinjaTest
 
         // check if the userdata-edit has been successfully changed
 
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should now be equal to the formparams without the password
@@ -411,7 +414,7 @@ public class UserHandlerTest extends NinjaTest
         user2 = User.getUsrByMail("admin@xcmailr.test");
 
         assertTrue(user2 != null);
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 

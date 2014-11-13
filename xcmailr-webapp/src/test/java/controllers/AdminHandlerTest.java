@@ -170,15 +170,15 @@ public class AdminHandlerTest extends NinjaTest
     {
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/users");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/users\">"));
+        assertTrue(result.contains("<a class=\"list-group-item active\" href=\"/admin/users\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/summedtx");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/summedtx\">"));
+        assertTrue(result.contains("<a class=\"list-group-item active\" href=\"/admin/summedtx\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtxs\">"));
+        assertTrue(result.contains("<a class=\"list-group-item active\" href=\"/admin/mtxs\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
