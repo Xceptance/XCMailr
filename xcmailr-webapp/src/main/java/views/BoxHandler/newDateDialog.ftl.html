@@ -1,53 +1,51 @@
-<html>
-<body>
-<div class="modal-header" id="addBoxModal" class="modal" tabindex="-1" role="dialog">
-	<div>
-		<h3  class="legendary">${i18n("newDateDialog_Title")}</h3>
-	</div>
-	<!-- row: life-time of the address -->
-	<div class="modal-body">
-		<div class="form-group" ng-init="newDateTime = '${timeStampNew}'">
-			<label class="control-label" for="datetimeNew">${i18n("newDateDialog_Label_Duration")}* </label>
-			<div class="controls" ng-init="unlimitedBoxChecked = false" ng-hide="unlimitedBoxChecked">
-				<div id="datetimepickerNew" class="input-append pickrBoxEdit">
-					<input data-format="yyyy-MM-dd hh:mm" class="form-control" id="datetimeNew" name="datetime" type="text" ng-model="newDateTime" required="required" /> <span id="pickr_spanNew" class="add-on">
-						<i id="pickr_iNew" data-time-icon="glyphicon glyphicon-time" data-date-icon="icon-calendar"></i>
-					</span>
+
+	<div class="modal-header" id="addBoxModal" class="modal" tabindex="-1" role="dialog">
+		<div>
+			<h3 class="modal-title">${i18n("newDateDialog_Title")}</h3>
+		</div>
+		<!-- row: life-time of the address -->
+		<div class="modal-body">
+			<div class="form-group" ng-init="newDateTime = '${timeStampNew}'">
+				<label class="control-label" for="datetimeNew">${i18n("newDateDialog_Label_Duration")}* </label>
+				<div class="controls" ng-init="unlimitedBoxChecked = false" ng-hide="unlimitedBoxChecked">
+					<div id="datetimepickerNew" class="input-group pickrBoxEdit">
+						<input data-format="yyyy-MM-dd HH:mm" data-date-format="YYYY-MM-DD HH:mm" class="form-control" id="datetimeNew" name="datetime" type="text" ng-model="newDateTime" required="required" />
+						<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+					</div>
+				</div>
+				<div class="checkbox">
+					<label class="checkbox" for="chkUnlimitedNew"> 
+					<input type="checkbox" id="chkUnlimitedNew" ng-checked="unlimitedBoxChecked" ng-model="unlimitedBoxChecked" />
+						${i18n("newDateDialog_Unlimited")}
+					</label>
 				</div>
 			</div>
-			<div class="checkbox">
-				<label class="checkbox" for="chkUnlimitedNew"> 
-					<input type="checkbox"	id="chkUnlimitedNew" ng-checked="unlimitedBoxChecked" ng-model="unlimitedBoxChecked" /> ${i18n("newDateDialog_Unlimited")}
-				</label>
-			</div>
-		</div>
-		<div>
-		${i18n("newDateDialog_Text_Mail")} <br/> 
+			<div>
+				${i18n("newDateDialog_Text_Mail")} <br />
 				<ul>
-					<li ng-repeat="box in currentBoxes">{{box.address}}@{{box.domain}} </li>
-				</ul>  
+					<li ng-repeat="box in currentBoxes">{{box.address}}@{{box.domain}}</li>
+				</ul>
+			</div>
+
 		</div>
-			
+		<div class="modal-footer">
+			<input type="button" class="btn btn-warning" id="btnReset" value='${i18n("newDateDialog_Button_Reset")}' />
+			<button ng-click="dismiss()" class="btn btn-default">${i18n("newDateDialog_Button_Cancel")}</button>
+			<button ng-click="close(newDateTime)" class="btn btn-danger">${i18n("newDateDialog_Button_Submit")}</button>
+		</div>
 	</div>
-	<div class="modal-footer">
-		<input type="button" class="btn btn-warning" id="btnReset" value='${i18n("newDateDialog_Button_Reset")}'/>
-       	<button ng-click="dismiss()" class="btn btn-default">${i18n("newDateDialog_Button_Cancel")}</button>
-       	<button ng-click="close(newDateTime)" class="btn btn-danger" >${i18n("newDateDialog_Button_Submit")}</button>
-   	</div>
-</div>
-<script type="text/javascript">
+	<script type="text/javascript">
 	$(function() 
 		{
 			var sDate =  new Date(${tsMillis});
+			var now = new Date();
 			$('.pickrBoxEdit').datetimepicker(
 				{
 					language : '${lang}',
-					pick12HourFormat : false
+					pick12HourFormat : false,
+					minDate : now,
+					defaultDate: sDate
 				}
 			);
-			var picker = $('.pickrBoxEdit').data('datetimepicker');
-			picker.setLocalDate(sDate);
 		});
-</script>		
-</body>
-</html>
+</script>

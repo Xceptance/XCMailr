@@ -16,7 +16,7 @@
     }
   </style>
   <link href="${contextPath}/assets/css/bootstrap-theme.css" rel="stylesheet">
-  <link href="${contextPath}/assets/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+  <link href="${contextPath}/assets/css/bootstrap-datetimepicker.css" rel="stylesheet">
   <link href="${contextPath}/assets/css/ownStyle.css" rel="stylesheet">
 
   <script src="${contextPath}/assets/js/jquery.js"></script>
@@ -46,7 +46,7 @@
 	<div class="input-group col-sm-2 pull-left"> 
 		<input type="text" class="form-control" placeholder="${i18n('mailbox_Button_Search')}" ng-model="searchString" ng-change="search2()">
         <span class="input-group-btn">
-		<button type="button" class="btn btn-default"ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="glyphicon glyphicon-remove-circle"></i></button>
+		<button type="button" class="btn btn-default" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="glyphicon glyphicon-remove-circle"></i></button>
 		</span>
 		
 	</div>
@@ -172,8 +172,9 @@
 </div> <!-- /container-fluid -->
 <#include "../layout/footer.ftl.html"/>
 </div> <!-- /container -->
+<script type="text/javascript" src="${contextPath}/assets/js/moment-with-locales.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
-<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
+<!-- <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script>  -->
 </body>
 </html>
 
