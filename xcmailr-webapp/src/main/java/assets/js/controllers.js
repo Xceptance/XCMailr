@@ -544,14 +544,17 @@ function AddEditDialogController($scope, $http, $modalInstance, currentBox,
 		$modalInstance.close(data);
 	};
 	$scope.setBoxDate = function(timestamp, lang) {
-		if (timestamp === 0) {
+		var now = new Date();
+		if (timestamp === "unlimited") {
 			var sDate = new Date();
-			sDate.setTime(sDate.getTime() + (3600 * 1000));
 		} else {
-			var sDate = new Date(timestamp);
+			var sDate = moment(timestamp, "YYYY-MM-DD HH:mm");
+			if (sDate < now) {
+				sDate = new Date();
+				sDate.setTime(sDate.getTime() + (3600 * 1000));
+			}
 		}
 
-		var now = new Date();
 		$('.pickrBoxEdit').datetimepicker({
 			language : lang,
 			pick12HourFormat : false,

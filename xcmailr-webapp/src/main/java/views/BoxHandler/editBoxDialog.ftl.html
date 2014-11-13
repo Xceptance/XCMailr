@@ -20,7 +20,7 @@
 	<div class="form-group">
 		<label class="control-label" for="datetime{{currentBox.id}}">${i18n("editEmailDialog_Label_Duration")}* </label>
 		<div class="controls" ng-init="unlimitedBoxChecked = (currentBox.datetime=='unlimited')" ng-hide="unlimitedBoxChecked">
-			<div id="datetimepicker{{currentBox.id}}" class="input-group pickrBoxEdit" ng-init="setBoxDate( currentBox.ts_Active, ${lang})">
+			<div id="datetimepicker{{currentBox.id}}" class="input-group pickrBoxEdit" ng-init="setBoxDate( currentBox.datetime, ${lang})">
 				<input class="form-control" data-format="yyyy-MM-dd HH:mm" data-date-format="YYYY-MM-DD HH:mm" id="datetime{{currentBox.id}}" name="datetime" type="text" ng-model="currentBox.datetime"
 					required="required" />
 				<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
