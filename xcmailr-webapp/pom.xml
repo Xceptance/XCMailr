@@ -203,7 +203,7 @@
 		<dependency>
 			<groupId>org.ninjaframework</groupId>
 			<artifactId>ninja-core</artifactId>
-			<version>3.3.0</version>
+			<version>3.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -214,7 +214,7 @@
 		<dependency>
 			<groupId>org.ninjaframework</groupId>
 			<artifactId>ninja-test-utilities</artifactId>
-			<version>3.3.0</version>
+			<version>3.3.3</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -226,7 +226,7 @@
 		<dependency>
 			<groupId>org.ninjaframework</groupId>
 			<artifactId>ninja-servlet</artifactId>
-			<version>3.3.0</version>
+			<version>3.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>
