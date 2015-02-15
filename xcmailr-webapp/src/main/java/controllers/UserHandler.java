@@ -77,9 +77,6 @@ public class UserHandler
      */
     public Result editUserProcess(Context context, @JSR303Validation UserFormData userFormData, Validation validation)
     {
-        // TODO eventually rearrange the big if-else-block in a "positive" way (->error-cases at the end to aggregate
-        // the clearpasswordfields()- and render-calls)
-
         Result result = Results.html().template("/views/UserHandler/editUserForm.ftl.html");
         // set the available languages again. in most cases this may not be necessary,
         // but if you send the post-request directly and have form violations or wrong passwords or sth.

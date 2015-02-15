@@ -22,7 +22,6 @@ public class MBoxTestDeserializer extends JsonDeserializer<MBox> implements Cont
     public JsonDeserializer<?> createContextual(DeserializationContext ctx, BeanProperty property)
         throws JsonMappingException
     {
-        // TODO Auto-generated method stub
         return new MBoxIdSimpleDeserializer();
     }
 

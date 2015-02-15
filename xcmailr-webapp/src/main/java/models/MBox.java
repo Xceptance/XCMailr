@@ -523,7 +523,7 @@ public class MBox extends AbstractEntity implements Serializable
             tsString = "unlimited";
         }
         else if (tsString.equals("-1"))
-        {// TODO is this correct?
+        {
             return "wrong timestamp";
         }
         return tsString;
