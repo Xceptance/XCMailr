@@ -147,7 +147,7 @@ public class MailrMessageSenderFactory
      * @param to
      *            Recipients-Address
      * @param forename
-     *            Forename of the Recipient
+     *            first-name of the Recipient
      * @param id
      *            {@link User}-ID of the Recipient
      * @param token

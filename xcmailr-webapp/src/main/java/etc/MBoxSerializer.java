@@ -30,7 +30,8 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-//TODO 
+//TODO this Serializer (and related deserializer) isn't really necessary
+// you can also manage these by jackson 
 public class MBoxSerializer extends JsonSerializer<MBox> implements ContextualSerializer
 {
 

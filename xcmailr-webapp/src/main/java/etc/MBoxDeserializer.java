@@ -30,7 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
-
+//TODO this deserializer (and related serializer) isn't really necessary
+//you can also manage these by jackson 
 public class MBoxDeserializer extends JsonDeserializer<MBox> implements ContextualDeserializer
 {
 
