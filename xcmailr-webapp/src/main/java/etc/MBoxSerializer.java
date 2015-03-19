@@ -1,3 +1,19 @@
+/**  
+ *  Copyright 2013 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License. 
+ *
+ */
 package etc;
 
 import java.io.IOException;
@@ -14,7 +30,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
+//TODO 
 public class MBoxSerializer extends JsonSerializer<MBox> implements ContextualSerializer
 {
 
@@ -86,33 +102,4 @@ public class MBoxSerializer extends JsonSerializer<MBox> implements ContextualSe
             serialize(value, jgen, provider);
         }
     }
-
-    // public class BaseEntityIdCollectionSerializer extends StdSerializer<Collection<? extends AbstractData>>
-    // {
-    //
-    // public BaseEntityIdCollectionSerializer()
-    // {
-    // super(Collection.class, false);
-    // }
-    //
-    // @Override
-    // public void serialize(Collection<? extends AbstractData> value, JsonGenerator jgen, SerializerProvider provider)
-    // throws IOException, JsonGenerationException
-    // {
-    // jgen.writeStartArray();
-    // for (AbstractData b : value)
-    // {
-    // jgen.writeNumber(b.getId());
-    // }
-    // jgen.writeEndArray();
-    // }
-    //
-    // @Override
-    // public void serializeWithType(Collection<? extends AbstractData> value, JsonGenerator jgen,
-    // SerializerProvider provider, TypeSerializer typeSer)
-    // throws IOException, JsonProcessingException
-    // {
-    // serialize(value, jgen, provider);
-    // }
-    // }
 }

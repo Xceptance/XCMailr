@@ -30,6 +30,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.mindrot.jbcrypt.BCrypt;
 
 import com.avaje.ebean.Ebean;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 /**
  * User Object
@@ -103,6 +104,7 @@ public class User extends AbstractEntity implements Serializable
      * relation to the mailboxes
      */
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
+    @JsonManagedReference
     public List<MBox> boxes;
 
     // ----------------------------- Getter and Setter ------------------------
