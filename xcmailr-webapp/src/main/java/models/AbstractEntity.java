@@ -4,10 +4,13 @@ import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
 import com.avaje.ebean.Ebean;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @MappedSuperclass
 public abstract class AbstractEntity
 {
+    @JsonIgnore
     @Id
     private long id;
 
@@ -17,6 +20,7 @@ public abstract class AbstractEntity
     /**
      * @return the ID of this MBox (primary key in the DB)
      */
+    @JsonProperty("id")
     public long getId()
     {
         return id;
@@ -26,6 +30,7 @@ public abstract class AbstractEntity
      * @param id
      *            the ID of this MBox to set
      */
+    @JsonIgnore
     public void setId(long id)
     {
         this.id = id;

@@ -37,20 +37,16 @@ import com.avaje.ebean.Query;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
 import com.avaje.ebean.SqlUpdate;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import etc.HelperUtils;
-import etc.MBoxDeserializer;
-import etc.MBoxSerializer;
 
 /**
  * Object for a virtual Mailbox (a Mail-Forward)
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-@JsonSerialize(using = MBoxSerializer.class)
-@JsonDeserialize(using = MBoxDeserializer.class)
 @Entity
 @Table(name = "mailboxes")
 public class MBox extends AbstractEntity implements Serializable
@@ -64,9 +60,11 @@ public class MBox extends AbstractEntity implements Serializable
     private String address;
 
     /** Timestamp for the end of the validity period */
+    @JsonIgnore
     private long ts_Active;
 
     /** Flag for the validity */
+    @JsonIgnore
     private boolean expired;
 
     /** the domain-part of an address */
@@ -76,13 +74,17 @@ public class MBox extends AbstractEntity implements Serializable
     private String domain;
 
     /** the number of forwards for this box */
+    @JsonIgnore
     private int forwards;
 
     /** the number of suppressions for this box */
+    @JsonIgnore
     private int suppressions;
 
     /** the version of this box (used for optimisticLock) */
+
     @Version
+    @JsonIgnore
     private Long version;
 
     /** the owner of the address/box */
@@ -154,6 +156,7 @@ public class MBox extends AbstractEntity implements Serializable
      * 
      * @return true if the Box is expired/inactive
      */
+    @JsonProperty("expired")
     public boolean isExpired()
     {
         return expired;
@@ -164,7 +167,7 @@ public class MBox extends AbstractEntity implements Serializable
      * 
      * @return true if the Box is active
      */
-
+    @JsonIgnore
     public boolean isActive()
     {
         return !expired;
@@ -174,7 +177,7 @@ public class MBox extends AbstractEntity implements Serializable
      * @return true, if the mail is inactive and the TS has a value in the past<br/>
      *         false, else
      */
-
+    @JsonIgnore
     public boolean isExpiredByTimestamp()
     {
         return (expired && (ts_Active != 0) && (DateTime.now().isAfter(ts_Active)));
@@ -186,6 +189,7 @@ public class MBox extends AbstractEntity implements Serializable
      * @param expired
      *            the Expiration-Status to set
      */
+    @JsonIgnore
     public void setExpired(boolean expired)
     {
         this.expired = expired;
@@ -194,6 +198,7 @@ public class MBox extends AbstractEntity implements Serializable
     /**
      * @return the {@link User} which owns this Box/Forward
      */
+    @JsonIgnore
     public User getUsr()
     {
         return usr;
@@ -203,6 +208,7 @@ public class MBox extends AbstractEntity implements Serializable
      * @param usr
      *            the {@link User} which owns this Box/Forward
      */
+    @JsonIgnore
     public void setUsr(User usr)
     {
         this.usr = usr;
@@ -238,6 +244,7 @@ public class MBox extends AbstractEntity implements Serializable
     /**
      * @return the Number of successful forwards on this Address
      */
+    @JsonProperty("forwards")
     public int getForwards()
     {
         return forwards;
@@ -247,6 +254,7 @@ public class MBox extends AbstractEntity implements Serializable
      * @param forwards
      *            sets the Number of forwards on this Address
      */
+    @JsonIgnore
     public void setForwards(int forwards)
     {
         this.forwards = forwards;
@@ -272,6 +280,7 @@ public class MBox extends AbstractEntity implements Serializable
      * @return the Number of suppressed Mails on this Address <br/>
      *         (Mails sent while the Address was inactive)
      */
+    @JsonProperty("suppressions")
     public int getSuppressions()
     {
         return suppressions;
@@ -281,6 +290,7 @@ public class MBox extends AbstractEntity implements Serializable
      * @param suppressions
      *            sets the Number of suppressed Mails on this Address<br/>
      */
+    @JsonIgnore
     public void setSuppressions(int suppressions)
     {
         this.suppressions = suppressions;
@@ -305,6 +315,7 @@ public class MBox extends AbstractEntity implements Serializable
     /**
      * @return the Timestamp as long as this Address will be active
      */
+    @JsonProperty("ts_Active")
     public long getTs_Active()
     {
         return ts_Active;
@@ -314,14 +325,28 @@ public class MBox extends AbstractEntity implements Serializable
      * @param ts_Active
      *            sets the Time as long as this Address will be active
      */
+    @JsonIgnore
     public void setTs_Active(long ts_Active)
     {
+        System.out.println("setting ts active: "+ts_Active);
         this.ts_Active = ts_Active;
+    }
+    
+    /**
+     * sets the ts_Active by the given datetime String by using 
+     * {@link HelperUtils#parseTimeString(String)}
+     * @param dateTime
+     */
+    @JsonProperty("datetime")
+    public void setDateTime(String dateTime){
+        System.out.println("datetime: "+dateTime);
+        this.setTs_Active(HelperUtils.parseTimeString(dateTime));
     }
 
     /**
      * @return the Version of the Box (just for optimistic lock-things)
      */
+    @JsonIgnore
     public Long getVersion()
     {
         return version;
@@ -331,6 +356,7 @@ public class MBox extends AbstractEntity implements Serializable
      * @param version
      *            the Version to set (just a field for optimistic lock support)
      */
+    @JsonIgnore
     public void setVersion(Long version)
     {
         this.version = version;
@@ -339,10 +365,20 @@ public class MBox extends AbstractEntity implements Serializable
     /**
      * @return the full address of this virtual email
      */
-
+    @JsonProperty("fullAddress")
     public String getFullAddress()
     {
         return this.address + "@" + this.domain;
+    }
+    
+    /**
+     * dummy method to set the full address<br/>
+     * <b>it does nothing!</b> and is only for Jackson-Parser
+     * @param dummy
+     */
+    @JsonIgnore
+    public void setFullAddress(String dummy){
+        
     }
 
     // ---------------------------------------------
@@ -482,6 +518,7 @@ public class MBox extends AbstractEntity implements Serializable
      * @return the timestamp as string in the format "yyyy-MM-dd hh:mm" <br/>
      *         if its 0, then also 0 is returned
      */
+    @JsonIgnore
     public String getTSAsStringWithNull()
     {
         if (this.ts_Active == 0)
