@@ -25,18 +25,22 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.subethamail.smtp.helper.SimpleMessageListenerAdapter;
-import org.subethamail.smtp.server.SMTPServer;
+
 import models.MBox;
 import models.MailTransaction;
 import models.User;
 import ninja.lifecycle.Dispose;
 import ninja.lifecycle.Start;
 import ninja.utils.NinjaProperties;
+
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.subethamail.smtp.helper.SimpleMessageListenerAdapter;
+import org.subethamail.smtp.server.SMTPServer;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
 import conf.XCMailrConf;
 
 /**
@@ -77,20 +81,16 @@ public class JobController
         // only delete transactions if mailtransaction.maxage is not -1 or 0
         deleteTransactions = (xcmConfiguration.MTX_MAX_AGE != 0 && xcmConfiguration.MTX_MAX_AGE != -1);
 
-        if (xcmConfiguration.ADMIN_PASSWORD != null)
-        { // if a password is set in application.conf..
+        if (xcmConfiguration.ADMIN_PASSWORD != null && !User.mailExists(xcmConfiguration.ADMIN_ADDRESS))
+        { // if a password is set in application.conf ...and the admin-account doesn't exist
+          // create the admin-account
+            User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADDRESS, xcmConfiguration.ADMIN_PASSWORD, "en");
 
-            if (!User.mailExists(xcmConfiguration.ADMIN_ADDRESS))
-            {// ...and the admin-account doesn't exist
-             // create the admin-account
-                User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADDRESS, xcmConfiguration.ADMIN_PASSWORD,
-                                     "en");
+            // set the status and admin flags
+            user.setAdmin(true);
+            user.setActive(true);
+            user.save();
 
-                // set the status and admin flags
-                user.setAdmin(true);
-                user.setActive(true);
-                user.save();
-            }
         }
         // create the server for incoming mails
         smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(messageListener));

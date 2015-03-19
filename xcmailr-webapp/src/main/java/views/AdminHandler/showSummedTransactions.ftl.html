@@ -1,7 +1,7 @@
 <#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout title=i18n("admin_Title_SummedStatistics")>
 <#import "../layout/macros.ftl.html" as pag/>
 <h1 class="legendary">${i18n("admin_Title_SummedStatistics")}</h1>
-<div class="span5">
+<div class="col-md-5">
 <#if ((stats?size) > 0) > 
 <table class="table tablesorter table-hover table-condensed">
 	<thead>

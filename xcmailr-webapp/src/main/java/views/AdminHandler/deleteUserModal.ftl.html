@@ -1,26 +1,30 @@
 
 
 <!-- Modal: Delete Useraccount -->
-<form action="${contextPath}/admin/delete/" method="post" id="removeUserModal" >
-	<div id="deleteUserModal" class="modal hide fade" tabindex="-1"
-		role="dialog" aria-labelledby="deleteUserLabel" aria-hidden="true">
-		
-		<div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal"
-				aria-hidden="true">×</button>
-			<h3 id="deleteUserTitle">${i18n("adminUserModal_Title")}</h3>
-		</div><!-- /modal-header -->
-		
-		<div class="modal-body">
-			<p>${i18n("adminUserModal_Label_Description")}</p>
-			<p id="modalUserName"></p>
-		</div><!-- /modal-body -->
-		
-		<div class="modal-footer">
-			<button type="button" class="btn" data-dismiss="modal" aria-hidden="true">${i18n("adminUserModal_Button_Abort")}</button>
-			<button type="submit" class="btn" id="deleteUserSubmit">${i18n("adminUserModal_Button_Confirm")}</button>
-		</div><!-- /modal-footer -->
-		
-	</div><!-- /deleteUserModal -->
+<form action="${contextPath}/admin/delete/" method="post" id="removeUserModal">
+	<div id="deleteUserModal" class="modal fade">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span><span class="sr-only">x</span>
+					</button>
+					<h3 id="deleteUserTitle">${i18n("adminUserModal_Title")}</h3>
+				</div>
+				<!-- /modal-header -->
+				<div class="modal-body">
+					<p>${i18n("adminUserModal_Label_Description")}</p>
+					<p id="modalUserName"></p>
+				</div>
+				<!-- /modal-body -->
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal" aria-hidden="true">${i18n("adminUserModal_Button_Abort")}</button>
+					<button type="submit" class="btn btn-danger" id="deleteUserSubmit">${i18n("adminUserModal_Button_Confirm")}</button>
+				</div>
+				<!-- /modal-footer -->
+			</div>
+		</div>
+	</div>
+	<!-- /deleteUserModal -->
 </form>
 <!-- End Modal -->

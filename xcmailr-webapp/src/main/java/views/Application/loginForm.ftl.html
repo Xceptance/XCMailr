@@ -3,27 +3,31 @@
 <form action="${contextPath}/login" method="post" id="formLogin" class="form-horizontal">
 <fieldset>
 <legend>${i18n("login_Title")}</legend>  
-        <div class="control-group"> 
-			<label class="control-label" for="mail"> ${i18n("login_Label_Email")} </label>
-			<div class="controls">  
-				<input class="input_full" type="email" id="inputLoginMail" name="mail" required="required" value="${(loginFormData.mail)!}"/>
+		<div class="col-md-8">
+			<div class="form-group">
+				<label class="col-sm-2 control-label" for="mail"> ${i18n("login_Label_Email")} </label>
+				<div class="col-sm-10">
+					<input class="form-control" type="email" id="inputLoginMail" name="mail" required="required" value="${(loginFormData.mail)!}" />
+				</div>
 			</div>
-		</div>
-		<div class="control-group"> 
-			<label class="control-label" for="pwd"> ${i18n("login_Label_Password")} </label>
-			<div class="controls"> 
-				<input class="input_full" type="password" id="inputLoginPassword" name="password" required="required" value="${(loginFormData.password)!}"/>
-				
+			<div class="form-group">
+				<label class="col-sm-2 control-label" for="pwd"> ${i18n("login_Label_Password")} </label>
+				<div class="col-sm-10">
+					<input class="form-control" type="password" id="inputLoginPassword" name="password" required="required" value="${(loginFormData.password)!}" />
+				</div>
 			</div>
-		</div>
-		<div class="control-group">
-			<div class="controls">
-				<span class="help-inline"><a href="${contextPath}/pwresend">${i18n("login_Label_Link_ForgotPassword")}</a></span>
+			<div class="form-group">
+				<div class="col-sm-10">
+					<span class="help-inline"><a href="${contextPath}/pwresend">${i18n("login_Label_Link_ForgotPassword")}</a></span>
+				</div>
 			</div>
-		</div>
-		<div class="form-actions"> 
-			<input type="reset" class="btn"	id="btnLoginReset" value='${i18n("login_Button_Reset")}'/>
-			<input type="submit" class="btn btn-primary" id="btnLoginSubmit" value='${i18n("login_Button_Login")}' /> 
+			<div class="form-group">
+				<div class="col-sm-5"></div>
+				<div class="col-sm-7">
+					<input type="reset" class="btn btn-default" id="btnLoginReset" value='${i18n("login_Button_Reset")}' />
+					<input type="submit" class="btn btn-primary" id="btnLoginSubmit" value='${i18n("login_Button_Login")}' />
+				</div>
+			</div>
 		</div>
 </fieldset>
 </form>

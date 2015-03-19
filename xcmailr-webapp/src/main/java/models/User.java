@@ -19,11 +19,18 @@ package models;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.*;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.mindrot.jbcrypt.BCrypt;
-import com.avaje.ebean.*;
-import com.avaje.ebean.validation.Email;
-import com.avaje.ebean.validation.NotEmpty;
+
+import com.avaje.ebean.Ebean;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 /**
  * User Object
@@ -32,18 +39,12 @@ import com.avaje.ebean.validation.NotEmpty;
  */
 @Entity
 @Table(name = "users")
-public class User implements Serializable
+public class User extends AbstractEntity implements Serializable
 {
     /**
      * UID to serialize this object
      */
     private static final long serialVersionUID = 1830731471817237181L;
-
-    /**
-     * UserId
-     */
-    @Id
-    private long id;
 
     /**
      * first name of the User
@@ -103,6 +104,7 @@ public class User implements Serializable
      * relation to the mailboxes
      */
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
+    @JsonManagedReference
     public List<MBox> boxes;
 
     // ----------------------------- Getter and Setter ------------------------
@@ -111,7 +113,6 @@ public class User implements Serializable
      */
     public User()
     {
-        id = 0;
         forename = "";
         surname = "";
         mail = "";
@@ -134,7 +135,6 @@ public class User implements Serializable
      */
     public User(String fName, String sName, String eMail, String pw, String language)
     {
-        id = 0;
         setForename(fName);
         setSurname(sName);
         setMail(eMail);
@@ -158,34 +158,6 @@ public class User implements Serializable
     public void setBoxes(List<MBox> boxes)
     {
         this.boxes = boxes;
-    }
-
-    /**
-     * Persists a User in the DB
-     */
-    public void save()
-    {
-        Ebean.save(this);
-    }
-
-    /**
-     * @return the ID of a User
-     */
-    public long getId()
-    {
-        return id;
-    }
-
-    /**
-     * Sets the ID of a User-Object used to identify the Object in the DB
-     * 
-     * @param id
-     *            the ID of a User
-     */
-    public void setId(long id)
-    {
-        this.id = id;
-
     }
 
     /**
@@ -400,14 +372,6 @@ public class User implements Serializable
     }
 
     /**
-     * Updates the Data of a User
-     */
-    public void update()
-    {
-        Ebean.update(this);
-    }
-
-    /**
      * Checks, if a Mail-Address exists in the Database
      * 
      * @param mail
@@ -416,14 +380,7 @@ public class User implements Serializable
      */
     public static boolean mailExists(String mail)
     {
-        if (!Ebean.find(User.class).where().eq("mail", mail.toLowerCase()).findList().isEmpty())
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return (!Ebean.find(User.class).where().eq("mail", mail.toLowerCase()).findList().isEmpty());
     }
 
     /**
@@ -431,22 +388,8 @@ public class User implements Serializable
      */
     public boolean isLastAdmin()
     {
-        if (this.isAdmin())
-        { // this user is admin
-            if (Ebean.find(User.class).where().eq("admin", true).findList().size() == 1)
-            { // there's only one admin in the database, so he's the last one
-                return true;
-            }
-            else
-            {// there are more than one admin-accounts
-                return false;
-            }
-        }
-        else
-        { // the user is no admin
-            return false;
-        }
-
+        // this user is admin and there's only one admin in the database, so he's the last one
+        return isAdmin() && (Ebean.find(User.class).where().eq("admin", true).findList().size() == 1);
     }
 
     /**
@@ -476,29 +419,7 @@ public class User implements Serializable
     {
         // get the user by the mailadress
         User usr = Ebean.find(User.class).where().eq("mail", mail.toLowerCase()).findUnique();
-
-        if (usr != null)
-        {
-            // there's a user with that address
-
-            // next code is redundant, same like authById()
-            if (BCrypt.checkpw(pw, usr.getPasswd()))
-            {
-
-                // check if the given password is correct
-                return usr;
-            }
-            else
-            {
-                // the password is wrong
-                return null;
-            }
-        }
-        else
-        {
-            // there's no user with that address
-            return null;
-        }
+        return (usr != null && BCrypt.checkpw(pw, usr.getPasswd())) ? usr : null; 
     }
 
     /**
@@ -515,15 +436,7 @@ public class User implements Serializable
     public static User authById(Long id, String pw)
     {
         User usr = Ebean.find(User.class, id);
-        if (BCrypt.checkpw(pw, usr.getPasswd()))
-        {
-            return usr;
-        }
-        else
-        {
-
-            return null;
-        }
+        return (usr != null && BCrypt.checkpw(pw, usr.getPasswd())) ? usr :null;
     }
 
     /**
@@ -612,7 +525,7 @@ public class User implements Serializable
     @Override
     public String toString()
     {
-        return id + " " + forename + " " + " " + surname + " " + mail + " " + passwd;
+        return getId() + " " + forename + " " + " " + surname + " " + mail + " " + passwd;
     }
 
     /**

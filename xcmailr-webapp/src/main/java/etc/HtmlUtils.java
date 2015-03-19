@@ -53,13 +53,13 @@ public class HtmlUtils
 
         public void handleSimpleTag(HTML.Tag tag, MutableAttributeSet attr, int pos)
         {
-            if (record)
-            {
-                sb.append("<");
-                sb.append(tag.toString());
-                sb.append(getAttributesAsString(attr));
-                sb.append("/>");
-            }
+            if (!record)
+                return;
+
+            sb.append("<");
+            sb.append(tag.toString());
+            sb.append(getAttributesAsString(attr));
+            sb.append("/>");
         }
 
         public void handleStartTag(HTML.Tag tag, MutableAttributeSet attr, int pos)
@@ -83,30 +83,31 @@ public class HtmlUtils
 
         public void handleEndTag(HTML.Tag tag, int pos)
         {
- if (record)
-            {
-                sb.append("</");
-                sb.append(tag.toString());
-                sb.append(">");
-            }
+            if (!record)
+                return;
+
+            sb.append("</");
+            sb.append(tag.toString());
+            sb.append(">");
+
         }
 
         public void handleText(char[] data, int pos)
         {
-            if (record)
-            {
-                sb.append(data);
-            }
+            if (!record)
+                return;
+
+            sb.append(data);
         }
 
         public void handleComment(char[] data, int pos)
         {
-            if (record)
-            {
-                sb.append("<!-- ");
-                sb.append(data);
-                sb.append(" -->");
-            }
+            if (!record)
+                return;
+
+            sb.append("<!-- ");
+            sb.append(data);
+            sb.append(" -->");
         }
 
         @SuppressWarnings("unchecked")

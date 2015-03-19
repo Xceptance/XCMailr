@@ -15,8 +15,8 @@
         padding-bottom: 40px;
       }
     </style>
-    <link href="${contextPath}/assets/css/bootstrap-responsive.css" rel="stylesheet">
-    <link href="${contextPath}/assets/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+    <link href="${contextPath}/assets/css/bootstrap-theme.css" rel="stylesheet">
+    <link href="${contextPath}/assets/css/bootstrap-datetimepicker.css" rel="stylesheet">
     <link href="${contextPath}/assets/css/ownStyle.css" rel="stylesheet">
     <script src="${contextPath}/assets/js/jquery.js"></script>
     <script src="${contextPath}/assets/js/bootstrap.js"></script>
@@ -35,10 +35,10 @@
   <#include "header.ftl.html"/>
     <div class="container">
         <div class="container-fluid">
-	    	<div class="row-fluid">
+	    	<div class="row">
 
 				<#if flash.error??>
-				        <p class="alert alert-error"><strong> ${flash.error}</strong></p>
+				        <p class="alert alert-danger"><strong> ${flash.error}</strong></p>
 				</#if>
 				<#if flash.success??>
 				        <p class="alert alert-success"><strong> ${flash.success}</strong></p>
@@ -47,7 +47,7 @@
 				        <p class="alert alert-info"><strong> ${flash.info}</strong></p>
 				</#if>
 			</div>
-			<div class="row-fluid">
+			<div class="row">
 	        	<#nested/>
 	        </div>
 		</div>

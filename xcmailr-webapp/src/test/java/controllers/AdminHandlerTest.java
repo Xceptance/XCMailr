@@ -8,6 +8,13 @@ import static org.mockito.Mockito.spy;
 
 import java.util.Map;
 
+import models.MailTransaction;
+import models.User;
+import ninja.NinjaTest;
+import ninja.utils.NinjaMode;
+import ninja.utils.NinjaProperties;
+import ninja.utils.NinjaPropertiesImpl;
+
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
 import org.junit.Before;
@@ -16,12 +23,6 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.Maps;
-
-import models.MailTransaction;
-import models.User;
-import ninja.NinjaTest;
-import ninja.utils.NinjaProperties;
-import ninja.utils.NinjaPropertiesImpl;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AdminHandlerTest extends NinjaTest
@@ -39,12 +40,11 @@ public class AdminHandlerTest extends NinjaTest
     @Before
     public void setUp()
     {
-        //get the admin-account from the application.conf-file
-        ninjaProperties = spy(new NinjaPropertiesImpl());
+        // get the admin-account from the application.conf-file
+        ninjaProperties = spy(new NinjaPropertiesImpl(NinjaMode.test));
         String adminAccName = ninjaProperties.get("mbox.adminaddr");
         String adminPassword = ninjaProperties.get("admin.pass");
-        
-        
+
         // get the adminaccount and login
         headers.put("Accept-Language", "en-US");
         admin = User.getUsrByMail(adminAccName);
@@ -170,15 +170,15 @@ public class AdminHandlerTest extends NinjaTest
     {
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/users");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/users\">"));
+        assertTrue(result.contains("<a class=\"list-group-item active\" href=\"/admin/users\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/summedtx");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/summedtx\">"));
+        assertTrue(result.contains("<a class=\"list-group-item active\" href=\"/admin/summedtx\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs");
-        assertTrue(result.contains("<li class=\"active\"><a href=\"/admin/mtxs\">"));
+        assertTrue(result.contains("<a class=\"list-group-item active\" href=\"/admin/mtxs\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 

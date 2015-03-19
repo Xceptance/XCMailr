@@ -22,12 +22,14 @@ import java.util.List;
 import java.util.Random;
 import java.util.regex.Pattern;
 
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import ninja.Context;
 import ninja.Result;
 import ninja.i18n.Messages;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 
@@ -107,7 +109,7 @@ public class HelperUtils
      */
     public static Long parseTimeString(String input)
     {
-        if (input.equals("0"))
+        if (input.equals("0") || input.equals("unlimited"))
         { // return the "TS" for an unlimited Box
             return 0L;
         }
@@ -130,42 +132,33 @@ public class HelperUtils
     public static String parseStringTs(long ts_Active)
     {
         if (ts_Active == 0)
-        {
             return "unlimited";
-        }
-        else
-        {
-            DateTime dt = new DateTime(ts_Active);
-            StringBuilder timeString = new StringBuilder();
-            // add a leading "0" if the value is under ten
-            timeString.append(dt.getYear()).append("-");
 
-            if (dt.getMonthOfYear() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getMonthOfYear()).append("-");
+        DateTime dt = new DateTime(ts_Active);
+        StringBuilder timeString = new StringBuilder();
+        // add a leading "0" if the value is under ten
+        timeString.append(dt.getYear()).append("-");
+        timeString.append(addZero(dt.getMonthOfYear()));
+        timeString.append("-");
+        timeString.append(addZero(dt.getDayOfMonth()));
+        timeString.append(" ");
+        timeString.append(addZero(dt.getHourOfDay()));
+        timeString.append(":");
+        timeString.append(addZero(dt.getMinuteOfHour()));
+        return timeString.toString();
 
-            if (dt.getDayOfMonth() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getDayOfMonth()).append(" ");
+    }
 
-            if (dt.getHourOfDay() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getHourOfDay()).append(":");
-
-            if (dt.getMinuteOfHour() < 10)
-            {
-                timeString.append("0");
-            }
-            timeString.append(dt.getMinuteOfHour());
-
-            return timeString.toString();
-        }
+    /**
+     * Returns a String with the given number and an appended "0" if the number is between 0 and 9
+     * 
+     * @param no
+     *            the input number
+     * @return the number with a leading zero if between 0 and 9
+     */
+    public static String addZero(int no)
+    {
+        return no < 10 && no >= 0 ? "0" + no : "" + no;
     }
 
     /**
@@ -199,7 +192,7 @@ public class HelperUtils
         if (no == null)
         {// no number-param was delivered
 
-            if (context.getSessionCookie().get("no") != null)
+            if (context.getSession().get("no") != null)
             { // return with no action, because there is already a value set
                 return;
             }
@@ -228,7 +221,7 @@ public class HelperUtils
             }
         }
         // set the number to the session-cookie
-        context.getSessionCookie().put("no", value);
+        context.getSession().put("no", value);
     }
 
     /**

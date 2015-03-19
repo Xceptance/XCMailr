@@ -20,13 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import conf.XCMailrConf;
+import models.Domain;
+import models.MailTransaction;
+import models.PageList;
+import models.User;
+import models.UserFormData;
 import ninja.Context;
 import ninja.FilterWith;
 import ninja.Result;
@@ -34,15 +32,19 @@ import ninja.Results;
 import ninja.i18n.Messages;
 import ninja.params.Param;
 import ninja.params.PathParam;
+
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+
+import com.google.common.base.Optional;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 import etc.HelperUtils;
 import filters.AdminFilter;
 import filters.SecureFilter;
 import filters.WhitelistFilter;
-import models.Domain;
-import models.MailTransaction;
-import models.PageList;
-import models.User;
-import models.UserFormData;
 
 /**
  * Handles all Actions for the Administration-Section
@@ -68,7 +70,7 @@ public class AdminHandler
 
     @Inject
     CachingSessionHandler cachingSessionHandler;
-    
+
     private static final Pattern PATTERN_DOMAINS = Pattern.compile("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}");
 
     /**
@@ -102,7 +104,7 @@ public class AdminHandler
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
 
         // get the default number of entries per page
-        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
+        int entries = Integer.parseInt(context.getSession().get("no"));
 
         String searchString = context.getParameter("s", "");
         // generate the paged-list to get pagination in the template
@@ -143,7 +145,7 @@ public class AdminHandler
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
-        int entries = Integer.parseInt(context.getSessionCookie().get("no"));
+        int entries = Integer.parseInt(context.getSession().get("no"));
 
         // set a default value if there's no one given
         page = (page == 0) ? 1 : page;
@@ -167,9 +169,8 @@ public class AdminHandler
     public Result deleteMTXProcess(@PathParam("time") Integer time, Context context)
     {
         if (time == null)
-        {
             return Results.redirect(context.getContextPath() + "/admin/mtxs");
-        }
+
         if (time == -1)
         { // all entries will be deleted
             MailTransaction.deleteTxInPeriod(null);
@@ -197,48 +198,33 @@ public class AdminHandler
     {
         // get the user who executes this action
         User executingUser = context.getAttribute("user", User.class);
-        if (executingUser.getId() != userId)
-        { // the user to (de-)activate is not the user who performs this action
-
-            // activate or deactivate the user
-            boolean active = User.activate(userId);
-
-            // generate the (de-)activation-information mail and send it to the user
-            User user = User.getById(userId);
-            String from = xcmConfiguration.ADMIN_ADDRESS;
-            String host = xcmConfiguration.MB_HOST;
-
-            Optional<String> optLanguage = Optional.of(user.getLanguage());
-
-            if (active)
-            { // the account is now active
-              // generate the message title
-
-                String subject = messages.get("user_Activate_Title", optLanguage, host).get();
-                // generate the message body
-
-                String content = messages.get("user_Activate_Message", optLanguage, user.getForename()).get();
-                // send the mail
-                mailSender.sendMail(from, user.getMail(), content, subject);
-            }
-            else
-            {// the account is now inactive
-             // generate the message title
-                String subject = messages.get("user_Deactivate_Title", optLanguage, host).get();
-                // generate the message body
-                String content = messages.get("user_Deactivate_Message", optLanguage, user.getForename()).get();
-                // send the mail
-                mailSender.sendMail(from, user.getMail(), content, subject);
-
-                // delete the sessions of this user
-                cachingSessionHandler.deleteUsersSessions(User.getById(userId));
-            }
+        if (executingUser.getId() == userId)
+            // the admin wants to disable his own account, this is not allowed
             return Results.redirect(context.getContextPath() + "/admin/users");
+
+        // activate or deactivate the user
+        boolean active = User.activate(userId);
+
+        // generate the (de-)activation-information mail and send it to the user
+        User user = User.getById(userId);
+        String from = xcmConfiguration.ADMIN_ADDRESS;
+        String host = xcmConfiguration.MB_HOST;
+
+        Optional<String> optLanguage = Optional.of(user.getLanguage());
+
+        // generate the message title
+        String subject = messages.get(active ? "user_Activate_Title" : "user_Deactivate_Title", optLanguage, host)
+                                 .get();
+        // generate the message body
+        String content = messages.get(active ? "user_Activate_Message" : "user_Deactivate_Message", optLanguage,
+                                      user.getForename()).get();
+        // send the mail
+        mailSender.sendMail(from, user.getMail(), content, subject);
+        if (!active)
+        { // delete the sessions of this user
+            cachingSessionHandler.deleteUsersSessions(User.getById(userId));
         }
-        else
-        { // the admin wants to disable his own account, this is not allowed
-            return Results.redirect(context.getContextPath() + "/admin/users");
-        }
+        return Results.redirect(context.getContextPath() + "/admin/users");
     }
 
     /**
@@ -364,28 +350,29 @@ public class AdminHandler
     @FilterWith(WhitelistFilter.class)
     public Result handleRemoveDomain(Context context, @Param("action") String action, @Param("domainId") long domainId)
     {
-        if (!StringUtils.isBlank(action))
+        Result result = Results.redirect(context.getContextPath() + "/admin/whitelist");
+        if (StringUtils.isBlank(action))
+            return result;
+
+        if (action.equals("deleteUsersAndDomain"))
         {
-            if (action.equals("deleteUsersAndDomain"))
-            {
-                Domain domain = Domain.getById(domainId);
-                List<User> usersToDelete = User.getUsersOfDomain(domain.getDomainname());
+            Domain domain = Domain.getById(domainId);
+            List<User> usersToDelete = User.getUsersOfDomain(domain.getDomainname());
 
-                for (User userToDelete : usersToDelete)
-                { // delete the sessions of the users and the account
-                    cachingSessionHandler.deleteUsersSessions(userToDelete);
-                    User.delete(userToDelete.getId());
-                }
-                domain.delete();
+            for (User userToDelete : usersToDelete)
+            { // delete the sessions of the users and the account
+                cachingSessionHandler.deleteUsersSessions(userToDelete);
+                User.delete(userToDelete.getId());
             }
-
-            if (action.equals("deleteDomain"))
-            {// just delete the domain
-                Domain.delete(domainId);
-            }
+            domain.delete();
         }
+        else if (action.equals("deleteDomain"))
+        {// just delete the domain
+            Domain.delete(domainId);
+        }
+
         // if no action matches or the actions had been executed, redirect
-        return Results.redirect(context.getContextPath() + "/admin/whitelist");
+        return result;
     }
 
     /**
@@ -400,30 +387,30 @@ public class AdminHandler
     @FilterWith(WhitelistFilter.class)
     public Result addDomain(Context context, @Param("domainName") String domainName)
     {
-        if (!StringUtils.isBlank(domainName))
+        Result result = Results.redirect(context.getContextPath() + "/admin/whitelist");
+        if (StringUtils.isBlank(domainName))
         {
-            if (PATTERN_DOMAINS.matcher(domainName).matches())
-            {
-                if (!Domain.exists(domainName))
-                {
-                    Domain domain = new Domain(domainName);
-                    domain.save();
-                    context.getFlashCookie().success("adminAddDomain_Flash_Success");
-                }
-                else
-                { // the domain-name is already part of the domain-list
-                    context.getFlashCookie().error("adminAddDomain_Flash_DomainExists");
-                }
-            }
-            else
-            { // the validation of the domain-name failed
-                context.getFlashCookie().error("adminAddDomain_Flash_InvalidDomain");
-            }
+            // the input-string was empty
+            context.getFlashScope().error("adminAddDomain_Flash_EmptyField");
+            return result;
         }
-        else
-        { // the input-string was empty
-            context.getFlashCookie().error("adminAddDomain_Flash_EmptyField");
+
+        if (!PATTERN_DOMAINS.matcher(domainName).matches())
+        { // the validation of the domain-name failed
+            context.getFlashScope().error("adminAddDomain_Flash_InvalidDomain");
+            return result;
         }
-        return Results.redirect(context.getContextPath() + "/admin/whitelist");
+
+        if (Domain.exists(domainName))
+        { // the domain-name is already part of the domain-list
+            context.getFlashScope().error("adminAddDomain_Flash_DomainExists");
+            return result;
+        }
+
+        Domain domain = new Domain(domainName);
+        domain.save();
+        context.getFlashScope().success("adminAddDomain_Flash_Success");
+
+        return result;
     }
 }

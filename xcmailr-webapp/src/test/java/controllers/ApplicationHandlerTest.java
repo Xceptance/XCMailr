@@ -2,18 +2,18 @@ package controllers;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
 import models.User;
 import ninja.NinjaTest;
+
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
-
 import org.junit.Before;
 import org.junit.Test;
+
 import com.google.common.collect.Maps;
 
 import etc.HelperUtils;
@@ -73,7 +73,7 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user has been registered successfully
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         User user = User.getUsrByMail("admin@localhost.de");
         assertTrue(user.getForename().equals("John"));
         assertFalse(result.contains("FreeMarker template error"));
@@ -98,7 +98,7 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         /*
@@ -114,10 +114,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: no surname
          */
@@ -131,7 +131,7 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
     }
@@ -153,7 +153,7 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         /*
@@ -169,10 +169,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: wrong formatted mail2
          */
@@ -186,10 +186,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: wrong formatted mail3
          */
@@ -203,10 +203,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: wrong formatted mail4
          */
@@ -220,10 +220,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
     }
 
     @Test
@@ -242,10 +242,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: no password repetition
          */
@@ -259,10 +259,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: passwords didn't match
          */
@@ -276,10 +276,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: different passwords with upper and lower-cases
          */
@@ -293,10 +293,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: different passwords with upper and lower-cases (another way)
          */
@@ -310,10 +310,10 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "register", headers,
                                                                     formParams);
         // check if the user couldn't be registered
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
     }
 
     @Test
@@ -338,7 +338,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertFalse(user.isActive());
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: wrong verification-data
          */
@@ -360,10 +360,11 @@ public class ApplicationHandlerTest extends NinjaTest
         assertFalse(updateduser.isActive());
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: correct verification-data
          */
+
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "verify/" + user.getId() + "/"
                                               + user.getConfirmation());
         // the verification should be successful
@@ -374,7 +375,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(updateduser.isActive());
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
     }
 
     @Test
@@ -396,7 +397,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertFalse(user.isActive());
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: Get the lost-pw-form (correct confirm-token and userid)
          */
@@ -421,7 +422,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(result.equals(expected));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         User updatedUser = User.getById(user.getId());
         // the user should not be active
         assertFalse(updatedUser.isActive());
@@ -447,7 +448,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertFalse(user.isActive());
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: Form-Error (new password not set)
          */
@@ -455,11 +456,11 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("password2", "abc");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "lostpw/" + user.getId() + "/"
                                                                     + user.getConfirmation(), headers, formParams);
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertTrue(result.contains("form action=\"/lostpw"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: unequal passwords
          */
@@ -468,14 +469,14 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("password2", "abc");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "lostpw/" + user.getId() + "/"
                                                                     + user.getConfirmation(), headers, formParams);
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertTrue(result.contains("form action=\"/lostpw"));
 
         User updateuser = User.getById(user.getId());
         assertFalse(updateuser.isActive());
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: correct data (equal passwords)
          */
@@ -490,7 +491,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(updateuser.isActive());
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: re-use of the verification link should redirect to the index-page without any action
          */
@@ -498,8 +499,8 @@ public class ApplicationHandlerTest extends NinjaTest
                                                                     + user.getConfirmation(), headers, formParams);
         String expected = ninjaTestBrowser.makeRequest(getServerAddress());
         assertTrue(expected.equals(result));
-       assertFalse(result.contains("FreeMarker template error"));
-        
+        assertFalse(result.contains("FreeMarker template error"));
+
     }
 
     @Test
@@ -517,7 +518,7 @@ public class ApplicationHandlerTest extends NinjaTest
         user.save();
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: try to login with data which is not registered
          */
@@ -525,15 +526,15 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("mail", "admin00@this.de");
         formParams.put("password", "1234");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
-
-        // now there should be no session-cookie
-        assertTrue(ninjaTestBrowser.getCookieWithName("XCMailr_SESSION") == null);
+        Cookie flash = ninjaTestBrowser.getCookieWithName("XCMailr_FLASH");
+        assertNotNull(flash);
+        assertTrue(flash.getValue().contains("error"));
 
         // error message
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: try to login with no data
          */
@@ -542,13 +543,15 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("password", "");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
-        // now there should be no session-cookie
-        assertTrue(ninjaTestBrowser.getCookieWithName("XCMailr_SESSION") == null);
+        // now there should be an error-flash
+        flash = ninjaTestBrowser.getCookieWithName("XCMailr_FLASH");
+        assertNotNull(flash);
+        assertTrue(flash.getValue().contains("error"));
         // and an error message
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: try to login with a wrong password
          */
@@ -556,13 +559,15 @@ public class ApplicationHandlerTest extends NinjaTest
         formParams.put("mail", "admin@localhost.de");
         formParams.put("password", "baum");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
-        // now there should be no session-cookie
-        assertTrue(ninjaTestBrowser.getCookieWithName("XCMailr_SESSION") == null);
+        // now there should be an error-flash
+        flash = ninjaTestBrowser.getCookieWithName("XCMailr_FLASH");
+        assertNotNull(flash);
+        assertTrue(flash.getValue().contains("error"));
         // and an error message
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: test the successful login with an inactive user
          */
@@ -572,17 +577,14 @@ public class ApplicationHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
 
         // make sure that the success-page is displayed
-        assertTrue(result.contains("class=\"alert alert-error\">"));
-
-        // check the cookie, it should be null
-        Cookie cookie = ninjaTestBrowser.getCookieWithName("XCMailr_SESSION");
-        assertNull(cookie);
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         /*
          * TEST: activate the user and test the successful login
          */
+        user = User.getById(user.getId());
         user.setActive(true);
         user.update();
         formParams.clear();
@@ -594,13 +596,13 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(result.contains("class=\"alert alert-success\">"));
 
         // check the cookie
-        cookie = ninjaTestBrowser.getCookieWithName("XCMailr_SESSION");
+        Cookie cookie = ninjaTestBrowser.getCookieWithName("XCMailr_SESSION");
         assertTrue(cookie != null);
         assertTrue(cookie.getValue().contains("___TS"));
         assertTrue(cookie.getValue().contains("username"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
     }
 
     @Test
@@ -621,12 +623,12 @@ public class ApplicationHandlerTest extends NinjaTest
                                                                         formParams);
         }
         // an error message should be shown
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         // we should be redirected to the forgot-password page
         assertTrue(result.contains("form action=\"/pwresend\""));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
     }
 
     @Test
@@ -650,7 +652,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(cookie.getValue().contains("username"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         // test logout
         formParams.clear();
         formParams.put("mail", "admin@localhost.de");
@@ -664,7 +666,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(cookie == null);
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
     }
 
     @Test
@@ -695,13 +697,12 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(cookie.getValue().contains("username"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
-        
+
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/");
         assertTrue(result.contains("<a href=\"/logout\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
     }
 
     @Test
@@ -717,10 +718,9 @@ public class ApplicationHandlerTest extends NinjaTest
         // the form should be shown again
         assertTrue(result.contains("form action=\"/pwresend\""));
         // and an error message
-        assertTrue(result.contains("class=\"alert alert-error\">"));
+        assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
 
         User user = new User("firstName", "surname", "admin@localhost.de", "1234", "en");
         user.setActive(true);
@@ -734,7 +734,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(result.contains("class=\"alert alert-success\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
+
         // succes should also be shown with a wrong address..
         formParams.put("mail", "admin@xcmlr123456x.t2113ee");
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "pwresend", headers,
@@ -743,7 +743,6 @@ public class ApplicationHandlerTest extends NinjaTest
         assertTrue(result.contains("class=\"alert alert-success\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
-        
 
     }
 

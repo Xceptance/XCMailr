@@ -86,19 +86,19 @@ public class MBoxTest extends NinjaTest
     public void getTsAsStringTest()
     {
 
-        assertTrue(mailbox.getTSAsString().equals("unlimited"));
+        assertTrue(mailbox.getDatetime().equals("unlimited"));
         // year, month, day, hour, minute
         DateTime dt = new DateTime(2013, 1, 1, 1, 1);
         mailbox.setTs_Active(dt.getMillis());
-        assertTrue(mailbox.getTSAsString().equals("2013-01-01 01:01"));
+        assertTrue(mailbox.getDatetime().equals("2013-01-01 01:01"));
 
         dt = new DateTime(2013, 1, 12, 11, 1);
         mailbox.setTs_Active(dt.getMillis());
-        assertTrue(mailbox.getTSAsString().equals("2013-01-12 11:01"));
+        assertTrue(mailbox.getDatetime().equals("2013-01-12 11:01"));
 
         dt = new DateTime(2013, 11, 11, 11, 11);
         mailbox.setTs_Active(dt.getMillis());
-        assertTrue(mailbox.getTSAsString().equals("2013-11-11 11:11"));
+        assertTrue(mailbox.getDatetime().equals("2013-11-11 11:11"));
 
     }
 
