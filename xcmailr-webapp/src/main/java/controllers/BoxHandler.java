@@ -219,7 +219,7 @@ public class BoxHandler
             result.render("currentBox", addBoxDialogData);
             return result.render("success", false).render("statusmsg", errorMessage);
         }
-        Long ts = HelperUtils.parseTimeString(addBoxDialogData.getDatetime());
+        Long ts = addBoxDialogData.getTs_Active();
         if (ts == -1L)
         { // show an error-page if the timestamp is faulty
             errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
@@ -451,11 +451,6 @@ public class BoxHandler
         User usr = context.getAttribute("user", User.class);
         if (mailBox == null || !mailBox.belongsTo(usr.getId()))
         { // box does not belong to this user or does not exist
-            if (mailBox != null)
-            {
-                mailboxFormData = MBox.getById(mailBox.getId());
-                result.render("currentBox", mailboxFormData);
-            }
             errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
             result.render("success", false);
             return result.render("statusmsg", errorMessage);
@@ -488,7 +483,7 @@ public class BoxHandler
             mailBox.setDomain(newDomainPartName);
             changes = true;
         }
-        Long ts = HelperUtils.parseTimeString(mailboxFormData.getDatetime());
+        Long ts = mailboxFormData.getTs_Active();
         if (ts == -1)
         { // a faulty timestamp was given -> return an errorpage
             errorMessage = messages.get("flash_FormError", context, Optional.of(result)).get();
@@ -544,7 +539,7 @@ public class BoxHandler
         String errorMessage = "";
         if (!mailBox.belongsTo(user.getId()))
         { // box does not belong to this user -> error
-            errorMessage = "Box does not belong to this user";
+            errorMessage = messages.get("flash_BoxToUser", context, Optional.of(result)).get();
             return result.render("success", false).render("statusmsg", errorMessage);
         }
         // check, whether the mailbox belongs to the current user
