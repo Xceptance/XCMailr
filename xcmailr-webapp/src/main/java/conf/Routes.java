@@ -83,7 +83,7 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/mail/bulkNewDate").with(BoxHandler.class, "bulkNewDate");
         
         router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxByJson");
-        
+//        
         router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxJson");
         router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBoxJson");
         
@@ -126,7 +126,8 @@ public class Routes implements ApplicationRoutes
         /*
          * Assets-Handling (Ninja's AssetsController)
          */
-        router.GET().route("/assets/.*").with(AssetsController.class, "serve");
+        router.GET().route("/assets/webjars/{fileName: .*}").with(AssetsController.class, "serveWebJars");
+        router.GET().route("/assets/{fileName: .*}").with(AssetsController.class, "serveStatic");
 
     }
 

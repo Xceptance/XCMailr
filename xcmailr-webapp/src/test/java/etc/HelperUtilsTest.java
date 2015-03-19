@@ -1,6 +1,10 @@
 package etc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Map;
 
 import org.joda.time.DateTime;
@@ -122,6 +126,9 @@ public class HelperUtilsTest
 
         correctFormat = HelperUtils.hasCorrectFormat("2013-12-12    12:21");
         assertFalse(correctFormat);
+
+        correctFormat = HelperUtils.hasCorrectFormat("2x, 2h");
+        assertFalse(correctFormat);
     }
 
     @Test
@@ -140,6 +147,8 @@ public class HelperUtilsTest
         ts = HelperUtils.parseTimeString("2013-12-12   12:12");
         assertEquals(-1L, ts);
 
+        ts = HelperUtils.parseTimeString("2x, 2h");
+        assertEquals(-1L, ts);
     }
 
 }

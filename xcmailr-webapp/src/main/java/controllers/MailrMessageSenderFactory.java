@@ -16,17 +16,8 @@
  */
 package controllers;
 
-import models.MBox;
-import models.MailTransaction;
-import models.User;
-import ninja.i18n.Messages;
-import ninja.utils.NinjaProperties;
-import org.slf4j.Logger;
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import conf.XCMailrConf;
 import java.util.Properties;
+
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
@@ -35,6 +26,20 @@ import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+
+import models.MBox;
+import models.MailTransaction;
+import models.User;
+import ninja.i18n.Messages;
+import ninja.utils.NinjaProperties;
+
+import org.slf4j.Logger;
+
+import com.google.common.base.Optional;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 
 /**
  * Handles all Actions for outgoing Mails
@@ -68,24 +73,24 @@ public class MailrMessageSenderFactory
      */
     public Session getSession()
     {
-        if (session == null)
-        {
-            // set the data from application.conf
-            Properties properties = System.getProperties();
-            properties.put("mail.smtp.host", xcmConfiguration.OUT_SMTP_HOST);
-            properties.put("mail.smtp.port", xcmConfiguration.OUT_SMTP_PORT);
-            properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
-            properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
-            properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
+        if (session != null)
+            return session;
 
-            session = Session.getInstance(properties, new javax.mail.Authenticator()
+        // set the data from application.conf
+        Properties properties = System.getProperties();
+        properties.put("mail.smtp.host", xcmConfiguration.OUT_SMTP_HOST);
+        properties.put("mail.smtp.port", xcmConfiguration.OUT_SMTP_PORT);
+        properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
+        properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
+        properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
+
+        session = Session.getInstance(properties, new javax.mail.Authenticator()
+        {
+            protected PasswordAuthentication getPasswordAuthentication()
             {
-                protected PasswordAuthentication getPasswordAuthentication()
-                {
-                    return new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER, xcmConfiguration.OUT_SMTP_PASS);
-                }
-            });
-        }
+                return new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER, xcmConfiguration.OUT_SMTP_PASS);
+            }
+        });
         return session;
     }
 
@@ -142,7 +147,7 @@ public class MailrMessageSenderFactory
      * @param to
      *            Recipients-Address
      * @param forename
-     *            Forename of the Recipient
+     *            first-name of the Recipient
      * @param id
      *            {@link User}-ID of the Recipient
      * @param token
@@ -261,14 +266,9 @@ public class MailrMessageSenderFactory
                     if (xcmConfiguration.MTX_MAX_AGE != 0)
                     {// if mailtransaction.maxage is set to 0 -> log nothing
                      // log the transaction
-                        if (mailBox != null)
-                        {
-                            mtx = new MailTransaction(300, from, mailBox.getFullAddress(), recipient);
-                        }
-                        else
-                        {
-                            mtx = new MailTransaction(300, from, null, recipient);
-                        }
+                        mtx = new MailTransaction(300, from, mailBox == null ? null : mailBox.getFullAddress(),
+                                                  recipient);
+
                         addMtxToJCList(mtx);
                     }
                     log.info("Message sent, From: " + from + " To:" + recipient);
@@ -283,7 +283,7 @@ public class MailrMessageSenderFactory
             {
                 // the message sending-process failed
                 // log it
-                if (xcmConfiguration.MTX_MAX_AGE != 0)
+                if (xcmConfiguration.MTX_MAX_AGE != 0 && mailBox != null)
                 { // if mailtransaction.maxage is set to 0 -> log nothing
                     mtx = new MailTransaction(400, from, mailBox.getFullAddress(), recipient);
                     addMtxToJCList(mtx);

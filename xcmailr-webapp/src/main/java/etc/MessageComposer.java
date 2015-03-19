@@ -1,6 +1,7 @@
 package etc;
 
 import java.io.IOException;
+
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -14,13 +15,13 @@ public class MessageComposer
 
     private static void appendFieldValuesToStringBuffer(String[] input, StringBuffer buf)
     {
-        if (input != null)
+        if (input == null)
+            return;
+
+        for (String field : input)
         {
-            for (String field : input)
-            {
-                field = StringEscapeUtils.escapeHtml(field);
-                buf.append(field);
-            }
+            field = StringEscapeUtils.escapeHtml(field);
+            buf.append(field);
         }
     }
 

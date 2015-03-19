@@ -1,4 +1,13 @@
 # Changelog
+## Version 1.1.5
+* switch to latest ninja-framework 3.3.3
+* switch from bootstrap 2 to 3
+* updated jquery to version 1.11.1
+* updated ui-bootstrap to version 0.11.2
+* added bootstrap3-typeahead, as the new bootstrap has removed its own typeahead-component and recommends using twitter-typeahead (which is not working well with bootstrap, due to css-problems) see: https://github.com/bassjobsen/Bootstrap-3-Typeahead
+* minor fixes
+* refactoring of all java classes
+
 ## Version 1.1.4
 * new UI for the email-address handling using angularJS
 * fixed a bug in the session handling (changes to the user-profile will be immediately visible)

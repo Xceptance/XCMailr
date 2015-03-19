@@ -1,8 +1,8 @@
 # XCMailr
 ## Summary
 * Name: XCMailr
-* Version: 1.1.4
-* Release: Sept. 2013
+* Version: 1.1.5
+* Release: Nov. 2014
 * License: Apache V2.0
 * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
 * Tags: AntiSpam, Testutility
@@ -80,13 +80,17 @@ So you host XCMailr yourself, you control security, you control availability, yo
 * http://angularjs.org
 * MIT-License: http://github.com/angular/angular.js/blob/master/LICENSE
 
+### AngularUI-Bootstrap
+* https://github.com/angular-ui/bootstrap
+* MIT-License: https://github.com/angular-ui/bootstrap/blob/master/LICENSE
+
 ### Avaje Ebean 
 * http://www.avaje.org/
 * LGPL: http://www.gnu.org/licenses/lgpl.html
 
 ### Bootstrap Datetimepicker
-* http://tarruda.github.io/bootstrap-datetimepicker/
-* Apache V2.0 License: http://www.apache.org/licenses/LICENSE-2.0
+* https://github.com/Eonasdan/bootstrap-datetimepicker
+* MIT-License: https://github.com/Eonasdan/bootstrap-datetimepicker/blob/master/LICENSE
 
 ### H2 Database Engine
 * http://www.h2database.com/
@@ -99,37 +103,44 @@ So you host XCMailr yourself, you control security, you control availability, yo
 * http://glyphicons.com/
 * Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
 
-### Jetty 6
+### JBCrypt - a Java BCrypt implementation 
+* Copyright (c) 2006 Damien Miller
+* http://www.mindrot.org/projects/jBCrypt/
+* ISC/BSD License: http://www.mindrot.org/files/jBCrypt/LICENSE
+
+### Jetty 9
 * http://www.eclipse.org/jetty/
 * Apache V2.0 License: http://www.apache.org/licenses/LICENSE-2.0
-     
+
+### JodaTime
+* http://joda-time.sourceforge.net
+* Apache V2.0 License: http://joda-time.sourceforge.net/license.html
+
 ### jQuery Tablesorter 2.0 plugin
 * http://tablesorter.com
 * Dual licensed 
  * MIT-License: http://www.opensource.org/licenses/mit-license.php
  * GPL: http://www.opensource.org/licenses/gpl-license.php
 
-### Spymemcached
-* http://code.google.com/p/spymemcached/
-* MIT-License: http://www.opensource.org/licenses/mit-license.php
-
-### JBCrypt - a Java BCrypt implementation 
-* Copyright (c) 2006 Damien Miller
-* http://www.mindrot.org/projects/jBCrypt/
-* ISC/BSD License: http://www.mindrot.org/files/jBCrypt/LICENSE
-
-### JodaTime
-* http://joda-time.sourceforge.net
-* Apache V2.0 License: http://joda-time.sourceforge.net/license.html
+### Moment
+* https://github.com/moment/moment/ 
+* MIT-License: https://github.com/moment/moment/blob/develop/LICENSE
 
 ### NinjaFramework
 * http://www.ninjaframework.org/
 * Apache V2.0 License: https://github.com/reyez/ninja/blob/develop/license.txt
 
+### Spymemcached
+* http://code.google.com/p/spymemcached/
+* MIT-License: http://www.opensource.org/licenses/mit-license.php
+
 ### Twitter Bootstrap
-* Copyright 2011 Twitter, Inc.
-* http://twitter.github.io/bootstrap/
-* Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
+* https://github.com/twbs/bootstrap
+* MIT-License: https://github.com/twbs/bootstrap/blob/master/LICENSE
+
+### Twitter Bloodhound (as part of Typeahead)
+* https://github.com/twitter/typeahead.js
+* MIT-License: https://github.com/twitter/typeahead.js/blob/master/LICENSE
 
 ## License
 XCMailr is licensed under the Apache Version 2.0 license.

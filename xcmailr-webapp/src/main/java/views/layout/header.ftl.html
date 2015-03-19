@@ -1,14 +1,13 @@
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="${contextPath}/">${i18n("app_Name")}</a>
-          <div class="nav-collapse">
-            <ul class="nav">
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+				<span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="${contextPath}/">${i18n("app_Name")}</a>
+		</div>
+		<div class="navbar-collapse collapse">
+			<ul class="nav navbar-nav">
 				<#if (session.username)??>
 				<#if (mboxes)??>
 				  	<li class="active"><a href="${contextPath}/mail">${i18n("menu_Link_Mb")}</a></li>
@@ -16,7 +15,7 @@
 				  	<li><a href="${contextPath}/mail">${i18n("menu_Link_Mb")}</a></li>
 				  </#if>                     
             </ul>
-            <ul class="nav pull-right">
+            <ul class="nav navbar-nav navbar-right">
             		<li class="nav navbar-text" id="headerUsername">${session.username}</li>
             	<#if (session.adm)??>
 	            	<li><a href="${contextPath}/admin">Admin</a></li>
@@ -45,7 +44,6 @@
           </div><!--/.nav-collapse -->
         </div><!-- /container -->
       </div><!-- /navbar-inner -->
-    </div><!-- /navbar -->
     <script type="text/javascript" src="${contextPath}/assets/js/stringreplacetooltip.js"></script>
 	<script type="text/javascript">
 	$(document).ready(replaceUserName());

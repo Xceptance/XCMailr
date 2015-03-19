@@ -15,8 +15,8 @@
       padding-bottom: 40px;
     }
   </style>
-  <link href="${contextPath}/assets/css/bootstrap-responsive.css" rel="stylesheet">
-  <link href="${contextPath}/assets/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+  <link href="${contextPath}/assets/css/bootstrap-theme.css" rel="stylesheet">
+  <link href="${contextPath}/assets/css/bootstrap-datetimepicker.css" rel="stylesheet">
   <link href="${contextPath}/assets/css/ownStyle.css" rel="stylesheet">
 
   <script src="${contextPath}/assets/js/jquery.js"></script>
@@ -32,8 +32,7 @@
   <link rel="apple-touch-icon-precomposed" sizes="72x72" href="${contextPath}/assets/ico/apple-touch-icon-72-precomposed.png">
   <link rel="apple-touch-icon-precomposed" href="${contextPath}/assets/ico/apple-touch-icon-57-precomposed.png">
   <script type="text/javascript" src="${contextPath}/assets/js/angular.min.js"> </script>
-  <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-0.4.0.js"> </script>
-  <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-tpls-0.4.0.js"> </script>
+  <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-tpls-0.11.2.min.js"> </script>
   <script type="text/javascript" src="${contextPath}/assets/js/controllers.js"> </script>
 </head>
 <body>
@@ -41,26 +40,30 @@
 <div class="container">
 <div class="container-fluid">
 <!-- start page -->
-<div class="row-fluid" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
+<div class="row" ng-controller="BoxListCtrl" id="overViewCtrl" ng-init="init('${contextPath}')">
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
-	<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.message}}</alert>
-	<div class="input-prepend pull-left">
-		<input type="text" placeholder="${i18n('mailbox_Button_Search')}" ng-model="searchString" ng-change="search2()">
-		<a class="btn" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="icon-remove-circle"></i></a>
+	<alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.message}}</alert>
+	<div class="input-group col-sm-2 pull-left"> 
+		<input type="text" class="form-control" placeholder="${i18n('mailbox_Button_Search')}" ng-model="searchString" ng-change="search2()">
+        <span class="input-group-btn">
+		<button type="button" class="btn btn-default" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="glyphicon glyphicon-remove-circle"></i></button>
+		</span>
+		
 	</div>
 	<form action="${contextPath}/mail/myselectedmaillist.txt" name="selectedMailForm" method="post">
 		<input type="hidden" name="jsonObj" value="{{selected}}"/>
 	</form>
-	<div class="pull-right">
+	<div class="col-sm-10 pull-right">
 		<div>
+		<div class="btn-toolbar" role="toolbar">
 			<div class="btn-group pull-right">
-				<a class="btn btn-small" ng-click="updateModel()">
-					<i class="icon-repeat"></i> ${i18n("mailbox_Button_Refresh")}
-				</a>
-				<a href="javascript:;" class="btn btn-small" data-ng-click="openAddBoxDialog()">
-					<i class="icon-plus-sign"></i> ${i18n("mailbox_Button_AddAddress")} 
-				</a>
-			   	<a class="btn btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></a>
+				<button class="btn btn-default btn-small" ng-click="updateModel()">
+					<i class="glyphicon glyphicon-repeat"></i> ${i18n("mailbox_Button_Refresh")}
+				</button>
+				<button class="btn btn-default btn-small" data-ng-click="openAddBoxDialog()">
+					<i class="glyphicon glyphicon-plus-sign"></i> ${i18n("mailbox_Button_AddAddress")} 
+				</button>
+			   	<button class="btn btn-default btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></button>
 		   		<ul class="dropdown-menu">
 					<li><a href="javascript:;" data-ng-click="showSelected()">${i18n("mailbox_Dropdown_ShowSelected")}</a></li>
 					<li><a href="javascript:;" onClick="selectedMailForm.submit()">${i18n("mailbox_Dropdown_ShowSelectedTxt")}</a></li>
@@ -72,6 +75,7 @@
 					<li><a href="javascript:;" data-ng-click="bulkResetBox()">${i18n("mailbox_Dropdown_BulkReset")}</a></li>
 				</ul>
 			</div>	
+			</div>
 		</div>
 		<br/>
 	</div>
@@ -104,31 +108,31 @@
 	    	<td colspan="5">
 	    		${i18n("mailbox_Label_NoEntries")} 		    	
 		    	<a href="javascript:;" class="btn btn-link" data-ng-click="openAddBoxDialog()">
-						<i class=" icon-plus-sign"></i> ${i18n("mailbox_Label_AskForNewAddress")}
+						<i class="glyphicon glyphicon-plus-sign"></i> ${i18n("mailbox_Label_AskForNewAddress")}
 				</a>
 			</td>
 	    	</tr>
 	    <!-- end no-addresses-row -->
-			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{true:'error', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overMouse = true; overId=$index" ng-mouseleave="overMouse=false">   
+			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{true:'danger', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overMouse = true; overId=$index" ng-mouseleave="overMouse=false">   
 		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]" ng-checked="selected[mBox.id]"></td>
 				<td class="mbAddress">
 					{{mBox.address}}&#064;{{mBox.domain}}<br/>
 				<!-- start inline menu -->
 			        <span ng-show="overMouse && ($index == overId)" > 
 		                <a class="btn btn-mini btn-link" ng-if="!mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" value='${i18n("mailbox_Button_Deactivate")}'>  
-		                	<i class="icon-pause"></i> ${i18n("mailbox_Button_Deactivate")}
+		                	<i class="glyphicon glyphicon-pause"></i> ${i18n("mailbox_Button_Deactivate")}
 		                </a>
-						<a  class="btn btn-mini btn-link" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox({{mBox.id}}, $index)" value='${i18n("mailbox_Button_Deactivate")}'>  
-		                	<i class="icon-play"></i> ${i18n("mailbox_Button_Activate")}
+						<a  class="btn btn-mini btn-link" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" value='${i18n("mailbox_Button_Deactivate")}'>  
+		                	<i class="glyphicon glyphicon-play"></i> ${i18n("mailbox_Button_Activate")}
 		                </a> 
 		    			<a class="btn btn-mini btn-link" ng-click="openDeleteBoxDialog($index)">
-		    				<i class="icon-trash"></i> ${i18n("mailbox_Button_Delete")}
+		    				<i class="glyphicon glyphicon-trash"></i> ${i18n("mailbox_Button_Delete")}
 		    			</a>
-		                <a class="btn btn-mini btn-link" ng-click="resetBox({{mBox.id}}, $index)">
-		    				<i class="icon-repeat"></i> ${i18n("mailbox_Button_Reset")}
+		                <a class="btn btn-mini btn-link" ng-click="resetBox(mBox.id, $index)">
+		    				<i class="glyphicon glyphicon-repeat"></i> ${i18n("mailbox_Button_Reset")}
 		    			</a>
 			        	<a ng-click="openEditBoxDialog($index)"  class="btn btn-mini btn-link">
-			        		<i class="icon-edit"></i> ${i18n("mailbox_Button_Edit")}
+			        		<i class="glyphicon glyphicon-edit"></i> ${i18n("mailbox_Button_Edit")}
 			        	</a>
 			        </span>
 				<!-- end inline menu -->
@@ -149,27 +153,28 @@
 		<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
 	</div>
 <!-- end page -->
-    <div class="row-fluid" ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
+    <div class="row" ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
 	  	<div class="pull-left">
-		    <pagination num-pages="noOfPages" current-page="currentPage" items-per-page="itemsPerPage" max-size="maxSize"></pagination>
+		    <pagination total-items="allBoxes.length" ng-model="currentPage" items-per-page="itemsPerPage" max-size="maxSize"></pagination>
 	    </div>
-	    <div class="pagination pull-right">
-			<ul>
+	    <div class=" pull-right">
+			<ul class="pagination">
 				<li class="disabled"><a>${i18n("macro_EntriesPerPage")}</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(5)">5</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(15)">15</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(25)">25</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(50)">50</a></li>
-				<li><a class="btn btn-link btn-small" ng-click="setItemsPerPage(0)">all</a></li>
+				<li><a ng-click="setItemsPerPage(5)">5</a></li>
+				<li><a ng-click="setItemsPerPage(15)">15</a></li>
+				<li><a ng-click="setItemsPerPage(25)">25</a></li>
+				<li><a ng-click="setItemsPerPage(50)">50</a></li>
+				<li><a ng-click="setItemsPerPage(0)">all</a></li>
 			</ul>
 		</div>
-	</div><!-- /row-fluid -->
-</div><!-- /row-fluid (of boxctrl) -->
+	</div><!-- /row -->
+</div><!-- /row (of boxctrl) -->
 </div> <!-- /container-fluid -->
 <#include "../layout/footer.ftl.html"/>
 </div> <!-- /container -->
+<script type="text/javascript" src="${contextPath}/assets/js/moment-with-locales.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
-<script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script> 
+<!-- <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script>  -->
 </body>
 </html>
 
