@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 
 import etc.HelperUtils;
-import etc.MBoxTestModel;
 
 public class BoxHandlerTest extends NinjaTest
 {
@@ -36,7 +35,7 @@ public class BoxHandlerTest extends NinjaTest
 
     Map<String, String> boxData = Maps.newHashMap();
 
-    MBoxTestModel testMb;
+    MBox testMb;
 
     static ObjectMapper objectMapper;
 
@@ -88,7 +87,8 @@ public class BoxHandlerTest extends NinjaTest
          */
         // logout
         ninjaTestBrowser.makeRequest(getServerAddress() + "/logout");
-        testMb = new MBoxTestModel("abox", "xcmailr.test", 0L, false, user, "0");
+        testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
+
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
         // verify that the login-page is shown (check for menu with register-field and the login-form-action)
         assertTrue(result.contains("\"error\":\"nologin\""));
@@ -115,7 +115,7 @@ public class BoxHandlerTest extends NinjaTest
         assertFalse(result.contains("<title>404 - not found</title>"));
 
         // add the box
-        testMb = new MBoxTestModel("abox", "xcmailr.test", 0L, false, user, "0");
+        testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
 
         // check that the add of the mbox was successful
@@ -131,7 +131,7 @@ public class BoxHandlerTest extends NinjaTest
          */
 
         // add the box
-        testMb = new MBoxTestModel("abox", "xcmailr.test", 0L, false, user, "0");
+        testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
 
         // check that the add of the mbox was not successful
@@ -144,7 +144,7 @@ public class BoxHandlerTest extends NinjaTest
          */
 
         // add the box
-        testMb = new MBoxTestModel();
+        testMb = new MBox();
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
 
         // check that the add of the mbox was not successful
@@ -159,7 +159,8 @@ public class BoxHandlerTest extends NinjaTest
          */
 
         // add the box
-        testMb = new MBoxTestModel("mf8h33333wft", "xcmailr.test", 1408556945594L, false, user, "2d,3xqwjk");
+        testMb = setValues(new MBox(), "mf8h33333wft", "xcmailr.test", 1408556945594L, false, user);
+        testMb.setDateTime("2d,3xqwjk");
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
 
         // check that the add of the mbox was successful
@@ -177,7 +178,11 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
         long timeStamp = DateTime.now().minusHours(3).getMillis();
         String ts = HelperUtils.parseStringTs(timeStamp);
-        testMb = new MBoxTestModel("abox", "xcmailr.test", timeStamp, false, user, ts);
+
+        testMb = setValues(new MBox(), "abox", "xcmailr.test", timeStamp, false, user);
+        testMb.setDateTime(ts);
+        //TODO
+//        testMb = new MBoxTestModel("abox", "xcmailr.test", timeStamp, false, user, ts);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
 
         // check that the add of the mbox was not successful
@@ -196,7 +201,8 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: Try to add a Box with an invalid local part
          */
         // add the box
-        testMb = new MBoxTestModel("$$³@@@..", "xcmailr.test", 0L, false, user, "0");
+
+        testMb = setValues(new MBox(), "$$³@@@..", "xcmailr.test", 0L, false, user);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
 
         // check that the add of the mbox failed and the overview-page is shown
@@ -210,9 +216,8 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: Try to add a Box with a local part that is more than 64chars long
          */
         // add the box
-        testMb = new MBoxTestModel(
-                                   "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
-                                   "xcmailr.test", 0L, false, user, "0");
+
+        testMb = setValues(new MBox(), "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a", "xcmailr.test", 0L, false, user);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
         // check that the add of the mbox failed and the overview-page is shown
         assertTrue(result.contains("\"success\":false"));
@@ -226,10 +231,12 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: Try to add a Box which has more than 254 chars
          */
         // add the box
-        testMb = new MBoxTestModel(
-                                   "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
-                                   "a12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890a.test",
-                                   0L, false, user, "0");
+
+        testMb = setValues(new MBox(), "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a", "a12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890a", 0L, false, user);
+        // testMb = new MBoxTestModel(
+        // "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
+        // "a12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890a.test",
+        // 0L, false, user, "0");
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
         // check that the add of the mbox failed and the overview-page is shown
         assertTrue(result.contains("\"success\":false"));
@@ -251,7 +258,8 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: Try to add a Box with a domain which is not set in application.conf
          */
         // add the box
-        testMb = new MBoxTestModel("abox", "xcmlr.abc", 0L, false, user, "0");
+
+        testMb = setValues(new MBox(), "abox", "xcmailr.abc", 0L, false, user);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
         // check that the add of the mbox failed and the overview-page is shown
         assertTrue(result.contains("\"success\":false"));
@@ -264,7 +272,8 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: Try to add a Box with a domain which contains special-chars, etc.
          */
         // add the box
-        testMb = new MBoxTestModel("abox", "xcmlr@a.abc", 0L, false, user, "0");
+
+        testMb = setValues(new MBox(), "abox", "xcmlr@a.abc", 0L, false, user);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
         // check that the add of the mbox has failed
         assertTrue(result.contains("\"success\":false"));
@@ -283,7 +292,8 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: Delete a Mailbox
          */
         // add the box
-        testMb = new MBoxTestModel("abox", "xcmailr.test", 0L, false, user, "0");
+
+        testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
         MBox mb = MBox.getByName("abox", "xcmailr.test");
         assertNotNull(mb);
@@ -376,7 +386,7 @@ public class BoxHandlerTest extends NinjaTest
         }
         // try to edit a mailbox that does not exist
         formParams.clear();
-        MBoxTestModel jsm = new MBoxTestModel();
+        MBox jsm = new MBox();
         jsm.setAddress("fdjskla");
         jsm.setTs_Active(0);
         jsm.setDomain("xcmailr.test");
@@ -421,7 +431,7 @@ public class BoxHandlerTest extends NinjaTest
         // change the local-part of the mbox and the timestamp
         jsm.setAddress("abcde");
         DateTime dt = new DateTime().plusHours(1);
-         jsm.setDatetime(HelperUtils.parseStringTs(dt.getMillis()));
+         jsm.setDateTime(HelperUtils.parseStringTs(dt.getMillis()));
 
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
         assertTrue(result.contains("\"success\":true"));
@@ -432,7 +442,7 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: a wrong timestamp
          */
 
-         jsm.setDatetime("01-01-00");
+         jsm.setDateTime("01-01-00");
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
         assertTrue(result.contains("\"success\":false"));
         assertFalse(result.contains("FreeMarker template error"));
@@ -774,5 +784,15 @@ public class BoxHandlerTest extends NinjaTest
      assertNull(mailbox1new);
      assertNull(mailbox2new);
      assertNull(mailbox3new);
+     }
+     
+     private MBox setValues(MBox testMbox, String local, String domain, long ts, boolean expired, User usr){
+         testMbox.setAddress(local);
+         testMbox.setDomain(domain);
+         testMbox.setTs_Active(ts);
+         testMbox.setExpired(expired);
+         testMbox.setUsr(usr);
+         
+         return testMbox;
      }
 }

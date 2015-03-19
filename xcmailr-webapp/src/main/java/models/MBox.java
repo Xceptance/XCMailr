@@ -328,7 +328,6 @@ public class MBox extends AbstractEntity implements Serializable
     @JsonIgnore
     public void setTs_Active(long ts_Active)
     {
-        System.out.println("setting ts active: "+ts_Active);
         this.ts_Active = ts_Active;
     }
     
@@ -339,7 +338,6 @@ public class MBox extends AbstractEntity implements Serializable
      */
     @JsonProperty("datetime")
     public void setDateTime(String dateTime){
-        System.out.println("datetime: "+dateTime);
         this.setTs_Active(HelperUtils.parseTimeString(dateTime));
     }
 
