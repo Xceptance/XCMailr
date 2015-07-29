@@ -88,7 +88,7 @@ public class MailrMessageSenderFactory
         {
             protected PasswordAuthentication getPasswordAuthentication()
             {
-                return new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER, xcmConfiguration.OUT_SMTP_PASS);
+                return xcmConfiguration.OUT_SMTP_AUTH ? new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER, xcmConfiguration.OUT_SMTP_PASS) : null;
             }
         });
         return session;
