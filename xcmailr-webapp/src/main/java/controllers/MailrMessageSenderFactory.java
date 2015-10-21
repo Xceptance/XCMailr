@@ -83,7 +83,10 @@ public class MailrMessageSenderFactory
         properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
         properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
         properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
-
+//      TODO maybe impossible, maybe the SMTP server just doesn't like it  
+        // request return-path = <> (no automatic responses/notifications)
+//      properties.put("mail.smtp.from", "<>"); 
+        
         session = Session.getInstance(properties, new javax.mail.Authenticator()
         {
             protected PasswordAuthentication getPasswordAuthentication()
@@ -123,6 +126,7 @@ public class MailrMessageSenderFactory
             message.setSubject(subject);
             message.setText(content);
             message.saveChanges();
+            
             // send the mail in an own thread
             ThreadedMailSend tms = new ThreadedMailSend(message);
             tms.start();

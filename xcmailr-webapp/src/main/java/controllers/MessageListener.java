@@ -16,6 +16,7 @@
  */
 package controllers;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -68,6 +69,7 @@ public class MessageListener implements SimpleMessageListener
         String[] splitaddress = recipient.split("@");
 
         List<String> domainlist = Arrays.asList(xcmConfiguration.DOMAIN_LIST);
+               
         if ((splitaddress.length == 2) && (domainlist.contains(splitaddress[1])))
             return true;
 
@@ -133,6 +135,27 @@ public class MessageListener implements SimpleMessageListener
                 return;
             }
 
+            // check for a possible loop ...
+    		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			final String loopHeader = "X-Loop";
+			final String loopHeaderContent = "Loopbreaker-" + recipient; 
+    		try {
+    			mail.writeTo(outputStream);
+    			String mailAsString = outputStream.toString();
+        		outputStream.close();
+    			if (mailAsString.contains(loopHeader) && mailAsString.contains(loopHeaderContent)) {
+    				// log it and return false
+    				log.info("Broke a possible loop");	
+    				log.info("From: " + from + " To:" + recipient);
+    				// TODO refine error message
+    				return;
+    			}
+    		}
+    		catch (IOException e) {
+    			log.error("Coudn't write mail to stream for some reason");
+    			return;
+    		}
+            
             // there's an existing and active mail-address
             // add the target-address to the list
             try
@@ -148,10 +171,17 @@ public class MessageListener implements SimpleMessageListener
                 mail.removeHeader("Cc");
                 mail.removeHeader("BCC");
 
-                mail.setSender(new InternetAddress(recipient));
+                mail.setSender(new InternetAddress(recipient));			
                 mail.setFrom(new InternetAddress(recipient));
+                // intention: set from to the incoming email adress, set the sender to xcmailers one
+                // for clarity. Not sure if it doesn't work because of the smtp server
+                // or because of something else.
+//TODO          mail.setFrom(new InternetAddress(from));		
                 mail.addHeader("X-FORWARDED-FROM", from);
 
+                // Set a custom header to break possible loops later
+                mail.addHeader(loopHeader, loopHeaderContent);
+                
                 // send the mail in a separate thread
                 MailrMessageSenderFactory.ThreadedMailSend tms = mailrSenderFactory.new ThreadedMailSend(mail, mailBox);
                 tms.start();
