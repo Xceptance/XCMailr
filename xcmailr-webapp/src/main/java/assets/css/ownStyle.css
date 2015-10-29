@@ -20,9 +20,27 @@ h3.legendary {
   border: 0;
   border-bottom: 1px solid #e5e5e5;
 }
+
 form.nomarg {
 	margin: 0 0 0px;
 }
+
+.tooltip {
+  bottom: 0;
+  left: 5px;
+  border-width: 5px 5px 0;
+  border-top-color: #000;
+  background-color: #0000FF
+}
+
+.btn-mini {
+	padding-right: 5px;
+}
+
+.btn-link {
+	padding:1px 1px;
+}
+
 
 /* tables */
 
@@ -30,6 +48,7 @@ table.tsort thead tr .headerSort {
 	background-image: url("../img/bg.gif");
 	background-repeat: no-repeat;
 	background-position: center right;
+	padding-right: 20px;
 	cursor: pointer;
 }
 
@@ -37,6 +56,7 @@ table.tsort thead tr .headerSort {
 table.tsort thead tr .headerSortUp {
 	background-image: url("../img/asc.gif");
 }
+
 table.tsort thead tr .headerSortDown {
 	background-image: url("../img/desc.gif");
 }
@@ -54,6 +74,16 @@ div.tooltip-inner{
     -moz-border-radius: 0px;
     border-radius: 0px;
     margin-bottom: 6px;
-    background-color: #505050;
+    background-color: #505050;		
     font-size: 14px;
+}
+
+.row{
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.row.ng-scope{
+	margin-right: -15px;
+	margin-left: -15px;
 }
