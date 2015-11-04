@@ -63,8 +63,9 @@ public class MessageListener implements SimpleMessageListener
     Logger log;
 
     private String loopHeader;
+
     private String loopHeaderContent;
-    
+
     @Override
     public boolean accept(String from, String recipient)
     {
@@ -72,7 +73,7 @@ public class MessageListener implements SimpleMessageListener
         String[] splitaddress = recipient.split("@");
 
         List<String> domainlist = Arrays.asList(xcmConfiguration.DOMAIN_LIST);
-               
+
         if ((splitaddress.length == 2) && (domainlist.contains(splitaddress[1])))
             return true;
 
@@ -86,102 +87,109 @@ public class MessageListener implements SimpleMessageListener
         }
         return false;
     }
-     
+
     /**
-     * Checks if forwarding the mail could trigger a loop
+     * Checks if forwarding the mail could trigger a loop Checks if the return-path header is empty Checks if the
+     * References/ In-Reply-To Header include a mail from this domain Checks if the custom X-Loop Header exists and
+     * checks it's content The number of hops/ to many Received fields is checked by a internal library
      * 
-     * Checks if the return-path header is empty
-     * Checks if the References/ In-Reply-To Header include a mail from this domain
-     * Checks if the custom X-Loop Header exists and checks it's content
-     * The number of hops/ to many Received fields is checked by a internal library
-     * 
-     * @param mail the mail to check
+     * @param mail
+     *            the mail to check
      * @return null if there was no loop, an error message if there was
      * @throws MessagingException
      */
-    private String checkForLoop(MimeMessage mail) throws MessagingException{
-        
-        // TODO remove - print the message before loopchecking
-        try {
+    private String checkForLoop(MimeMessage mail) throws MessagingException
+    {
+
+        // TODO DEBUG - print the message before loopchecking
+        try
+        {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             mail.writeTo(os);
             String s = os.toString();
             log.info("asdfghjkl" + s + "asdfghjkl");
         }
-        catch (IOException e) {
+        catch (IOException e)
+        {
             ;
         }
-        String errorMessage;
-        
-        // check return-path header
-        String returnPathHeader = mail.getHeader("return-path", "###");
-	if (returnPathHeader != null) {
-        	if (returnPathHeader.equals("") || returnPathHeader.equals("<>") || returnPathHeader.equals("< >")) {              
-            	// loop detected;
-            	errorMessage = "Return-Path is empty"; 
-            	return errorMessage;
-        	}
-	}        
 
+        String errorMessage;
+
+        // check the first return-path header
+        String[] returnPathHeaders = mail.getHeader("Return-Path");
+        String returnPathHeader = returnPathHeaders[0];
+        if (returnPathHeader.equals("") || returnPathHeader.equals("<>") || returnPathHeader.equals("< >"))
+        {
+                // loop detected;
+                errorMessage = "Return-Path is empty";
+                return errorMessage;
+        }
+   
         // check custom X-Loop Header
         String customHeader = mail.getHeader(loopHeader, "###");
-        if (customHeader != null) {
+        if (customHeader != null)
+        {
             customHeader = customHeader.toLowerCase();
             String shouldBeContent = loopHeaderContent.toLowerCase();
-            
-            if (customHeader.contains(shouldBeContent)) {              
+
+            if (customHeader.contains(shouldBeContent))
+            {
                 // loop detected;
-                errorMessage = "X-Loop header with this email adress present"; 
+                errorMessage = "X-Loop header with this email adress present";
                 return errorMessage;
             }
         }
-        
+
         String id = mail.getMessageID();
 
         String[] splitString = id.split("@");
-        String domain = splitString[1];       
+        String domain = splitString[1];
         domain = domain.toLowerCase();
-        
+
         // check References and In-Reply-To Header
-        String referenceHeaders = mail.getHeader("References", "###");      
-        if (referenceHeaders != null) {
-            referenceHeaders = referenceHeaders.toLowerCase();           
-            if (referenceHeaders.contains("@" + domain)) {              
+        String referenceHeaders = mail.getHeader("References", "###");
+        if (referenceHeaders != null)
+        {
+            referenceHeaders = referenceHeaders.toLowerCase();
+            if (referenceHeaders.contains("@" + domain))
+            {
                 // loop detected;
-                errorMessage = "References field references the domain of this email adress" + domain; 
+                errorMessage = "References field references the domain of this email adress" + domain;
                 return errorMessage;
             }
         }
-        
+
         String inReplyToHeader = mail.getHeader("In-Reply-To", "###");
-        if (inReplyToHeader != null) {
+        if (inReplyToHeader != null)
+        {
             inReplyToHeader = inReplyToHeader.toLowerCase();
-            if (inReplyToHeader.contains("@" + domain)) {              
+            if (inReplyToHeader.contains("@" + domain))
+            {
                 // loop detected;
-                errorMessage = "In-Reply-To field mentions the domain of this email adress: " + domain; 
+                errorMessage = "In-Reply-To field mentions the domain of this email adress: " + domain;
                 return errorMessage;
             }
         }
-        
+
         return null;
     }
-    
+
     /**
-     * 
      * @param from
      * @param recipient
      * @param data
      */
     @Override
     public void deliver(String from, String recipient, InputStream data)
-    {      
+    {
         final Session session = mailrSenderFactory.getSession();
         session.setDebug(true);
         MimeMessage mail;
         try
         {
             mail = new MimeMessage(session, data);
-      
+
             MailTransaction mtx;
             final String[] splitAddress;
             final Address forwardAddress;
@@ -222,25 +230,26 @@ public class MessageListener implements SimpleMessageListener
                 mailBox.increaseSup();
                 return;
             }
-            
+
             // set loop header and it's content
             loopHeader = "X-Loop";
             loopHeaderContent = "loopbreaker" + recipient;
-            
+
             // check for a possible loop ...
             String loopError = checkForLoop(mail);
-            if (loopError != null) {
-                log.info("Broke a possible loop");  
+            if (loopError != null)
+            {
+                log.info("Broke a possible loop");
                 log.info("Email was not forwarded");
                 log.info("From: " + from + " To:" + recipient);
                 log.info(loopError);
                 return;
             }
-            
+
             // Set headers to break loops
             mail.addHeader(loopHeader, loopHeaderContent);
             mail.addHeader("Auto-Submitted", "auto-forwarded");
-            
+
             // there's an existing and active mail-address
             // add the target-address to the list
             try
@@ -256,14 +265,17 @@ public class MessageListener implements SimpleMessageListener
                 mail.removeHeader("Cc");
                 mail.removeHeader("BCC");
 
-                mail.setSender(new InternetAddress(recipient));			
+                mail.setSender(new InternetAddress(recipient));
                 mail.setFrom(new InternetAddress(recipient));
+
                 // intention: set 'from' to the incoming email adress, set the sender to xcmailers one
-                // for clarity. Not sure if it doesn't work because of the smtp server
-                // or because of something else.
-//TODO          mail.setFrom(new InternetAddress(from));		
+                // for clarity. Unfortunately it doesn't work because the SMTP server refuses to send these mails
+                // mail.setFrom(new InternetAddress(from));
+                // set the Reply-To header to the incoming email adress, the semantic one of the original sender
+                mail.setReplyTo(InternetAddress.parse(from));
+
                 mail.addHeader("X-FORWARDED-FROM", from);
-                
+
                 // send the mail in a separate thread
                 MailrMessageSenderFactory.ThreadedMailSend tms = mailrSenderFactory.new ThreadedMailSend(mail, mailBox);
                 tms.start();

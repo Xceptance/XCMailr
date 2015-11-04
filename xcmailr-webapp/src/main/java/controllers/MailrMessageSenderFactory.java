@@ -83,9 +83,11 @@ public class MailrMessageSenderFactory
         properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
         properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
         properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
-//      TODO maybe impossible, maybe the SMTP server just doesn't like it  
-        // request return-path = <> (no automatic responses/notifications)
-//      properties.put("mail.smtp.from", "<>"); 
+        
+        // intention: Set the smtp.from to <> to request the Return-Path header be set to <> 
+        // which would sigal that no automatic responses should be sent
+        // Unfortunately it doesn't work because the SMTP server refuses to send these mails 
+        // properties.put("mail.smtp.from", "<>"); 
         
         session = Session.getInstance(properties, new javax.mail.Authenticator()
         {
