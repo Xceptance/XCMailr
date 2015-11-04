@@ -100,20 +100,6 @@ public class MessageListener implements SimpleMessageListener
      */
     private String checkForLoop(MimeMessage mail) throws MessagingException
     {
-
-        // TODO DEBUG - print the message before loopchecking
-        try
-        {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            mail.writeTo(os);
-            String s = os.toString();
-            log.info("asdfghjkl" + s + "asdfghjkl");
-        }
-        catch (IOException e)
-        {
-            ;
-        }
-
         String errorMessage;
 
         // check the first return-path header
@@ -271,6 +257,7 @@ public class MessageListener implements SimpleMessageListener
                 // intention: set 'from' to the incoming email adress, set the sender to xcmailers one
                 // for clarity. Unfortunately it doesn't work because the SMTP server refuses to send these mails
                 // mail.setFrom(new InternetAddress(from));
+                
                 // set the Reply-To header to the incoming email adress, the semantic one of the original sender
                 mail.setReplyTo(InternetAddress.parse(from));
 
