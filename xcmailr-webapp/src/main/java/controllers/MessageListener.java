@@ -16,13 +16,14 @@
  */
 package controllers;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.mail.Address;
+import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -107,13 +108,14 @@ public class MessageListener implements SimpleMessageListener
         String returnPathHeader = returnPathHeaders[0];
         if (returnPathHeader.equals("") || returnPathHeader.equals("<>") || returnPathHeader.equals("< >"))
         {
-                // loop detected;
-                errorMessage = "Return-Path is empty";
-                return errorMessage;
+            // loop detected;
+            errorMessage = "Return-Path is empty";
+            return errorMessage;
         }
-   
-        // check custom X-Loop Header
+       
+        // check custom X-Loop Header       
         String customHeader = mail.getHeader(loopHeader, "###");
+        
         if (customHeader != null)
         {
             customHeader = customHeader.toLowerCase();
@@ -141,7 +143,7 @@ public class MessageListener implements SimpleMessageListener
             if (referenceHeaders.contains("@" + domain))
             {
                 // loop detected;
-                errorMessage = "References field references the domain of this email adress" + domain;
+                errorMessage = "References field references the domain of this email adress: " + domain;
                 return errorMessage;
             }
         }
@@ -257,7 +259,7 @@ public class MessageListener implements SimpleMessageListener
                 // intention: set 'from' to the incoming email adress, set the sender to xcmailers one
                 // for clarity. Unfortunately it doesn't work because the SMTP server refuses to send these mails
                 // mail.setFrom(new InternetAddress(from));
-                
+
                 // set the Reply-To header to the incoming email adress, the semantic one of the original sender
                 mail.setReplyTo(InternetAddress.parse(from));
 
