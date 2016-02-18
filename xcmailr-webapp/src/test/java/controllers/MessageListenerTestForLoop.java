@@ -16,7 +16,6 @@ import javax.mail.internet.MimeMessage;
 import controllers.MessageListener;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -38,6 +37,7 @@ public class MessageListenerTestForLoop
 
     static MessageListener obj = new MessageListener();
 
+    @SuppressWarnings("rawtypes")
     static Class cls = obj.getClass();
 
     static Method checkLoop;
@@ -52,6 +52,7 @@ public class MessageListenerTestForLoop
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      */
+    @SuppressWarnings("unchecked")
     @BeforeClass
     public static void makeMethodAccessible()
         throws NoSuchMethodException, SecurityException, NoSuchFieldException, IllegalArgumentException,
@@ -327,8 +328,8 @@ public class MessageListenerTestForLoop
 
         String result = (String) checkLoop.invoke(obj, mail);
         Assert.assertNotEquals("A possible loop went undetected", null, result);
-    }
-
+    }  
+    
     /**
      * tests if a loop is detected with an example bounce mail.
      * 
@@ -351,5 +352,25 @@ public class MessageListenerTestForLoop
 
         String result = (String) checkLoop.invoke(obj, mail);
         Assert.assertNotEquals("A possible loop went undetected", null, result);
+    }
+    
+    /**
+     * Tests if the program crashes should an incoming mail happen to lack a message id.
+     * @throws FileNotFoundException 
+     * @throws MessagingException 
+     * @throws InvocationTargetException 
+     * @throws IllegalArgumentException 
+     * @throws IllegalAccessException 
+     */
+    @Test
+    public void testNoHeaders() throws FileNotFoundException, MessagingException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        File mailFile = new File("./src/test/java/controllers/exampleMails/noHeaders.eml");
+        InputStream inputStream = new FileInputStream(mailFile);
+        Properties properties = new Properties();
+        Session session = Session.getInstance(properties);
+        MimeMessage mail = new MimeMessage(session, inputStream);
+
+        String result = (String) checkLoop.invoke(obj, mail);
+        Assert.assertNotEquals("A possible loop went undetected", null, result);     
     }
 }

@@ -19,11 +19,9 @@ package controllers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 
 import javax.mail.Address;
-import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -105,12 +103,19 @@ public class MessageListener implements SimpleMessageListener
 
         // check the first return-path header
         String[] returnPathHeaders = mail.getHeader("Return-Path");
-        String returnPathHeader = returnPathHeaders[0];
-        if (returnPathHeader.equals("") || returnPathHeader.equals("<>") || returnPathHeader.equals("< >"))
-        {
-            // loop detected;
-            errorMessage = "Return-Path is empty";
-            return errorMessage;
+        
+        if (returnPathHeaders != null) {
+            String returnPathHeader = returnPathHeaders[0];
+            if (returnPathHeader.equals("") || returnPathHeader.equals("<>") || returnPathHeader.equals("< >"))
+            {
+                // loop detected;
+                errorMessage = "Return-Path is empty";
+                return errorMessage;
+            }
+        }
+        else {
+            errorMessage = "Don't forward mails without a return path header";
+            return errorMessage; 
         }
        
         // check custom X-Loop Header       
@@ -130,36 +135,50 @@ public class MessageListener implements SimpleMessageListener
         }
 
         String id = mail.getMessageID();
+        
+        if (id != null) {
+            
+            String[] splitString = id.split("@");
 
-        String[] splitString = id.split("@");
-        String domain = splitString[1];
-        domain = domain.toLowerCase();
+            if (id.length()>=2) {
+                String domain = splitString[1];
+                domain = domain.toLowerCase();
 
-        // check References and In-Reply-To Header
-        String referenceHeaders = mail.getHeader("References", "###");
-        if (referenceHeaders != null)
-        {
-            referenceHeaders = referenceHeaders.toLowerCase();
-            if (referenceHeaders.contains("@" + domain))
-            {
-                // loop detected;
-                errorMessage = "References field references the domain of this email adress: " + domain;
+                // check References and In-Reply-To Header
+                String referenceHeaders = mail.getHeader("References", "###");
+                if (referenceHeaders != null)
+                {
+                    referenceHeaders = referenceHeaders.toLowerCase();
+                    if (referenceHeaders.contains("@" + domain))
+                    {
+                        // loop detected;
+                        errorMessage = "References field references the domain of this email adress: " + domain;
+                        return errorMessage;
+                    }
+                }
+
+                String inReplyToHeader = mail.getHeader("In-Reply-To", "###");
+                if (inReplyToHeader != null)
+                {
+                    inReplyToHeader = inReplyToHeader.toLowerCase();
+                    if (inReplyToHeader.contains("@" + domain))
+                    {
+                        // loop detected;
+                        errorMessage = "In-Reply-To field mentions the domain of this email adress: " + domain;
+                        return errorMessage;
+                    }
+                }
+            }
+            else {
+                errorMessage = "Don't forward mails without a normal message id";
                 return errorMessage;
             }
         }
-
-        String inReplyToHeader = mail.getHeader("In-Reply-To", "###");
-        if (inReplyToHeader != null)
-        {
-            inReplyToHeader = inReplyToHeader.toLowerCase();
-            if (inReplyToHeader.contains("@" + domain))
-            {
-                // loop detected;
-                errorMessage = "In-Reply-To field mentions the domain of this email adress: " + domain;
-                return errorMessage;
-            }
+        else {
+            errorMessage = "Don't forward mails without message id";
+            return errorMessage;
         }
-
+        
         return null;
     }
 
