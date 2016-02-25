@@ -83,17 +83,19 @@ public class MailrMessageSenderFactory
         properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
         properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
         properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
-        
-        // intention: Set the smtp.from to <> to request the Return-Path header be set to <> 
-        // which would sigal that no automatic responses should be sent
-        // Unfortunately it doesn't work because the SMTP server refuses to send these mails 
-        // properties.put("mail.smtp.from", "<>"); 
-        
+
+        // Intention: Set mail.smtp.from to <> to request the Return-Path header be set to <>
+        // which would signal that no automatic responses should be sent.
+        // Unfortunately it doesn't work because the SMTP server refuses to send these mails.
+        // properties.put("mail.smtp.from", "<>");
+
         session = Session.getInstance(properties, new javax.mail.Authenticator()
         {
             protected PasswordAuthentication getPasswordAuthentication()
             {
-                return xcmConfiguration.OUT_SMTP_AUTH ? new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER, xcmConfiguration.OUT_SMTP_PASS) : null;
+                return xcmConfiguration.OUT_SMTP_AUTH ? new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER,
+                                                                                   xcmConfiguration.OUT_SMTP_PASS)
+                                                     : null;
             }
         });
         return session;
@@ -128,7 +130,7 @@ public class MailrMessageSenderFactory
             message.setSubject(subject);
             message.setText(content);
             message.saveChanges();
-            
+
             // send the mail in an own thread
             ThreadedMailSend tms = new ThreadedMailSend(message);
             tms.start();
@@ -182,7 +184,6 @@ public class MailrMessageSenderFactory
 
         // send the Mail
         sendMail(from, to, body, subject);
-
     }
 
     /**
@@ -201,7 +202,6 @@ public class MailrMessageSenderFactory
      */
     public void sendPwForgotAddressMail(String to, String forename, String id, String token, Optional<String> language)
     {
-
         String from = xcmConfiguration.ADMIN_ADDRESS;
 
         // build the PW-Reset Link
@@ -231,7 +231,6 @@ public class MailrMessageSenderFactory
 
     public class ThreadedMailSend extends Thread
     {
-
         private MimeMessage mail;
 
         private MBox mailBox;

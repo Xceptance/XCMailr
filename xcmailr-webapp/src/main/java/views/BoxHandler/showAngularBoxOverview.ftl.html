@@ -34,7 +34,6 @@
   <script type="text/javascript" src="${contextPath}/assets/js/angular.min.js"> </script>
   <script type="text/javascript" src="${contextPath}/assets/js/ui-bootstrap-tpls-0.11.2.min.js"> </script>
   <script type="text/javascript" src="${contextPath}/assets/js/controllers.js"> </script>
-
 </head>
 <body>
 <#include "../layout/header.ftl.html"/>
@@ -103,44 +102,39 @@
 		    </tr>
 	    </thead>
 	    <tbody>
-	    <!-- begin no-addresses-row -->
-
-
+		    <!-- begin no-addresses-row -->
 	    	<tr class="info" ng-show="(filteredBoxes.length == 0) && (searchString == '')">   	
-		<td></td>
-	    	<td colspan="5">
-	    		${i18n("mailbox_Label_NoEntries")} 		    	
-		    	<a href="javascript:;" class="btn btn-link" data-ng-click="openAddBoxDialog()">
+				<td></td>
+		    	<td colspan="5">
+		    		${i18n("mailbox_Label_NoEntries")} 		    	
+			    	<a href="javascript:;" class="btn btn-link" data-ng-click="openAddBoxDialog()">
 						<i class="glyphicon glyphicon-plus-sign"></i> ${i18n("mailbox_Label_AskForNewAddress")}
-				</a>
-			</td>
-	    	</tr>
-
-
-	    <!-- end no-addresses-row -->
+					</a>
+				</td>
+	   		</tr>
+		    <!-- end no-addresses-row -->
 			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{true:'danger', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overMouse = true; overId=$index" ng-mouseleave="overMouse=false">   
 		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]" ng-checked="selected[mBox.id]"></td>
 				<td class="mbAddress">
 					{{mBox.address}}&#064;{{mBox.domain}}
-				<span class="btn-mini pull-right"> 
+					<span class="btn-mini pull-right"> 
 		                <a class="btn btn-link" ng-if="!mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" data-toggle="tooltip" data-placement="top" title="${i18n("mailbox_Button_Deactivate")}">  
 		                	<i class="glyphicon glyphicon-pause"></i>
 		                </a>
-				<a  class="btn btn-link" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" data-toggle="tooltip" data-placement="top" title="${i18n("mailbox_Button_Deactivate")}">  
+						<a  class="btn btn-link" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" data-toggle="tooltip" data-placement="top" title="${i18n("mailbox_Button_Deactivate")}">  
 		                	<i class="glyphicon glyphicon-play"></i>
 		                </a> 
-		    		<a class="btn btn-link" ng-click="openDeleteBoxDialog($index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Delete")}">
+		    			<a class="btn btn-link" ng-click="openDeleteBoxDialog($index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Delete")}">
 		    				<i class="glyphicon glyphicon-trash"></i>
-		    		 </a>
+		    			 </a>
 		                <a class="btn btn-link" ng-click="resetBox(mBox.id, $index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Reset")}">
 		    				<i class="glyphicon glyphicon-repeat"></i>
-		    		</a>
-			        <a class="btn btn-link" ng-click="openEditBoxDialog($index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Edit")}">
+		    			</a>
+			        	<a class="btn btn-link" ng-click="openEditBoxDialog($index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Edit")}">
 			        		<i class="glyphicon glyphicon-edit"></i>
-			        </a>
-				</span>
-				<br>
-
+			        	</a>
+					</span>
+					<br>
 				</td>
 				<td ng-if="mBox.datetime=='unlimited'">${i18n("mailbox_Label_Unlimited")}</td>
 				<td ng-if="mBox.datetime!='unlimited'">{{mBox.datetime}}</td>						
@@ -157,7 +151,7 @@
 		<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
 		<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
 	</div>
-<!-- end page -->
+	<!-- end page -->
     <div class="row" ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
 	  	<div class="pull-left">
 		    <pagination total-items="allBoxes.length" ng-model="currentPage" items-per-page="itemsPerPage" max-size="maxSize"></pagination>
@@ -180,12 +174,8 @@
 <script type="text/javascript" src="${contextPath}/assets/js/moment-with-locales.js"></script> 
 <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.min.js"></script> 
 <!-- <script type="text/javascript" src="${contextPath}/assets/js/bootstrap-datetimepicker.de.js"></script>  -->
-
 <script type="text/javascript">
    $(function () { $("[data-toggle = 'tooltip']").tooltip(); });
 </script>
-
-
 </body>
 </html>
-
