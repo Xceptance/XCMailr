@@ -71,7 +71,7 @@ public class XCMStarter
             // create connector
             Connector connector = new SelectChannelConnector();
             connector.setPort(config.XCM_PORT);
-            connector.setHost("localhost");
+            connector.setHost(config.XCM_HOST);
 
             // configure the server
             server.addConnector(connector);

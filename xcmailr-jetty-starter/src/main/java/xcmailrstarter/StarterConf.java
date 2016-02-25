@@ -40,7 +40,7 @@ public class StarterConf
 
     public final String XCM_CONTEXT_PATH;
 
-    private Configuration conf;
+    public final String XCM_HOST;
 
     public StarterConf(String[] args) throws Exception
     {
@@ -56,13 +56,14 @@ public class StarterConf
 
         // try to load the config
         cfg.load(confPath);
-        conf = (Configuration) cfg;
+        final Configuration conf = (Configuration) cfg;
         XCM_DB_URL = conf.getString("ebean.datasource.databaseUrl");
         XCM_DB_USER = conf.getString("ebean.datasource.username");
         XCM_DB_PASS = conf.getString("ebean.datasource.password");
         XCM_DB_DRIVER = conf.getString("ebean.datasource.databaseDriver");
         XCM_PORT = conf.getInt("application.port");
         XCM_CONTEXT_PATH = conf.getString("application.basedir");
+        XCM_HOST = conf.getString("application.host", "localhost");
 
     }
 }

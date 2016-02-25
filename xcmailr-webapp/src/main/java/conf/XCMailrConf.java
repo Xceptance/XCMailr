@@ -57,11 +57,10 @@ public class XCMailrConf
     public final String APP_NAME;
 
     /**
-     * specified with application.default.entriesperpage
-     * default value is 15
+     * specified with application.default.entriesperpage default value is 15
      */
     public final Integer APP_DEFAULT_ENTRYNO;
-    
+
     /**
      * indicates the use of whitelisting for registration
      */
@@ -91,7 +90,7 @@ public class XCMailrConf
      * specified with mbox.dlist (string-array)
      */
     public final String[] DOMAIN_LIST;
-    
+
     /**
      * specified with mbox.host
      */
@@ -113,23 +112,22 @@ public class XCMailrConf
     public final String MEMCA_HOST;
 
     /**
-     * indicates whether the forward-message should be wrapped in a new mail <br/>
-     * containing the original-message header in the body
+     * indicates whether the forward-message should be wrapped in a new mail containing the original-message header in
+     * the body
      */
     public final Boolean MSG_REWRITE;
-    
+
     /**
-     * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.displaylimit
-     * Default value is 0 (no limit)
+     * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.displaylimit. Default value
+     * is 0 (no limit)
      */
     public final Integer MTX_LIMIT;
-    
+
     /**
-     * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.maxage
-     * Default value is -1 (no automatic deletion)
+     * The number of MTXs as limit to display at the mtx-page specified with mailtransaction.maxage. Default value is -1
+     * (no automatic deletion)
      */
     public final Integer MTX_MAX_AGE;
-
 
     /**
      * specified with mail.smtp.auth
@@ -137,8 +135,7 @@ public class XCMailrConf
     public final Boolean OUT_SMTP_AUTH;
 
     /**
-     * specified with mail.smtp.debug
-     * default value is true
+     * specified with mail.smtp.debug default value is true
      */
     public final Boolean OUT_SMTP_DEBUG;
 
@@ -173,8 +170,7 @@ public class XCMailrConf
     public final Integer PW_LENGTH;
 
     /**
-     * this is the cookie expiration-time in seconds as string<br/>
-     * suffixed with "s" for ninjaCache
+     * this is the cookie expiration-time in seconds as string suffixed with "s" for ninjaCache
      */
     public final String SESSION_EXPIRETIME;
 
@@ -203,9 +199,17 @@ public class XCMailrConf
         MSG_REWRITE = ninjaProp.getBooleanWithDefault("mail.msg.rewrite", false);
         OUT_SMTP_HOST = ninjaProp.getOrDie("mail.smtp.host");
         OUT_SMTP_PORT = ninjaProp.getIntegerOrDie("mail.smtp.port");
-        OUT_SMTP_USER = ninjaProp.getOrDie("mail.smtp.user");
-        OUT_SMTP_PASS = ninjaProp.getOrDie("mail.smtp.pass");
         OUT_SMTP_AUTH = ninjaProp.getBooleanOrDie("mail.smtp.auth");
+        if (OUT_SMTP_AUTH)
+        {
+            OUT_SMTP_USER = ninjaProp.getOrDie("mail.smtp.user");
+            OUT_SMTP_PASS = ninjaProp.getOrDie("mail.smtp.pass");
+        }
+        else
+        {
+            OUT_SMTP_USER = null;
+            OUT_SMTP_PASS = null;
+        }
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
         OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", true);
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");

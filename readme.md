@@ -2,7 +2,7 @@
 ## Summary
 * Name: XCMailr
 * Version: 1.1.5
-* Release: Nov. 2014
+* Release: Mar. 2015
 * License: Apache V2.0
 * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
 * Tags: AntiSpam, Testutility
@@ -11,7 +11,13 @@
  * Patrick Hähnlein, Xceptance Software Technologies GmbH
 
 ## Description
-XCMailr lets you quickly and easily reduce spam in your email account. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming mail will be silently dropped. XCMailr doesn't store any email content and and won't notify the sender if the address is no longer valid. 
+XCMailr has been built to aid testing. Testing needs email addresses to create accounts, test formats of emails addresses, and last but not least load testing needs a ton of that. A special challenge for load testing is, that the mails should be deliverable, so that the sending system is not overwhelmed by returns. 
+
+Commercial or free system do not want to see 20k fake accounts that receive about 1,500 emails per day each. Your sender will be blocked quickly. Additionally you often cannot disable email delivery because the system under test does either not have that option or it is out of reach.
+
+XCMailr lets you quickly and easily setup email accounts for testing purposes. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming mail will be silently dropped. XCMailr doesn't store any email content and and won't notify the sender if the address is no longer valid.
+
+So you host XCMailr yourself, you control security, you control availability, you control the domains, you control everything. Hence XCMailr is perfect for real-life testing of sensitive systems as well, because no third party will see your test emails and draw conclusion from it.
 
 ## Requirements
 * [Memcached](http://memcached.org/), optional since V1.1.3 but recommended

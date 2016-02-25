@@ -26,6 +26,8 @@ application.session.transferred_over_https_only=false
 # e.g. if your app runs on http://localhost:8080/xc/mailr, add "http://localhost:8080" here
 application.url=http://localhost:${application.port}
 application.port=8080
+# the host the server is listening on
+# application.host=localhost
 
 # the base-directory-path on the server, without leading and trailing "/" 
 # e.g. if your app runs on http://localhost:8080/xc/mailr, add "xc/mailr" 
