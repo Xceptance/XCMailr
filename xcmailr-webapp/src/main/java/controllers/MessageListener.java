@@ -285,7 +285,7 @@ public class MessageListener implements SimpleMessageListener
                 mail.addHeader("X-FORWARDED-FROM", from);
 
                 // Set headers to break loops
-                String loopHeaderContent = "loopbreaker" + recipient;
+                String loopHeaderContent = LOOP_HEADER_VALUE_PREFIX + recipient;
                 mail.addHeader(LOOP_HEADER_NAME, loopHeaderContent);
                 mail.addHeader("Auto-Submitted", "auto-forwarded");
 
