@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>enter the User - Login Datas</description>
+  <parameter name="username"/>
+  <parameter name="password"/>
+  <command name="type" target="id=inputLoginMail" value="@{username}"/>
+  <command name="type" target="id=inputLoginPassword" value="@{password}"/>
+  <action name="clickLogin"/>
+  <command name="clickAndWait" target="id=btnLoginSubmit"/>
+</scriptmodule>

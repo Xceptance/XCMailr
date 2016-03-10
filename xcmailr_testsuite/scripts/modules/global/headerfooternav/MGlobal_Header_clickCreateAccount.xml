@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Navigates to the "Sign In" page</description>
+  <codecomment>Navigate to the "Create an Account" page</codecomment>
+  <command name="clickAndWait" target="css=.createAccount"/>
+</scriptmodule>

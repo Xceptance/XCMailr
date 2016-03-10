@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>enter the user - Profile Datas </description>
+  <parameter name="companyname"/>
+  <parameter name="contactname"/>
+  <parameter name="street_number"/>
+  <parameter name="city"/>
+  <parameter name="zip"/>
+  <parameter name="country"/>
+  <parameter name="email"/>
+  <action name="EnterAndSelect">
+    <comment>Enter (=type)</comment>
+  </action>
+  <command name="type" target="css=#name" value="@{companyname}"/>
+  <command name="type" target="css=#contact" value="@{contactname}"/>
+  <command name="type" target="css=#street_number" value="@{street_number}"/>
+  <command name="type" target="css=#city" value="@{city}"/>
+  <command name="type" target="css=#zip" value="@{zip}"/>
+  <command name="select" target="css=#country" value="value=@{country}"/>
+  <command name="type" target="css=#email" value="@{email}"/>
+</scriptmodule>

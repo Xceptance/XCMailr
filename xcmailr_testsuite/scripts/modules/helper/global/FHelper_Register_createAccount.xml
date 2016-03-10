@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <parameter name="FirstName"/>
+  <parameter name="LastName"/>
+  <parameter name="Email"/>
+  <parameter name="Password"/>
+  <parameter name="Language"/>
+  <module name="modules.global.headerfooternav.MGlobal_Header_clickCreateAccount"/>
+  <module name="modules.pages.account.register.MAccount_Register_enterRegisterData">
+    <parameter name="firstName" value="@{FirstName}"/>
+    <parameter name="lastName" value="@{LastName}"/>
+    <parameter name="email" value="@{Email}"/>
+    <parameter name="password" value="@{Password}"/>
+    <parameter name="language" value="@{Language}"/>
+  </module>
+  <module name="modules.pages.account.register.MAccount_Register_clickRegister"/>
+  <module name="modules.helper.external.FHelper_openclickAuthLinkFromExternal"/>
+</scriptmodule>

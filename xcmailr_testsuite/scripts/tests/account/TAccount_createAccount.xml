@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testcase xmlns="http://xlt.xceptance.com/xlt-script/2" version="6" junit-test="true">
+  <description>Test register profile with create account via link in header.
+
+Note: this test case requires testmode on (../xltportal/conf/xltportal.properties -&gt; testMode=On) !!!
+
+# Setup and preparation 
+
+- Start session, open homepage and delete all visible cookies
+
+# Scope of test
+
+- Click on login link in the header and go to the create account page
+- Enter profile data and submit the form
+- Logout using the link in the header menu
+- Login again to validate login data and goto the account page
+- Validate personal profile data
+- Logout using the global link in the header</description>
+  <codecomment># Setup
+
+- Generate email
+- Generate password
+- Start session</codecomment>
+  <codecomment>first name</codecomment>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultRegisterFirstName}"/>
+    <parameter name="returned_varString" value="FirstName_varDynamic"/>
+  </module>
+  <codecomment>last name</codecomment>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultRegisterLastName}"/>
+    <parameter name="returned_varString" value="LastName_varDynamic"/>
+  </module>
+  <codecomment>Street and Number</codecomment>
+  <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
+    <parameter name="email_varName" value="email_varDynamic"/>
+  </module>
+  <codecomment>Password</codecomment>
+  <module name="modules.helper.MHelper_Random_createPassword">
+    <parameter name="password_varDynamic" value="password_varDynamic"/>
+  </module>
+  <codecomment># Setup
+
+- Start session</codecomment>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <codecomment>create test account</codecomment>
+  <codecomment># Scope</codecomment>
+  <codecomment>Account
+
+- Register account via header link
+- Enter profile data
+- Submit profile data
+- Validate account page and nav
+- Validate customer name
+- Logout</codecomment>
+  <module name="modules.helper.global.FHelper_Register_createAccount">
+    <parameter name="FirstName" value="${FirstName_varDynamic}"/>
+    <parameter name="LastName" value="${LastName_varDynamic}"/>
+    <parameter name="Email" value="${email_varDynamic}"/>
+    <parameter name="Password" value="${password_varDynamic}"/>
+    <parameter name="Language" value="${defaultRegisterLanguage}"/>
+  </module>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <action name="GoToSignIn"/>
+  <module name="modules.global.headerfooternav.MGlobal_Header_clickSignIn"/>
+  <action name="LogIn"/>
+  <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
+    <parameter name="xltusername" value="${email_varDynamic}"/>
+    <parameter name="xltpassword" value="${password_varDynamic}"/>
+  </module>
+  <action name="GoToEditProfile"/>
+  <module name="modules.global.headerfooternav.MGlobal_Header_clickEditProfile"/>
+  <module name="modules.pages.account.VAccount_validatePage">
+    <parameter name="contactCompName" value="${companyName}"/>
+    <parameter name="contactUserName" value="${contactPerson}"/>
+    <parameter name="contactEmail" value="${email_varDynamic}"/>
+    <parameter name="contactAdressStreetAndNumber" value="${StreetAndNumber}"/>
+    <parameter name="contactAdressCity" value="${city}"/>
+    <parameter name="contactAdressZip" value="${postalCode}"/>
+    <parameter name="contactAdressCountry" value="${country}"/>
+  </module>
+  <module name="modules.global.headerfooternav.VGlobal_validatePageTitle">
+    <parameter name="page_title" value="${title_edit}"/>
+  </module>
+  <action name="LogOut"/>
+  <module name="modules.global.headerfooternav.MGlobal_Header_clickSignOut"/>
+  <module name="modules.pages.account.login.VAccount_Login_validateLogOutPage"/>
+  <module name="modules.global.headerfooternav.VGlobal_validatePageTitle">
+    <parameter name="page_title" value="${title_home}"/>
+  </module>
+</testcase>

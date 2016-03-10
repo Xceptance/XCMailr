@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	6x login and logout 
+ -->
+<data-sets>
+<data-set>
+  <xltusername>wlt3dfg@mailsink.xceptance.de</xltusername>
+  <xltuserpassword>123456789</xltuserpassword>
+</data-set>
+<data-set>
+  <xltusername>wlt3dfg@mailsink.xceptance.de</xltusername>
+  <xltuserpassword>123456789</xltuserpassword>
+</data-set>
+<data-set>
+  <xltusername>wlt3dfg@mailsink.xceptance.de</xltusername>
+  <xltuserpassword>123456789</xltuserpassword>
+</data-set>
+<data-set>
+  <xltusername>wlt3dfg@mailsink.xceptance.de</xltusername>
+  <xltuserpassword>123456789</xltuserpassword>
+</data-set>
+<data-set>
+  <xltusername>wlt3dfg@mailsink.xceptance.de</xltusername>
+  <xltuserpassword>123456789</xltuserpassword>
+</data-set>
+<data-set>
+  <xltusername>wlt3dfg@mailsink.xceptance.de</xltusername>
+  <xltuserpassword>123456789</xltuserpassword>
+</data-set>
+</data-sets>

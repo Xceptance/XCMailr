@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testcase xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Test browse hompage with basic functions.
+
+# Setup and preparation
+
+- Start session, open homepage and delete all visible cookies
+
+# Scope of test
+
+- Validate global header, navigation and footer
+- Validate hompage content</description>
+  <codecomment># Setup
+
+- Start session</codecomment>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <codecomment>-----------------------------------------------</codecomment>
+  <codecomment># Scope</codecomment>
+  <codecomment>layout test</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
+  <module name="modules.global.headerfooternav.VGlobal_validatePageTitle">
+    <parameter name="page_title" value="${title_home}"/>
+  </module>
+  <module name="modules.global.headerfooternav.VGlobal_validateHeader"/>
+  <module name="modules.pages.homepage.VHomepage_validatePage"/>
+  <module name="modules.global.headerfooternav.VGlobal_validateFooter"/>
+</testcase>
