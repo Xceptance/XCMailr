@@ -46,7 +46,9 @@
 	<div class="input-group col-sm-2 pull-left"> 
 		<input type="text" class="form-control" id="search-field" placeholder="${i18n('mailbox_Button_Search')}" ng-model="searchString" ng-change="search2()">
         <span class="input-group-btn">
-		<button type="button" class="btn btn-default" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="glyphicon glyphicon-remove-circle"></i></button>
+		<button type="button" class="btn btn-default" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" >
+			<i class="glyphicon glyphicon-remove-circle"></i>
+		</button>
 		</span>
 		
 	</div>
@@ -116,7 +118,7 @@
 			<tr ng-repeat="mBox in filteredBoxes | orderBy:predicate:reverse" ng-class="{true:'danger', false:'success'}[mBox.expired]" id="{{mBox.id}}" ng-mouseover="overMouse = true; overId=$index" ng-mouseleave="overMouse=false">   
 		    	<td><input type="checkbox" class="bulkChk" id="chk_{{mBox.id}}" ng-model="selected[mBox.id]" ng-checked="selected[mBox.id]"></td>
 				<td class="mbAddress">
-					{{mBox.address}}&#064;{{mBox.domain}}
+					<span class="mailbox-adress">{{mBox.address}}&#064;{{mBox.domain}}</span>
 					<span class="btn-mini pull-right"> 
 		                <a class="btn btn-link btn-link-pause" ng-if="!mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" data-toggle="tooltip" data-placement="top" title="${i18n("mailbox_Button_Deactivate")}">  
 		                	<i class="glyphicon glyphicon-pause"></i>
@@ -136,13 +138,13 @@
 					</span>
 					<br>
 				</td>
-				<td ng-if="mBox.datetime=='unlimited'">${i18n("mailbox_Label_Unlimited")}</td>
-				<td ng-if="mBox.datetime!='unlimited'">{{mBox.datetime}}</td>						
-				<td>{{mBox.forwards}}</td>
-				<td>{{mBox.suppressions}}</td>
-				<td ng-if="!mBox.expired"> ${i18n("mailbox_Label_MailActive")} </td>
-   				<td ng-if="mBox.expired && (${ts_now} > mBox.ts_Active)"> ${i18n("mailbox_Label_MailExpired")} </td>
-   				<td ng-if="mBox.expired && (${ts_now} < mBox.ts_Active)"> ${i18n("mailbox_Label_MailInactive")} </td>
+				<td ng-if="mBox.datetime=='unlimited'"><span class="mailbox-datetime">${i18n("mailbox_Label_Unlimited")}</span></td>
+				<td ng-if="mBox.datetime!='unlimited'"><span class="mailbox-datetime">{{mBox.datetime}}</span></td>						
+				<td><span class="counter-forwards">{{mBox.forwards}}</span></td>
+				<td><span class="counter-suppressions">{{mBox.suppressions}}</span></td>
+				<td ng-if="!mBox.expired"> <span class="mailbox-status">${i18n("mailbox_Label_MailActive")}<span> </td>
+   				<td ng-if="mBox.expired && (${ts_now} > mBox.ts_Active)"><span class="mailbox-status">${i18n("mailbox_Label_MailExpired")}</span> </td>
+   				<td ng-if="mBox.expired && (${ts_now} < mBox.ts_Active)"><span class="mailbox-status">${i18n("mailbox_Label_MailInactive")}</span> </td>
 			</tr>
 		</tbody>
     </table>
