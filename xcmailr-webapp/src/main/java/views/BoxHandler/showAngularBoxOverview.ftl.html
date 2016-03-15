@@ -44,7 +44,7 @@
 	<h1 class="legendary">${i18n("mailbox_Title")}</h1> 
 	<alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.message}}</alert>
 	<div class="input-group col-sm-2 pull-left"> 
-		<input type="text" class="form-control" placeholder="${i18n('mailbox_Button_Search')}" ng-model="searchString" ng-change="search2()">
+		<input type="text" class="form-control" id="search-field" placeholder="${i18n('mailbox_Button_Search')}" ng-model="searchString" ng-change="search2()">
         <span class="input-group-btn">
 		<button type="button" class="btn btn-default" ng-show="(searchString != '')" id="boxSearchResetButton" ng-click="searchString = '';updateModel()" ><i class="glyphicon glyphicon-remove-circle"></i></button>
 		</span>
@@ -57,22 +57,22 @@
 		<div>
 		<div class="btn-toolbar" role="toolbar">
 			<div class="btn-group pull-right">
-				<button class="btn btn-default btn-small" ng-click="updateModel()">
+				<button class="btn btn-default btn-small" id="refresh-button" ng-click="updateModel()">
 					<i class="glyphicon glyphicon-repeat"></i> ${i18n("mailbox_Button_Refresh")}
 				</button>
-				<button class="btn btn-default btn-small" data-ng-click="openAddBoxDialog()">
+				<button class="btn btn-default btn-small" id="add-email" data-ng-click="openAddBoxDialog()">
 					<i class="glyphicon glyphicon-plus-sign"></i> ${i18n("mailbox_Button_AddAddress")} 
 				</button>
-			   	<button class="btn btn-default btn-small" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></button>
+			   	<button class="btn btn-default btn-small" id="action-dropdown" data-toggle="dropdown" >${i18n("mailbox_Button_Actions")} <span class="caret"></span></button>
 		   		<ul class="dropdown-menu">
-					<li><a href="javascript:;" data-ng-click="showSelected()">${i18n("mailbox_Dropdown_ShowSelected")}</a></li>
-					<li><a href="javascript:;" onClick="selectedMailForm.submit()">${i18n("mailbox_Dropdown_ShowSelectedTxt")}</a></li>
+					<li><a href="javascript:;" class="show-selected" data-ng-click="showSelected()">${i18n("mailbox_Dropdown_ShowSelected")}</a></li>
+					<li><a href="javascript:;" class="show-selected-asTextFile" onClick="selectedMailForm.submit()">${i18n("mailbox_Dropdown_ShowSelectedTxt")}</a></li>
 					<li class="divider"></li>
-					<li><a href="javascript:;" data-ng-click="bulkEnablePossibleBox()">${i18n("mailbox_Dropdown_BulkActivate")}</a></li>
-					<li><a href="javascript:;" data-ng-click="bulkDisableBox()">${i18n("mailbox_Dropdown_BulkDisable")}</a></li>
-					<li><a href="javascript:;" data-ng-click="openbulkDeleteBoxDialog()">${i18n("mailbox_Dropdown_BulkDelete")}</a></li>
-					<li><a href="javascript:;" data-ng-click="openNewDateDialog()">${i18n("mailbox_Dropdown_BulkChange")}</a></li>
-					<li><a href="javascript:;" data-ng-click="bulkResetBox()">${i18n("mailbox_Dropdown_BulkReset")}</a></li>
+					<li><a href="javascript:;" class="enable-selected" data-ng-click="bulkEnablePossibleBox()">${i18n("mailbox_Dropdown_BulkActivate")}</a></li>
+					<li><a href="javascript:;" class="disable-selected" data-ng-click="bulkDisableBox()">${i18n("mailbox_Dropdown_BulkDisable")}</a></li>
+					<li><a href="javascript:;" class="delete-selected" data-ng-click="openbulkDeleteBoxDialog()">${i18n("mailbox_Dropdown_BulkDelete")}</a></li>
+					<li><a href="javascript:;" class="open-NewDateDialog" data-ng-click="openNewDateDialog()">${i18n("mailbox_Dropdown_BulkChange")}</a></li>
+					<li><a href="javascript:;" class="reset-counters" data-ng-click="bulkResetBox()">${i18n("mailbox_Dropdown_BulkReset")}</a></li>
 				</ul>
 			</div>	
 			</div>
@@ -80,24 +80,24 @@
 		<br/>
 	</div>
 	<!--mailbox-overview-->
-	<table class="table table-hover table-condensed tsort">
+	<table class="table table-hover table-condensed tsort" id="table-mailbox-overview">
 		<thead>
 		    <tr>
 		    	<th class="header span1"><input type="checkbox" class="bulkChk" id="chk_all" ng-click="selectAllItems()"></th>
 		    	<th class="header headerSort span5" ng-class="{headerSortDown : (predicate=='address' && reverse), headerSortUp : (predicate=='address' && !reverse)}" >
-		    		<a ng-click="predicate='address'; reverse=!reverse" >${i18n("mailbox_Header_Address")}</a>
+		    		<a class="head-sort-adress" ng-click="predicate='address'; reverse=!reverse" >${i18n("mailbox_Header_Address")}</a>
 		    	</th>	
 		    	<th class="header headerSort span1"  ng-class="{headerSortDown : (predicate=='datetime' && reverse), headerSortUp : (predicate=='datetime' && !reverse)}">
-		    		<a ng-click="predicate= 'datetime'; reverse=!reverse">${i18n("mailbox_Header_Duration")}</a>
+		    		<a class="head-sort-duration" ng-click="predicate= 'datetime'; reverse=!reverse">${i18n("mailbox_Header_Duration")}</a>
 		    	</th>
 		    	<th class="header headerSort span1" ng-class="{headerSortDown : (predicate=='forwards' && reverse), headerSortUp : (predicate=='forwards' && !reverse)}">
-		    		<a ng-click="predicate= 'forwards'; reverse=!reverse">${i18n("mailbox_Header_Forwards")}</a>
+		    		<a class="head-sort-forwards" ng-click="predicate= 'forwards'; reverse=!reverse">${i18n("mailbox_Header_Forwards")}</a>
 		    	</th>
 		    	<th class="header headerSort span1" ng-class="{headerSortDown : (predicate=='suppressions' && reverse), headerSortUp : (predicate=='suppressions' && !reverse)}">
-		    		<a ng-click="predicate= 'suppressions'; reverse=!reverse">${i18n("mailbox_Header_Suppressions")}</a>
+		    		<a class="head-sort-suppressions" ng-click="predicate= 'suppressions'; reverse=!reverse">${i18n("mailbox_Header_Suppressions")}</a>
 		    	</th>
 		    	<th class="header headerSort span1" ng-class="{headerSortDown : (predicate=='!expired' && reverse), headerSortUp : (predicate=='!expired' && !reverse)}">
-		    		<a ng-click="predicate= '!expired'; reverse=!reverse">${i18n("mailbox_Header_Valid")}</a>
+		    		<a class="head-sort-expired" ng-click="predicate= '!expired'; reverse=!reverse">${i18n("mailbox_Header_Valid")}</a>
 		    	</th>
 		    </tr>
 	    </thead>
@@ -107,7 +107,7 @@
 				<td></td>
 		    	<td colspan="5">
 		    		${i18n("mailbox_Label_NoEntries")} 		    	
-			    	<a href="javascript:;" class="btn btn-link" data-ng-click="openAddBoxDialog()">
+			    	<a href="javascript:;" class="btn btn-link btn-link-addAdress" data-ng-click="openAddBoxDialog()">
 						<i class="glyphicon glyphicon-plus-sign"></i> ${i18n("mailbox_Label_AskForNewAddress")}
 					</a>
 				</td>
@@ -118,19 +118,19 @@
 				<td class="mbAddress">
 					{{mBox.address}}&#064;{{mBox.domain}}
 					<span class="btn-mini pull-right"> 
-		                <a class="btn btn-link" ng-if="!mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" data-toggle="tooltip" data-placement="top" title="${i18n("mailbox_Button_Deactivate")}">  
+		                <a class="btn btn-link btn-link-pause" ng-if="!mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" data-toggle="tooltip" data-placement="top" title="${i18n("mailbox_Button_Deactivate")}">  
 		                	<i class="glyphicon glyphicon-pause"></i>
 		                </a>
-						<a  class="btn btn-link" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" data-toggle="tooltip" data-placement="top" title="${i18n("mailbox_Button_Deactivate")}">  
+						<a  class="btn btn-link btn-link-play" ng-if="mBox.expired" id="btnDeactivate{{mBox.boxId}}" ng-click="expireBox(mBox.id, $index)" data-toggle="tooltip" data-placement="top" title="${i18n("mailbox_Button_Deactivate")}">  
 		                	<i class="glyphicon glyphicon-play"></i>
 		                </a> 
-		    			<a class="btn btn-link" ng-click="openDeleteBoxDialog($index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Delete")}">
+		    			<a class="btn btn-link btn-link-trash" ng-click="openDeleteBoxDialog($index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Delete")}">
 		    				<i class="glyphicon glyphicon-trash"></i>
 		    			 </a>
-		                <a class="btn btn-link" ng-click="resetBox(mBox.id, $index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Reset")}">
+		                <a class="btn btn-link btn-link-repeat" ng-click="resetBox(mBox.id, $index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Reset")}">
 		    				<i class="glyphicon glyphicon-repeat"></i>
 		    			</a>
-			        	<a class="btn btn-link" ng-click="openEditBoxDialog($index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Edit")}">
+			        	<a class="btn btn-link btn-link-edit" ng-click="openEditBoxDialog($index)" data-toggle="tooltip" data-placement="right" title="${i18n("mailbox_Button_Edit")}">
 			        		<i class="glyphicon glyphicon-edit"></i>
 			        	</a>
 					</span>
@@ -147,9 +147,9 @@
 		</tbody>
     </table>
     <div ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
-   		<a href="javascript:;" data-ng-click="showAll()">${i18n("mailbox_Label_ShowAll")}</a><br/>
-		<a href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
-		<a href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
+   		<a class="mailbox-showAll" href="javascript:;" data-ng-click="showAll()">${i18n("mailbox_Label_ShowAll")}</a><br/>
+		<a class="mailbox-mailTxtList" href="${contextPath}/mail/mymaillist.txt">${i18n("mailbox_Label_MailTxtList")}</a><br/>
+		<a class="mailbox-activeMailTxtList" href="${contextPath}/mail/myactivemaillist.txt">${i18n("mailbox_Label_ActiveMailTxtList")}</a><br/>
 	</div>
 	<!-- end page -->
     <div class="row" ng-hide="(filteredBoxes.length == 0) && (searchString == '')">
@@ -159,11 +159,11 @@
 	    <div class=" pull-right">
 			<ul class="pagination">
 				<li class="disabled"><a>${i18n("macro_EntriesPerPage")}</a></li>
-				<li><a ng-click="setItemsPerPage(5)">5</a></li>
-				<li><a ng-click="setItemsPerPage(15)">15</a></li>
-				<li><a ng-click="setItemsPerPage(25)">25</a></li>
-				<li><a ng-click="setItemsPerPage(50)">50</a></li>
-				<li><a ng-click="setItemsPerPage(0)">all</a></li>
+				<li><a class="show-itemsPerPage-5" ng-click="setItemsPerPage(5)">5</a></li>
+				<li><a class="show-itemsPerPage-15" ng-click="setItemsPerPage(15)">15</a></li>
+				<li><a class="show-itemsPerPage-25" ng-click="setItemsPerPage(25)">25</a></li>
+				<li><a class="show-itemsPerPage-50" ng-click="setItemsPerPage(50)">50</a></li>
+				<li><a class="show-itemsPerPage-all" ng-click="setItemsPerPage(0)">all</a></li>
 			</ul>
 		</div>
 	</div><!-- /row -->
