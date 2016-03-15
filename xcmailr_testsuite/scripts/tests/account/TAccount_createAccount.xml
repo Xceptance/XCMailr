@@ -21,19 +21,19 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
 - Generate email
 - Generate password
 - Start session</codecomment>
+  <codecomment>e-mail (extern)</codecomment>
+  <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
+    <parameter name="email_varName" value="email_varDynamic"/>
+  </module>
   <codecomment>first name</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultRegisterFirstName}"/>
-    <parameter name="returned_varString" value="FirstName_varDynamic"/>
+    <parameter name="returnValue_varDynamic" value="FirstName_varDynamic"/>
   </module>
   <codecomment>last name</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultRegisterLastName}"/>
-    <parameter name="returned_varString" value="LastName_varDynamic"/>
-  </module>
-  <codecomment>Street and Number</codecomment>
-  <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
-    <parameter name="email_varName" value="email_varDynamic"/>
+    <parameter name="returnValue_varDynamic" value="LastName_varDynamic"/>
   </module>
   <codecomment>Password</codecomment>
   <module name="modules.helper.MHelper_Random_createPassword">
@@ -63,7 +63,7 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <action name="GoToSignIn"/>
   <module name="modules.global.headerfooternav.MGlobal_Header_clickSignIn"/>
-  <action name="LogIn"/>
+  <action name="GoToAccount"/>
   <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
     <parameter name="xltusername" value="${email_varDynamic}"/>
     <parameter name="xltpassword" value="${password_varDynamic}"/>

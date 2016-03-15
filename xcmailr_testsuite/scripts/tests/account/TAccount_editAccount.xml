@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testcase xmlns="http://xlt.xceptance.com/xlt-script/2" version="6" junit-test="true">
-  <description>Test register profile with create account via link in header.
-
-Note: this test case requires testmode on (../xltportal/conf/xltportal.properties -&gt; testMode=On) !!!
+  <description>Test edit profile
 
 # Setup and preparation 
 
 - Start session, open homepage and delete all visible cookies
+- Create Account
 
 # Scope of test
 
-- Click on login link in the header and go to the create account page
 - Enter profile data and submit the form
 - Logout using the link in the header menu
 - Login again to validate login data and goto the account page
@@ -21,26 +19,35 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
 - Generate email
 - Generate password
 - Start session</codecomment>
+  <codecomment>---</codecomment>
   <codecomment>e-mail (extern)</codecomment>
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
   </module>
-  <codecomment>first name</codecomment>
+  <codecomment>first name, new first name</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultRegisterFirstName}"/>
     <parameter name="returnValue_varDynamic" value="FirstName_varDynamic"/>
   </module>
-  <codecomment>last name</codecomment>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultRegisterFirstName}"/>
+    <parameter name="returnValue_varDynamic" value="newFirstName_varDynamic"/>
+  </module>
+  <codecomment>last name, new last name</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultRegisterLastName}"/>
     <parameter name="returnValue_varDynamic" value="LastName_varDynamic"/>
   </module>
-  <codecomment>Password</codecomment>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultRegisterLastName}"/>
+    <parameter name="returnValue_varDynamic" value="newLastName_varDynamic"/>
+  </module>
+  <codecomment>password, new password</codecomment>
   <module name="modules.helper.MHelper_Random_createPassword">
     <parameter name="password_varDynamic" value="password_varDynamic"/>
   </module>
   <module name="modules.helper.MHelper_Random_createPassword">
-    <parameter name="password_varDynamic" value="password_ForgetPassword_varDynamic"/>
+    <parameter name="password_varDynamic" value="oldPassword_varDynamic"/>
   </module>
   <codecomment># Setup
 
@@ -54,7 +61,7 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
     <parameter name="Password" value="${password_varDynamic}"/>
     <parameter name="Language" value="${defaultRegisterLanguage}"/>
   </module>
-  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <codecomment>---</codecomment>
   <codecomment># Scope</codecomment>
   <codecomment>Account
 
@@ -64,26 +71,27 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
 - Validate account page and nav
 - Validate customer name
 - Logout</codecomment>
-  <action name="GoToSignIn"/>
-  <module name="modules.global.headerfooternav.MGlobal_Header_clickSignIn"/>
-  <action name="GoToForgetPassword"/>
-  <module name="modules.pages.account.login.MAccount_Login_clickForgetPassword"/>
-  <module name="modules.pages.account.MAccount_Password_enterEmail">
-    <parameter name="email" value="${email_varDynamic}"/>
-  </module>
-  <action name="GoToForgetPasswordAndEnterPassword"/>
-  <module name="modules.pages.account.MAccount_Password_clickForgetPassword"/>
-  <module name="modules.helper.external.FHelper_getForgetPasswordFromExternal"/>
-  <action name="GoToForgetPasswordAndEnterPassword"/>
-  <module name="modules.pages.account.MAccount_Password_enterclickForgetPassword">
-    <parameter name="password" value="${password_ForgetPassword_varDynamic}"/>
-  </module>
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <action name="GoToSignIn"/>
   <module name="modules.global.headerfooternav.MGlobal_Header_clickSignIn"/>
-  <module name="modules.pages.account.login.MAccount_Login_enterUserLoginDataClick">
-    <parameter name="username" value="${email_varDynamic}"/>
-    <parameter name="password" value="${password_ForgetPassword_varDynamic}"/>
+  <action name="LogIn"/>
+  <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
+    <parameter name="xltusername" value="${email_varDynamic}"/>
+    <parameter name="xltpassword" value="${password_varDynamic}"/>
   </module>
-  <module name="modules.pages.account.login.VAccount_Login_validateIsLogin"/>
+  <action name="GoToEditProfile"/>
+  <module name="modules.global.headerfooternav.MGlobal_Header_clickEditProfile"/>
+  <module name="modules.pages.account.MAccount_enterData">
+    <parameter name="firstName" value="${newFirstName_varDynamic}"/>
+    <parameter name="lastName" value="${newLastName_varDynamic}"/>
+    <parameter name="language" value="de"/>
+    <parameter name="oldPassword" value="${oldCountryCode}"/>
+  </module>
+  <module name="modules.pages.account.MAccount_clickSaveAccount"/>
+  <action name="LogOut"/>
+  <module name="modules.global.headerfooternav.MGlobal_Header_clickSignOut"/>
+  <module name="modules.pages.account.login.VAccount_Login_validateLogOutPage"/>
+  <module name="modules.global.headerfooternav.VGlobal_validatePageTitle">
+    <parameter name="page_title" value="${title_home}"/>
+  </module>
 </testcase>

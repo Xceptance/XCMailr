@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data xmlns="http://xlt.xceptance.com/xlt-script-data">
+  <emailClientURL>http://www.my10minutemail.com/</emailClientURL>
+  <companyName>XCeptance</companyName>
+  <contactPerson>Tester</contactPerson>
+  <StreetAndNumber>Leutragraben 4</StreetAndNumber>
+  <city>Jena</city>
+  <postalCode>07743</postalCode>
+  <country>Germany</country>
+  <newCountryCode>en</newCountryCode>
+  <oldCountryCode>de</oldCountryCode>
+</data>

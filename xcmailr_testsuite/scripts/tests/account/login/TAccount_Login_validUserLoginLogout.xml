@@ -21,12 +21,12 @@ NOTE: XLT-Portal must be run in TestMode (../xltportal/conf/xltportal.properties
   <codecomment>first name</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultRegisterFirstName}"/>
-    <parameter name="returned_varString" value="FirstName_varDynamic"/>
+    <parameter name="returnValue_varDynamic" value="FirstName_varDynamic"/>
   </module>
   <codecomment>last name</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultRegisterLastName}"/>
-    <parameter name="returned_varString" value="LastName_varDynamic"/>
+    <parameter name="returnValue_varDynamic" value="LastName_varDynamic"/>
   </module>
   <codecomment>Street and Number</codecomment>
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
