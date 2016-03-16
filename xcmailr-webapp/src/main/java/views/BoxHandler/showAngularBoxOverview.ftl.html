@@ -138,13 +138,13 @@
 					</span>
 					<br>
 				</td>
-				<td ng-if="mBox.datetime=='unlimited'"><span class="mailbox-datetime">${i18n("mailbox_Label_Unlimited")}</span></td>
-				<td ng-if="mBox.datetime!='unlimited'"><span class="mailbox-datetime">{{mBox.datetime}}</span></td>						
+				<td ng-if="mBox.datetime=='unlimited'"><span class="mailbox-date mailbox-date-unlimited">${i18n("mailbox_Label_Unlimited")}</span></td>
+				<td ng-if="mBox.datetime!='unlimited'"><span class="mailbox-date mailbox-date-validUntil">{{mBox.datetime}}</span></td>						
 				<td><span class="counter-forwards">{{mBox.forwards}}</span></td>
 				<td><span class="counter-suppressions">{{mBox.suppressions}}</span></td>
-				<td ng-if="!mBox.expired"> <span class="mailbox-status">${i18n("mailbox_Label_MailActive")}<span> </td>
-   				<td ng-if="mBox.expired && (${ts_now} > mBox.ts_Active)"><span class="mailbox-status">${i18n("mailbox_Label_MailExpired")}</span> </td>
-   				<td ng-if="mBox.expired && (${ts_now} < mBox.ts_Active)"><span class="mailbox-status">${i18n("mailbox_Label_MailInactive")}</span> </td>
+				<td ng-if="!mBox.expired"><span class="mailbox-status mailbox-status-mailActive">${i18n("mailbox_Label_MailActive")}<span></td>
+   				<td ng-if="mBox.expired && (${ts_now} > mBox.ts_Active)"><span class="mailbox-status mailbox-status-mailExpired">${i18n("mailbox_Label_MailExpired")}</span> </td>
+   				<td ng-if="mBox.expired && (${ts_now} < mBox.ts_Active)"><span class="mailbox-status mailbox-status-mailInactive">${i18n("mailbox_Label_MailInactive")}</span> </td>
 			</tr>
 		</tbody>
     </table>
