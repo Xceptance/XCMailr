@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <parameter name="localPart"/>
+  <parameter name="domainPart"/>
+  <parameter name="validUntilPast"/>
+  <command name="type" target="id=editBoxDialogAddress" value="@{localPart}"/>
+  <command name="select" target="name=domain" value="value=@{domainPart}"/>
+  <command name="type" disabled="true" target="id=datetime*" value="@{validUntilPast}"/>
+</scriptmodule>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testcase xmlns="http://xlt.xceptance.com/xlt-script/2" version="6" junit-test="true">
+  <description>add and remove e-mail adress
+
+# Setup and preparation 
+
+- Start session, open homepage and delete all visible cookies
+- create user
+
+# Scope of test</description>
+  <codecomment># Setup
+
+- Generate email
+- Generate password
+- Start session</codecomment>
+  <codecomment>e-mail (extern)</codecomment>
+  <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
+    <parameter name="email_varName" value="email_varDynamic"/>
+  </module>
+  <codecomment>first name</codecomment>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultRegisterFirstName}"/>
+    <parameter name="returnValue_varDynamic" value="FirstName_varDynamic"/>
+  </module>
+  <codecomment>last name</codecomment>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultRegisterLastName}"/>
+    <parameter name="returnValue_varDynamic" value="LastName_varDynamic"/>
+  </module>
+  <codecomment>Password</codecomment>
+  <module name="modules.helper.MHelper_Random_createPassword">
+    <parameter name="password_varDynamic" value="password_varDynamic"/>
+  </module>
+  <codecomment>2x Domain local Part</codecomment>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart01_varDynamic"/>
+  </module>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart02_varDynamic"/>
+  </module>
+  <codecomment># Setup
+
+- Start session</codecomment>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <codecomment>create test account</codecomment>
+  <module name="modules.helper.global.FHelper_Register_createAccount">
+    <parameter name="FirstName" value="${FirstName_varDynamic}"/>
+    <parameter name="LastName" value="${LastName_varDynamic}"/>
+    <parameter name="Email" value="${email_varDynamic}"/>
+    <parameter name="Password" value="${password_varDynamic}"/>
+    <parameter name="Language" value="${defaultRegisterLanguage}"/>
+  </module>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <action name="GoToSignIn"/>
+  <module name="modules.global.headerfooternav.MGlobal_Header_clickSignIn"/>
+  <action name="GoToAccount"/>
+  <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
+    <parameter name="xltusername" value="${email_varDynamic}"/>
+    <parameter name="xltpassword" value="${password_varDynamic}"/>
+  </module>
+  <action name="GoToMyEmailAdresses"/>
+  <module name="modules.global.headerfooternav.MGlobal_Header_clickMyEmailAdresses"/>
+  <codecomment># Scope</codecomment>
+  <codecomment>add e-mail</codecomment>
+  <action name="openDialogCUEmailAdressNew"/>
+  <module name="modules.pages.mail.MMail_clickAddEMail"/>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_CUEmail_enterData">
+    <parameter name="localPart" value="${domainLocalPart01_varDynamic}"/>
+    <parameter name="domainPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilPast" value=""/>
+  </module>
+  <action name="closeDialogCUEmailAdressNew"/>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_CUEmail_clickSave"/>
+  <codecomment>validate</codecomment>
+  <module name="modules.pages.mail.MMail_Row_validateEmailAdress">
+    <parameter name="row" value="2"/>
+    <parameter name="emailAdress" value="${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
+  </module>
+  <module name="modules.pages.mail.MMail_Table_validateRowCounter">
+    <parameter name="nominalValue" value="2"/>
+  </module>
+  <codecomment>edit e-mail</codecomment>
+  <action name="openDialogCUEmailAdressEdit"/>
+  <module name="modules.pages.mail.MMail_Row_clickEditSelectedEMail">
+    <parameter name="row" value="2"/>
+  </module>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_CUEmail_enterData">
+    <parameter name="localPart" value="${domainLocalPart02_varDynamic}"/>
+    <parameter name="domainPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilPast" value=""/>
+  </module>
+  <action name="closeDialogCUEmailAdressEdit"/>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_CUEmail_clickSave"/>
+  <codecomment>validate</codecomment>
+  <module name="modules.pages.mail.MMail_Row_validateEmailAdress">
+    <parameter name="row" value="2"/>
+    <parameter name="emailAdress" value="${domainLocalPart02_varDynamic}@${defaultDomainPart}"/>
+  </module>
+  <codecomment>remove e-mail</codecomment>
+  <action name="openDialogRemoveEmail"/>
+  <module name="modules.pages.mail.MMail_Row_clickRemoveSelectedEMail">
+    <parameter name="row" value="2"/>
+  </module>
+  <codecomment>validate emailadress</codecomment>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_RemoveEmail_validateEMailAdress">
+    <parameter name="email" value="${domainLocalPart02_varDynamic}@${defaultDomainPart}"/>
+  </module>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_RemoveEmail_clickDelete"/>
+  <module name="modules.pages.mail.MMail_Table_validateRowCounter">
+    <parameter name="nominalValue" value="1"/>
+  </module>
+  <action name="logout"/>
+  <module name="modules.global.headerfooternav.MGlobal_Header_clickSignOut"/>
+</testcase>
