@@ -1,5 +1,6 @@
 /xcmailr-build/
 /target/
+xcmailr_testsuite/results
 .DS_Store
 .DS_Store?
 .classpath
