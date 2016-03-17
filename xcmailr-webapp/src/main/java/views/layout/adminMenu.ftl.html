@@ -2,30 +2,28 @@
 <div id="containerAdminMenu">
 	<div class="list-group">
 		<#if (users)??>
-			<a class="list-group-item active" href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a>
+			<a class="list-group-item active view-user" href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a>
 		<#else>
-			<a class="list-group-item" href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a>
+			<a class="list-group-item view-user" href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a>
 		</#if>
 		
 		<#if (stats)??>
-			<a class="list-group-item active" href="${contextPath}/admin/summedtx">${i18n("admin_Link_SummedStatistics")}</a>
+			<a class="list-group-item active show-summedStatistics" href="${contextPath}/admin/summedtx">${i18n("admin_Link_SummedStatistics")}</a>
 		<#else>
-			<a class="list-group-item" href="${contextPath}/admin/summedtx">${i18n("admin_Link_SummedStatistics")}</a>
+			<a class="list-group-item show-summedStatistics" href="${contextPath}/admin/summedtx">${i18n("admin_Link_SummedStatistics")}</a>
 		</#if>
 		
 		<#if (plist)??>
-			<a class="list-group-item active" href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a>
+			<a class="list-group-item active show-transactions" href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a>
 		<#else>
-			<a class="list-group-item" href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a>
+			<a class="list-group-item show-transactions" href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a>
 		</#if>
 		
 		<#if (domains)??>
-			<a class="list-group-item active" href="${contextPath}/admin/whitelist">Domain Whitelist</a>
+			<a class="list-group-item active show-whitelist" href="${contextPath}/admin/whitelist">Domain Whitelist</a>
 		<#else>
-			<a class="list-group-item" href="${contextPath}/admin/whitelist">Domain Whitelist</a>
+			<a class="list-group-item show-whitelist" href="${contextPath}/admin/whitelist">Domain Whitelist</a>
 		</#if>
 	</div>
 </div>
 <!-- admin menu end-->
-
-

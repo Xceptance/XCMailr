@@ -35,9 +35,9 @@
 	</div>
 </div>
 <div class="modal-footer">
-	<input type="button" class="btn btn-warning" id="btnReset" ng-click="reset()" value='${i18n("editEmailDialog_Button_Reset")}' />
-	<button ng-click="dismiss(currentBox.id)" class="btn btn-default">${i18n("editEmailDialog_Button_Cancel")}</button>
-	<button ng-click="close(currentBox)" class="btn btn-danger">${i18n("editEmailDialog_Button_Edit")}</button>
+	<input class="btn btn-warning" id="btnReset" type="button" ng-click="reset()" value='${i18n("editEmailDialog_Button_Reset")}' />
+	<button class="btn btn-default btn-cancel" ng-click="dismiss(currentBox.id)">${i18n("editEmailDialog_Button_Cancel")}</button>
+	<button class="btn btn-danger btn-submit" ng-click="close(currentBox)">${i18n("editEmailDialog_Button_Edit")}</button>
 </div>
 
 <script type="text/javascript">
