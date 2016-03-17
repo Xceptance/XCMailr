@@ -9,7 +9,7 @@
 	<div class="form-group" id="emailRow">
 		<label class="control-label" for="editBoxDialogAddress2"> ${i18n("editEmailDialog_Label_Address")}* </label>
 		<div class="input-group" id="mailInputDiv">
-			<input class="input_full form-control" type="text" id="editBoxDialogAddress" name="address" ng-model="currentBox.address" required="required" />
+			<input class="input_full form-control  input-address" type="text" id="editBoxDialogAddress" name="address" ng-model="currentBox.address" required="required" />
 			<span class="input-group-addon">@</span> <select name="domain" class="form-control col-sm-4" ng-model="currentBox.domain">
 				<option ng-repeat="singleDomain in domains" ng-selected="(singleDomain == currentBox.domain)">{{singleDomain}}</option>
 			</select>
@@ -21,14 +21,14 @@
 		<label class="control-label" for="datetime{{currentBox.id}}">${i18n("editEmailDialog_Label_Duration")}* </label>
 		<div class="controls" ng-init="unlimitedBoxChecked = (currentBox.datetime=='unlimited')" ng-hide="unlimitedBoxChecked">
 			<div id="datetimepicker{{currentBox.id}}" class="input-group pickrBoxEdit" ng-init="setBoxDate( currentBox.datetime, ${lang})">
-				<input class="form-control" data-format="yyyy-MM-dd HH:mm" data-date-format="YYYY-MM-DD HH:mm" id="datetime{{currentBox.id}}" name="datetime" type="text" ng-model="currentBox.datetime"
+				<input class="form-control input-datetime" data-format="yyyy-MM-dd HH:mm" data-date-format="YYYY-MM-DD HH:mm" id="datetime{{currentBox.id}}" name="datetime" type="text" ng-model="currentBox.datetime"
 					required="required" />
 				<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
 			</div>
 		</div>
 		<div class="checkbox">
-			<label class="checkbox" for="chkUnlimited{{currentBox.id}}"> 
-			<input type="checkbox" id="chkUnlimited{{currentBox.id}}" ng-checked="unlimitedBoxChecked"
+			<label for="chkUnlimited{{currentBox.id}}"> 
+			<input type="checkbox" id="chkUnlimited{{currentBox.id}}" class="checkbox" ng-checked="unlimitedBoxChecked"
 					ng-model="unlimitedBoxChecked" /> ${i18n("editEmailDialog_Unlimited")}
 			</label> <span ng-if="unlimitedBoxChecked" ng-init="currentBox.datetime='${timeStamp}'"></span>
 		</div>
