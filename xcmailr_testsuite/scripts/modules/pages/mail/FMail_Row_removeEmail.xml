@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>remove selected E-Mail adress</description>
+  <parameter name="row"/>
+  <module name="modules.pages.mail.SMail_Row_storeEmailAdress">
+    <parameter name="row" value="@{row}"/>
+  </module>
+  <action name="openDialogRemoveEmail"/>
+  <module name="modules.pages.mail.MMail_Row_clickRemoveSelectedEMail">
+    <parameter name="row" value="@{row}"/>
+  </module>
+  <codecomment>validate emailadress</codecomment>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_RemoveEmail_validateEMailAdress">
+    <parameter name="email" value="${selectedEmail_varDynamic}"/>
+  </module>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_RemoveEmail_clickDelete"/>
+</scriptmodule>

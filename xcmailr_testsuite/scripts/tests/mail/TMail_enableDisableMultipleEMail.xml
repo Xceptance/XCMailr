@@ -40,6 +40,10 @@
     <parameter name="inputString" value="${defaultdomainLocalPart}"/>
     <parameter name="returnValue_varDynamic" value="domainLocalPart02_varDynamic"/>
   </module>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart03_varDynamic"/>
+  </module>
   <codecomment># Setup
 
 - Start session</codecomment>
@@ -62,45 +66,46 @@
   </module>
   <action name="GoToMyEmailAdresses"/>
   <module name="modules.global.headerfooternav.MGlobal_Header_clickMyEmailAdresses"/>
-  <codecomment># Scope</codecomment>
   <codecomment>add e-mail</codecomment>
   <module name="modules.pages.mail.FMail_Menu_addEmail">
     <parameter name="domainLocalPart" value="${domainLocalPart01_varDynamic}"/>
     <parameter name="domainHostPart" value="${defaultDomainPart}"/>
     <parameter name="validUntilDate" value=""/>
   </module>
-  <codecomment>validate</codecomment>
-  <module name="modules.pages.mail.MMail_Row_validateEmailAdress">
-    <parameter name="row" value="2"/>
-    <parameter name="emailAdress" value="${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
+  <module name="modules.pages.mail.FMail_Menu_addEmail">
+    <parameter name="domainLocalPart" value="${domainLocalPart02_varDynamic}"/>
+    <parameter name="domainHostPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilDate" value=""/>
   </module>
-  <module name="modules.pages.mail.MMail_Table_validateRowCounter">
-    <parameter name="nominalValue" value="2"/>
-  </module>
-  <codecomment>edit e-mail</codecomment>
-  <action name="openDialogCUEmailAdressEdit"/>
-  <module name="modules.pages.mail.MMail_Row_clickEditSelectedEMail">
+  <codecomment># Scope</codecomment>
+  <codecomment>select element as inactive</codecomment>
+  <module name="modules.pages.mail.MMail_Row_clickSelectEMail">
     <parameter name="row" value="2"/>
   </module>
-  <module name="modules.pages.mail.dialog.MMail_Dialog_CUEmail_enterData">
-    <parameter name="localPart" value="${domainLocalPart02_varDynamic}"/>
-    <parameter name="domainPart" value="${defaultDomainPart}"/>
-    <parameter name="validUntilPast" value=""/>
-  </module>
-  <action name="closeDialogCUEmailAdressEdit"/>
-  <module name="modules.pages.mail.dialog.MMail_Dialog_CUEmail_clickSave"/>
-  <codecomment>validate</codecomment>
-  <module name="modules.pages.mail.MMail_Row_validateEmailAdress">
-    <parameter name="row" value="2"/>
-    <parameter name="emailAdress" value="${domainLocalPart02_varDynamic}@${defaultDomainPart}"/>
-  </module>
-  <codecomment>remove e-mail</codecomment>
-  <module name="modules.pages.mail.FMail_Row_removeEmail">
+  <module name="modules.pages.mail.MMail_Row_setStatusInactive">
     <parameter name="row" value="2"/>
   </module>
-  <module name="modules.pages.mail.MMail_Table_validateRowCounter">
-    <parameter name="nominalValue" value="1"/>
+  <module name="modules.pages.mail.MMail_Row_validateEmailStatus">
+    <parameter name="row" value="2"/>
+    <parameter name="emailStatus" value="Inactive"/>
   </module>
+  <codecomment>select element as active</codecomment>
+  <module name="modules.pages.mail.MMail_Row_clickSelectEMail">
+    <parameter name="row" value="2"/>
+  </module>
+  <module name="modules.pages.mail.MMail_Row_setStatusActive">
+    <parameter name="row" value="2"/>
+  </module>
+  <module name="modules.pages.mail.MMail_Row_validateEmailStatus">
+    <parameter name="row" value="2"/>
+    <parameter name="emailStatus" value="Active"/>
+  </module>
+  <codecomment>validate element</codecomment>
+  <module name="modules.pages.mail.MMail_Row_validateEmailStatus">
+    <parameter name="row" value="3"/>
+    <parameter name="emailStatus" value="Active"/>
+  </module>
+  <codecomment>validate last element</codecomment>
   <action name="logout"/>
   <module name="modules.global.headerfooternav.MGlobal_Header_clickSignOut"/>
 </testcase>

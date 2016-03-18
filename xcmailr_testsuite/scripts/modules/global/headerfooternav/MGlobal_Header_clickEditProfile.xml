@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Navigates to the "Purchase Support" page</description>
+  <description>Navigates to the "Edit Profile" page</description>
   <codecomment>Navigate to the "My Account" page</codecomment>
+  <action name="GoToEditAccount"/>
   <command name="clickAndWait" target="css=.editAccount">
     <comment>css=.navbar .container div:nth-of-type(2) ul:nth-of-type(2) li:nth-of-type(2) a</comment>
   </command>

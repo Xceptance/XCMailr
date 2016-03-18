@@ -2,6 +2,7 @@
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
   <description>Navigates to the "Sign Out" page</description>
   <codecomment>Navigate to the "Sign Out" page</codecomment>
+  <action name="GoToSignOut"/>
   <command name="clickAndWait" target="css=.logoutAccount">
     <comment>li:nth-of-type(8) a</comment>
   </command>

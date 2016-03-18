@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>click  "Confirm"</description>
-  <codecomment>click - "confirm"</codecomment>
+  <description>click  "Save"</description>
+  <codecomment>click - "save"</codecomment>
+  <action name="confirm"/>
   <command name="clickAndWait" target="css=#editUserSubmit"/>
 </scriptmodule>

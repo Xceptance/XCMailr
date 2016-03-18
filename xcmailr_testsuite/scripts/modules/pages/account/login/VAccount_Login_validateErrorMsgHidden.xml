@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <command name="assertNotElementPresent" target="css=#loginform div.card-content div.formInput p.inputError"/>
-  <command name="assertNotVisible" target="css=#errEmail"/>
-  <command name="assertNotVisible" target="css=#errPass"/>
-</scriptmodule>

@@ -2,6 +2,7 @@
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
   <description>Navigates to the "Sign In" page</description>
   <codecomment>Navigate to the "Sign In" page</codecomment>
+  <action name="GoToSignIn"/>
   <command name="clickAndWait" target="css=.loginAccount">
     <comment>css=html body div.navbar div.container div.navbar-collapse ul.nav li:nth-of-type(1)  a</comment>
   </command>

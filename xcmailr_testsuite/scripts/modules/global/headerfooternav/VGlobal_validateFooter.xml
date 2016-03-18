@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Validate footer.</description>
+  <description>Validate footer elements</description>
   <codecomment>validate footer</codecomment>
   <command name="assertElementPresent" target="css=footer"/>
-  <command name="assertElementPresent" target="css=.XCMailrVersion"/>
+  <command name="assertElementPresent" target="css=.XCMailr_version"/>
 </scriptmodule>

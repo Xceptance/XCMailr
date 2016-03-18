@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <parameter name="row"/>
+  <action name="clickSelectBox"/>
+  <command name="check" target="css=#table-mailbox-overview tr:nth-of-type(@{row}) input.bulkChk"/>
+  <command name="waitForChecked" target="css=#table-mailbox-overview tr:nth-of-type(@{row}) input.bulkChk"/>
+</scriptmodule>

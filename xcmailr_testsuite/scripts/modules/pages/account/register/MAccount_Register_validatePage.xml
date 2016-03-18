@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>validate elements present</description>
   <command name="assertElementPresent" target="css=#name"/>
   <command name="assertElementPresent" target="css=#contact"/>
   <command name="assertElementPresent" target="css=#street_number"/>

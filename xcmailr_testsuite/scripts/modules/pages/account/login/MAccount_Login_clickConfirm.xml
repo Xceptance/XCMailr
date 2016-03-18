@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>click "Confirm"</description>
-  <codecomment>click - "Confirm"</codecomment>
-  <command name="clickAndWait" target="css=input.btn"/>
-</scriptmodule>

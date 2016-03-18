@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
   <description>click  "Confirm"</description>
-  <codecomment>click - "confirm"</codecomment>
-  <command name="waitForElementPresent" target="id=deleteUserForm"/>
+  <codecomment>click - delete account button</codecomment>
+  <action name="clickDeleteAccount"/>
   <command name="click" target="css=#editUserForm fieldset .container-fluid .row:nth-of-type(1) div:nth-of-type(2) div a"/>
+  <command name="waitForElementPresent" target="css=.modal-dialog"/>
 </scriptmodule>

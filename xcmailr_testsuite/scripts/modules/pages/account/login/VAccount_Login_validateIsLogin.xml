@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>validate if user login</description>
   <command name="assertText" target="css=.editAccount" value="Edit Profile"/>
 </scriptmodule>
