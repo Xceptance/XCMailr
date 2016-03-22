@@ -17,20 +17,6 @@
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
   </module>
-  <codecomment>first name</codecomment>
-  <module name="modules.helper.MHelper_Random_addRandomness">
-    <parameter name="inputString" value="${defaultRegisterFirstName}"/>
-    <parameter name="returnValue_varDynamic" value="FirstName_varDynamic"/>
-  </module>
-  <codecomment>last name</codecomment>
-  <module name="modules.helper.MHelper_Random_addRandomness">
-    <parameter name="inputString" value="${defaultRegisterLastName}"/>
-    <parameter name="returnValue_varDynamic" value="LastName_varDynamic"/>
-  </module>
-  <codecomment>Password</codecomment>
-  <module name="modules.helper.MHelper_Random_createPassword">
-    <parameter name="password_varDynamic" value="password_varDynamic"/>
-  </module>
   <codecomment>2x Domain local Part</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultdomainLocalPart}"/>
@@ -50,22 +36,19 @@
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <codecomment>create test account</codecomment>
   <module name="modules.helper.global.FHelper_Register_createAccount">
-    <parameter name="FirstName" value="${FirstName_varDynamic}"/>
-    <parameter name="LastName" value="${LastName_varDynamic}"/>
-    <parameter name="Email" value="${email_varDynamic}"/>
-    <parameter name="Password" value="${password_varDynamic}"/>
-    <parameter name="Language" value="${defaultRegisterLanguage}"/>
+    <parameter name="email" value="${email_varDynamic}"/>
+    <parameter name="password_varDynamic" value="${password_varDynamic}"/>
   </module>
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <action name="GoToSignIn"/>
-  <module name="modules.global.headerfooternav.MGlobal_Header_clickSignIn"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
   <action name="GoToAccount"/>
   <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
-    <parameter name="xltusername" value="${email_varDynamic}"/>
-    <parameter name="xltpassword" value="${password_varDynamic}"/>
+    <parameter name="username" value="${email_varDynamic}"/>
+    <parameter name="password" value="${password_varDynamic}"/>
   </module>
   <action name="GoToMyEmailAdresses"/>
-  <module name="modules.global.headerfooternav.MGlobal_Header_clickMyEmailAdresses"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickMyEmailAdresses"/>
   <codecomment>add e-mail</codecomment>
   <module name="modules.pages.mail.FMail_Menu_addEmail">
     <parameter name="domainLocalPart" value="${domainLocalPart01_varDynamic}"/>
@@ -103,5 +86,5 @@
   </module>
   <codecomment>validate last element</codecomment>
   <action name="logout"/>
-  <module name="modules.global.headerfooternav.MGlobal_Header_clickSignOut"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickSignOut"/>
 </testcase>

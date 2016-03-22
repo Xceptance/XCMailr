@@ -2,7 +2,7 @@
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
   <parameter name="inputString"/>
   <parameter name="returnValue_varDynamic"/>
-  <command name="store" target="${RANDOM.Number(1,4)}" value="rLength">
+  <command name="store" target="${RANDOM.Number(1,5)}" value="rLength">
     <comment>Just a random value for future use.</comment>
   </command>
   <command name="store" target="@{inputString}${RANDOM.String(${rLength})}" value="@{returnValue_varDynamic}">

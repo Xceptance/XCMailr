@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testcase xmlns="http://xlt.xceptance.com/xlt-script/2" version="6" junit-test="true">
+  <description>Test search for no email found.
+
+# 1. Setup and preparation
+
+- Start session, open homepage and delete all visible cookies
+- Create user
+
+# 2. Scope of test
+
+- Search for text
+- Validate empty search result
+</description>
+  <codecomment># Setup
+
+- Generate email
+- Generate password
+- Start session</codecomment>
+  <codecomment>e-mail (extern)</codecomment>
+  <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
+    <parameter name="email_varName" value="email_varDynamic"/>
+  </module>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value=""/>
+    <parameter name="returnValue_varDynamic" value="searchEmailAdress_varDynamic"/>
+  </module>
+  <codecomment># Setup
+
+- Start session</codecomment>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <codecomment>create test account</codecomment>
+  <module name="modules.helper.global.FHelper_Register_createAccount">
+    <parameter name="email" value="${email_varDynamic}"/>
+    <parameter name="password_varDynamic" value="${password_varDynamic}"/>
+  </module>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
+  <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
+    <parameter name="username" value="${email_varDynamic}"/>
+    <parameter name="password" value="${password_varDynamic}"/>
+  </module>
+  <module name="modules.global.headernav.MGlobal_Header_clickMyEmailAdresses"/>
+  <codecomment># Scope</codecomment>
+  <module name="modules.pages.search.MSearch_enterTextAndSubmit">
+    <parameter name="searchText" value="${searchEmailAdress_varDynamic}"/>
+  </module>
+  <codecomment>validate</codecomment>
+  <module name="modules.pages.search.VSearch_Results_validateNoEntriesFound"/>
+</testcase>

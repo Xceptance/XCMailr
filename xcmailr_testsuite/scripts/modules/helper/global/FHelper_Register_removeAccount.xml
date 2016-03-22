@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
   <parameter name="userPassword"/>
-  <module name="modules.global.headerfooternav.MGlobal_Header_clickEditProfile"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickEditProfile"/>
   <action name="goto_removeAccountView"/>
   <module name="modules.pages.account.MAccount_clickDeleteAccount"/>
   <codecomment>enter account password</codecomment>

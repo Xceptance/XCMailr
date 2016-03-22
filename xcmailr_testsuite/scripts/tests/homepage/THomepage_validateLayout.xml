@@ -18,10 +18,10 @@
   <codecomment># Scope</codecomment>
   <codecomment>layout test</codecomment>
   <codecomment>-----------------------------------------------</codecomment>
-  <module name="modules.global.headerfooternav.VGlobal_validatePageTitle">
+  <module name="modules.global.headernav.VGlobal_validatePageTitle">
     <parameter name="page_title" value="${title_home}"/>
   </module>
-  <module name="modules.global.headerfooternav.VGlobal_validateHeader"/>
+  <module name="modules.global.headernav.VGlobal_validateHeader"/>
   <module name="modules.pages.homepage.VHomepage_validatePage"/>
-  <module name="modules.global.headerfooternav.VGlobal_validateFooter"/>
+  <module name="modules.global.headernav.VGlobal_validateFooter"/>
 </testcase>
