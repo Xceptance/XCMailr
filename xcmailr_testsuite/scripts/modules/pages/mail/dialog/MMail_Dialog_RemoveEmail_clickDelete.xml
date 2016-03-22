@@ -4,5 +4,5 @@
   <command name="click" target="css=button.btn-submit">
     <comment>save</comment>
   </command>
-  <command name="waitForNotVisible" target="css=.modal-content"/>
+  <command name="waitForNotElementPresent" target="id=deleteBoxModal"/>
 </scriptmodule>

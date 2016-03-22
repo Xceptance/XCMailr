@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <module name="modules.pages.mail.SMail_Row_storeEmailAdress">
+    <parameter name="row" value="2"/>
+    <parameter name="selectedEmailAdress_varDynamic" value="selectedEmail_01_varDynamic"/>
+  </module>
+  <module name="modules.pages.mail.SMail_Row_storeEmailAdress">
+    <parameter name="row" value="3"/>
+    <parameter name="selectedEmailAdress_varDynamic" value="selectedEmail_02_varDynamic"/>
+  </module>
+  <module name="modules.pages.mail.MMail_Table_selectAllEmailAdresses"/>
+  <module name="modules.pages.mail.MMail_Menu_delete"/>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_RemoveEmail_validateTwoEMailAdresses">
+    <parameter name="email_01" value="${selectedEmail_01_varDynamic}"/>
+    <parameter name="email_02" value="${selectedEmail_02_varDynamic}"/>
+  </module>
+  <module name="modules.pages.mail.dialog.MMail_Dialog_RemoveEmail_clickDelete"/>
+</scriptmodule>

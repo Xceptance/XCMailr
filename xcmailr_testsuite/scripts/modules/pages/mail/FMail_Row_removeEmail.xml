@@ -4,6 +4,7 @@
   <parameter name="row"/>
   <module name="modules.pages.mail.SMail_Row_storeEmailAdress">
     <parameter name="row" value="@{row}"/>
+    <parameter name="selectedEmailAdress_varDynamic" value="selectedEmail_varDynamic"/>
   </module>
   <action name="openDialogRemoveEmail"/>
   <module name="modules.pages.mail.MMail_Row_clickRemoveSelectedEMail">

@@ -104,12 +104,7 @@
     <parameter name="nominalValue" value="3"/>
   </module>
   <codecomment>remove all emails</codecomment>
-  <module name="modules.pages.mail.FMail_Row_removeEmail">
-    <parameter name="row" value="2"/>
-  </module>
-  <module name="modules.pages.mail.FMail_Row_removeEmail">
-    <parameter name="row" value="2"/>
-  </module>
+  <module name="modules.pages.mail.FMail_Menu_removeLastTwoEMailAdresses"/>
   <action name="logout"/>
   <module name="modules.global.headerfooternav.MGlobal_Header_clickSignOut"/>
 </testcase>

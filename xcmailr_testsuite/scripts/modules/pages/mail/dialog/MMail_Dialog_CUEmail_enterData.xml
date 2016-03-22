@@ -4,6 +4,8 @@
   <parameter name="domainPart"/>
   <parameter name="validUntilPast"/>
   <command name="type" target="id=editBoxDialogAddress" value="@{localPart}"/>
+  <command name="waitForText" target="id=editBoxDialogAddress" value="@{localPart}"/>
   <command name="select" target="name=domain" value="value=@{domainPart}"/>
   <command name="type" target="css=.input-datetime" value="@{validUntilPast}"/>
+  <command name="waitForText" target="css=.input-datetime" value="@{validUntilPast}"/>
 </scriptmodule>
