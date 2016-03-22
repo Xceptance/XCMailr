@@ -21,9 +21,18 @@
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
   </module>
+  <codecomment>3x Domain local Part</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
-    <parameter name="inputString" value=""/>
-    <parameter name="returnValue_varDynamic" value="searchEmailAdress_varDynamic"/>
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart01_varDynamic"/>
+  </module>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart02_varDynamic"/>
+  </module>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart03_varDynamic"/>
   </module>
   <codecomment># Setup
 
@@ -41,14 +50,32 @@
     <parameter name="password" value="${password_varDynamic}"/>
   </module>
   <module name="modules.global.headernav.MGlobal_Header_clickMyEmailAdresses"/>
+  <codecomment>add e-mail</codecomment>
+  <module name="modules.pages.mail.FMail_Menu_addEmail">
+    <parameter name="domainLocalPart" value="${domainLocalPart01_varDynamic}"/>
+    <parameter name="domainHostPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilDate" value=""/>
+  </module>
+  <module name="modules.pages.mail.FMail_Menu_addEmail">
+    <parameter name="domainLocalPart" value="${domainLocalPart02_varDynamic}"/>
+    <parameter name="domainHostPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilDate" value=""/>
+  </module>
+  <module name="modules.pages.mail.FMail_Menu_addEmail">
+    <parameter name="domainLocalPart" value="${domainLocalPart03_varDynamic}"/>
+    <parameter name="domainHostPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilDate" value=""/>
+  </module>
   <codecomment># Scope</codecomment>
   <codecomment>## No Result
 
 - Search false string
 - Validate not found page with suggestion</codecomment>
   <module name="modules.pages.search.MSearch_enterTextAndSubmit">
-    <parameter name="searchText" value="${searchEmailAdress_varDynamic}"/>
+    <parameter name="searchText" value="${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
   </module>
   <codecomment>validate</codecomment>
-  <module name="modules.pages.search.VSearch_Results_validateNoEntriesFound"/>
+  <module name="modules.pages.mail.MMail_Table_validateLastElement">
+    <parameter name="nominalValue" value="${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
+  </module>
 </testcase>
