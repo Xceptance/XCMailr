@@ -1,58 +1,53 @@
 
-<div class="modal-header" id="addBoxModal" class="modal" tabindex="-1" role="dialog">
-	<div>
-		<h3 class="modal-title">${i18n("editEmailDialog_Title")}</h3>
-	</div>
+<div class="modal-header" class="modal" id="addBoxModal" tabindex="-1" role="dialog">
+	<button class="btn-close close" ng-click="dismiss(currentBox.id)">
+		<span aria-hidden="true">&times;</span>
+	</button>
+	<legend>${i18n("editEmailDialog_Title")}</legend>
 </div>
+<!-- /modal-header -->
+
 <div class="modal-body">
 
-	<div class="form-group" id="emailRow">
-		<label class="control-label" for="editBoxDialogAddress2"> ${i18n("editEmailDialog_Label_Address")}* </label>
-		<div class="input-group" id="mailInputDiv">
-			<input class="input_full form-control  input-address" type="text" id="editBoxDialogAddress" name="address" ng-model="currentBox.address" required="required" />
-			<span class="input-group-addon">@</span> <select name="domain" class="form-control col-sm-4" ng-model="currentBox.domain">
+	<div class="form-group row" id="emailRow">
+		<label class="col-sm-2 control-label" for="mailInputDiv"> ${i18n("editEmailDialog_Label_Address")}* </label>
+		<div class="col-sm-10 input-group" id="mailInputDiv">
+			<input class="input_full form-control  input-address" type="text" id="editBoxDialogAddress" name="address" ng-model="currentBox.address" required="required" /> 
+			<span class="input-group-addon">@</span> 
+			<select name="domain" class="form-control col-sm-4" ng-model="currentBox.domain">
 				<option ng-repeat="singleDomain in domains" ng-selected="(singleDomain == currentBox.domain)">{{singleDomain}}</option>
 			</select>
 		</div>
 	</div>
 
 	<!-- row: life-time of the address -->
-	<div class="form-group">
-		<label class="control-label" for="datetime{{currentBox.id}}">${i18n("editEmailDialog_Label_Duration")}* </label>
+	<div class="form-group row">
+		<label class="col-sm-2 control-label" for="datetime{{currentBox.id}}">${i18n("editEmailDialog_Label_Duration")}* </label>
 		<div class="controls" ng-init="unlimitedBoxChecked = (currentBox.datetime=='unlimited')" ng-hide="unlimitedBoxChecked">
-			<div id="datetimepicker{{currentBox.id}}" class="input-group pickrBoxEdit" ng-init="setBoxDate( currentBox.datetime, ${lang})">
-				<input class="form-control input-datetime" data-format="yyyy-MM-dd HH:mm" data-date-format="YYYY-MM-DD HH:mm" id="datetime{{currentBox.id}}" name="datetime" type="text" ng-model="currentBox.datetime"
-					required="required" />
-				<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+			<div class="input-group pickrBoxEdit" id="datetimepicker{{currentBox.id}}" ng-init="setBoxDate( currentBox.datetime, ${lang})">
+				<input class="form-control input-datetime" data-format="yyyy-MM-dd HH:mm" data-date-format="YYYY-MM-DD HH:mm" id="datetime{{currentBox.id}}" name="datetime" type="text" ng-model="currentBox.datetime" required="required" /> <span
+					class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
 			</div>
 		</div>
-		<div class="checkbox">
-			<label for="chkUnlimited{{currentBox.id}}"> 
-			<input type="checkbox" id="chkUnlimited{{currentBox.id}}" class="checkbox" ng-checked="unlimitedBoxChecked"
-					ng-model="unlimitedBoxChecked" /> ${i18n("editEmailDialog_Unlimited")}
-			</label> <span ng-if="unlimitedBoxChecked" ng-init="currentBox.datetime='${timeStamp}'"></span>
+		<div class="col-sm-2"></div>
+		<div class="col-sm-10">
+		<label class="checkbox" for="chkUnlimited{{currentBox.id}}">
+			<input type="checkbox" class="checkbox" id="chkUnlimited{{currentBox.id}}" ng-checked="unlimitedBoxChecked" ng-model="unlimitedBoxChecked" /> ${i18n("editEmailDialog_Unlimited")} <span ng-if="unlimitedBoxChecked" ng-init="currentBox.datetime='${timeStamp}'"></span>
+		</label>
+		</div>
+	</div>
+
+</div>
+<!-- /modal-body -->
+
+<div class="modal-footer">
+	<div class="form-group row">
+		<div class="col-sm-2"></div>
+		<div class="col-sm-10">
+			<span class="pull-left">* ${i18n("editUser_Label_RequiredDescription")}</span> 
+			<input class="btn btn-warning" id="btnReset" type="button" ng-click="reset()" value='${i18n("editEmailDialog_Button_Reset")}' />
+			<button class="btn btn-success btn-submit" ng-click="close(currentBox)">${i18n("editEmailDialog_Button_Edit")}</button>
 		</div>
 	</div>
 </div>
-<div class="modal-footer">
-	<input class="btn btn-warning" id="btnReset" type="button" ng-click="reset()" value='${i18n("editEmailDialog_Button_Reset")}' />
-	<button class="btn btn-default btn-cancel" ng-click="dismiss(currentBox.id)">${i18n("editEmailDialog_Button_Cancel")}</button>
-	<button class="btn btn-danger btn-submit" ng-click="close(currentBox)">${i18n("editEmailDialog_Button_Edit")}</button>
-</div>
-
-<script type="text/javascript">
-	$(function() 
-		{
-// 		var sDate =  new Date();
-// 		var now = new Date();
-// 		$('.pickrBoxEdit').datetimepicker(
-// 			{
-// 				language : '${lang}',
-// 				pick12HourFormat : false,
-// 				minDate : now,
-// 				defaultDate: sDate
-// 			}
-// 		);
-		}
-	);
-</script>
+<!-- /modal-footer -->

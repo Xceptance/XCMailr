@@ -1,78 +1,81 @@
 <#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout title=i18n("registerUser_Title")>
+
 <form action="${contextPath}/register" method="post" class="form-horizontal" id="formRegistration">
 	<fieldset>
-<div class="col-md-8">
+		<legend>${i18n("registerUser_Title")}</legend>
+		<div class="col-md-8">
 			<div class="form-group">
-				<label class="col-sm-2 control-label" for="firstName">${i18n("registerUser_Label_FirstName")} </label>
+				<label class="col-sm-2 control-label" for="firstName">${i18n("registerUser_Label_FirstName")}* </label>
 				<div class="col-sm-10">
 					<input class="form-control" type="text" id="inputRegisterFirstName" name="firstName" value="${(registerUserData.firstName)!}" required="required" />
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="col-sm-2 control-label" for="surname"> ${i18n("registerUser_Label_Name")} </label>
+				<label class="col-sm-2 control-label" for="surname"> ${i18n("registerUser_Label_Name")}* </label>
 				<div class="col-sm-10">
 					<input class="form-control" type="text" id="inputRegisterSurName" name="surName" value="${(registerUserData.surName)!}" required="required" />
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="col-sm-2 control-label" for="mail"> ${i18n("registerUser_Label_Email")} </label>
+				<label class="col-sm-2 control-label" for="mail"> ${i18n("registerUser_Label_Email")}* </label>
 				<div class="col-sm-10">
 					<input class="form-control" type="email" id="inputRegisterMail" name="mail" value="${(registerUserData.mail)!}" required="required" />
 				</div>
 			</div>
 
 			<div class="form-group passwords">
-				<label class="col-sm-2 control-label" for="password"> ${i18n("registerUser_Label_Password")} </label>
+				<label class="col-sm-2 control-label" for="password"> ${i18n("registerUser_Label_Password")}* </label>
 				<div class="col-sm-10">
 					<input class="form-control" type="password" id="inputRegisterPassword" name="password" required="required" />
 				</div>
 			</div>
 			<div class="form-group passwords">
-				<label class="col-sm-2 control-label" for="passwordNew1">${i18n("registerUser_Label_Password_Repeat")} </label>
+				<label class="col-sm-2 control-label" for="passwordNew1">${i18n("registerUser_Label_Password_Repeat")}* </label>
 				<div class="col-sm-10" id="divPasswordRepeat">
 					<input class="form-control" type="password" id="inputRegisterPasswordRepetition" name="passwordNew1" required="required" />
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="col-sm-2 control-label" for="language"> ${i18n("registerUser_Label_Language")} </label>
+				<label class="col-sm-2 control-label" for="language"> ${i18n("registerUser_Label_Language")}* </label>
 				<div class="col-sm-10">
-					<select name="language" id="selectRegisterLanguage" class="form-control"> <#list available_langs as lng> <#if (registerUserData.language)??> <#if
-						registerUserData.language == lng[0]>
+					<select name="language" id="selectRegisterLanguage" class="form-control"> <#list available_langs as lng> <#if (registerUserData.language)??> <#if registerUserData.language == lng[0]>
 						<option value="${lng[0]}" id="optionRegisterLanguage_${lng[0]}" selected="selected">${lng[1]}</option> <#else>
 						<option value="${lng[0]}" id="optionRegisterLanguage_${lng[0]}">${lng[1]}</option> </#if> <#else>
 						<option value="${lng[0]}" id="optionRegisterLanguage_${lng[0]}">${lng[1]}</option> </#if> </#list>
 					</select>
 				</div>
 			</div>
-			<div class="col-sm-4"></div>
-			<div class="col-sm-4">
-			<div class="form-group">
-				<input type="button" id="btnRegisterReset" class="btn btn-warning" value='${i18n("registerUser_Button_Reset")}' />
-				<input type="button" id="btnRegisterSubmit" class="btn btn-danger" value='${i18n("registerUser_Button_Create")}' />
+
+			<div class="col-sm-2"></div>
+			<div class="col-sm-10">
+				<div class="form-group modal-footer">
+					<span class="pull-left">* ${i18n("editUser_Label_RequiredDescription")}</span>
+					<input type="button" id="btnRegisterReset" class="btn btn-warning" value='${i18n("registerUser_Button_Reset")}' /> 
+					<input type="button" id="btnRegisterSubmit" class="btn btn-success btn-submit" value='${i18n("registerUser_Button_Create")}' />
+				</div>
 			</div>
-			</div>
-			<div class="col-sm-4"></div>
+
 		</div>
 	</fieldset>
 </form>
 <script type="text/javascript">
-$('#btnRegisterSubmit')
-.click(
-		function() {
-			var pw1 = $('#inputRegisterPassword').val();
-			var pw2 = $('#inputRegisterPasswordRepetition').val();
-			if (pw1 != pw2) {
-				$('#pwUnequalErrorSpan').remove();
-				$('.passwords').removeClass("error");
-				$('#divPasswordRepeat')
-						.append(
-								'<span class="help-inline" id="pwUnequalErrorSpan">${i18n("flash_PasswordsUnequal")}</span>')
-				$('.passwords').addClass("error");
-				return false;
-			} else {
-				$('#formRegistration')[0].submit();
-			}
-		});
+	$('#btnRegisterSubmit')
+			.click(
+					function() {
+						var pw1 = $('#inputRegisterPassword').val();
+						var pw2 = $('#inputRegisterPasswordRepetition').val();
+						if (pw1 != pw2) {
+							$('#pwUnequalErrorSpan').remove();
+							$('.passwords').removeClass("error");
+							$('#divPasswordRepeat')
+									.append(
+											'<span class="help-inline" id="pwUnequalErrorSpan">${i18n("flash_PasswordsUnequal")}</span>')
+							$('.passwords').addClass("error");
+							return false;
+						} else {
+							$('#formRegistration')[0].submit();
+						}
+					});
 
 	$('#btnRegisterReset').click(function() {
 		$('#pwUnequalErrorSpan').remove();
