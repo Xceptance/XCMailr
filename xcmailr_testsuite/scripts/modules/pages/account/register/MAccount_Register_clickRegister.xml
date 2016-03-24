@@ -2,5 +2,5 @@
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
   <description>click create account button</description>
   <action name="confirmRegistration"/>
-  <command name="clickAndWait" target="css=#btnRegisterSubmit"/>
+  <command name="clickAndWait" target="css=.btn-submit"/>
 </scriptmodule>

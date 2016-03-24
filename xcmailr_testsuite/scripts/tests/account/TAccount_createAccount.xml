@@ -53,15 +53,7 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
   </module>
   <action name="GoToEditProfile"/>
   <module name="modules.global.headernav.MGlobal_Header_clickEditProfile"/>
-  <module name="modules.pages.account.VAccount_validatePage">
-    <parameter name="contactCompName" value="${companyName}"/>
-    <parameter name="contactUserName" value="${contactPerson}"/>
-    <parameter name="contactEmail" value="${email_varDynamic}"/>
-    <parameter name="contactAdressStreetAndNumber" value="${StreetAndNumber}"/>
-    <parameter name="contactAdressCity" value="${city}"/>
-    <parameter name="contactAdressZip" value="${postalCode}"/>
-    <parameter name="contactAdressCountry" value="${country}"/>
-  </module>
+  <module name="modules.pages.account.VAccount_validatePage"/>
   <module name="modules.global.headernav.VGlobal_validatePageTitle">
     <parameter name="page_title" value="${title_edit}"/>
   </module>

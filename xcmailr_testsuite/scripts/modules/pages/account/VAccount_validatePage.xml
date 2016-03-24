@@ -1,15 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
   <description>Validates the display of the error message</description>
-  <parameter name="contactCompName"/>
-  <parameter name="contactUserName"/>
-  <parameter name="contactEmail"/>
-  <parameter name="contactAdressStreetAndNumber"/>
-  <parameter name="contactAdressCity"/>
-  <parameter name="contactAdressZip"/>
-  <parameter name="contactAdressCountry"/>
   <codecomment>delete button</codecomment>
-  <command name="assertElementPresent" target="css=#editUserForm.form-horizontal fieldset div.container-fluid div.row div.col-md-2 div.pull-right a.btn.btn-danger"/>
+  <command name="assertElementPresent" target="css=#editUserForm .remove-user"/>
   <codecomment>input field</codecomment>
   <command name="assertElementPresent" target="css=#password"/>
   <command name="assertElementPresent" target="css=#firstName"/>

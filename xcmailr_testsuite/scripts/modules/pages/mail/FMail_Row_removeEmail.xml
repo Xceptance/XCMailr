@@ -14,5 +14,6 @@
   <module name="modules.pages.mail.dialog.MMail_Dialog_RemoveEmail_validateEMailAdress">
     <parameter name="email" value="${selectedEmail_varDynamic}"/>
   </module>
+  <action name="closeDialogRemoveEmail"/>
   <module name="modules.pages.mail.dialog.MMail_Dialog_RemoveEmail_clickDelete"/>
 </scriptmodule>
