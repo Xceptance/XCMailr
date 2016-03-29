@@ -21,6 +21,12 @@
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
   </module>
+  <codecomment>3x Domain local Part</codecomment>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart01_varDynamic"/>
+  </module>
+  <codecomment>create search string</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value=""/>
     <parameter name="returnValue_varDynamic" value="searchEmailAdress_varDynamic"/>
@@ -32,7 +38,7 @@
   <codecomment>create test account</codecomment>
   <module name="modules.helper.global.FHelper_Register_createAccount">
     <parameter name="email" value="${email_varDynamic}"/>
-    <parameter name="userPassword_varDynamic" value="${password_varDynamic}"/>
+    <parameter name="userPassword_varDynamic" value="password_varDynamic"/>
   </module>
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
@@ -46,6 +52,17 @@
 
 - Search false string
 - Validate not found page with suggestion</codecomment>
+  <module name="modules.pages.search.MSearch_enterTextAndSubmit">
+    <parameter name="searchText" value="${searchEmailAdress_varDynamic}"/>
+  </module>
+  <codecomment>validate</codecomment>
+  <module name="modules.pages.search.VSearch_Results_validateNoEntriesFound"/>
+  <codecomment>add e-mail</codecomment>
+  <module name="modules.pages.mail.FMail_Menu_addEmail">
+    <parameter name="domainLocalPart" value="${domainLocalPart01_varDynamic}"/>
+    <parameter name="domainHostPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilDate" value=""/>
+  </module>
   <module name="modules.pages.search.MSearch_enterTextAndSubmit">
     <parameter name="searchText" value="${searchEmailAdress_varDynamic}"/>
   </module>

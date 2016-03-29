@@ -41,7 +41,7 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
 - Logout</codecomment>
   <module name="modules.helper.global.FHelper_Register_createAccount">
     <parameter name="email" value="${email_varDynamic}"/>
-    <parameter name="userPassword_varDynamic" value="${password_varDynamic}"/>
+    <parameter name="userPassword_varDynamic" value="password_varDynamic"/>
   </module>
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <action name="GoToSignIn"/>
