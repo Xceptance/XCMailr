@@ -53,11 +53,11 @@
     <parameter name="validUntilDate" value=""/>
   </module>
   <codecomment>validate</codecomment>
-  <module name="modules.pages.mail.MMail_Row_validateEmailAdress">
+  <module name="modules.pages.mail.VMail_Row_validateEmailAdress">
     <parameter name="row" value="2"/>
     <parameter name="emailAdress" value="${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
   </module>
-  <module name="modules.pages.mail.MMail_Table_validateRowCounter">
+  <module name="modules.pages.mail.VMail_Table_validateRowCounter">
     <parameter name="nominalValue" value="2"/>
   </module>
   <codecomment>edit e-mail</codecomment>
@@ -73,7 +73,7 @@
   <action name="closeDialogCUEmailAdressEdit"/>
   <module name="modules.pages.mail.dialog.MMail_Dialog_CUEmail_clickSave"/>
   <codecomment>validate</codecomment>
-  <module name="modules.pages.mail.MMail_Row_validateEmailAdress">
+  <module name="modules.pages.mail.VMail_Row_validateEmailAdress">
     <parameter name="row" value="2"/>
     <parameter name="emailAdress" value="${domainLocalPart02_varDynamic}@${defaultDomainPart}"/>
   </module>
@@ -81,7 +81,7 @@
   <module name="modules.pages.mail.FMail_Row_removeEmail">
     <parameter name="row" value="2"/>
   </module>
-  <module name="modules.pages.mail.MMail_Table_validateRowCounter">
+  <module name="modules.pages.mail.VMail_Table_validateRowCounter">
     <parameter name="nominalValue" value="1"/>
   </module>
   <action name="logout"/>

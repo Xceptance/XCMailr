@@ -66,7 +66,7 @@
     <parameter name="row" value="2"/>
   </module>
   <module name="modules.pages.mail.MMail_Menu_setStatusInactive"/>
-  <module name="modules.pages.mail.MMail_Row_validateEmailStatus">
+  <module name="modules.pages.mail.VMail_Row_validateEmailStatus">
     <parameter name="row" value="2"/>
     <parameter name="emailStatus" value="Inactive"/>
   </module>
@@ -75,12 +75,12 @@
     <parameter name="row" value="2"/>
   </module>
   <module name="modules.pages.mail.MMail_Menu_setStatusActive"/>
-  <module name="modules.pages.mail.MMail_Row_validateEmailStatus">
+  <module name="modules.pages.mail.VMail_Row_validateEmailStatus">
     <parameter name="row" value="2"/>
     <parameter name="emailStatus" value="Active"/>
   </module>
   <codecomment>validate element</codecomment>
-  <module name="modules.pages.mail.MMail_Row_validateEmailStatus">
+  <module name="modules.pages.mail.VMail_Row_validateEmailStatus">
     <parameter name="row" value="3"/>
     <parameter name="emailStatus" value="Active"/>
   </module>

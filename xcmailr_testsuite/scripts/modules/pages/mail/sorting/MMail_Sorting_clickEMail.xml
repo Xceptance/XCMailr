@@ -2,5 +2,4 @@
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
   <description>click "Email Adress" at menubar</description>
   <command name="click" target="css=.head-sort-adress"/>
-  <command name="waitForElementPresent" disabled="true" target="css=.modal-dialog"/>
 </scriptmodule>

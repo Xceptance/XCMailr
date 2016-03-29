@@ -67,5 +67,5 @@
     <parameter name="searchText" value="${searchEmailAdress_varDynamic}"/>
   </module>
   <codecomment>validate</codecomment>
-  <module name="modules.pages.search.VSearch_Results_validateNoEntriesFound"/>
+  <module name="modules.pages.search.VSearch_Results_validateNoEntriesFound" disabled="true"/>
 </testcase>

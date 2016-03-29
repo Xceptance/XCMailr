@@ -49,45 +49,49 @@
   </module>
   <action name="GoToMyEmailAdresses"/>
   <module name="modules.global.headernav.MGlobal_Header_clickMyEmailAdresses"/>
-  <codecomment># Scope</codecomment>
   <codecomment>add e-mail</codecomment>
   <module name="modules.pages.mail.FMail_Menu_addEmail">
-    <parameter name="domainLocalPart" value="${domainLocalPart01_varDynamic}"/>
+    <parameter name="domainLocalPart" value="a-${domainLocalPart01_varDynamic}"/>
     <parameter name="domainHostPart" value="${defaultDomainPart}"/>
     <parameter name="validUntilDate" value=""/>
   </module>
   <module name="modules.pages.mail.FMail_Menu_addEmail">
-    <parameter name="domainLocalPart" value="${domainLocalPart02_varDynamic}"/>
+    <parameter name="domainLocalPart" value="b-${domainLocalPart02_varDynamic}"/>
     <parameter name="domainHostPart" value="${defaultDomainPart}"/>
     <parameter name="validUntilDate" value=""/>
   </module>
   <module name="modules.pages.mail.FMail_Menu_addEmail">
-    <parameter name="domainLocalPart" value="${domainLocalPart03_varDynamic}"/>
+    <parameter name="domainLocalPart" value="c-${domainLocalPart03_varDynamic}"/>
     <parameter name="domainHostPart" value="${defaultDomainPart}"/>
     <parameter name="validUntilDate" value=""/>
   </module>
+  <codecomment># Scope</codecomment>
+  <codecomment>sorting - e-mail</codecomment>
+  <action name="changeSortingEMail"/>
+  <module name="modules.pages.mail.sorting.MMail_Sorting_clickEMail"/>
   <codecomment>validate</codecomment>
-  <module name="modules.pages.mail.VMail_Table_validateRowCounter">
-    <parameter name="nominalValue" value="4"/>
+  <module name="modules.pages.mail.VMail_Table_validateFirstElement">
+    <parameter name="nominalValue" value="c-${domainLocalPart03_varDynamic}@${defaultDomainPart}"/>
   </module>
   <module name="modules.pages.mail.VMail_Table_validateLastElement">
-    <parameter name="nominalValue" value="${domainLocalPart03_varDynamic}@${defaultDomainPart}"/>
+    <parameter name="nominalValue" value="a-${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
   </module>
-  <codecomment>remove 2. e-mail</codecomment>
-  <module name="modules.pages.mail.FMail_Row_removeEmail">
+  <codecomment>sorting - status</codecomment>
+  <codecomment>set status of the second element to disable</codecomment>
+  <action name="checkBoxEmail"/>
+  <module name="modules.pages.mail.MMail_Row_clickSelectEMail">
     <parameter name="row" value="3"/>
   </module>
-  <codecomment>validate last element</codecomment>
+  <module name="modules.pages.mail.MMail_Menu_setStatusInactive"/>
+  <action name="changeSortingStatus"/>
+  <module name="modules.pages.mail.sorting.MMail_Sorting_clickStatus"/>
+  <codecomment>validate</codecomment>
+  <module name="modules.pages.mail.VMail_Table_validateFirstElement">
+    <parameter name="nominalValue" value="b-${domainLocalPart02_varDynamic}@${defaultDomainPart}"/>
+  </module>
   <module name="modules.pages.mail.VMail_Table_validateLastElement">
-    <parameter name="nominalValue" value="${domainLocalPart03_varDynamic}@${defaultDomainPart}"/>
+    <parameter name="nominalValue" value="c-${domainLocalPart03_varDynamic}@${defaultDomainPart}"/>
   </module>
-  <module name="modules.pages.mail.VMail_Table_validateRowCounter">
-    <parameter name="nominalValue" value="3"/>
-  </module>
-  <codecomment>remove all emails</codecomment>
-  <module name="modules.pages.mail.FMail_Menu_removeLastTwoEMailAdresses"/>
-  <codecomment>validate empty status</codecomment>
-  <module name="modules.pages.search.VSearch_Results_validateNoEntriesFound"/>
   <action name="logout"/>
   <module name="modules.global.headernav.MGlobal_Header_clickSignOut"/>
 </testcase>

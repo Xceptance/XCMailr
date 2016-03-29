@@ -73,7 +73,7 @@
     <parameter name="searchText" value="${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
   </module>
   <codecomment>validate</codecomment>
-  <module name="modules.pages.mail.MMail_Table_validateLastElement">
+  <module name="modules.pages.mail.VMail_Table_validateLastElement">
     <parameter name="nominalValue" value="${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
   </module>
 </testcase>
