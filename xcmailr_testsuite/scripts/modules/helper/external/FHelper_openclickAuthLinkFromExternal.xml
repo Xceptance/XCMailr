@@ -13,7 +13,7 @@
   <codecomment>store e-mail message</codecomment>
   <command name="storeText" target="css=#modalMessage .modal-body" value="message_varDynamic"/>
   <codecomment>store only url</codecomment>
-  <command name="storeEval" target="&quot;${message_varDynamic}&quot;.substring(&quot;${message_varDynamic}&quot;.indexOf(&quot;htt&quot;),&quot;${message_varDynamic}&quot;.indexOf(&quot;This&quot;))" value="activateUrl_varDynamic">
+  <command name="storeEval" target="&quot;${message_varDynamic}&quot;.substring(&quot;${message_varDynamic}&quot;.indexOf(&quot;htt&quot;), (&quot;${message_varDynamic}&quot;.indexOf(&quot;This&quot;)-1) )" value="activateUrl_varDynamic">
     <comment>"${message_varDynamic}".substring("${message_varDynamic}".indexOf("htt","${message_varDynamic}".indexOf("This")))</comment>
   </command>
   <codecomment>OpenActivateUrl</codecomment>

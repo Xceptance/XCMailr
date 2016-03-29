@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testcase xmlns="http://xlt.xceptance.com/xlt-script/2" version="6" junit-test="true">
-  <description>Test search for no email found.
+  <description>Test search for one email.
 
 # 1. Setup and preparation
 
 - Start session, open homepage and delete all visible cookies
-- Create user
 
 # 2. Scope of test
 
-- Search for text
-- Validate empty search result
-</description>
+- Enter exist email 
+- Validate  results page</description>
   <codecomment># Setup
 
 - Generate email
@@ -41,7 +39,7 @@
   <codecomment>create test account</codecomment>
   <module name="modules.helper.global.FHelper_Register_createAccount">
     <parameter name="email" value="${email_varDynamic}"/>
-    <parameter name="password_varDynamic" value="${password_varDynamic}"/>
+    <parameter name="userPassword_varDynamic" value="password_varDynamic"/>
   </module>
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
@@ -67,7 +65,7 @@
     <parameter name="validUntilDate" value=""/>
   </module>
   <codecomment># Scope</codecomment>
-  <codecomment>## No Result
+  <codecomment>## Result
 
 - Search false string
 - Validate not found page with suggestion</codecomment>

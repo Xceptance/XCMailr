@@ -5,6 +5,7 @@
   <parameter name="password"/>
   <codecomment>enter email and password</codecomment>
   <command name="type" target="css=#inputLoginMail" value="@{username}"/>
+  <command name="waitForText" target="css=#inputLoginMail" value="@{username}"/>
   <command name="type" target="css=#inputLoginPassword" value="@{password}"/>
   <action name="clickSignIn"/>
   <command name="clickAndWait" target="css=#btnLoginSubmit"/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
   <parameter name="email"/>
-  <parameter name="password_varDynamic"/>
+  <parameter name="userPassword_varDynamic"/>
   <codecomment>first name</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultRegisterFirstName}"/>
@@ -14,14 +14,14 @@
   </module>
   <codecomment>Password</codecomment>
   <module name="modules.helper.MHelper_Random_createPassword">
-    <parameter name="password_varDynamic" value="@{password_varDynamic}"/>
+    <parameter name="pwd_varDynamic" value="@{userPassword_varDynamic}"/>
   </module>
   <module name="modules.global.headernav.MGlobal_Header_clickCreateAccount"/>
   <module name="modules.pages.account.register.MAccount_Register_enterRegisterData">
     <parameter name="firstName" value="${firstName_varDynamic}"/>
     <parameter name="lastName" value="${lastName_varDynamic}"/>
     <parameter name="email" value="@{email}"/>
-    <parameter name="password" value="@{password_varDynamic}"/>
+    <parameter name="password" value="${password_varDynamic}"/>
     <parameter name="language" value="${defaultRegisterLanguage}"/>
   </module>
   <module name="modules.pages.account.register.MAccount_Register_clickRegister"/>
