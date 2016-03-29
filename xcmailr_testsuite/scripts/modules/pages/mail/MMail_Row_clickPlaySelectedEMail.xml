@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Click the play element at the selected table row.</description>
   <parameter name="row"/>
   <action name="clickPlaySelectedEMail"/>
   <command name="click" target="css=#table-mailbox-overview tr:nth-of-type(@{row}) a.btn-link-play"/>

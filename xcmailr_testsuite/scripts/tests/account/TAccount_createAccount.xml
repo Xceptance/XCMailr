@@ -16,11 +16,13 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
 - Login again to validate login data and goto the account page
 - Validate personal profile data
 - Logout using the global link in the header</description>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Setup
 
 - Generate email
 - Generate password
 - Start session</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment>e-mail (extern)</codecomment>
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
@@ -30,7 +32,9 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
 - Start session</codecomment>
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <codecomment>create test account</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Scope</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment>Account
 
 - Register account via header link
@@ -46,7 +50,7 @@ Note: this test case requires testmode on (../xltportal/conf/xltportal.propertie
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <action name="GoToSignIn"/>
   <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
-  <action name="GoToAccount"/>
+  <action name="EnterLoginDataAndClickLoginButton"/>
   <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
     <parameter name="username" value="${email_varDynamic}"/>
     <parameter name="password" value="${password_varDynamic}"/>

@@ -10,9 +10,11 @@
 
 - Validate global header, navigation and footer
 - Validate hompage content</description>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Setup
 
 - Start session</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Scope</codecomment>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Validate until date by seleceted row.</description>
   <parameter name="row"/>
   <parameter name="validUntil"/>
   <command name="assertText" target="css=#table-mailbox-overview tr:nth-of-type(@{row}) .mailbox-date-validUntil" value=""/>

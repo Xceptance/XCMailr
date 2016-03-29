@@ -8,11 +8,13 @@
 - create user
 
 # Scope of test</description>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Setup
 
 - Generate email
 - Generate password
 - Start session</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment>e-mail (extern)</codecomment>
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
@@ -38,14 +40,16 @@
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <action name="GoToSignIn"/>
   <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
-  <action name="GoToAccount"/>
+  <action name="EnterLoginDataAndClickLoginButton"/>
   <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
     <parameter name="username" value="${email_varDynamic}"/>
     <parameter name="password" value="${password_varDynamic}"/>
   </module>
   <action name="GoToMyEmailAdresses"/>
   <module name="modules.global.headernav.MGlobal_Header_clickMyEmailAdresses"/>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Scope</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment>add e-mail</codecomment>
   <module name="modules.pages.mail.FMail_Menu_addEmail">
     <parameter name="domainLocalPart" value="${domainLocalPart01_varDynamic}"/>

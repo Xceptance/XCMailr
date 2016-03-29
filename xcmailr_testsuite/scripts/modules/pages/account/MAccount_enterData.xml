@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Enter usere data.</description>
   <parameter name="firstName"/>
   <parameter name="lastName"/>
   <parameter name="language"/>

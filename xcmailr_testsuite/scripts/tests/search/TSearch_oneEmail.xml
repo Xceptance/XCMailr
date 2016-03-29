@@ -10,11 +10,13 @@
 
 - Enter exist email 
 - Validate  results page</description>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Setup
 
 - Generate email
 - Generate password
 - Start session</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment>e-mail (extern)</codecomment>
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
@@ -42,11 +44,14 @@
     <parameter name="userPassword_varDynamic" value="password_varDynamic"/>
   </module>
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <action name="GoToSignIn"/>
   <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
+  <action name="EnterLoginDataAndClickLoginButton"/>
   <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
     <parameter name="username" value="${email_varDynamic}"/>
     <parameter name="password" value="${password_varDynamic}"/>
   </module>
+  <action name="GoToMyEmailAdresses"/>
   <module name="modules.global.headernav.MGlobal_Header_clickMyEmailAdresses"/>
   <codecomment>add e-mail</codecomment>
   <module name="modules.pages.mail.FMail_Menu_addEmail">
@@ -64,11 +69,14 @@
     <parameter name="domainHostPart" value="${defaultDomainPart}"/>
     <parameter name="validUntilDate" value=""/>
   </module>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Scope</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment>## Result
 
 - Search false string
 - Validate not found page with suggestion</codecomment>
+  <action name="EnterAndSubmitSearchString"/>
   <module name="modules.pages.search.MSearch_enterTextAndSubmit">
     <parameter name="searchText" value="${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
   </module>

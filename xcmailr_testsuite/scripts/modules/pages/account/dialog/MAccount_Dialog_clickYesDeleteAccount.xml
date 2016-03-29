@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>click  "Confirm"</description>
+  <description>Click  the delete account button in the dialog.</description>
   <action name="confirmDeleteAccount"/>
   <command name="clickAndWait" target="css=#deleteUserSubmit"/>
 </scriptmodule>

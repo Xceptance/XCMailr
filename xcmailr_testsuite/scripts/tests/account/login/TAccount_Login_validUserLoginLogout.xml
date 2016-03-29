@@ -15,9 +15,11 @@ NOTE: XLT-Portal must be run in TestMode (../xltportal/conf/xltportal.properties
 - Enter valid username, valid password and try to login
 - Validate page title 
 - Validate present error message element</description>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Setup
 
 - Start session</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
   </module>
@@ -34,8 +36,7 @@ NOTE: XLT-Portal must be run in TestMode (../xltportal/conf/xltportal.properties
   <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
   <codecomment>validate - Layout</codecomment>
   <module name="modules.pages.account.login.VAccount_Login_validatePage"/>
-  <action name="LogIn"/>
-  <codecomment>enter - user login data</codecomment>
+  <action name="EnterLoginDataAndClickLoginButton"/>
   <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
     <parameter name="username" value="${email_varDynamic}"/>
     <parameter name="password" value="${password_varDynamic}"/>

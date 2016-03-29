@@ -8,11 +8,13 @@
 - create user
 
 # Scope of test</description>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Setup
 
 - Generate email
 - Generate password
 - Start session</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment>e-mail (extern)</codecomment>
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
@@ -42,7 +44,7 @@
   <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
   <action name="GoToSignIn"/>
   <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
-  <action name="GoToAccount"/>
+  <action name="EnterLoginDataAndClickLoginButton"/>
   <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
     <parameter name="username" value="${email_varDynamic}"/>
     <parameter name="password" value="${password_varDynamic}"/>
@@ -60,8 +62,11 @@
     <parameter name="domainHostPart" value="${defaultDomainPart}"/>
     <parameter name="validUntilDate" value=""/>
   </module>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment># Scope</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
   <codecomment>select element as inactive</codecomment>
+  <action name="clickSelectBox"/>
   <module name="modules.pages.mail.MMail_Row_clickSelectEMail">
     <parameter name="row" value="2"/>
   </module>
@@ -71,6 +76,7 @@
     <parameter name="emailStatus" value="Inactive"/>
   </module>
   <codecomment>select element as active</codecomment>
+  <action name="clickSelectBox"/>
   <module name="modules.pages.mail.MMail_Row_clickSelectEMail">
     <parameter name="row" value="2"/>
   </module>

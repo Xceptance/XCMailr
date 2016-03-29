@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>validate if user logout</description>
+  <description>Validate if user logout.</description>
   <command name="assertElementPresent" target="css=.alert-success"/>
   <command name="assertText" target="css=.alert-success" value="You are now logged out."/>
 </scriptmodule>

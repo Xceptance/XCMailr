@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Validate elements present.</description>
   <codecomment>content header title</codecomment>
   <command name="assertElementPresent" target="css=body .container .container-fluid div:nth-of-type(2) h1.legendary"/>
   <codecomment>content content-info</codecomment>
