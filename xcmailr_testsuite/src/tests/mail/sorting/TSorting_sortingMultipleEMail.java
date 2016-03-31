@@ -7,7 +7,7 @@ import com.xceptance.xlt.api.engine.scripting.ScriptName;
 
 
 /**
- * <p>add and remove e-mail adress</p>
+ * <p>validate sorting</p>
  * <h1 id="setup-and-preparation">Setup and preparation</h1>
  * <ul>
  * <li>Start session, open homepage and delete all visible cookies</li>

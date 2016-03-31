@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testcase xmlns="http://xlt.xceptance.com/xlt-script/2" version="6" junit-test="true">
-  <description>add and remove e-mail adress
+  <description>validate sorting
 
 # Setup and preparation 
 
@@ -19,7 +19,7 @@
   <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
     <parameter name="email_varName" value="email_varDynamic"/>
   </module>
-  <codecomment>3x Domain local Part</codecomment>
+  <codecomment>6x Domain local Part</codecomment>
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultdomainLocalPart}"/>
     <parameter name="returnValue_varDynamic" value="domainLocalPart01_varDynamic"/>
@@ -31,6 +31,18 @@
   <module name="modules.helper.MHelper_Random_addRandomness">
     <parameter name="inputString" value="${defaultdomainLocalPart}"/>
     <parameter name="returnValue_varDynamic" value="domainLocalPart03_varDynamic"/>
+  </module>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart04_varDynamic"/>
+  </module>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart05_varDynamic"/>
+  </module>
+  <module name="modules.helper.MHelper_Random_addRandomness">
+    <parameter name="inputString" value="${defaultdomainLocalPart}"/>
+    <parameter name="returnValue_varDynamic" value="domainLocalPart06_varDynamic"/>
   </module>
   <codecomment># Setup
 
@@ -53,7 +65,17 @@
   <module name="modules.global.headernav.MGlobal_Header_clickMyEmailAdresses"/>
   <codecomment>add e-mail</codecomment>
   <module name="modules.pages.mail.FMail_Menu_addEmail">
+    <parameter name="domainLocalPart" value="e-${domainLocalPart05_varDynamic}"/>
+    <parameter name="domainHostPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilDate" value=""/>
+  </module>
+  <module name="modules.pages.mail.FMail_Menu_addEmail">
     <parameter name="domainLocalPart" value="a-${domainLocalPart01_varDynamic}"/>
+    <parameter name="domainHostPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilDate" value=""/>
+  </module>
+  <module name="modules.pages.mail.FMail_Menu_addEmail">
+    <parameter name="domainLocalPart" value="c-${domainLocalPart03_varDynamic}"/>
     <parameter name="domainHostPart" value="${defaultDomainPart}"/>
     <parameter name="validUntilDate" value=""/>
   </module>
@@ -63,7 +85,12 @@
     <parameter name="validUntilDate" value=""/>
   </module>
   <module name="modules.pages.mail.FMail_Menu_addEmail">
-    <parameter name="domainLocalPart" value="c-${domainLocalPart03_varDynamic}"/>
+    <parameter name="domainLocalPart" value="f-${domainLocalPart04_varDynamic}"/>
+    <parameter name="domainHostPart" value="${defaultDomainPart}"/>
+    <parameter name="validUntilDate" value=""/>
+  </module>
+  <module name="modules.pages.mail.FMail_Menu_addEmail">
+    <parameter name="domainLocalPart" value="d-${domainLocalPart06_varDynamic}"/>
     <parameter name="domainHostPart" value="${defaultDomainPart}"/>
     <parameter name="validUntilDate" value=""/>
   </module>
@@ -75,7 +102,7 @@
   <module name="modules.pages.mail.sorting.MMail_Sorting_clickEMail"/>
   <codecomment>validate</codecomment>
   <module name="modules.pages.mail.VMail_Table_validateFirstElement">
-    <parameter name="nominalValue" value="c-${domainLocalPart03_varDynamic}@${defaultDomainPart}"/>
+    <parameter name="nominalValue" value="f-${domainLocalPart04_varDynamic}@${defaultDomainPart}"/>
   </module>
   <module name="modules.pages.mail.VMail_Table_validateLastElement">
     <parameter name="nominalValue" value="a-${domainLocalPart01_varDynamic}@${defaultDomainPart}"/>
@@ -91,11 +118,9 @@
   <module name="modules.pages.mail.sorting.MMail_Sorting_clickStatus"/>
   <codecomment>validate</codecomment>
   <module name="modules.pages.mail.VMail_Table_validateFirstElement">
-    <parameter name="nominalValue" value="b-${domainLocalPart02_varDynamic}@${defaultDomainPart}"/>
+    <parameter name="nominalValue" value="e-${domainLocalPart05_varDynamic}@${defaultDomainPart}"/>
   </module>
   <module name="modules.pages.mail.VMail_Table_validateLastElement">
-    <parameter name="nominalValue" value="c-${domainLocalPart03_varDynamic}@${defaultDomainPart}"/>
+    <parameter name="nominalValue" value="d-${domainLocalPart06_varDynamic}@${defaultDomainPart}"/>
   </module>
-  <action name="logout"/>
-  <module name="modules.global.headernav.MGlobal_Header_clickSignOut"/>
 </testcase>

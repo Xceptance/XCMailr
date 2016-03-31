@@ -14,5 +14,5 @@
   <command name="deleteAllVisibleCookies"/>
   <codecomment>reopen page to get new cookies</codecomment>
   <action name="xltportaleAgain"/>
-  <command name="open" value="${storefront_url}/?lang=${defaultRegisterLanguage}"/>
+  <command name="open" value="${storefront_url}?lang=${defaultRegisterLanguage}"/>
 </scriptmodule>
