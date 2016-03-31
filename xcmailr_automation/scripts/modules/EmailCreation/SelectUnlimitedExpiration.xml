@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
-  <description>Checks the unlimited checkbox for emails without expiration.</description>
-  <command name="assertVisible" target="id=datetime"/>
-  <command name="check" target="id=chkUnlimited"/>
-  <command name="assertNotVisible" target="id=datetime"/>
-  <command name="store" target="unlimited" value="Expiration"/>
-</scriptmodule>
