@@ -26,9 +26,11 @@ import ninja.Result;
 import ninja.Results;
 
 /**
- * Filters the Handling of the whitelist<br/>
+ * Filters the Handling of the whitelist.
+ * <p>
  * If the function is set to active (true) at application.whitelist in application.conf-file, then the functions will be
- * available otherwise, theres just a hint for activation displayed
+ * available otherwise, theres just a hint for activation displayed.
+ * </p>
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */

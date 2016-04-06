@@ -36,6 +36,7 @@ import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
@@ -73,8 +74,7 @@ public class BoxHandler
     ObjectMapper objectMapper;
 
     /**
-     * Opens the empty delete-box-dialog (just rendering the template)<br/>
-     * GET /mail/deleteBoxDialog.html
+     * Opens the empty delete-box-dialog (just rendering the template).
      * 
      * @return the Delete-Box-Dialog
      */
@@ -85,8 +85,7 @@ public class BoxHandler
     }
 
     /**
-     * Opens the empty add- and edit-box-dialog (just rendering the template) <br/>
-     * GET /mail/editBoxDialog.html
+     * Opens the empty add- and edit-box-dialog (just rendering the template).
      * 
      * @return the Add- and Edit-Box-Dialog
      */
@@ -101,8 +100,7 @@ public class BoxHandler
     }
 
     /**
-     * opens the empty new-Date-dialog (just rendering the template)<br/>
-     * GET /mail/newDateDialog.html
+     * Opens the empty new-Date-dialog (just rendering the template).
      * 
      * @return the Add- and Edit-Box-Dialog
      */
@@ -116,8 +114,7 @@ public class BoxHandler
     }
 
     /**
-     * Generates the 'Angularized' Mailbox-Overview-Page of a {@link User}. <br/>
-     * GET /mail
+     * Generates the 'Angularized' Mailbox-Overview-Page of a {@link models.User user}.
      * 
      * @param context
      *            the Context of this Request
@@ -132,8 +129,7 @@ public class BoxHandler
     }
 
     /**
-     * Shows the "new Mail-Forward"-Page <br/>
-     * GET /mail/addAddressData
+     * Shows the "new Mail-Forward"-Page.
      * 
      * @param context
      *            the Context of this Request
@@ -145,7 +141,7 @@ public class BoxHandler
         MBox mailboxData = new MBox();
         // set the value of the random-name to 7
         // use the lowercase, we handle the address as case-insensitive
-        String randomName = HelperUtils.getRandomString(7).toLowerCase();
+        String randomName = RandomStringUtils.randomAlphanumeric(7).toLowerCase();
         mailboxData.setAddress(randomName);
 
         // check that the generated mailname-proposal does not exist
@@ -154,7 +150,7 @@ public class BoxHandler
         {// prevent OutOfBoundException
             while (MBox.mailExists(randomName, domains[0]))
             {
-                randomName = HelperUtils.getRandomString(7).toLowerCase();
+                randomName = RandomStringUtils.randomAlphanumeric(7).toLowerCase();
             }
         }
 
@@ -168,8 +164,7 @@ public class BoxHandler
     }
 
     /**
-     * Adds a Mailbox to the {@link User}-Account <br/>
-     * POST /mail/addAddress
+     * Adds a Mailbox to the {@link User}-Account.
      * 
      * @param context
      *            the Context of this Request
@@ -244,12 +239,10 @@ public class BoxHandler
     }
 
     /**
-     * Deletes the boxes with the given IDs, given as a JSON-Object in the form <br/>
-     * {id : boolean, id : boolean, id : boolean, ...} <br/>
-     * POST /mail/bulkDelete
+     * Deletes the boxes with the given IDs, given as a JSON-Object in the form.
      *
-     * @param boxIds
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be deleted or not
+     * @param boxIdMap
+     *            the box-id map
      * @param context
      *            the context of this request
      * @return a json-object with a "success" key and a boolean value
@@ -268,12 +261,10 @@ public class BoxHandler
     }
 
     /**
-     * Disables the boxes with the given IDs, given as a JSON-Object in the form: <br/>
-     * {id : boolean, id : boolean, id : boolean, ...} <br/>
-     * POST /mail/bulkDisable
-     *
-     * @param boxIds
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be disabled or not
+     * Disables the boxes with the given IDs.
+     * 
+     * @param boxIdMap
+     *            the box-id map
      * @param context
      *            the context of this request
      * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
@@ -294,12 +285,10 @@ public class BoxHandler
     }
 
     /**
-     * Enables the boxes with the given IDs, given as a JSON-Object in the form: <br/>
-     * {id : boolean, id : boolean, id : boolean, ...} <br/>
-     * POST /mail/bulkEnablePossible
-     *
-     * @param boxIds
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be enabled or not
+     * Enables the boxes with the given IDs.
+     * 
+     * @param boxIdMap
+     *            the box-id map
      * @param context
      *            the context of this request
      * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
@@ -320,13 +309,10 @@ public class BoxHandler
     }
 
     /**
-     * Sets a new validity-period for the boxes with the given IDs, given as a JSON-Object in the form: <br/>
-     * {"boxes":{ id: boolean, id:boolean,.. }, "newDateTime" : "yyyy-MM-dd hh:mm"} <br/>
-     * POST /mail/bulkNewDate
+     * Sets a new validity-period for the boxes with the given IDs.
      *
-     * @param jsObject
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether there will be set a new
-     *            Timestamp or not
+     * @param input
+     *            the box-id map
      * @param context
      *            the context of this request
      * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
@@ -354,13 +340,10 @@ public class BoxHandler
     }
 
     /**
-     * Resets the counters (suppressions and forwards) for the boxes with the given IDs, given as a JSON-Object in the
-     * form: <br/>
-     * {id : boolean, id : boolean, id : boolean, ...} <br/>
-     * POST /mail/bulkReset
+     * Resets the counters (suppressions and forwards) for the boxes with the given IDs.
      *
-     * @param boxIds
-     *            the Box-IDs as JSON-Object, with a boolean-value which indicates whether it will be reseted or not
+     * @param boxIdMap
+     *            the box-id map
      * @param context
      *            the context of this request
      * @return A Json-object, containing the key "success" with a boolean value whether it was successful and if true
@@ -381,8 +364,7 @@ public class BoxHandler
     }
 
     /**
-     * Deletes a Box from the DB <br/>
-     * POST /mail/delete/{id}
+     * Deletes a Box from the DB.
      * 
      * @param boxId
      *            the ID of the Mailbox
@@ -408,8 +390,7 @@ public class BoxHandler
     }
 
     /**
-     * Edits a Mailbox <br/>
-     * POST /mail/edit/{id}
+     * Edits a Mailbox.
      * 
      * @param context
      *            the Context of this Request
@@ -521,8 +502,7 @@ public class BoxHandler
     }
 
     /**
-     * Sets the Box valid/invalid <br/>
-     * POST /mail/expire/{id}
+     * Sets the Box valid/invalid
      * 
      * @param boxId
      *            the ID of the Mailbox
@@ -556,11 +536,10 @@ public class BoxHandler
     }
 
     /**
-     * Handles JSON-XHR-Requests for the mailbox-overview-page <br/>
-     * GET /mail/getmails
+     * Handles JSON-XHR-Requests for the mailbox-overview-page
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return a JSON-Array with the boxes
      */
     @FilterWith(JsonSecureFilter.class)
@@ -576,12 +555,11 @@ public class BoxHandler
     }
 
     /**
-     * Handles JSON-Requests for the domainlist<br/>
-     * GET /mail/domainlist
+     * Handles JSON-Requests for the domain list.
      * 
      * @param context
-     *            the Context of this Request
-     * @return a JSON-Array with the domainlist
+     *            the context of this request
+     * @return a JSON-Array with the domain list
      */
     @FilterWith(JsonSecureFilter.class)
     public Result jsonDomainList(Context context)
@@ -590,13 +568,12 @@ public class BoxHandler
     }
 
     /**
-     * Sets the Values of the Counters for the Box, given by their ID, to zero <br/>
-     * POST /mail/reset/{id}
+     * Sets the Values of the Counters for the Box, given by their ID, to zero.
      * 
      * @param boxId
      *            the ID of the Mailbox
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return the Mailbox-Overview-Page
      */
     @FilterWith(JsonSecureFilter.class)
@@ -618,11 +595,10 @@ public class BoxHandler
     }
 
     /**
-     * returns a text-page with all addresses of a user<br/>
-     * GET /mail/mymaillist.txt
+     * Returns the user's email addresses as plain text.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return a text page with all addresses of a user
      */
     @FilterWith(SecureFilter.class)
@@ -633,11 +609,10 @@ public class BoxHandler
     }
 
     /**
-     * returns a text-page with all active addresses of a user<br/>
-     * GET /mail/myactivemaillist.txt
+     * Returns the user's active email addresses as plain text.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return a text page with all active addresses of a user
      */
     @FilterWith(SecureFilter.class)
@@ -648,11 +623,10 @@ public class BoxHandler
     }
 
     /**
-     * returns a text-page with all selected addresses of a user<br/>
-     * GET /mail/myactivemaillist.txt
+     * Returns a text-page with all selected addresses of a user.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return a text page with all selected addresses of a user
      */
     @FilterWith(SecureFilter.class)
@@ -673,7 +647,7 @@ public class BoxHandler
         return result.render(MBox.getSelectedMailsForTxt(user.getId(), boxes));
     }
 
-    public Map<String, Boolean> getMapFoMaprStrings(String input)
+    private Map<String, Boolean> getMapFoMaprStrings(String input)
     {
         Map<String, Boolean> boxIdMap = null;
         try
@@ -693,7 +667,7 @@ public class BoxHandler
         return boxIdMap;
     }
 
-    public List<Long> getIdListForMap(Map<String, Boolean> boxIdMap)
+    private List<Long> getIdListForMap(Map<String, Boolean> boxIdMap)
     {
         List<Long> boxIds = new ArrayList<Long>();
         if (boxIdMap == null || boxIdMap.isEmpty())

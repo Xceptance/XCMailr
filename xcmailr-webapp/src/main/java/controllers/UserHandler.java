@@ -31,7 +31,7 @@ import ninja.i18n.Messages;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
@@ -64,8 +64,7 @@ public class UserHandler
     Lang lang;
 
     /**
-     * Edits the {@link User}-Data <br/>
-     * POST /user/edit
+     * Edits the {@link User user}.
      * 
      * @param context
      *            the Context of this Request
@@ -191,14 +190,12 @@ public class UserHandler
     }
 
     /**
-     * Prepopulates the EditForm and show it <br/>
-     * GET /user/edit
+     * Populates and shows the user-edit form.
      * 
      * @param context
      *            the Context of this Request
      * @return the {@link User}-Edit-Form
      */
-
     public Result editUserForm(Context context)
     {
         Result result = Results.html();
@@ -222,8 +219,7 @@ public class UserHandler
     }
 
     /**
-     * Handles the {@link models.User User}-Delete-Function <br/>
-     * POST /user/delete
+     * Handles the {@link models.User User}-Delete-Function.
      * 
      * @param context
      *            the Context of this Request

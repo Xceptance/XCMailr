@@ -63,17 +63,20 @@ public class MailTransaction
     }
 
     /**
-     * Creates an MailTransaction-Object, with Parameters<br/>
-     * <b>Statuscodes:</b> <br/>
-     * 0 - Mail has a wrong Pattern<br/>
-     * 100 - Mail does not exist<br/>
-     * 200 - Mail exists but is inactive <br/>
-     * 300 - Mail has been forwarded successfully <br/>
-     * 400 - the Mail can't be forwarded (target not reachable)<br/>
-     * 500 - Relay denied (recipient's address does not belong to this server)<br/>
+     * Creates an MailTransaction-Object.
+     * 
+     * <b>Status codes:</b>
+     * <ul>
+     * <li>0 - Mail has a wrong Pattern</li>
+     * <li>100 - Mail does not exist</li>
+     * <li>200 - Mail exists but is inactive</li>
+     * <li>300 - Mail has been forwarded successfully</li>
+     * <li>400 - the Mail can't be forwarded (target not reachable)</li>
+     * <li>500 - Relay denied (recipient's address does not belong to this server)</li>
+     * </ul>
      * 
      * @param stat
-     *            Statuscode of the Transaction
+     *            status-code of the transaction
      * @param source
      *            the Sender's - Address
      * @param relay
@@ -164,15 +167,17 @@ public class MailTransaction
     }
 
     /**
-     * <b>Statuscodes:</b> <br/>
-     * 0 - Mail has a wrong Pattern <br/>
-     * 100 - Mail does not exist<br/>
-     * 200 - Mail exists but is inactive <br/>
-     * 300 - Mail has been forwarded successfully <br/>
-     * 400 - the Mail can't be forwarded (target not reachable)<br/>
-     * 500 - Relay denied (recipient's address does not belong to this server)<br/>
+     * Returns the status code.
+     * <ul>
+     * <li>0 - Mail has a wrong Pattern</li>
+     * <li>100 - Mail does not exist</li>
+     * <li>200 - Mail exists but is inactive</li>
+     * <li>300 - Mail has been forwarded successfully</li>
+     * <li>400 - the Mail can't be forwarded (target not reachable)</li>
+     * <li>500 - Relay denied (recipient's address does not belong to this server)</li>
+     * </ul>
      * 
-     * @return a Statuscode
+     * @return status code
      */
     public int getStatus()
     {
@@ -180,16 +185,18 @@ public class MailTransaction
     }
 
     /**
-     * <b>Statuscodes:</b> <br/>
-     * 0 - Mail has a wrong Pattern<br/>
-     * 100 - Mail does not exist<br/>
-     * 200 - Mail exists but is inactive <br/>
-     * 300 - Mail has been forwarded successfully <br/>
-     * 400 - the Mail can't be forwarded (target not reachable)<br/>
-     * 500 - Relay denied (recipient's address does not belong to this server)<br/>
+     * Sets the status code.
+     * <ul>
+     * <li>0 - Mail has a wrong Pattern</li>
+     * <li>100 - Mail does not exist</li>
+     * <li>200 - Mail exists but is inactive</li>
+     * <li>300 - Mail has been forwarded successfully</li>
+     * <li>400 - the Mail can't be forwarded (target not reachable)</li>
+     * <li>500 - Relay denied (recipient's address does not belong to this server)</li>
+     * </ul>
      * 
      * @param status
-     *            the Status to set
+     *            the status to set
      */
     public void setStatus(int status)
     {

@@ -9,6 +9,7 @@ import java.util.Map;
 import models.User;
 import ninja.NinjaTest;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
 import org.junit.Before;
@@ -16,7 +17,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Maps;
 
-import etc.HelperUtils;
 
 public class ApplicationHandlerTest extends NinjaTest
 {
@@ -342,11 +342,11 @@ public class ApplicationHandlerTest extends NinjaTest
         /*
          * TEST: wrong verification-data
          */
-        String random = HelperUtils.getRandomString(5);
+        String random = RandomStringUtils.randomAlphanumeric(5);
         // generate a new random string until its not equal to the confirmation-code
         while (user.getConfirmation().equals(random))
         {
-            random = HelperUtils.getRandomString(5);
+            random = RandomStringUtils.randomAlphanumeric(5);
         }
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "verify/" + user.getId() + "/" + random);
@@ -408,11 +408,11 @@ public class ApplicationHandlerTest extends NinjaTest
         /*
          * TEST: wrong verification-data
          */
-        String random = HelperUtils.getRandomString(5);
+        String random = RandomStringUtils.randomAlphanumeric(5);
         // generate a new random string until its not equal to the confirmation-code
         while (user.getConfirmation().equals(random))
         {
-            random = HelperUtils.getRandomString(20);
+            random = RandomStringUtils.randomAlphanumeric(20);
         }
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "lostpw/" + user.getId() + "/" + random);
@@ -708,7 +708,6 @@ public class ApplicationHandlerTest extends NinjaTest
     @Test
     public void testPwResend()
     {
-
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "pwresend");
         assertTrue(result.contains("form action=\"/pwresend\""));
         formParams.clear();

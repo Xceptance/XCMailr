@@ -33,7 +33,7 @@ import ninja.i18n.Messages;
 import ninja.params.Param;
 import ninja.params.PathParam;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Optional;
@@ -74,8 +74,7 @@ public class AdminHandler
     private static final Pattern PATTERN_DOMAINS = Pattern.compile("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}");
 
     /**
-     * Shows the Administration-Index-Page<br/>
-     * GET site/admin
+     * Shows the Administration-Index-Page.
      * 
      * @param context
      *            the Context of this Request
@@ -87,12 +86,11 @@ public class AdminHandler
     }
 
     /**
-     * Shows a List of all {@link models.User Users} in the DB <br/>
-     * GET site/admin/users
+     * Shows a list of all {@link models.User users} in the DB.
      * 
      * @param context
-     *            the Context of this Request
-     * @return a List of all Users
+     *            the context of this request
+     * @return a list of all users
      */
     public Result showUsers(Context context)
     {
@@ -120,12 +118,11 @@ public class AdminHandler
     }
 
     /**
-     * Shows a List of all {@link models.Status Status} in the DB <br/>
-     * GET site/admin/summedtx
+     * Shows a list of all {@link models.Status status} in the DB.
      * 
      * @param context
-     *            the Context of this Request
-     * @return a List of all Status
+     *            the context of this request
+     * @return status list
      */
     public Result showSummedTransactions(Context context)
     {
@@ -133,12 +130,11 @@ public class AdminHandler
     }
 
     /**
-     * Shows a paginated List of all {@link models.MailTransaction Mailtransactions} in the DB <br/>
-     * GET site/admin/mtxs
+     * Shows a paginated list of all {@link models.MailTransaction mail-transactions} in the DB.
      * 
      * @param context
-     *            the Context of this Request
-     * @return the Page to show paginated MailTransactions
+     *            the context of this request
+     * @return the page to show paginated mail-transactions
      */
     public Result pagedMTX(Context context, @Param("p") int page)
     {
@@ -158,14 +154,12 @@ public class AdminHandler
     }
 
     /**
-     * Delete a time-specified number of MailTransactions <br/>
-     * GET /admin/mtxs/delete/{time}
+     * Delete a time-specified number of mail-transactions.
      * 
      * @param time
      *            the time in days (all before will be deleted)
-     * @return to the MailTransaction-Page
+     * @return mail-transactions overview page
      */
-
     public Result deleteMTXProcess(@PathParam("time") Integer time, Context context)
     {
         if (time == null)
@@ -185,14 +179,13 @@ public class AdminHandler
     }
 
     /**
-     * Activates or Deactivates the User with the given ID <br/>
-     * POST /admin/activate/{id}
+     * Activates or deactivates the user with the given ID.
      * 
      * @param userId
-     *            ID of a User
+     *            ID of a user
      * @param context
-     *            the Context of this Request
-     * @return the User-Overview-Page (/admin/users)
+     *            the context of this request
+     * @return users overview page
      */
     public Result activateUserProcess(@PathParam("id") Long userId, Context context)
     {
@@ -228,14 +221,13 @@ public class AdminHandler
     }
 
     /**
-     * Pro- or Demotes the {@link models.User User} with the given ID <br/>
-     * POST /admin/promote/{id}
+     * Pro- or demotes the {@link models.User user} with the given ID.
      * 
      * @param userId
-     *            ID of a {@link models.User User}
+     *            ID of the user to pro/demote
      * @param context
-     *            the Context of this Request
-     * @return the User-Overview-Page (/admin/users)
+     *            the context of this request
+     * @return users overview page
      */
     public Result promoteUserProcess(@PathParam("id") Long userId, Context context)
     {
@@ -251,14 +243,13 @@ public class AdminHandler
     }
 
     /**
-     * Handles the {@link models.User User}-Delete-Function <br/>
-     * POST /admin/delete/{id}
+     * Deletes the {@link models.User user} with the given ID.
      * 
      * @param deleteUserId
-     *            the ID of a {@link models.User User}
+     *            the ID of the user to delete
      * @param context
-     *            the Context of this Request
-     * @return the User-Overview-Page (/admin/users)
+     *            the context of this request
+     * @return users overview page
      */
     public Result deleteUserProcess(@PathParam("id") Long deleteUserId, Context context)
     {
@@ -274,12 +265,11 @@ public class AdminHandler
     }
 
     /**
-     * Handles JSON-Requests from the search <br/>
-     * GET /admin/usersearch
+     * Searches for an {@link models.User user}.
      * 
      * @param context
-     *            the Context of this Request
-     * @return a JSON-Array with the userdatalist
+     *            the context of this request
+     * @return found users as JSON array
      */
     public Result jsonUserSearch(Context context)
     {
@@ -302,12 +292,11 @@ public class AdminHandler
     }
 
     /**
-     * Shows a page that contains a list of all allowed domains of emails for registration <br/>
-     * GET /admin/whitelist
+     * Shows a page that contains a list of all domains allowed for registration.
      * 
      * @param context
-     *            the Context of this Request
-     * @return the domain-whitelist page
+     *            the context of this request
+     * @return overview of all white-listed domains
      */
     @FilterWith(WhitelistFilter.class)
     public Result showDomainWhitelist(Context context)
@@ -319,13 +308,12 @@ public class AdminHandler
 
     /**
      * Displays the Remove-Domain Page to decide whether the admin wants to delete all users to the requested domain or
-     * just the domain itself <br/>
-     * POST /admin/whitelist/remove
+     * just the domain itself.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @param remDomainId
-     *            the Id of the Domain-Object
+     *            the ID of the domain
      * @return the removeDomainConfirmation-Page
      */
     @FilterWith(WhitelistFilter.class)
@@ -337,15 +325,15 @@ public class AdminHandler
     }
 
     /**
-     * handles the action requested in the removeDomainConfirmation
+     * Handles the action requested in the removeDomainConfirmation.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @param action
      *            the action to do (abort, deleteUsersAndDomain or deleteDomain)
      * @param domainId
-     *            the Id of the Domain-Object
-     * @return to the whitelist overview page
+     *            the ID of the domain
+     * @return overview of all white-listed domains
      */
     @FilterWith(WhitelistFilter.class)
     public Result handleRemoveDomain(Context context, @Param("action") String action, @Param("domainId") long domainId)
@@ -376,13 +364,13 @@ public class AdminHandler
     }
 
     /**
-     * Adds a Domain to the whitelist
+     * Adds a domain to the white-list.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @param domainName
-     *            the domain-name to add
-     * @return to the whitelist-page
+     *            the name of the domain to add
+     * @return overview of all white-listed domains
      */
     @FilterWith(WhitelistFilter.class)
     public Result addDomain(Context context, @Param("domainName") String domainName)

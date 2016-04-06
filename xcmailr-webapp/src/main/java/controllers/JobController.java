@@ -169,8 +169,7 @@ public class JobController
     }
 
     /**
-     * finds an available Port in the Range of "min" and "max" <br/>
-     * Copyright information: this Method comes from NinjaTestServer
+     * Finds an available Port in the Range of "min" and "max". Code taken from NinjaTestServer.
      * 
      * @param min
      *            lower bound of ports to search

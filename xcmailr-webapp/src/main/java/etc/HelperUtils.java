@@ -16,10 +16,8 @@
  */
 package etc;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 import ninja.Context;
@@ -41,64 +39,6 @@ public class HelperUtils
 {
 
     private static final Pattern PATTERN_DATEFORMAT = Pattern.compile("(\\d+){4}[\\-](\\d+){1,2}[\\-](\\d+){1,2}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}");
-
-    /**
-     * Generates a random name, generated with {@link java.util.Random} and an Alphabet of 0-9,a-z,A-Z <br/>
-     * e.g. for the Mailbox
-     * 
-     * @param length
-     *            Length of the returned String
-     * @return a randomly generated String consisting of a-z,A-Z and 0-9
-     */
-
-    public static String getRandomString(int length)
-    {
-        char[] values =
-            {
-                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7',
-                '8', '9'
-            };
-
-        Random random = new Random();
-        StringBuffer stringBuf = new StringBuffer();
-        for (int i = 0; i < length; i++)
-        {
-            // generates a random number and stores it in the stringbuffer
-            stringBuf.append(values[Math.abs(random.nextInt()) % (values.length)]);
-
-        }
-        return stringBuf.toString();
-    }
-
-    /**
-     * All in all, the same like the getRndString(), but here's {@link java.security.SecureRandom} used
-     * 
-     * @param length
-     *            Length of the returned String
-     * @return a secure-randomly generated String consisting of a-z,A-Z and 0-9
-     */
-    public static String getRandomSecureString(int length)
-    {
-        SecureRandom random = new SecureRandom();
-        random.setSeed(random.generateSeed(23));
-        char[] values =
-            {
-                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7',
-                '8', '9'
-            };
-
-        StringBuffer stringBuf = new StringBuffer();
-        for (int actualLength = 0; actualLength < length; actualLength++)
-        {
-            // generates a random number and stores it in the stringbuffer
-            stringBuf.append(values[Math.abs(random.nextInt()) % (values.length)]);
-        }
-        return stringBuf.toString();
-    }
 
     /**
      * the input string has the format: yyyy-MM-dd hh:mm
@@ -162,8 +102,7 @@ public class HelperUtils
     }
 
     /**
-     * Checks whether the Input-String is in the Form "dddd-dd-dd dd:dd"<br/>
-     * (where "d" stands for digit)
+     * Checks whether the Input-String is in the Form "dddd-dd-dd dd:dd" (where "d" stands for digit).
      * 
      * @param input
      *            the Input-String to check
@@ -176,18 +115,17 @@ public class HelperUtils
     }
 
     /**
-     * Helper-Function for Pagination Tries to parse the number (Parameter "no") from the Context and stores this number
-     * in the session-cookie.<br/>
-     * If the Parameter has been set to "all", the number 0 is set.<br/>
-     * If no number (except "all") is given, the number 5 will be set. If null, there will be a separated check, whether
-     * a value is already set
+     * Parses the page number given as request parameter "no" as integer and puts it into the session cookie.
      * 
      * @param context
-     *            the Context
+     *            the context
+     * @param defaultNo
+     *            the default page number
      */
     public static void parseEntryValue(Context context, Integer defaultNo)
     {
-        String no = context.getParameter("no");
+        final String no = context.getParameter("no");
+        final String defaultNoStr = defaultNo.toString();
         String value;
         if (no == null)
         {// no number-param was delivered
@@ -198,7 +136,7 @@ public class HelperUtils
             }
             else
             { // set the default-value if no param was set and theres no value in the cookie
-                value = defaultNo.toString();
+                value = defaultNoStr;
             }
         }
         else
@@ -209,14 +147,14 @@ public class HelperUtils
                 value = "0";
             }
             else
-            { // otherwise set the number
-                try
-                { // parse the parameter as integer to ensure that it is a number
-                    value = String.valueOf(Integer.parseInt(no));
+            {
+                if (no.matches("^0|[1-9]\\d*$"))
+                {
+                    value = no;
                 }
-                catch (NumberFormatException nfe)
+                else
                 { // set to default if its not an integer
-                    value = defaultNo.toString();
+                    value = defaultNoStr;
                 }
             }
         }
@@ -236,7 +174,7 @@ public class HelperUtils
      *            the result-page
      * @param msg
      *            the Messages-object
-     * @return a List of String[] with the key "available_langs" and a String[]-object containing the localised long
+     * @return a List of String[] with the key "available_langs" and a String[]-object containing the localized long
      *         form of all languages
      */
     public static List<String[]> getLanguageList(String[] availableLanguages, Context context, Result result,

@@ -30,12 +30,10 @@ import com.google.inject.Singleton;
 import conf.XCMailrConf;
 
 /**
- * Handles all actions that belong to the Caching-Server<br/>
- * This is almost a Wrapper-Class for the NinjaCache
+ * Handles all actions that belong to the Caching-Server. This is almost a Wrapper-Class for the NinjaCache.
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-
 @Singleton
 public class CachingSessionHandler
 {
@@ -59,12 +57,12 @@ public class CachingSessionHandler
      * @param object
      *            the Object to store
      */
-    public void set(String key, int timeToLive, final Object object)
+    void set(String key, int timeToLive, final Object object)
     {
         ninjaCache.safeSet(xcmConf.APP_NAME + key, object, timeToLive + "s");
     }
 
-    public void replace(String key, int timeToLive, final Object object)
+    void replace(String key, int timeToLive, final Object object)
     {
         ninjaCache.safeReplace(xcmConf.APP_NAME + key, object, timeToLive + "s");
     }
@@ -122,9 +120,10 @@ public class CachingSessionHandler
     }
 
     /**
-     * Updates the user-object for all sessions of this user <br/>
-     * <b>WARNING:</b> if the email has been changed, use {@link #updateUsersSessions(User)} to change the
-     * user-mail->session mapping too
+     * Updates the user-object for all sessions of this user.
+     * <p>
+     * <b>WARNING:</b> if the email has been changed, use {@link #updateUsersSessions(User)} to change the user-session mapping too
+     * </p>
      * 
      * @param user
      *            the user-object to update
@@ -146,14 +145,13 @@ public class CachingSessionHandler
     }
 
     /**
-     * updates the user-mail -> session mapping-entries if the email has changed
+     * Updates the user-session mapping entries if the email has changed
      * 
      * @param oldEmail
      *            the old email-address of the user
      * @param newEmail
      *            the new email-address of the user
      */
-
     public void updateUsersSessionsOnChangedMail(String oldEmail, String newEmail)
     {
         @SuppressWarnings("unchecked")
@@ -183,14 +181,13 @@ public class CachingSessionHandler
             delete(oldEmail);
         }
         else
-        { // theres no session -> do nothing
+        { // there's no session -> do nothing
 
         }
     }
 
     /**
-     * loads the object belonging to the given key <br/>
-     * it will return null if the key doesn't exist
+     * Returns the object belonging to the given key or <code>null</code> if the key doesn't exist.
      * 
      * @param key
      *            the Key
@@ -202,13 +199,12 @@ public class CachingSessionHandler
     }
 
     /**
-     * deletes the object to the given key
+     * Deletes the object to the given key.
      * 
      * @param key
      *            the Key
      */
-
-    public void delete(String key)
+    void delete(String key)
     {
         ninjaCache.safeDelete(xcmConf.APP_NAME + key);
     }

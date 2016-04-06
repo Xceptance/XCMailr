@@ -35,6 +35,7 @@ import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
@@ -70,12 +71,11 @@ public class Application
     Lang lang;
 
     /**
-     * Shows the general or logged-in Index-Page <br/>
-     * GET /
+     * Shows the general or logged-in index page.
      * 
      * @param context
-     *            the Context of this Request
-     * @return the Index-Page
+     *            the context of this request
+     * @return the application start page
      */
     public Result index(Context context, @Param("lang") String languageParam)
     {
@@ -93,11 +93,10 @@ public class Application
 
     // -------------------- Registration -----------------------------------
     /**
-     * Shows the Registration-Form <br/>
-     * GET /register
+     * Shows the Registration-Form.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return the Registration-Form
      */
     @FilterWith(NoLoginFilter.class)
@@ -110,15 +109,14 @@ public class Application
     }
 
     /**
-     * Processes the entered Registration-Data and creates the {@link User} <br/>
-     * POST /register
+     * Processes the entered Registration-Data and creates the {@link models.User user}.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this Request
      * @param registerFormData
-     *            the Data of the Registration-Form
+     *            the registration data
      * @param validation
-     *            Form validation
+     *            form validation
      * @return the Registration-Form and an error, or - if successful - the Index-Page
      */
     @FilterWith(NoLoginFilter.class)
@@ -194,7 +192,7 @@ public class Application
         }
 
         // generate the confirmation-token
-        user.setConfirmation(HelperUtils.getRandomSecureString(20));
+        user.setConfirmation(RandomStringUtils.randomAlphanumeric(20));
         user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONFIRMATION_PERIOD).getMillis());
 
         user.save();
@@ -208,15 +206,14 @@ public class Application
     }
 
     /**
-     * Handles the Verification for the Activation-Process <br/>
-     * GET /verify/{id}/{token}
+     * Handles the Verification for the Activation-Process.
      * 
      * @param userId
-     *            the {@link User}-ID
+     *            the ID of the user
      * @param token
-     *            the Verification-Token
+     *            the verification token
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return to the Index-Page
      */
     public Result verifyActivation(@PathParam("id") Long userId, @PathParam("token") String token, Context context)
@@ -241,11 +238,10 @@ public class Application
 
     // -------------------- Login/-out Functions -----------------------------------
     /**
-     * Shows the Login-Form<br/>
-     * GET /login
+     * Shows the Login-Form.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return the rendered Login-Form (or index-page if already logged in)
      */
     @FilterWith(NoLoginFilter.class)
@@ -255,15 +251,14 @@ public class Application
     }
 
     /**
-     * Handles the Login-Process <br/>
-     * POST for /login
+     * Handles the Login-Process.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @param loginData
-     *            the Data of the Login-Form
+     *            the login data
      * @param validation
-     *            Form validation
+     *            form validation
      * @return the Login-Form or the Index-Page
      */
     @FilterWith(NoLoginFilter.class)
@@ -337,11 +332,10 @@ public class Application
     }
 
     /**
-     * Handles the Logout-Process<br/>
-     * GET /logout
+     * Handles the Logout-Process.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return the Index-Page
      */
     public Result logoutProcess(Context context)
@@ -353,12 +347,11 @@ public class Application
 
         // show the index-page
         context.getFlashScope().success("logout_Flash_LogOut");
-        return Results.redirect(context.getContextPath() + "/");
+        return Results.redirectTemporary(context.getContextPath() + "/");
     }
 
     /**
-     * Shows the "Forgot Password"-Page <br/>
-     * GET /pwresend
+     * Shows the "Forgot Password"-Page.
      * 
      * @return Forgot-Password-Form
      */
@@ -368,15 +361,14 @@ public class Application
     }
 
     /**
-     * Generates a new Token and sends it to the user<br/>
-     * POST /pwresend
+     * Generates a new Token and sends it to the user.
      * 
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @param loginData
-     *            the Data of the Resend-Password-Form (just one Field for the Mail-Address)
+     *            the data of the 'Resend Password Form' (just the mail address)
      * @param validation
-     *            Form validation
+     *            form validation
      * @return the Index-Page
      */
     public Result forgotPasswordProcess(Context context, @JSR303Validation LoginFormData loginData,
@@ -397,7 +389,7 @@ public class Application
 
         // mailadress was correct (exists in the DB)
         // generate a new confirmation token and send it to the given mailadress
-        user.setConfirmation(HelperUtils.getRandomSecureString(20));
+        user.setConfirmation(RandomStringUtils.randomAlphanumeric(20));
         // set the new validity-time
         user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONFIRMATION_PERIOD).getMillis());
         user.update();
@@ -409,24 +401,20 @@ public class Application
     }
 
     /**
-     * This Method handles the Forgot-Password-Mail-Link<br/>
-     * GET /lostpw/{id}/{token}
+     * Handles password reset.
      * 
      * @param id
-     *            the {@link User}-ID
+     *            the ID of the user
      * @param token
-     *            the Token for the {@link User}
+     *            the authentication token
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @return the Reset-Password-Form or (on error) the Index-Page
      */
     public Result resetPasswordForm(@PathParam("id") Long id, @PathParam("token") String token, Context context)
     {
-        User user = User.getById(id);
-        if (user == null)
-            return Results.redirect(context.getContextPath() + "/");
-
-        if (user.getConfirmation() == null || !(user.getConfirmation().equals(token))
+        final User user = User.getById(id);
+        if (user == null || user.getConfirmation() == null || !(user.getConfirmation().equals(token))
             || (user.getTs_confirm() < DateTime.now().getMillis()))
             return Results.redirect(context.getContextPath() + "/");
 
@@ -439,19 +427,18 @@ public class Application
     }
 
     /**
-     * Sets a new Password for the {@link User}<br/>
-     * POST /lostpw/{id}/{token}
+     * Sets a new password for the {@link models.User user}.
      * 
      * @param id
-     *            the {@link User}-ID
+     *            the ID of th euser
      * @param token
-     *            the Token of the {@link User}
+     *            the authentication token
      * @param context
-     *            the Context of this Request
+     *            the context of this request
      * @param passwordFormData
-     *            the PwData (the Form-Entrys)
+     *            the form data
      * @param validation
-     *            Form validation
+     *            form validation
      * @return the "Change your Password"-Site or (on Error) the Index-Page
      */
     public Result resetPasswordProcess(@PathParam("id") Long id, @PathParam("token") String token, Context context,
@@ -501,7 +488,7 @@ public class Application
     }
 
     /**
-     * Sets the "password is too short"-message to the context
+     * Sets the "password is too short"-message to the context.
      * 
      * @param language
      *            the language to use

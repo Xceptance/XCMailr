@@ -101,13 +101,14 @@ public class MessageComposer
     {
         // build "quoted" message
         StringBuffer buf = new StringBuffer();
-        buf.append("<html><body><p>");
-        buf.append("------------------Message forwarded by the XCMAILR---------------<br/><br/>HEADER:<br/><br/>");
+        buf.append("<html><body><header>");
+        buf.append("------------------Message forwarded by the XCMAILR---------------");
+        buf.append("<h1>HEADER</h1><p>");
         buf.append(headerText);
-        buf.append("<br/><br/> MESSAGE:<br/><br/>");
+        buf.append("</p></header><main><h1>MESSAGE</h1><article>");
         msgContent = HtmlUtils.readHTMLData(msgContent);
-        buf.append(msgContent);
-        buf.append("<br/>------------------End of forwarded Message------------------<br/></p></body></html>");
+        buf.append(msgContent).append("</article></main><footer>");
+        buf.append("------------------End of forwarded Message------------------</footer></body></html>");
         return buf.toString();
     }
 

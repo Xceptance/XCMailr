@@ -151,8 +151,8 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Indicates whether the Box is expired <br/>
-     * This means, that the Box is inactive (This flag is some kind of Independent from the Timestamp)
+     * Indicates whether the Box is expired. This means, that the Box is inactive (This flag is some kind of Independent
+     * from the Timestamp)
      * 
      * @return true if the Box is expired/inactive
      */
@@ -174,8 +174,8 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * @return true, if the mail is inactive and the TS has a value in the past<br/>
-     *         false, else
+     * @return <code>true</code> if the mail is inactive and the TS has a value in the past, <code>false</code>
+     *         otherwise
      */
     @JsonIgnore
     public boolean isExpiredByTimestamp()
@@ -277,8 +277,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * @return the Number of suppressed Mails on this Address <br/>
-     *         (Mails sent while the Address was inactive)
+     * @return the Number of suppressed Mails on this Address (Mails sent while the Address was inactive)
      */
     @JsonProperty("suppressions")
     public int getSuppressions()
@@ -288,7 +287,7 @@ public class MBox extends AbstractEntity implements Serializable
 
     /**
      * @param suppressions
-     *            sets the Number of suppressed Mails on this Address<br/>
+     *            sets the Number of suppressed Mails on this Address
      */
     @JsonIgnore
     public void setSuppressions(int suppressions)
@@ -330,14 +329,15 @@ public class MBox extends AbstractEntity implements Serializable
     {
         this.ts_Active = ts_Active;
     }
-    
+
     /**
-     * sets the ts_Active by the given datetime String by using 
-     * {@link HelperUtils#parseTimeString(String)}
+     * sets the ts_Active by the given datetime String by using {@link HelperUtils#parseTimeString(String)}
+     * 
      * @param dateTime
      */
     @JsonProperty("datetime")
-    public void setDateTime(String dateTime){
+    public void setDateTime(String dateTime)
+    {
         this.setTs_Active(HelperUtils.parseTimeString(dateTime));
     }
 
@@ -368,15 +368,16 @@ public class MBox extends AbstractEntity implements Serializable
     {
         return this.address + "@" + this.domain;
     }
-    
+
     /**
-     * dummy method to set the full address<br/>
-     * <b>it does nothing!</b> and is only for Jackson-Parser
+     * dummy method to set the full address. <b>it does nothing!</b> and is only for Jackson-Parser
+     * 
      * @param dummy
      */
     @JsonIgnore
-    public void setFullAddress(String dummy){
-        
+    public void setFullAddress(String dummy)
+    {
+
     }
 
     // ---------------------------------------------
@@ -513,8 +514,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * @return the timestamp as string in the format "yyyy-MM-dd hh:mm" <br/>
-     *         if its 0, then also 0 is returned
+     * @return the timestamp as string in the format "yyyy-MM-dd hh:mm"; if it is 0, then also 0 is returned
      */
     @JsonIgnore
     public String getTSAsStringWithNull()
@@ -546,10 +546,8 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * @return the timestamp as string in the format "yyyy-MM-dd hh:mm"<br/>
-     *         if its 0, then "unlimited" is returned
+     * @return the timestamp as string in the format "yyyy-MM-dd hh:mm"; if it is 0, then "unlimited" is returned
      */
-
     public String getDatetime()
     {
         String tsString = getTSAsStringWithNull();
@@ -703,11 +701,12 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * @param mailList
-     *            the List of Mails
+     * 
+     * @param boxes
+     *            the list of mail boxed
      * @return the List of Mails as Text
      */
-    public static String getBoxListToText(List<MBox> boxes)
+    private static String getBoxListToText(List<MBox> boxes)
     {
         StringBuilder csvMail = new StringBuilder();
         for (MBox mailBox : boxes)
@@ -718,7 +717,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and deletes all given Boxes<br/>
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and deletes all given Boxes.
      * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
      * correctness of the string (esp. thinking on SQL-Injections, etc.)
      * 
@@ -737,7 +736,7 @@ public class MBox extends AbstractEntity implements Serializable
 
     /**
      * Takes the user-ID and Box-IDs, builds an SQL-Statement and resets the suppression and forward-counters of the
-     * given Boxes<br/>
+     * given Boxes.
      * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
      * correctness of the string (esp. thinking on SQL-Injections, etc.)
      * 
@@ -756,7 +755,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and disables the given Boxes<br/>
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and disables the given Boxes.
      * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
      * correctness of the String (esp. thinking on SQL-Injections, etc.)
      * 
@@ -774,7 +773,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and enables the given Boxes (if not already enabled)<br/>
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and enables the given Boxes (if not already enabled).
      * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
      * correctness of the String (esp. thinking on SQL-Injections, etc.)
      * 
@@ -794,7 +793,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and sets a new timestamp for the given Boxes<br/>
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and sets a new timestamp for the given Boxes.
      * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
      * correctness of the String (esp. thinking on SQL-Injections, etc.)
      * 

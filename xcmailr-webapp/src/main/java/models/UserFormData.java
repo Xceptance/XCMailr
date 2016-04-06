@@ -174,8 +174,8 @@ public class UserFormData
     }
 
     /**
-     * This Method will create a {@link User}-Object by the given Data<br/>
-     * Be careful: The pwn1-field will be used as Password for the {@link User}-Object <br/>
+     * This Method will create a {@link User}-Object by the given Data. Be careful: The pwn1-field will be used as
+     * Password for the {@link User}-Object.
      * 
      * @return a {@link User}-Object instantiated with the given Data
      * @see User
@@ -186,7 +186,7 @@ public class UserFormData
     }
 
     /**
-     * This Method takes an {@link User}-Object and converts it into a returned EditUsr-Object<br/>
+     * This Method takes an {@link User}-Object and converts it into a returned EditUsr-Object.
      * 
      * @param user
      *            the {@link User}-Object to convert
