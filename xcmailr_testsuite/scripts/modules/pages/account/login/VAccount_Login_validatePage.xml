@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Validate elements present.</description>
+  <codecomment>input</codecomment>
+  <command name="assertElementPresent" target="css=#inputLoginMail"/>
+  <command name="assertElementPresent" target="css=#inputLoginPassword"/>
+  <codecomment>button</codecomment>
+  <command name="assertElementPresent" target="css=#btnLoginReset"/>
+  <command name="assertElementPresent" target="css=#btnLoginSubmit"/>
+  <codecomment>links</codecomment>
+  <command name="assertElementPresent" target="css=.createAccount"/>
+  <command name="assertElementPresent" target="css=.forgotPassword"/>
+  <codecomment>error message</codecomment>
+  <command name="assertNotElementPresent" target="css=#loginform div.card-content div.formInput p.inputError"/>
+</scriptmodule>

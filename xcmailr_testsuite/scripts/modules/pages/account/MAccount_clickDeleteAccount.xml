@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Click the delete account button.</description>
+  <codecomment>click - delete account button</codecomment>
+  <action name="clickDeleteAccount"/>
+  <command name="click" target="css=.remove-user"/>
+  <command name="waitForElementPresent" target="css=.modal-dialog"/>
+</scriptmodule>

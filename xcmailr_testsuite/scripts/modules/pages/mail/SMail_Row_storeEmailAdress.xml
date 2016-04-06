@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Store the email from the selected row.</description>
+  <parameter name="row"/>
+  <parameter name="selectedEmailAdress_varDynamic"/>
+  <command name="storeText" target="css=#table-mailbox-overview tr:nth-of-type(@{row}) .mailbox-adress" value="@{selectedEmailAdress_varDynamic}"/>
+</scriptmodule>

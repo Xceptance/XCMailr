@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>click "Email Adress" at menubar</description>
+  <command name="click" target="css=.head-sort-adress"/>
+</scriptmodule>

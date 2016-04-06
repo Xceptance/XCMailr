@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Validates the display of the error message</description>
+  <codecomment>delete button</codecomment>
+  <command name="assertElementPresent" target="css=#editUserForm .remove-user"/>
+  <codecomment>input field</codecomment>
+  <command name="assertElementPresent" target="css=#password"/>
+  <command name="assertElementPresent" target="css=#firstName"/>
+  <command name="assertElementPresent" target="css=#surName"/>
+  <command name="assertElementPresent" target="css=#mail"/>
+  <command name="assertElementPresent" target="css=#passwordNew1"/>
+  <command name="assertElementPresent" target="css=#passwordNew2"/>
+  <codecomment>select (language)</codecomment>
+  <command name="assertElementPresent" target="css=#language"/>
+  <codecomment>buttons (down)</codecomment>
+  <command name="assertElementPresent" target="css=#editUserReset"/>
+  <command name="assertElementPresent" target="css=#editUserSubmit"/>
+</scriptmodule>

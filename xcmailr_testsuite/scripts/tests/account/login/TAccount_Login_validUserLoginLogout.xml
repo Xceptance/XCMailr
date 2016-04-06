@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testcase xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Test login with  valid username and valid password
+
+NOTE: XLT-Portal must be run in TestMode (../xltportal/conf/xltportal.properties -&gt; testMode=On) !!!
+
+# Setup and preparation
+
+- Start session, open homepage and delete all visible cookies
+- Create new account with profile data
+- Click login link in the header and go to the login page
+
+# Scope
+
+- Enter valid username, valid password and try to login
+- Validate page title 
+- Validate present error message element</description>
+  <codecomment>-----------------------------------------------</codecomment>
+  <codecomment># Setup
+
+- Start session</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
+  <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
+    <parameter name="email_varName" value="email_varDynamic"/>
+  </module>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <codecomment>create test account</codecomment>
+  <module name="modules.helper.global.FHelper_Register_createAccount">
+    <parameter name="email" value="${email_varDynamic}"/>
+    <parameter name="userPassword_varDynamic" value="password_varDynamic"/>
+  </module>
+  <codecomment>-----------------------------------------------</codecomment>
+  <codecomment># Scope</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
+  <action name="GoToSignIn"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
+  <codecomment>validate - Layout</codecomment>
+  <module name="modules.pages.account.login.VAccount_Login_validatePage"/>
+  <action name="EnterLoginDataAndClickLoginButton"/>
+  <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
+    <parameter name="username" value="${email_varDynamic}"/>
+    <parameter name="password" value="${password_varDynamic}"/>
+  </module>
+  <module name="modules.global.headernav.VGlobal_validatePageTitle">
+    <parameter name="page_title" value="${title_home}"/>
+  </module>
+  <action name="LogOut"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickSignOut"/>
+  <module name="modules.global.headernav.VGlobal_validatePageTitle">
+    <parameter name="page_title" value="${title_home}"/>
+  </module>
+</testcase>

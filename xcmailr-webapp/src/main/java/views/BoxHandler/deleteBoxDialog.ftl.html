@@ -1,25 +1,41 @@
 <html>
-	<body>
-		<div class="modal-header" id="deleteBoxModal" class="modal" tabindex="-1" role="dialog">
-			<div>
-				<h3  class="legendary">${i18n("deleteEmailDialog_Title")}</h3>
+<body>
+
+	<div class="modal-header" class="modal" id="deleteBoxModal" tabindex="-1" role="dialog">
+		<div class="form-group row">
+			<button class="btn-close close" ng-click="dismiss()">
+				<span aria-hidden="true">&times;</span>
+			</button>
+			<h1 class="legendary">${i18n("deleteEmailDialog_Title")}</h1>
+		</div>
+		<!-- /modal-header -->
+
+		<div class="modal-body">
+			<div class="form-group row">
+				<div ng-if="isBulkAction">
+					${i18n("deleteEmailDialog_Text_MultipleMail")} <br />
+					<ul>
+						<li ng-repeat="box in currentBox"><span class="email-adress">{{box.address}}@{{box.domain}}</span></li>
+					</ul>
+				</div>
+				<div ng-if="!isBulkAction">
+					${i18n("deleteEmailDialog_Text_SingleMail")} <span class="email-adress">{{currentBox.address}}@{{currentBox.domain}} </span>
+				</div>
+				<div>${i18n("deleteEmailDialog_Text_AreUSure")}</div>
 			</div>
-			<div class="modal-body"> 
-					<div ng-if="isBulkAction">
-					${i18n("deleteEmailDialog_Text_MultipleMail")} <br/> 
-							<ul>
-								<li ng-repeat="box in currentBox"><span class="email-adress">{{box.address}}@{{box.domain}}</span></li>
-							</ul>  
-					</div>
-					<div ng-if="!isBulkAction">${i18n("deleteEmailDialog_Text_SingleMail")} 
-						<span class="email-adress">{{currentBox.address}}@{{currentBox.domain}} </span>
-					</div>
-					<div> ${i18n("deleteEmailDialog_Text_AreUSure")}</div>
+		</div>
+		<!-- /modal-body -->
+
+		<div class="modal-footer">
+			<div class="form-group row">
+				<div class="col-sm-2"></div>
+				<div class="col-sm-10">
+					<button class="btn btn-default" ng-click="dismiss()">${i18n("deleteEmailDialog_Button_Cancel")}</button>
+					<button class="btn btn-success btn-submit" ng-click="close(currentBox)">${i18n("deleteEmailDialog_Button_Submit")}</button>
+				</div>
 			</div>
-			<div class="modal-footer">
-		       <button class="btn btn-default btn-cancel" ng-click="dismiss()">${i18n("deleteEmailDialog_Button_Cancel")}</button>
-		       <button class="btn btn-danger btn-submit" ng-click="close(currentBox)">${i18n("deleteEmailDialog_Button_Submit")}</button>
-		   	</div>
-		</div>	
-	</body>
+		</div>
+		<!-- /modal-footer -->
+	</div>
+</body>
 </html>
