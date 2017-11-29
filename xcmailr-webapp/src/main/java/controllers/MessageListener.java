@@ -246,6 +246,16 @@ public class MessageListener implements SimpleMessageListener
                 mailBox.increaseSup();
                 return;
             }
+            if (mailBox.getUsr() == null || mailBox.getUsr().isActive() == false)
+            { // either the user does not exist or the user is set to inactive
+                if (xcmConfiguration.MTX_MAX_AGE != 0)
+                { // if mailtransaction.maxage is set to 0 -> log nothing
+                    mtx = new MailTransaction(600, from, recipient, forwardTarget);
+                    jobController.mtxQueue.add(mtx);
+                }
+                mailBox.increaseSup();
+                return;
+            }
 
             // check for a possible loop ...
             String loopError = checkForLoop(mail);

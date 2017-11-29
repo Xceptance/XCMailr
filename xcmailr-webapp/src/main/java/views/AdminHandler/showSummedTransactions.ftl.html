@@ -15,6 +15,7 @@
 	    		<#case 300><tr class="success" id="mtxStatus300"><#break>
 	    		<#case 400><tr class="error" id="mtxStatus400"><#break>
 	    		<#case 500><tr class="error" id="mtxStatus500"><#break>
+	    		<#case 600><tr class="warning" id="mtxStatus600"><#break>
 	    		<#default><tr id="mtxStatusDefault"><#break>
 	    	</#switch>
  		    	<td>
@@ -24,6 +25,7 @@
 			    		<#case 300> ${i18n("admin_MtxStatus300")} <#break>
 			    		<#case 400> ${i18n("admin_MtxStatus400")} <#break>
 			    		<#case 500> ${i18n("admin_MtxStatus500")} <#break>
+			    		<#case 600> ${i18n("admin_MtxStatus600")} <#break>
 			    		<#default> 	${i18n("admin_MtxStatusUnknown")} <#break>
 			    	</#switch>
 			    </td>
