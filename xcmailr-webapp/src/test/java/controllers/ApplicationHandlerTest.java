@@ -672,13 +672,12 @@ public class ApplicationHandlerTest extends NinjaTest
     @Test
     public void testIndexPage()
     {
-
         /*
          * TEST: test if the controller shows the right index-pages
          */
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/");
 
-        assertTrue(result.contains("<a href=\"/register\">"));
+        assertTrue(result.contains("<a href=\"/register\" class=\"createAccount\">"));
         // register the user
         User user = new User("John", "Doe", "admin@localhost.de", "1234", "en");
         user.setActive(true);
@@ -699,7 +698,7 @@ public class ApplicationHandlerTest extends NinjaTest
         assertFalse(result.contains("<title>404 - not found</title>"));
 
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "/");
-        assertTrue(result.contains("<a href=\"/logout\">"));
+        assertTrue(result.contains("<a href=\"/logout\" class=\"logoutAccount\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 

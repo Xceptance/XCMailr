@@ -78,7 +78,6 @@ public class AdminHandlerTest extends NinjaTest
     @Test
     public void testAccountActivation()
     {
-
         // "register" a new user
         User testUser = new User("test", "user", "testuser@xcmailr.test", "1234", "en");
         testUser.save();
@@ -168,17 +167,16 @@ public class AdminHandlerTest extends NinjaTest
     @Test
     public void showStatistics()
     {
-
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/users");
-        assertTrue(result.contains("<a class=\"list-group-item active\" href=\"/admin/users\">"));
+        assertTrue(result.contains("<a class=\"list-group-item active view-user\" href=\"/admin/users\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/summedtx");
-        assertTrue(result.contains("<a class=\"list-group-item active\" href=\"/admin/summedtx\">"));
+        assertTrue(result.contains("<a class=\"list-group-item active show-summedStatistics\" href=\"/admin/summedtx\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin/mtxs");
-        assertTrue(result.contains("<a class=\"list-group-item active\" href=\"/admin/mtxs\">"));
+        assertTrue(result.contains("<a class=\"list-group-item active show-transactions\" href=\"/admin/mtxs\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
