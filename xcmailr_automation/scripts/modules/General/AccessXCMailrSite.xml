@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<scriptmodule version="3" xmlns="http://xlt.xceptance.com/xlt-script/2">
-  <description>Access the XCMailr website and delete all visible cookies.</description>
-  <action name="AccessXCMailrSite"/>
-  <command name="open" value="${XCMailrURL}"/>
-  <command name="deleteAllVisibleCookies"/>
-  <command name="open" value="${XCMailrURL}"/>
-</scriptmodule>

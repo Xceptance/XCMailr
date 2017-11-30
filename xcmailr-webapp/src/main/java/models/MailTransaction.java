@@ -63,20 +63,18 @@ public class MailTransaction
     }
 
     /**
-     * Creates an MailTransaction-Object.
-     * 
-     * <b>Status codes:</b>
-     * <ul>
-     * <li>0 - Mail has a wrong Pattern</li>
-     * <li>100 - Mail does not exist</li>
-     * <li>200 - Mail exists but is inactive</li>
-     * <li>300 - Mail has been forwarded successfully</li>
-     * <li>400 - the Mail can't be forwarded (target not reachable)</li>
-     * <li>500 - Relay denied (recipient's address does not belong to this server)</li>
-     * </ul>
+     * Creates an MailTransaction-Object, with Parameters<br/>
+     * <b>Statuscodes:</b> <br/>
+     * 0 - Mail has a wrong Pattern<br/>
+     * 100 - Mail does not exist<br/>
+     * 200 - Mail exists but is inactive <br/>
+     * 300 - Mail has been forwarded successfully <br/>
+     * 400 - the Mail can't be forwarded (target not reachable)<br/>
+     * 500 - Relay denied (recipient's address does not belong to this server)<br/>
+     * 600 - User is inactive</br>
      * 
      * @param stat
-     *            status-code of the transaction
+     *            Statuscode of the Transaction
      * @param source
      *            the Sender's - Address
      * @param relay
@@ -167,17 +165,16 @@ public class MailTransaction
     }
 
     /**
-     * Returns the status code.
-     * <ul>
-     * <li>0 - Mail has a wrong Pattern</li>
-     * <li>100 - Mail does not exist</li>
-     * <li>200 - Mail exists but is inactive</li>
-     * <li>300 - Mail has been forwarded successfully</li>
-     * <li>400 - the Mail can't be forwarded (target not reachable)</li>
-     * <li>500 - Relay denied (recipient's address does not belong to this server)</li>
-     * </ul>
+     * <b>Statuscodes:</b> <br/>
+     * 0 - Mail has a wrong Pattern <br/>
+     * 100 - Mail does not exist<br/>
+     * 200 - Mail exists but is inactive <br/>
+     * 300 - Mail has been forwarded successfully <br/>
+     * 400 - the Mail can't be forwarded (target not reachable)<br/>
+     * 500 - Relay denied (recipient's address does not belong to this server)<br/>
+     * 600 - User is inactive</br>
      * 
-     * @return status code
+     * @return a Statuscode
      */
     public int getStatus()
     {
@@ -185,18 +182,17 @@ public class MailTransaction
     }
 
     /**
-     * Sets the status code.
-     * <ul>
-     * <li>0 - Mail has a wrong Pattern</li>
-     * <li>100 - Mail does not exist</li>
-     * <li>200 - Mail exists but is inactive</li>
-     * <li>300 - Mail has been forwarded successfully</li>
-     * <li>400 - the Mail can't be forwarded (target not reachable)</li>
-     * <li>500 - Relay denied (recipient's address does not belong to this server)</li>
-     * </ul>
+     * <b>Statuscodes:</b> <br/>
+     * 0 - Mail has a wrong Pattern<br/>
+     * 100 - Mail does not exist<br/>
+     * 200 - Mail exists but is inactive <br/>
+     * 300 - Mail has been forwarded successfully <br/>
+     * 400 - the Mail can't be forwarded (target not reachable)<br/>
+     * 500 - Relay denied (recipient's address does not belong to this server)<br/>
+     * 600 - User is inactive</br>
      * 
      * @param status
-     *            the status to set
+     *            the Status to set
      */
     public void setStatus(int status)
     {
@@ -268,8 +264,8 @@ public class MailTransaction
 
     /**
      * @param sortage
-     *            a String which indicates the sortage of the returned list, the string should be in the form
-     *            "fieldname asc" or "fieldname desc"
+     *            a String which indicates the sortage of the returned list, the string should be in the form "fieldname
+     *            asc" or "fieldname desc"
      * @return a sorted list of all MailTransactions
      */
     public static List<MailTransaction> all(String sortage)
@@ -302,6 +298,48 @@ public class MailTransaction
     {
         List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit)
                                           .findList();
+        return list;
+    }
+
+    /**
+     * returns a list of MailTransactions with the given target address
+     * 
+     * @param targetAddr
+     *            the target address
+     * @return sorted list of MailTransactions with given target address
+     */
+    public static List<MailTransaction> getForTarget(final String targetAddr)
+    {
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().eq("targetaddr", targetAddr)
+                                          .orderBy("ts desc").findList();
+        return list;
+    }
+
+    /**
+     * returns a list of MailTransactions with the given relay address
+     * 
+     * @param relayAddr
+     *            the relay address
+     * @return sorted list of MailTransactions with given target address
+     */
+    public static List<MailTransaction> getForRelay(final String relayAddr)
+    {
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().eq("relayaddr", relayAddr)
+                                          .orderBy("ts desc").findList();
+        return list;
+    }
+
+    /**
+     * returns a list of MailTransactions with the given source address
+     * 
+     * @param sourceAddr
+     *            the source address
+     * @return sorted list of MailTransactions with given target address
+     */
+    public static List<MailTransaction> getForSource(final String sourceAddr)
+    {
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().eq("sourceaddr", sourceAddr)
+                                          .orderBy("ts desc").findList();
         return list;
     }
 

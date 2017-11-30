@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Validate header - is user login</description>
+  <codecomment># assert</codecomment>
+  <command name="assertText" target="css=.editAccount" value="Account"/>
+  <command name="assertText" target="css=.logoutAccount" value="Sign Out"/>
+</scriptmodule>

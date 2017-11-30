@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Goes to 10 minute email and fetches the just arrived email to retrieve the activte url.</description>
+  <action name="ReturnToMailer"/>
+  <command name="open" value="${emailClientURL}"/>
+  <action name="WaitForMail"/>
+  <codecomment>Sometimes it least a little bit longer to rececieve an email</codecomment>
+  <command name="waitForText" target="css=html body div.container-narrow table#table_dea_messages.table.table-hover.table-bordered tbody tr#msg_1 td:nth-of-type(2)" value="services@xceptance.net"/>
+  <action name="OpenMessage"/>
+  <command name="click" target="css=html body div.container-narrow table#table_dea_messages.table.table-hover.table-bordered tbody tr#msg_1"/>
+  <codecomment>There is sometimes a loading screen after opening the message.</codecomment>
+  <command name="waitForText" target="css=html body div#modalMessage.modal.hide.fade.in div.modal-body" value="Hi*"/>
+  <codecomment>store e-mail message</codecomment>
+  <command name="storeText" target="css=#modalMessage .modal-body" value="message_varDynamic"/>
+  <codecomment>store only url</codecomment>
+  <command name="storeEval" target="&quot;${message_varDynamic}&quot;.substring(&quot;${message_varDynamic}&quot;.indexOf(&quot;htt&quot;), (&quot;${message_varDynamic}&quot;.indexOf(&quot;This&quot;)-1) )" value="activateUrl_varDynamic">
+    <comment>"${message_varDynamic}".substring("${message_varDynamic}".indexOf("htt","${message_varDynamic}".indexOf("This")))</comment>
+  </command>
+  <codecomment>OpenActivateUrl</codecomment>
+  <command name="open" value="${activateUrl_varDynamic}"/>
+</scriptmodule>

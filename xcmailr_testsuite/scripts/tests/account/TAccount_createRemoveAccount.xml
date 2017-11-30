@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testcase xmlns="http://xlt.xceptance.com/xlt-script/2" version="6" junit-test="true">
+  <description>Test register profile with create account via link in header.
+
+Note: this test case requires testmode on (../xltportal/conf/xltportal.properties -&gt; testMode=On) !!!
+
+# Setup and preparation 
+
+- Start session, open homepage and delete all visible cookies
+
+# Scope of test
+
+- Click on login link in the header and go to the create account page
+- Enter profile data and submit the form
+- Logout using the link in the header menu
+- Login again to validate login data and goto the account page
+- Validate personal profile data
+- Logout using the global link in the header</description>
+  <codecomment>-----------------------------------------------</codecomment>
+  <codecomment># Setup
+
+- Generate email
+- Generate password
+- Start session</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
+  <codecomment>e-mail (extern)</codecomment>
+  <module name="modules.helper.external.FHelper_getEmailAddressFromExternal">
+    <parameter name="email_varName" value="email_varDynamic"/>
+  </module>
+  <codecomment># Setup
+
+- Start session</codecomment>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <codecomment>-----------------------------------------------</codecomment>
+  <codecomment># Scope</codecomment>
+  <codecomment>-----------------------------------------------</codecomment>
+  <codecomment>Account
+
+- Register account via header link
+- Enter profile data
+- Submit profile data
+- Validate account page and nav
+- Validate customer name
+- Logout</codecomment>
+  <action name="GoToSignin"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
+  <codecomment>create test account</codecomment>
+  <module name="modules.helper.global.FHelper_Register_createAccount">
+    <parameter name="email" value="${email_varDynamic}"/>
+    <parameter name="userPassword_varDynamic" value="password_varDynamic"/>
+  </module>
+  <module name="modules.helper.global.FHelper_Session_flowToStartSession"/>
+  <action name="GoToSignIn"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
+  <action name="EnterLoginDataAndClickLoginButton"/>
+  <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
+    <parameter name="username" value="${email_varDynamic}"/>
+    <parameter name="password" value="${password_varDynamic}"/>
+  </module>
+  <module name="modules.helper.global.FHelper_Register_removeAccount">
+    <parameter name="userPassword" value="${password_varDynamic}"/>
+  </module>
+  <codecomment>validate delete message</codecomment>
+  <module name="modules.pages.account.VAccount_validateDeleteAccountMsg"/>
+  <codecomment>try login</codecomment>
+  <action name="GoToSignIn"/>
+  <module name="modules.global.headernav.MGlobal_Header_clickSignIn"/>
+  <action name="LogIn"/>
+  <module name="modules.pages.account.login.MAccount_Login_enterClickUserLoginData">
+    <parameter name="username" value="${email_varDynamic}"/>
+    <parameter name="password" value="${password_varDynamic}"/>
+  </module>
+  <module name="modules.pages.account.login.VAccount_Login_validateErrorMsgNoMatch"/>
+</testcase>

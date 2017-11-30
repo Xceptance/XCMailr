@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Validate elements present.</description>
+  <command name="assertElementPresent" target="css=#name"/>
+  <command name="assertElementPresent" target="css=#contact"/>
+  <command name="assertElementPresent" target="css=#street_number"/>
+  <command name="assertElementPresent" target="css=#city"/>
+  <command name="assertElementPresent" target="css=#zip"/>
+  <command name="assertElementPresent" target="css=#country"/>
+  <command name="assertElementPresent" target="css=#email"/>
+  <command name="assertElementPresent" target="css=#password"/>
+  <command name="assertElementPresent" target="css=#passwordCheck"/>
+  <command name="assertElementPresent" target="css=#code"/>
+  <codecomment>captcha code as image</codecomment>
+  <command name="assertElementPresent" target="css=#captcha"/>
+  <codecomment>links</codecomment>
+  <command name="assertElementPresent" target="css=#submitFormValues"/>
+  <command name="assertElementPresent" target="css=#back_link"/>
+  <codecomment>title</codecomment>
+  <command name="assertText" target="css=#register h2" value="Registration"/>
+</scriptmodule>

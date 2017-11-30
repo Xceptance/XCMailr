@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Click the checkbox which select all emails</description>
+  <command name="check" target="id=chk_all"/>
+  <command name="waitForChecked" target="id=chk_all"/>
+</scriptmodule>

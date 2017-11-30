@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
+  <description>Validate nominal value with row table counter.</description>
+  <parameter name="nominalValue"/>
+  <command name="assertXpathCount" target="/html/body/div[2]/div/div/table/tbody/tr" value="@{nominalValue}">
+    <comment>counterRow</comment>
+  </command>
+</scriptmodule>

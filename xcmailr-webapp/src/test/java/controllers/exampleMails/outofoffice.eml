@@ -1,0 +1,26 @@
+Return-Path: <>
+Received: from forward17o.cmail.yandex.net ([37.9.109.214]) by mx-ha.gmx.net (mxgmx008) with ESMTPS (Nemesis) id 0Ldu0h-1aHrS63031-00j05G for <damian.jordanov@gmx.de>; Fri, 30 Oct 2015 11:38:17 +0100
+Received: from mxback9o.mail.yandex.net (mxback9o.mail.yandex.net [IPv6:2a02:6b8:0:1a2d::23]) by forward17o.cmail.yandex.net (Yandex) with ESMTP id 5618A21729 for <damian.jordanov@gmx.de>; Fri, 30 Oct 2015 13:38:11 +0300 (MSK)
+Received: from mxback9o.mail.yandex.net (localhost [127.0.0.1]) by mxback9o.mail.yandex.net (Yandex) with ESMTP id 1E1552A60596 for <damian.jordanov@gmx.de>; Fri, 30 Oct 2015 13:38:10 +0300 (MSK)
+Received: from mxfront3o.mail.yandex.net (mxfront3o.mail.yandex.net [37.140.190.7]) by mxback9o.mail.yandex.net (nwsmtp/Yandex) with ESMTP id uGnm39FS8J-cA384Zpg; Fri, 30 Oct 2015 13:38:10 +0300
+Subject: Re: sub
+To: damian.jordanov@gmx.de
+Date: Fri, 30 Oct 2015 13:38:10 +0300
+From: "Damian Jordanov" <damian.jordanov@yandex.com>
+Message-Id: <15771446201490@mxfront3o.mail.yandex.net>
+MIME-Version: 1.0
+X-Mailer: Yamail [ http://yandex.ru ]
+X-Yandex-Forward: b1ab17a3abda86af63a8d57dc693f9ff
+X-AutoReply: YES
+Auto-Submitted: auto-replied
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Envelope-To: <damian.jordanov@gmx.de>
+X-GMX-Antispam: 0 (Mail was not recognized as spam); Detail=V3;
+X-GMX-Antivirus: 0 (no virus found)
+X-UI-Filterresults: notjunk:1;V01:K0:LsfwPDGEPwo=:UIVZWLe7hp7EEx3OIsS0i6u+O8 EE8JJ8md/djnWdzwC8WfNr6VqU6XXGATllZh6Yw7LGaefXw10h4lSTXMPltxYYn2SQqffJPU3 DRiWicdolitp8GTVqYBdkR2JUv986ZQG4Hx7g+vNqCWZEreXzO6z6dGztB7C/+SQaY+5ZyM2v hPrwOnV2ylNqss0YebV4XqZSYEU2jEA/gaT1f1/OGzp9f3uVHgr3TUBMylAEWSxIAjdBfusil KKlcNP2A78UQOsW/4PPhFzuXGjRtl4fMNFpKu1N8yVQ6cVkwIjke6lHMqwxZ5Na8I72ahTwrf LNKL6YwoETKDW+gO5OtOU7tnVKgY2uALx85qviXmbwc3gv30Ci7Kn6EFNovBgRNbVU6/tQs/T kHxN4RdhNs22jVWA1vKn/Ql3zqP6u6QDvr67qG7OqY43gc6W6+Myj94liRNCgbt2Hj+WQ++Gd yo0b1TDJgWpEyZwvkP2PUAdwx8QTmu8omVmHBMFRseA2TJC0cGSgA0D6pzJzb0jT0A9abZBcS AaOVpD7j+/c60eg8OmfZPG+1MCmb+qpwZVusqUoJILjnCtkIRzhLoYIt9WjEAklVixseHv5mo vwV71TywIJQbFidJXJSCSGBvlio3GkGkz3ywHLJZHfG6RiRszFhKe9BBKGTKnNkiWJKchw/bf dhjV1/UtXtJchy3mArgZpj4Q/SqsUCh1rPBwi3PCz3A3L6fwoCu+uKiSmsVaAKGti/605oJaM Z9BoZ5kYM3zD5/jX3PiiABCQvHziqbbLfJv+TqZ9YVul54+Pv3x+/evqeNPTLKa08lZs8u2Fp uAfFtL7//wCvUL9SOFio8GtlUiHbL+CHjNbghY1uAfRJ6ggfiZr2mwh78BBFR8XDHi1Cen2a7 jh5PPvw+ucyCWfdcElu5nh9hrd3HgnYXXygFFGP6dKShe6cyH0Kwikmfo3zBgpxcfl0AQ9Y2m o2wQuoRvySCf8vCD3wDMcti+OEocEoNgi4zMhaFMlvvBHiskpNVW0ljbi9X/eOHhEk/o5Q0GX T9NQB2SS8N6r9hxT3wu1pgmQRGb586WlRZIbAfveIJRtg2HdH1xJs6OTAb+93fpwzFg8098dw BGGNhHnTpKWarQox4NpTZylWttOcRe77+DvaN7TVIlAmsyXNt02p9I4TEaf7mYRc/RInhKhLZ Hmzq6khZKxeHY+fXJTnSV5v26agvwUsYo5CJ5YwlMf1FEMet29kfMjzlDzU3Agc558Ii6d4jj Bz4F4ltLQoIRYw4IYxH8oP/huE8AGEqKLI5c6Jr/gVo0Su800msd+5o7vpfGD4HLx7ES45T0v T16jzzu6tSnWjPPmUKp3dqssMFA4N4CHDdP3Y0Ougoc2M+vCECIklDdWa9c3mvDGUbu5EnXsA lD1iI3U6bkPyncM2qtLNXbf3Lg5WH+U9jIoWHM= 
+
+Sorry, I'm in not in the office at the moment.
+Source: yandex.com
+Should be blocked
+Gets blocked
