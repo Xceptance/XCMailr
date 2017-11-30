@@ -257,8 +257,6 @@ public class MessageListener implements SimpleMessageListener
         try
         {
             mail = new MimeMessage(session, data);
-
-            MailTransaction mtx;
             final Address forwardAddress;
             final MBox mailBox = doMboxPreconditionChecks(from, recipient);
 
@@ -341,7 +339,7 @@ public class MessageListener implements SimpleMessageListener
     {
         if (xcmConfiguration.MTX_MAX_AGE != 0)
         {// if mailtransaction.maxage is set to 0 -> log nothing
-            final MailTransaction mtx = new MailTransaction(400, from, recipient, forwardTarget);
+            final MailTransaction mtx = new MailTransaction(status, from , recipient, forwardTarget);
             jobController.mtxQueue.add(mtx);
         }
     }

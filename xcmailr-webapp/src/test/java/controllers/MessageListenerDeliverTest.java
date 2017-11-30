@@ -2,30 +2,12 @@ package controllers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
-
-import com.google.inject.Inject;
 
 import conf.XCMailrConf;
 import models.MBox;
@@ -53,7 +35,7 @@ public class MessageListenerDeliverTest extends NinjaTest
      * </ul>
      */
     @Test
-    public void testDeliveryPreconditions()
+    public void testDeliveryPreconditions() throws Exception
     {
         final NinjaProperties ninjaProperties = spy(new NinjaPropertiesImpl(NinjaMode.test));
         final XCMailrConf xcmConf = new XCMailrConf(ninjaProperties);
@@ -76,9 +58,8 @@ public class MessageListenerDeliverTest extends NinjaTest
         // check malformed mail address
         MBox result = ml.doMboxPreconditionChecks(local, local);
         assertNull(result);
-        List<MailTransaction> mtxs = MailTransaction.getForTarget(local);
-        assertEquals(1, mtxs.size());
-        assertEquals(0, mtxs.get(0).getStatus());
+        assertEquals(1, clq.size());
+        assertEquals(0, clq.poll().getStatus());
 
         // check unexisting mbox
         result = ml.doMboxPreconditionChecks(local, testAddress);
