@@ -71,6 +71,7 @@ public class MailTransaction
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 500 - Relay denied (recipient's address does not belong to this server)<br/>
+     * 600 - User is inactive</br>
      * 
      * @param stat
      *            Statuscode of the Transaction
@@ -171,6 +172,7 @@ public class MailTransaction
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 500 - Relay denied (recipient's address does not belong to this server)<br/>
+     * 600 - User is inactive</br>
      * 
      * @return a Statuscode
      */
@@ -187,6 +189,7 @@ public class MailTransaction
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 500 - Relay denied (recipient's address does not belong to this server)<br/>
+     * 600 - User is inactive</br>
      * 
      * @param status
      *            the Status to set
@@ -261,8 +264,8 @@ public class MailTransaction
 
     /**
      * @param sortage
-     *            a String which indicates the sortage of the returned list, the string should be in the form
-     *            "fieldname asc" or "fieldname desc"
+     *            a String which indicates the sortage of the returned list, the string should be in the form "fieldname
+     *            asc" or "fieldname desc"
      * @return a sorted list of all MailTransactions
      */
     public static List<MailTransaction> all(String sortage)
@@ -295,6 +298,48 @@ public class MailTransaction
     {
         List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit)
                                           .findList();
+        return list;
+    }
+
+    /**
+     * returns a list of MailTransactions with the given target address
+     * 
+     * @param targetAddr
+     *            the target address
+     * @return sorted list of MailTransactions with given target address
+     */
+    public static List<MailTransaction> getForTarget(final String targetAddr)
+    {
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().eq("targetaddr", targetAddr)
+                                          .orderBy("ts desc").findList();
+        return list;
+    }
+
+    /**
+     * returns a list of MailTransactions with the given relay address
+     * 
+     * @param relayAddr
+     *            the relay address
+     * @return sorted list of MailTransactions with given target address
+     */
+    public static List<MailTransaction> getForRelay(final String relayAddr)
+    {
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().eq("relayaddr", relayAddr)
+                                          .orderBy("ts desc").findList();
+        return list;
+    }
+
+    /**
+     * returns a list of MailTransactions with the given source address
+     * 
+     * @param sourceAddr
+     *            the source address
+     * @return sorted list of MailTransactions with given target address
+     */
+    public static List<MailTransaction> getForSource(final String sourceAddr)
+    {
+        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().eq("sourceaddr", sourceAddr)
+                                          .orderBy("ts desc").findList();
         return list;
     }
 

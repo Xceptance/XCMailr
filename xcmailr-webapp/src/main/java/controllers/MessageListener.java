@@ -32,6 +32,7 @@ import javax.mail.internet.MimeMessage.RecipientType;
 
 import models.MBox;
 import models.MailTransaction;
+import models.User;
 
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
@@ -192,6 +193,57 @@ public class MessageListener implements SimpleMessageListener
     }
 
     /**
+     * Checks preconditions related to the MBox, such as:
+     * <ul>
+     * <li>malformed recipient address</li>
+     * <li>not existing {@link MBox}</li>
+     * <li>disabled {@link MBox}</li>
+     * <li>disabled {@link User}</li>
+     * </ul>
+     * 
+     * @param from
+     *            the from address
+     * @param recipient
+     *            the recipient
+     * @return the linked {@link MBox} for that recipient address, or null if any precondition failed
+     */
+    protected MBox doMboxPreconditionChecks(final String from, final String recipient)
+    {
+        final String[] splitAddress;
+        final MBox mailBox;
+
+        splitAddress = recipient.split("@");
+
+        if (splitAddress.length != 2)
+        { // the mail-address does not have the expected pattern -> do nothing, just log it
+            createMtxAndAddToQueue(0, from, null, recipient);
+            return null;
+        }
+
+        if (MBox.mailExists(splitAddress[0], splitAddress[1]) == false)
+        { // mailaddress/forward does not exist
+            createMtxAndAddToQueue(100, from, recipient, null);
+            return null;
+        }
+        mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
+        final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
+
+        if (mailBox.isActive() == false)
+        { // there's a mailaddress, but the forward is inactive
+            createMtxAndAddToQueue(200, from, recipient, forwardTarget);
+            mailBox.increaseSup();
+            return null;
+        }
+        if (mailBox.getUsr() == null || mailBox.getUsr().isActive() == false)
+        { // either the user does not exist or the user is set to inactive
+            createMtxAndAddToQueue(600, from, recipient, forwardTarget);
+            mailBox.increaseSup();
+            return null;
+        }
+        return mailBox;
+    }
+
+    /**
      * @param from
      * @param recipient
      * @param data
@@ -207,45 +259,14 @@ public class MessageListener implements SimpleMessageListener
             mail = new MimeMessage(session, data);
 
             MailTransaction mtx;
-            final String[] splitAddress;
             final Address forwardAddress;
-            final String forwardTarget;
-            final MBox mailBox;
+            final MBox mailBox = doMboxPreconditionChecks(from, recipient);
 
-            splitAddress = recipient.split("@");
-
-            if (splitAddress.length != 2)
-            { // the mail-address does not have the expected pattern -> do nothing, just log it
-                if (xcmConfiguration.MTX_MAX_AGE != 0)
-                {// if mailtransaction.maxage is set to 0 -> log nothing
-                    mtx = new MailTransaction(0, from, null, recipient);
-                    mtx.save();
-                }
+            if (mailBox == null)
+            {
                 return;
             }
-
-            if (!MBox.mailExists(splitAddress[0], splitAddress[1]))
-            { // mailaddress/forward does not exist
-                if (xcmConfiguration.MTX_MAX_AGE != 0)
-                { // if mailtransaction.maxage is set to 0 -> log nothing
-                    mtx = new MailTransaction(100, from, recipient, null);
-                    jobController.mtxQueue.add(mtx);
-                }
-                return;
-            }
-            mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
-            forwardTarget = MBox.getFwdByName(splitAddress[0], splitAddress[1]);
-
-            if (!mailBox.isActive())
-            { // there's a mailaddress, but the forward is inactive
-                if (xcmConfiguration.MTX_MAX_AGE != 0)
-                { // if mailtransaction.maxage is set to 0 -> log nothing
-                    mtx = new MailTransaction(200, from, recipient, forwardTarget);
-                    jobController.mtxQueue.add(mtx);
-                }
-                mailBox.increaseSup();
-                return;
-            }
+            final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
 
             // check for a possible loop ...
             String loopError = checkForLoop(mail);
@@ -257,7 +278,6 @@ public class MessageListener implements SimpleMessageListener
                 log.info(loopError);
                 return;
             }
-
             // there's an existing and active mail-address
             // add the target-address to the list
             try
@@ -298,22 +318,14 @@ public class MessageListener implements SimpleMessageListener
                 log.error(e.getMessage());
                 // the message can't be forwarded (has not the correct format)
                 // this SHOULD never be the case...
-                if (xcmConfiguration.MTX_MAX_AGE != 0)
-                {// if mailtransaction.maxage is set to 0 -> log nothing
-                    mtx = new MailTransaction(400, from, recipient, forwardTarget);
-                    jobController.mtxQueue.add(mtx);
-                }
+                createMtxAndAddToQueue(400, from, recipient, forwardTarget);
             }
             catch (IOException e)
             {
                 log.error(e.getMessage());
                 // the message can't be forwarded (has not the correct format)
                 // this SHOULD never be the case...
-                if (xcmConfiguration.MTX_MAX_AGE != 0)
-                {// if mailtransaction.maxage is set to 0 -> log nothing
-                    mtx = new MailTransaction(400, from, recipient, forwardTarget);
-                    jobController.mtxQueue.add(mtx);
-                }
+                createMtxAndAddToQueue(400, from, recipient, forwardTarget);
             }
         }
         catch (MessagingException e)
@@ -321,6 +333,16 @@ public class MessageListener implements SimpleMessageListener
             // the message-creation-process failed
             // either the session can't be created or the input-stream was wrong
             log.error(e.getMessage());
+        }
+    }
+
+    private void createMtxAndAddToQueue(final int status, final String from, final String recipient,
+                                        final String forwardTarget)
+    {
+        if (xcmConfiguration.MTX_MAX_AGE != 0)
+        {// if mailtransaction.maxage is set to 0 -> log nothing
+            final MailTransaction mtx = new MailTransaction(400, from, recipient, forwardTarget);
+            jobController.mtxQueue.add(mtx);
         }
     }
 }
