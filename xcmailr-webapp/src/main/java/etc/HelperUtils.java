@@ -18,18 +18,18 @@ package etc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
-
-import ninja.Context;
-import ninja.Result;
-import ninja.i18n.Messages;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.google.common.base.Optional;
 import com.google.inject.Singleton;
+
+import ninja.Context;
+import ninja.Result;
+import ninja.i18n.Messages;
 
 /**
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
@@ -188,7 +188,7 @@ public class HelperUtils
             languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult).get();
             availableLanguageList.add(new String[]
                 {
-                    abbreviatedLanguageCode, languageTranslation
+                  abbreviatedLanguageCode, languageTranslation
                 });
         }
         return availableLanguageList;

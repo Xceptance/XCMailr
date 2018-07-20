@@ -18,7 +18,18 @@ package controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
+import etc.HelperUtils;
+import filters.NoLoginFilter;
 import models.Domain;
 import models.LoginFormData;
 import models.PasswordFormData;
@@ -34,18 +45,6 @@ import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import conf.XCMailrConf;
-import etc.HelperUtils;
-import filters.NoLoginFilter;
 
 /**
  * Handles all general application actions like login, logout, forgot password or index page

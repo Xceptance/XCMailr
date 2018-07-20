@@ -16,6 +16,7 @@
  */
 package controllers;
 
+import java.util.Optional;
 import java.util.Properties;
 
 import javax.mail.Message;
@@ -27,19 +28,17 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.slf4j.Logger;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
 import models.MBox;
 import models.MailTransaction;
 import models.User;
 import ninja.i18n.Messages;
 import ninja.utils.NinjaProperties;
-
-import org.slf4j.Logger;
-
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import conf.XCMailrConf;
 
 /**
  * Handles all Actions for outgoing Mails
@@ -95,7 +94,7 @@ public class MailrMessageSenderFactory
             {
                 return xcmConfiguration.OUT_SMTP_AUTH ? new PasswordAuthentication(xcmConfiguration.OUT_SMTP_USER,
                                                                                    xcmConfiguration.OUT_SMTP_PASS)
-                                                     : null;
+                                                      : null;
             }
         });
         return session;

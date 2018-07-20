@@ -23,7 +23,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
+import etc.HelperUtils;
+import etc.TypeRef;
+import filters.JsonSecureFilter;
+import filters.SecureFilter;
 import models.MBox;
 import models.User;
 import ninja.Context;
@@ -35,22 +50,6 @@ import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import conf.XCMailrConf;
-import etc.HelperUtils;
-import etc.TypeRef;
-import filters.JsonSecureFilter;
-import filters.SecureFilter;
 
 /**
  * Handles all actions for the (virtual) Mailboxes like add, delete and edit box

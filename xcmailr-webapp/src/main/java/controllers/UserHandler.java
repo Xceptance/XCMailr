@@ -18,7 +18,16 @@ package controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
+import etc.HelperUtils;
+import filters.SecureFilter;
 import models.Domain;
 import models.User;
 import models.UserFormData;
@@ -30,16 +39,6 @@ import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import conf.XCMailrConf;
-import etc.HelperUtils;
-import filters.SecureFilter;
 
 /**
  * Handles the actions of the User-Object

@@ -18,8 +18,20 @@ package controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
+import etc.HelperUtils;
+import filters.AdminFilter;
+import filters.SecureFilter;
+import filters.WhitelistFilter;
 import models.Domain;
 import models.MailTransaction;
 import models.PageList;
@@ -33,19 +45,6 @@ import ninja.i18n.Messages;
 import ninja.params.Param;
 import ninja.params.PathParam;
 
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import conf.XCMailrConf;
-import etc.HelperUtils;
-import filters.AdminFilter;
-import filters.SecureFilter;
-import filters.WhitelistFilter;
-
 /**
  * Handles all Actions for the Administration-Section
  * 
@@ -54,7 +53,7 @@ import filters.WhitelistFilter;
 
 @FilterWith(
     {
-        SecureFilter.class, AdminFilter.class
+      SecureFilter.class, AdminFilter.class
     })
 @Singleton
 public class AdminHandler
