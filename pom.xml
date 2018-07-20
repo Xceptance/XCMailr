@@ -28,11 +28,7 @@
 		<module>xcmailr-webapp</module>
 		<module>xcmailr-jetty-starter</module>
 	</modules>
-	<parent>
-		<groupId>org.ninjaframework</groupId>
-		<artifactId>ninja</artifactId>
-		<version>1.5.1</version>
-	</parent>
+
 	<!-- pin encoding to utf-8 -->
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
