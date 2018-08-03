@@ -1,183 +1,169 @@
-<!--
+<!-- Copyright (C) 2013 the original author or authors. Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance 
+    with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software 
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+    specific language governing permissions and limitations under the License. -->
 
-    Copyright (C) 2013 the original author or authors.
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>xcmailr</artifactId>
+    <groupId>org.xcmailr</groupId>
+    <packaging>pom</packaging>
+    <name>XCMailr</name>
+    <version>1.1.5</version>
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+    <modules>
+        <module>xcmailr-webapp</module>
+        <module>xcmailr-jetty-starter</module>
+    </modules>
 
-        http://www.apache.org/licenses/LICENSE-2.0
+    <scm>
+        <url>https://github.com/Xceptance/XCMailr</url>
+        <connection>scm:git://github.com/Xceptance/XCMailr.git</connection>
+        <developerConnection>scm:git:git@github.com:Xceptance/XCMailr.git</developerConnection>
+    </scm>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/Xceptance/XCMailr/issues</url>
+    </issueManagement>
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>manual</distribution>
+        </license>
+    </licenses>
+    <distributionManagement>
+        <site>
+            <id>github-project-site</id>
+            <url>gitsite:git@github.com/Xceptance/XCMailr.git</url>
+        </site>
+    </distributionManagement>
 
--->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<artifactId>xcmailr</artifactId>
-	<groupId>org.xcmailr</groupId>	
-	<packaging>pom</packaging>
-	<name>XCMailr</name>
-	<version>1.1.5</version>
+    <properties>
+        <!-- pin encoding to utf-8 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <siteProjectVersion>${project.version}</siteProjectVersion>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
 
-	<modules>
-		<module>xcmailr-webapp</module>
-		<module>xcmailr-jetty-starter</module>
-	</modules>
-	<parent>
-		<groupId>org.ninjaframework</groupId>
-		<artifactId>ninja</artifactId>
-		<version>1.5.1</version>
-	</parent>
-	<!-- pin encoding to utf-8 -->
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<siteProjectVersion>${project.version}</siteProjectVersion>
-		<timestamp>${maven.build.timestamp}</timestamp>
-		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-	</properties>
-	<build>
-		<plugins>
-		    <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<version>3.1</version>
-			<configuration>
-			  <source>1.6</source>
-			  <target>1.6</target>
-			</configuration>
-		    </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.14</version>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/xcmailr-build/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/</directory>
+                                    <includes>
+                                        <include>readme.md</include>
+                                        <include>license.md</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${basedir}/xcmailr-resources/</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${basedir}/xcmailr-build</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>aggregate-add-third-party</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>aggregate-add-third-party</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/xcmailr-build/third-party-licenses</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- <plugin> -->
+            <!-- <groupId>org.apache.maven.plugins</groupId> -->
+            <!-- <artifactId>maven-javadoc-plugin</artifactId> -->
+            <!-- <version>2.9.1</version> -->
+            <!-- <executions> -->
+            <!-- <execution> -->
+            <!-- <id>attach-javadocs</id> -->
+            <!-- <phase>package</phase> -->
+            <!-- <goals> -->
+            <!-- <goal>aggregate</goal> -->
+            <!-- </goals> -->
+            <!-- <configuration> -->
+            <!-- <aggregate>true</aggregate> -->
+            <!-- <reportOutputDirectory>${basedir}/xcmailr-build/javadocs</reportOutputDirectory> -->
+            <!-- <destDir>${basedir}/xcmailr-build/javadocs</destDir> -->
+            <!-- </configuration> -->
+            <!-- </execution> -->
+            <!-- </executions> -->
+            <!-- </plugin> -->
+        </plugins>
 
-			<plugin>  
-				<groupId>org.apache.maven.plugins</groupId>  
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.14</version>  
-				<configuration>  
-					<useSystemClassLoader>false</useSystemClassLoader>  
-				</configuration>  
-			</plugin>
-		      <plugin>
-			<groupId>org.apache.maven.plugins</groupId>  
-			<artifactId>maven-resources-plugin</artifactId>
-			<version>2.6</version>
-			<executions>
-			  <execution>
-			    <id>copy-resources</id>
-			    <phase>package</phase>
-			    <goals>
-			      <goal>copy-resources</goal>
-			    </goals>
-			    <configuration>
-			      <outputDirectory>${basedir}/xcmailr-build/</outputDirectory>
-			      <resources>          
-				<resource>
-				  <directory>${basedir}/</directory>
-					<includes>
-					  <include>readme.md</include>
-					  <include>license.md</include>
-					</includes>
-				</resource>
-				<resource>
-				  <directory>${basedir}/xcmailr-resources/</directory>
-				</resource>
-			      </resources>              
-			    </configuration>            
-			  </execution>
-			</executions>
-		      </plugin> 
-		  <plugin>
-		    <artifactId>maven-clean-plugin</artifactId>
-		    <version>2.5</version>
-		    <configuration>
-		      <filesets>
-			<fileset>
-			  <directory>${basedir}/xcmailr-build</directory>
-			</fileset>
-		      </filesets>
-		    </configuration>
-		  </plugin>
-		      <plugin>
-			<groupId>org.codehaus.mojo</groupId>
-			<artifactId>license-maven-plugin</artifactId>
-			<version>1.5</version>
-			<executions>
-			  <execution>
-			    <id>aggregate-add-third-party</id>
-			    <phase>package</phase>
-			    <goals>
-			      <goal>aggregate-add-third-party</goal>
-			    </goals>
-			      <configuration>
-				<outputDirectory>${basedir}/xcmailr-build/third-party-licenses</outputDirectory>
-			      </configuration>
-			  </execution>
-			</executions>
-		      </plugin>
-		      <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-javadoc-plugin</artifactId>
-			<version>2.9.1</version>
-			<executions>
-			  <execution>
-			    <id>attach-javadocs</id>
-			    <phase>package</phase>
-			    <goals>
-			      <goal>aggregate</goal>
-			    </goals>
-				<configuration>
-				  <aggregate>true</aggregate>
-				  <reportOutputDirectory>${basedir}/xcmailr-build/javadocs</reportOutputDirectory>
-				  <destDir>${basedir}/xcmailr-build/javadocs</destDir>
-				</configuration>
-			  </execution>
-			</executions>
-		      </plugin>
-		</plugins>
-
-		<resources>
-			<resource>
-				<directory>src/main/java</directory>
-				<includes>
-					<include>**/*</include>
-				</includes>
-				<excludes>
-				    <exclude>**/*.java</exclude>
-				</excludes>
-			</resource>         
-			<resource>
-				<directory>src/main/resources</directory>
-				<targetPath>${project.build.outputDirectory}/views/layout</targetPath>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-	<finalName>${project.artifactId}</finalName>
-	</build>
-	<scm>
-		<url>https://github.com/Xceptance/XCMailr</url>
-		<connection>scm:git://github.com/Xceptance/XCMailr.git</connection>
-		<developerConnection>scm:git:git@github.com:Xceptance/XCMailr.git</developerConnection>
-	</scm>
-	<issueManagement>
-		<system>GitHub</system>
-		<url>https://github.com/Xceptance/XCMailr/issues</url>
-	</issueManagement>
-	
-	<licenses>
-		<license>
-			<name>The Apache Software License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<distribution>manual</distribution>
-		</license>
-	</licenses>
-	<distributionManagement>
-		<site>
-			<id>github-project-site</id>
-			<url>gitsite:git@github.com/Xceptance/XCMailr.git</url>
-		</site>
-	</distributionManagement>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>${project.build.outputDirectory}/views/layout</targetPath>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <finalName>${project.artifactId}</finalName>
+    </build>
 </project>
