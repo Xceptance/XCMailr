@@ -30,10 +30,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 
-import models.MBox;
-import models.MailTransaction;
-import models.User;
-
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 
@@ -42,6 +38,9 @@ import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
 import etc.MessageComposer;
+import models.MBox;
+import models.MailTransaction;
+import models.User;
 
 /**
  * Handles all Actions for incoming Mails
@@ -252,7 +251,7 @@ public class MessageListener implements SimpleMessageListener
     public void deliver(String from, String recipient, InputStream data)
     {
         final Session session = mailrSenderFactory.getSession();
-        session.setDebug(true);
+        session.setDebug(false);
         MimeMessage mail;
         try
         {
@@ -339,7 +338,7 @@ public class MessageListener implements SimpleMessageListener
     {
         if (xcmConfiguration.MTX_MAX_AGE != 0)
         {// if mailtransaction.maxage is set to 0 -> log nothing
-            final MailTransaction mtx = new MailTransaction(status, from , recipient, forwardTarget);
+            final MailTransaction mtx = new MailTransaction(status, from, recipient, forwardTarget);
             jobController.mtxQueue.add(mtx);
         }
     }
