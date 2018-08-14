@@ -42,6 +42,19 @@ create table if not exists users (
   constraint pk_users primary key (id))
 ;
 
+create TABLE if not exists MAIL_STATISTICS(
+  ID                        bigint not null,
+  DATE                      date not null,
+  QUARTER_HOUR              int not null,
+  FROM_DOMAIN               varchar(50) not null,
+  TARGET_DOMAIN             varchar(50) not null,
+  DROP_COUNT                int,
+  FORWARD_COUNT             int,
+  constraint pk_mail_statistics primary key (ID)
+);
+
+CREATE UNIQUE INDEX "MAIL_STATISTICS_INDEX" on MAIL_STATISTICS(DATE, QUARTER_HOUR, FROM_DOMAIN, TARGET_DOMAIN);
+
 create sequence if not exists register_domains_seq;
 
 create sequence if not exists mailboxes_seq;
@@ -49,6 +62,8 @@ create sequence if not exists mailboxes_seq;
 create sequence if not exists mailtransactions_seq;
 
 create sequence if not exists users_seq;
+
+create sequence if not exists mail_statistics_seq;
 
 create index if not exists ix_mailboxes_usr_1 on mailboxes (usr_id);
 create index if not exists ix_mailtransactions_ts_1 on mailtransactions (ts);

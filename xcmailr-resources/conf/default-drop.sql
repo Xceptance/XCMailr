@@ -8,6 +8,8 @@ drop table if exists mailtransactions;
 
 drop table if exists users;
 
+drop table if exists mail_statistics;
+
 SET REFERENTIAL_INTEGRITY TRUE;
 
 drop sequence if exists register_domains_seq;

@@ -99,8 +99,8 @@ public class JobController
         // create the executor-service to check the mail-addresses which were expired since the last run and disable
         // them
         // and also all new MailTransactions will be stored here and old entries will be removed
-        expirationService.scheduleAtFixedRate(new ExpirationService(mtxQueue, deleteTransactions), new Long(0),
-                                              new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
+        expirationService.scheduleAtFixedRate(new ExpirationService(mtxQueue, deleteTransactions, xcmConfiguration),
+                                              new Long(0), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
 
     }
 
