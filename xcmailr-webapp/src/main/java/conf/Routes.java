@@ -16,13 +16,13 @@
 
 package conf;
 
-import ninja.AssetsController;
-import ninja.Router;
-import ninja.application.ApplicationRoutes;
 import controllers.AdminHandler;
 import controllers.Application;
 import controllers.BoxHandler;
 import controllers.UserHandler;
+import ninja.AssetsController;
+import ninja.Router;
+import ninja.application.ApplicationRoutes;
 
 public class Routes implements ApplicationRoutes
 {
@@ -65,7 +65,7 @@ public class Routes implements ApplicationRoutes
 
         /*
          * Routes for the Mail-Handling (Controller: BoxHandler)
-         */        
+         */
         router.GET().route("/mail").with(BoxHandler.class, "showAngularBoxOverview");
         router.POST().route("/mail").with(BoxHandler.class, "showAngularBoxOverview");
         router.GET().route("/mail/getmails").with(BoxHandler.class, "jsonBox");
@@ -81,12 +81,12 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/mail/bulkDisable").with(BoxHandler.class, "bulkDisableBoxes");
         router.POST().route("/mail/bulkEnablePossible").with(BoxHandler.class, "bulkEnablePossibleBoxes");
         router.POST().route("/mail/bulkNewDate").with(BoxHandler.class, "bulkNewDate");
-        
+
         router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxByJson");
-//        
+        //
         router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxJson");
         router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBoxJson");
-        
+
         router.GET().route("/mail/mymaillist.txt").with(BoxHandler.class, "showMailsAsTextList");
         router.GET().route("/mail/myactivemaillist.txt").with(BoxHandler.class, "showActiveMailsAsTextList");
         router.GET().route("/mail/myselectedmaillist.txt").with(BoxHandler.class, "showSelectedMailsAsTextList");
@@ -115,14 +115,16 @@ public class Routes implements ApplicationRoutes
 
         router.GET().route("/admin/users").with(AdminHandler.class, "showUsers");
         router.POST().route("/admin/users").with(AdminHandler.class, "showUsers");
-        
+
         router.GET().route("/admin/usersearch").with(AdminHandler.class, "jsonUserSearch");
 
         router.GET().route("/admin/whitelist").with(AdminHandler.class, "showDomainWhitelist");
         router.POST().route("/admin/whitelist/remove").with(AdminHandler.class, "callRemoveDomain");
         router.GET().route("/admin/whitelist/remove").with(AdminHandler.class, "handleRemoveDomain");
         router.POST().route("/admin/whitelist/add").with(AdminHandler.class, "addDomain");
-        
+
+        router.GET().route("/admin/emailStatistics").with(AdminHandler.class, "showEmailStatistics");
+
         /*
          * Assets-Handling (Ninja's AssetsController)
          */
