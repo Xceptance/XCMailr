@@ -20,3 +20,4 @@ drop sequence if exists mailtransactions_seq;
 
 drop sequence if exists users_seq;
 
+drop view V_EMAIL_STATISTICS_24;
