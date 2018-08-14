@@ -69,15 +69,16 @@ create index if not exists ix_mailboxes_usr_1 on mailboxes (usr_id);
 create index if not exists ix_mailtransactions_ts_1 on mailtransactions (ts);
 
 
-create or replace view V_EMAIL_STATISTICS_24("DATE", "QUARTER HOUR OF DAY", "DROPPED MAIL COUNT", "FORWARDED MAIL COUNT") as
+create or replace view V_EMAIL_STATISTICS_24("DATE", "QUARTER_HOUR", "DROPPED_MAIL_COUNT", "FORWARDED_MAIL_COUNT") as
 (
-	select ms.DATE as "DATE", ms.QUARTER_HOUR as "QUARTER HOUR OF DAY", SUM(ms.DROP_COUNT) as "DROPPED MAIL COUNT", SUM(ms.FORWARD_COUNT) as "FORWARDED MAIL COUNT"
-      from MAIL_STATISTICS ms
-     where  -- current day
-           (ms.DATE = CURRENT_DATE()
-            and ms.QUARTER_HOUR <= (select hour(CURRENT_TIME()) * 4 + (MINUTE(CURRENT_TIME()) / 15)))
-        or -- yesterday, but only from the current quarter hour +1 until end of the day
-           (ms.DATE = CURRENT_DATE() - 1
-            and ms.QUARTER_HOUR > (select hour(CURRENT_TIME()) * 4 + (MINUTE(CURRENT_TIME()) / 15)))
+	select ms.DATE as "DATE", ms.QUARTER_HOUR as "QUARTER_HOUR", SUM(ms.DROP_COUNT) as "DROPPED_MAIL_COUNT", SUM(ms.FORWARD_COUNT) as "FORWARDED_MAIL_COUNT"
+  from MAIL_STATISTICS ms
+ where  -- current day
+       (ms.DATE = CURRENT_DATE()
+        and ms.QUARTER_HOUR <= (select hour(CURRENT_TIME()) * 4 + (MINUTE(CURRENT_TIME()) / 15)))
+    or -- yesterday, but only from the current quarter hour +1 until end of the day
+       (ms.DATE = CURRENT_DATE() - 1
+        and ms.QUARTER_HOUR > (select hour(CURRENT_TIME()) * 4 + (MINUTE(CURRENT_TIME()) / 15))
+    )
   group by ms.DATE, ms.QUARTER_HOUR
 );
