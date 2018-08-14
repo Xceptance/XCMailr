@@ -1,0 +1,37 @@
+<#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout
+title=i18n("admin_Welcome")>
+
+<div>
+	<h1 class="legendary">Email Statistics</h1>
+	<canvas id="24hsummary" width="400" height="400"></canvas>
+	<script>
+		function addData(chart, label, data) {
+ 		    chart.data.labels.push(label);
+    		chart.data.datasets.forEach((dataset) => {
+        		dataset.data.push(data);
+    		});
+    		chart.update();
+		}
+
+		var timestamps = [<#list summaryTimestamps as value>'${value}',</#list>]
+		var data = [<#list summaryData as value>${value},</#list>]
+
+	
+		var ctx = document.getElementById("24hsummary").getContext('2d');
+		var summaryChart = new Chart(ctx, {
+			type: 'bar',
+			data: {
+					labels: timestamps,
+					datasets: [{
+						label: "Last 24 hour activity",
+						data: data
+					  }]
+				  }
+		});
+		summaryChart.update();
+		
+		
+	</script>
+</div>
+
+</@layout.adminLayout>

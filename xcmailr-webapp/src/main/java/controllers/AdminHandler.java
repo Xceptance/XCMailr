@@ -16,10 +16,28 @@
  */
 package controllers;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+
+import com.avaje.ebean.Ebean;
+import com.avaje.ebean.SqlQuery;
+import com.avaje.ebean.SqlRow;
+import com.google.common.base.Optional;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
+import etc.HelperUtils;
+import filters.AdminFilter;
+import filters.SecureFilter;
+import filters.WhitelistFilter;
 import models.Domain;
 import models.MailTransaction;
 import models.PageList;
@@ -33,19 +51,6 @@ import ninja.i18n.Messages;
 import ninja.params.Param;
 import ninja.params.PathParam;
 
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import conf.XCMailrConf;
-import etc.HelperUtils;
-import filters.AdminFilter;
-import filters.SecureFilter;
-import filters.WhitelistFilter;
-
 /**
  * Handles all Actions for the Administration-Section
  * 
@@ -54,7 +59,7 @@ import filters.WhitelistFilter;
 
 @FilterWith(
     {
-        SecureFilter.class, AdminFilter.class
+      SecureFilter.class, AdminFilter.class
     })
 @Singleton
 public class AdminHandler
@@ -147,8 +152,7 @@ public class AdminHandler
         page = (page == 0) ? 1 : page;
 
         // generate the paged-list to get pagination on the page
-        PageList<MailTransaction> pagedMailTransactionList = new PageList<MailTransaction>(
-                                                                                           MailTransaction.getSortedAndLimitedList(xcmConfiguration.MTX_LIMIT),
+        PageList<MailTransaction> pagedMailTransactionList = new PageList<MailTransaction>(MailTransaction.getSortedAndLimitedList(xcmConfiguration.MTX_LIMIT),
                                                                                            entries);
         return Results.html().render("plist", pagedMailTransactionList).render("curPage", page);
     }
@@ -210,7 +214,8 @@ public class AdminHandler
                                  .get();
         // generate the message body
         String content = messages.get(active ? "user_Activate_Message" : "user_Deactivate_Message", optLanguage,
-                                      user.getForename()).get();
+                                      user.getForename())
+                                 .get();
         // send the mail
         mailSender.sendMail(from, user.getMail(), content, subject);
         if (!active)
@@ -401,4 +406,31 @@ public class AdminHandler
 
         return result;
     }
+
+    /**
+     * Shows statistics about received emails
+     * 
+     * @param context
+     *            the context of this request
+     * @return
+     */
+    public Result showEmailStatistics(Context context)
+    {
+        List<Long> data = new LinkedList<>();
+        List<Timestamp> timestamps = new LinkedList<>();
+
+        SqlQuery query = Ebean.createSqlQuery("select parsedatetime(concat(t.DATE, ' ', t.QUARTER_HOUR / 4, ':', (t.QUARTER_HOUR % 4) * 15), 'yyyy-MM-dd HH:mm') as \"DATE\", t.DROPPED_MAIL_COUNT from V_EMAIL_STATISTICS_24 t");
+        for (Iterator<SqlRow> iterator = query.findList().iterator(); iterator.hasNext();)
+        {
+            SqlRow sqlRow = iterator.next();
+            timestamps.add(sqlRow.getTimestamp("DATE"));
+            data.add(sqlRow.getLong("DROPPED_MAIL_COUNT"));
+        }
+        Result html = Results.html();
+        html.render("summaryTimestamps", timestamps);
+        html.render("summaryData", data);
+
+        return html;
+    }
+
 }
