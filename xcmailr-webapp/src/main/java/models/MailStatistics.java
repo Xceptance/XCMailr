@@ -9,8 +9,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.avaje.ebean.Ebean;
-
 @Entity
 @Table(name = "MAIL_STATISTICS")
 public class MailStatistics
@@ -108,50 +106,6 @@ public class MailStatistics
     public void setForwardCount(int forwardCount)
     {
         this.forwardCount = forwardCount;
-    }
-
-    public static void addDroppedMail(Date mailDate, int quarterHourOfDay, String sourceDomain, String targetDomain)
-    {
-        MailStatistics entry = Ebean.find(MailStatistics.class).where() //
-                                    .eq("DATE", mailDate) //
-                                    .eq("QUARTER_HOUR", quarterHourOfDay) //
-                                    .eq("FROM_DOMAIN", sourceDomain) //
-                                    .eq("TARGET_DOMAIN", targetDomain) //
-                                    .findUnique();
-
-        System.out.println("addDroppedMail: enty = " + entry);
-        if (entry != null)
-        {
-            // increment drop counter for the found entry
-            entry.setDropCount(entry.getDropCount() + 1);
-            Ebean.update(entry);
-            System.out.println("addDroppedMail: updated drop count to " + entry.getDropCount());
-        }
-        else
-        {
-            System.out.println("addDroppedMail: create new entry mailDate=" + mailDate + ", quarterHourOfDay="
-                               + quarterHourOfDay + ", sourceDomain=" + sourceDomain + ", targetDomain="
-                               + targetDomain);
-            // create a new entry with an drop count of one
-            MailStatistics statisticEntry = new MailStatistics();
-            statisticEntry.setId((long) 0);
-            statisticEntry.setDate(mailDate);
-            statisticEntry.setQuarterHour(quarterHourOfDay);
-            statisticEntry.setDropCount(1);
-            statisticEntry.setForwardCount(0);
-            statisticEntry.setFromDomain(sourceDomain);
-            statisticEntry.setTargetDomain(targetDomain);
-
-            try
-            {
-                Ebean.save(statisticEntry);
-            }
-            catch (Exception e)
-            {
-                System.out.println(e);
-            }
-
-        }
     }
 
     /*
