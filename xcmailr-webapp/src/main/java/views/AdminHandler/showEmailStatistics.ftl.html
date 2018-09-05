@@ -3,34 +3,108 @@ title=i18n("admin_Welcome")>
 
 <div>
 	<h1 class="legendary">Email Statistics</h1>
-	<canvas id="24hsummary" width="400" height="400"></canvas>
+	<canvas id="lastDay" width="600" height="200"></canvas>
+	<canvas id="lastWeek" width="600" height="200"></canvas>
+
 	<script>
-		function addData(chart, label, data) {
- 		    chart.data.labels.push(label);
-    		chart.data.datasets.forEach((dataset) => {
-        		dataset.data.push(data);
-    		});
-    		chart.update();
+		var lastDayTimestamps = [<#list lastDayTimestamps as value>"${value}",</#list>]
+		var lastDayDroppedData = [<#list lastDayDroppedData as value>${value},</#list>]
+		var lastDayForwardedData = [<#list lastDayForwardedData as value>${value},</#list>]
+		
+		var lastWeekTimestamps = [<#list lastWeekTimestamps as value>"${value}",</#list>]
+		var lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
+		var lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
+		
+		var currentDayData = [];
+		for (var i = 0; i < lastDayDroppedData.length; i++) {
+			currentDayData[i] = { "y": lastDayDroppedData[i],
+						   	      "t": lastDayTimestamps[i]};
 		}
-
-		var timestamps = [<#list summaryTimestamps as value>'${value}',</#list>]
-		var data = [<#list summaryData as value>${value},</#list>]
-
+		
+		var currentWeekData = [];
+		for (var i = 0; i < lastWeekDroppedData.length; i++) {
+			currentWeekData[i] = {  "y": lastWeekDroppedData[i],
+						   	   		"t": lastWeekTimestamps[i]};
+		}
+		 
 	
-		var ctx = document.getElementById("24hsummary").getContext('2d');
-		var summaryChart = new Chart(ctx, {
-			type: 'bar',
+		var lastDayChart = new Chart(document.getElementById("lastDay").getContext('2d'), {
+			type: 'line',
+			backgroundColor: '#ff6384',
+			
 			data: {
-					labels: timestamps,
+					labels: lastDayTimestamps,
 					datasets: [{
-						label: "Last 24 hour activity",
-						data: data
+						label: "Dropped email activity (24 hours)",
+						data: currentDayData,
+						borderColor: 'rgb(255, 99, 132)',
+						backgroundColor: 'rgba(0, 0, 0, 0.1)'
+					  }, {
+					  	label: "Forwarded email activity (24 hours)",
+						data: lastDayForwardedData,
+						borderColor: 'rgb(54, 162, 235)',
+						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }]
-				  }
+				  },
+		    options: { 
+		    	scales: {
+                	xAxes: [{
+                    	type: 'time',
+                    	time: {
+	                        unit: 'hour',
+    	                    parser: "DD.MM.YYYY hh:mm:ss"
+        	            }
+            	    }],
+            	    yAxes: [{
+                		ticks: {
+                    		callback: function(value, index, values) {
+                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    		}
+                		}
+            		}]
+            	}
+            }
 		});
-		summaryChart.update();
+		
+		var lastWeekChart = new Chart(document.getElementById("lastWeek").getContext('2d'), {
+			type: 'line',
+			data: {
+					labels: lastWeekTimestamps,
+					datasets: [{
+						label: "Dropped email activity (week)",
+						data: currentWeekData,
+						borderColor: 'rgb(255, 99, 132)',
+						backgroundColor: 'rgba(0, 0, 0, 0.1)'
+					  }, {
+						label: "Forwarded email activity (week)",
+						data: lastWeekForwardedData,
+						borderColor: 'rgb(54, 162, 235)',
+						backgroundColor: 'rgba(0, 0, 0, 0.1)'
+					  }]
+				  },
+			options: { 
+		    	scales: {
+                	xAxes: [{
+                		type: 'time',
+                    	time: {
+	                        unit: 'day',
+    	                    parser: "DD.MM.YYYY hh:mm:ss"
+        	            }
+            	    }],
+            	    yAxes: [{
+                		ticks: {
+                    		callback: function(value, index, values) {
+                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    		}
+                		}
+            		}]
+            	}
+            }
+		});
 		
 		
+		lastDayChart.update();
+		lastWeekChart.update();
 	</script>
 </div>
 

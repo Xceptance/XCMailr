@@ -16,18 +16,21 @@
  */
 package controllers;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import com.avaje.ebean.Ebean;
-import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
@@ -416,21 +419,155 @@ public class AdminHandler
      */
     public Result showEmailStatistics(Context context)
     {
-        List<Long> data = new LinkedList<>();
+        List<Long> droppedMails = new LinkedList<>();
+        List<Long> forwardedMails = new LinkedList<>();
         List<Timestamp> timestamps = new LinkedList<>();
 
-        SqlQuery query = Ebean.createSqlQuery("select parsedatetime(concat(t.DATE, ' ', t.QUARTER_HOUR / 4, ':', (t.QUARTER_HOUR % 4) * 15), 'yyyy-MM-dd HH:mm') as \"DATE\", t.DROPPED_MAIL_COUNT from V_EMAIL_STATISTICS_24 t");
-        for (Iterator<SqlRow> iterator = query.findList().iterator(); iterator.hasNext();)
-        {
-            SqlRow sqlRow = iterator.next();
-            timestamps.add(sqlRow.getTimestamp("DATE"));
-            data.add(sqlRow.getLong("DROPPED_MAIL_COUNT"));
-        }
+        processStatisticsData(getStatistics(0), droppedMails, forwardedMails, timestamps, 1);
+
         Result html = Results.html();
-        html.render("summaryTimestamps", timestamps);
-        html.render("summaryData", data);
+        html.render("lastDayTimestamps", timestamps);
+        html.render("lastDayDroppedData", droppedMails);
+        html.render("lastDayForwardedData", forwardedMails);
+
+        droppedMails = new LinkedList<>();
+        timestamps = new LinkedList<>();
+        forwardedMails = new LinkedList<>();
+
+        processStatisticsData(getStatistics(6), droppedMails, forwardedMails, timestamps, 4);
+        html.render("lastWeekTimestamps", timestamps);
+        html.render("lastWeekDroppedData", droppedMails);
+        html.render("lastWeekForwardedData", forwardedMails);
 
         return html;
     }
 
+    /**
+     * Function to retrieve email statistics data for the given (lastNDays) days
+     * 
+     * @param lastNDays
+     *            an positive integer value that limits results to last n days
+     * @return
+     * @return
+     */
+    private List<SqlRow> getStatistics(int lastNDays)
+    {
+        if (lastNDays < 0)
+            lastNDays = 0;
+
+        // new line
+        String newLine = "\n";
+
+        StringBuilder sb = new StringBuilder(5000);
+
+        sb.append("select temp.DATE");
+        sb.append(", ms.QUARTER_HOUR");
+        sb.append(", sum(ms.DROP_COUNT) as sum_dropped");
+        sb.append(", sum(ms.FORWARD_COUNT) as sum_forwarded").append(newLine);
+        sb.append("from (");
+
+        for (int i = 0; i < lastNDays + 1; i++)
+        {
+            if (i > 0)
+                sb.append("union ");
+
+            sb.append("select CURRENT_DATE() - " + i + " as date from dual").append(newLine);
+        }
+
+        sb.append(") temp").append(newLine);
+        sb.append("left ");
+        sb.append("join   MAIL_STATISTICS ms");
+        sb.append("  on ms.DATE = temp.date").append(newLine);
+        sb.append("group by temp.DATE, ms.QUARTER_HOUR").append(newLine);
+        sb.append("order by temp.date, ms.QUARTER_HOUR;").append(newLine);
+
+        return Ebean.createSqlQuery(sb.toString()).findList();
+    }
+
+    private void processStatisticsData(List<SqlRow> statisticsData, List<Long> droppedMails, List<Long> forwardedMails,
+                                       List<Timestamp> timestamps, int quarterHourResolution)
+    {
+
+        int[] validQuarterHourResolution = new int[]
+            {
+              1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 96
+            };
+
+        if (Arrays.binarySearch(validQuarterHourResolution, quarterHourResolution) < 0)
+        {
+            throw new IllegalArgumentException("Parameter quartHourResolution must be on of: "
+                                               + Arrays.asList(validQuarterHourResolution));
+        }
+
+        // contains a list of statistic data per day
+        Map<Date, List<StatisticsEntry>> statisticData = new HashMap<>();
+
+        // initialize data structure
+        // map containing a list of 96 (96 quarter hour = 24 hours) values
+        for (SqlRow sqlRow : statisticsData)
+        {
+            Date date = sqlRow.getDate("DATE");
+
+            if (!statisticData.containsKey(date))
+            {
+                // create a list of 96 quarter hours with dedicated values for drop and forward count
+                ArrayList<StatisticsEntry> newList = new ArrayList<>();
+                for (int i = 0; i < 96; i++)
+                {
+                    // add 96 items for every quarter hour of the day
+                    newList.add(new StatisticsEntry());
+                }
+                statisticData.put(date, newList);
+            }
+        }
+
+        // iterate over data
+        for (SqlRow sqlRow : statisticsData)
+        {
+            // the date (without timestamp) of the statistic entry
+            Date date = sqlRow.getDate("DATE");
+            List<StatisticsEntry> list = statisticData.get(date);
+
+            if (sqlRow.get("QUARTER_HOUR") != null)
+            {
+                int quarterHour = sqlRow.getInteger("QUARTER_HOUR");
+                list.get(quarterHour).dropCount = sqlRow.getLong("sum_dropped");
+                list.get(quarterHour).forwardCount = sqlRow.getLong("sum_forwarded");
+            }
+        }
+
+        List<Date> dateOrder = new LinkedList<>(statisticData.keySet());
+        Collections.sort(dateOrder); //
+
+        // all dates (without timestamps) from the table
+        for (Date date : dateOrder)
+        {
+            List<StatisticsEntry> dayList = statisticData.get(date);
+
+            // get the drop count for each quarter hour of that day
+            for (int i = 0; i < dayList.size(); i += quarterHourResolution)
+            {
+                long droppedMailsSum = 0;
+                long forwardedMailsSum = 0;
+                for (int h = 0; h < quarterHourResolution; h++)
+                {
+                    droppedMailsSum += dayList.get(i + h).dropCount;
+                    forwardedMailsSum += dayList.get(i + h).forwardCount;
+                }
+                // StatisticsEntry statisticsEntry = dayList.get(i);
+                droppedMails.add(droppedMailsSum);
+                forwardedMails.add(forwardedMailsSum);
+
+                Timestamp timestamp = new Timestamp(date.getTime() + (i * 15 * 60 * 1000));
+                timestamps.add(timestamp);
+            }
+        }
+    }
+
+    private class StatisticsEntry
+    {
+        long dropCount;
+
+        long forwardCount;
+    }
 }
