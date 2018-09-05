@@ -35,8 +35,8 @@ public class ExpirationService implements Runnable
     public ExpirationService(ConcurrentLinkedQueue<MailTransaction> mtxQueue, boolean deleteTransactions,
         XCMailrConf xcmConfiguration)
     {
-        this.xcmConfiguration = xcmConfiguration;
         log.info("ExpirationService initialized");
+        this.xcmConfiguration = xcmConfiguration;
         this.mtxQueue = mtxQueue;
         this.deleteTransactions = deleteTransactions;
     }
