@@ -17,6 +17,17 @@ create table mailboxes (
   constraint pk_mailboxes primary key (id))
 ;
 
+create table MAIL_STATISTICS (
+  id                        bigint not null,
+  date                      date not null,
+  QUARTER_HOUR              integer not null,
+  FROM_DOMAIN               varchar(255) not null,
+  TARGET_DOMAIN             varchar(255) not null,
+  DROP_COUNT                integer,
+  FORWARD_COUNT             integer,
+  constraint pk_MAIL_STATISTICS primary key (id))
+;
+
 create table mailtransactions (
   id                        bigint not null,
   ts                        bigint,
@@ -45,6 +56,8 @@ create table users (
 create sequence register_domains_seq;
 
 create sequence mailboxes_seq;
+
+create sequence MAIL_STATISTICS_seq;
 
 create sequence mailtransactions_seq;
 
