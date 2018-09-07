@@ -530,7 +530,7 @@ public class AdminHandler
 
         if (Arrays.binarySearch(validQuarterHourResolution, quarterHourResolution) < 0)
         {
-            throw new IllegalArgumentException("Parameter quartHourResolution must be on of: "
+            throw new IllegalArgumentException("Parameter quartHourResolution must be one of: "
                                                + Arrays.asList(validQuarterHourResolution));
         }
 
