@@ -42,6 +42,7 @@ import filters.AdminFilter;
 import filters.SecureFilter;
 import filters.WhitelistFilter;
 import models.Domain;
+import models.MailStatistics;
 import models.MailTransaction;
 import models.PageList;
 import models.User;
@@ -419,17 +420,20 @@ public class AdminHandler
      */
     public Result showEmailStatistics(Context context)
     {
+        Result html = Results.html();
+
+        // today statistics
         List<Long> droppedMails = new LinkedList<>();
         List<Long> forwardedMails = new LinkedList<>();
         List<Timestamp> timestamps = new LinkedList<>();
 
         processStatisticsData(getStatistics(0), droppedMails, forwardedMails, timestamps, 1);
 
-        Result html = Results.html();
         html.render("lastDayTimestamps", timestamps);
         html.render("lastDayDroppedData", droppedMails);
         html.render("lastDayForwardedData", forwardedMails);
 
+        // week statistics
         droppedMails = new LinkedList<>();
         timestamps = new LinkedList<>();
         forwardedMails = new LinkedList<>();
@@ -439,7 +443,38 @@ public class AdminHandler
         html.render("lastWeekDroppedData", droppedMails);
         html.render("lastWeekForwardedData", forwardedMails);
 
+        // set a default number or the number which the user had chosen
+        HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
+        // get the default number of entries per page
+        int entries = Integer.parseInt(context.getSession().get("no"));
+
+        List<MailStatistics> droppedMailSender = getTodaysMailSenderList();
+        PageList<MailStatistics> pagedDroppedMailSender = new PageList<>(droppedMailSender, entries);
+        html.render("mailSenderTable", pagedDroppedMailSender);
+
         return html;
+    }
+
+    private List<MailStatistics> getTodaysMailSenderList()
+    {
+        // daily top for dropped mail sender
+        StringBuilder sql = new StringBuilder();
+        sql.append("select ms.FROM_DOMAIN, sum(ms.DROP_COUNT) as \"dropped\", sum(ms.FORWARD_COUNT) as \"forwarded\"");
+        sql.append("  from MAIL_STATISTICS ms");
+        sql.append(" where ms.DATE = CURRENT_DATE()");
+        sql.append(" group by ms.FROM_DOMAIN");
+        sql.append(" order by \"dropped\" desc;");
+
+        List<SqlRow> droppedMail = Ebean.createSqlQuery(sql.toString()).findList();
+        List<MailStatistics> droppedMailSender = new LinkedList<>();
+        droppedMail.forEach((SqlRow row) -> {
+            MailStatistics ms = new MailStatistics();
+            ms.setFromDomain(row.getString("FROM_DOMAIN"));
+            ms.setDropCount(row.getInteger("dropped"));
+
+            droppedMailSender.add(ms);
+        });
+        return droppedMailSender;
     }
 
     /**
@@ -476,8 +511,8 @@ public class AdminHandler
 
         sb.append(") temp").append(newLine);
         sb.append("left ");
-        sb.append("join   MAIL_STATISTICS ms");
-        sb.append("  on ms.DATE = temp.date").append(newLine);
+        sb.append("join  MAIL_STATISTICS ms");
+        sb.append("  on  ms.DATE = temp.date").append(newLine);
         sb.append("group by temp.DATE, ms.QUARTER_HOUR").append(newLine);
         sb.append("order by temp.date, ms.QUARTER_HOUR;").append(newLine);
 

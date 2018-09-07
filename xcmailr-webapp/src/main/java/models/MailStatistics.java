@@ -1,5 +1,6 @@
 package models;
 
+import java.io.Serializable;
 import java.sql.Date;
 
 import javax.persistence.Column;
@@ -11,8 +12,13 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "MAIL_STATISTICS")
-public class MailStatistics
+public class MailStatistics extends AbstractEntity implements Serializable
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -3113332265454761498L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -38,12 +44,12 @@ public class MailStatistics
     @Column(name = "FORWARD_COUNT")
     private int forwardCount;
 
-    public Long getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId(Long id)
+    public void setId(long id)
     {
         this.id = id;
     }
