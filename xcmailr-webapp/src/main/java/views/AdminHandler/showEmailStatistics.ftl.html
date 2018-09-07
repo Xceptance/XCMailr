@@ -5,10 +5,10 @@
 <div>
 	<h1 class="legendary">Email Statistics</h1>
 		
-	<h3 class="legendary">Day statistic</h3>
+	<h3 class="legendary">Daily</h3>
 	<canvas id="lastDay" width="600" height="200"></canvas>
 	
-	<h3 class="legendary">Week statistic</h3>
+	<h3 class="legendary">Weekly</h3>
 	<canvas id="lastWeek" width="600" height="200"></canvas>
 	
 	<h3 class="legendary">Today's sender domains</h3>
@@ -76,12 +76,12 @@
 			data: {
 					labels: lastDayTimestamps,
 					datasets: [{
-						label: "Dropped email activity (24 hours)",
+						label: "Dropped mails",
 						data: currentDayData,
 						borderColor: 'rgb(255, 99, 132)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }, {
-					  	label: "Forwarded email activity (24 hours)",
+					  	label: "Forwarded mails",
 						data: lastDayForwardedData,
 						borderColor: 'rgb(54, 162, 235)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
@@ -112,12 +112,12 @@
 			data: {
 					labels: lastWeekTimestamps,
 					datasets: [{
-						label: "Dropped email activity (week)",
+						label: "Dropped mails",
 						data: currentWeekData,
 						borderColor: 'rgb(255, 99, 132)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }, {
-						label: "Forwarded email activity (week)",
+						label: "Forwarded mails",
 						data: lastWeekForwardedData,
 						borderColor: 'rgb(54, 162, 235)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
