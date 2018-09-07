@@ -38,6 +38,7 @@ import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
 import etc.HelperUtils;
+import etc.StatisticsEntry;
 import filters.AdminFilter;
 import filters.SecureFilter;
 import filters.WhitelistFilter;
@@ -566,8 +567,8 @@ public class AdminHandler
             if (sqlRow.get("QUARTER_HOUR") != null)
             {
                 int quarterHour = sqlRow.getInteger("QUARTER_HOUR");
-                list.get(quarterHour).dropCount = sqlRow.getLong("sum_dropped");
-                list.get(quarterHour).forwardCount = sqlRow.getLong("sum_forwarded");
+                list.get(quarterHour).setDropCount(sqlRow.getInteger("sum_dropped"));
+                list.get(quarterHour).setForwardCount(sqlRow.getInteger("sum_forwarded"));
             }
         }
 
@@ -586,8 +587,8 @@ public class AdminHandler
                 long forwardedMailsSum = 0;
                 for (int h = 0; h < quarterHourResolution; h++)
                 {
-                    droppedMailsSum += dayList.get(i + h).dropCount;
-                    forwardedMailsSum += dayList.get(i + h).forwardCount;
+                    droppedMailsSum += dayList.get(i + h).getDropCount();
+                    forwardedMailsSum += dayList.get(i + h).getForwardCount();
                 }
                 // StatisticsEntry statisticsEntry = dayList.get(i);
                 droppedMails.add(droppedMailsSum);
@@ -597,12 +598,5 @@ public class AdminHandler
                 timestamps.add(timestamp);
             }
         }
-    }
-
-    private class StatisticsEntry
-    {
-        long dropCount;
-
-        long forwardCount;
     }
 }

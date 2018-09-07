@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -18,6 +17,7 @@ import com.avaje.ebean.Ebean;
 
 import conf.XCMailrConf;
 import etc.MailStatisticsKey;
+import etc.StatisticsEntry;
 import models.MBox;
 import models.MailStatistics;
 import models.MailTransaction;
@@ -44,7 +44,7 @@ public class ExpirationService implements Runnable
     // stores statistic data about emails that have been received that won't be forwarded
     // AtomicInteger is overkill since there is no multi threading access but it provides the convenient increment
     // method
-    HashMap<MailStatisticsKey, AtomicInteger> mailStatisticsCache = new HashMap<>();
+    HashMap<MailStatisticsKey, StatisticsEntry> droppedMailStatisticsCache = new HashMap<>();
 
     @Override
     public void run()
@@ -80,18 +80,22 @@ public class ExpirationService implements Runnable
             // configured to be valid / handled
             if (mt.getStatus() == 100)
             {
-                String sourceDomain = getDomainOfEmail(mt.getSourceaddr());
-                String targetDomain = getDomainOfEmail(mt.getRelayaddr());
-                Date mailDate = new Date(mt.getTs());
-                int quarterHourOfDay = getQuarterHour(mt.getTs());
-
-                MailStatisticsKey mailStatisticsKey = new MailStatisticsKey(mailDate, quarterHourOfDay, sourceDomain,
-                                                                            targetDomain);
-                if (!mailStatisticsCache.containsKey(mailStatisticsKey))
+                MailStatisticsKey mailStatisticsKey = createMailStatisticsKey(mt);
+                if (!droppedMailStatisticsCache.containsKey(mailStatisticsKey))
                 {
-                    mailStatisticsCache.put(mailStatisticsKey, new AtomicInteger(0));
+                    droppedMailStatisticsCache.put(mailStatisticsKey, new StatisticsEntry());
                 }
-                mailStatisticsCache.get(mailStatisticsKey).getAndIncrement();
+                droppedMailStatisticsCache.get(mailStatisticsKey).incrementDropCount();
+            }
+            else if (mt.getStatus() == 300)
+            {
+                MailStatisticsKey mailStatisticsKey = createMailStatisticsKey(mt);
+
+                if (!droppedMailStatisticsCache.containsKey(mailStatisticsKey))
+                {
+                    droppedMailStatisticsCache.put(mailStatisticsKey, new StatisticsEntry());
+                }
+                droppedMailStatisticsCache.get(mailStatisticsKey).incrementForwardCount();
             }
             else
             {
@@ -102,12 +106,13 @@ public class ExpirationService implements Runnable
 
         try
         {
-            log.info("Write mail statistics to DB, length: " + mailStatisticsCache.size());
+            log.info("Write mail statistics to DB, length: " + droppedMailStatisticsCache.size());
 
-            for (Entry<MailStatisticsKey, AtomicInteger> statisticEntry : mailStatisticsCache.entrySet())
+            for (Entry<MailStatisticsKey, StatisticsEntry> statisticEntry : droppedMailStatisticsCache.entrySet())
             {
                 MailStatisticsKey mailStatisticsKey = statisticEntry.getKey();
-                int additionalMailDropCount = statisticEntry.getValue().intValue();
+                int additionalMailDropCount = statisticEntry.getValue().getDropCount();
+                int additionalMailForwardCount = statisticEntry.getValue().getForwardCount();
 
                 MailStatistics entry = Ebean.find(MailStatistics.class).where() //
                                             .eq("DATE", mailStatisticsKey.getDate()) //
@@ -124,7 +129,7 @@ public class ExpirationService implements Runnable
                     mailStatisticEntry.setDate(mailStatisticsKey.getDate());
                     mailStatisticEntry.setQuarterHour(mailStatisticsKey.getQuarterHour());
                     mailStatisticEntry.setDropCount(additionalMailDropCount);
-                    mailStatisticEntry.setForwardCount(0);
+                    mailStatisticEntry.setForwardCount(additionalMailForwardCount);
                     mailStatisticEntry.setFromDomain(mailStatisticsKey.getFromDomain());
                     mailStatisticEntry.setTargetDomain(mailStatisticsKey.getTargetDomain());
 
@@ -140,10 +145,11 @@ public class ExpirationService implements Runnable
                 else
                 {
                     entry.setDropCount(entry.getDropCount() + additionalMailDropCount);
+                    entry.setDropCount(entry.getDropCount() + additionalMailForwardCount);
                     Ebean.update(entry);
                 }
             }
-            mailStatisticsCache.clear();
+            droppedMailStatisticsCache.clear();
             log.info("Finished writing mail statistics to DB");
         }
         catch (Exception e)
@@ -165,6 +171,18 @@ public class ExpirationService implements Runnable
             log.debug("finished Mailtransaction cleanup");
         }
 
+    }
+
+    private MailStatisticsKey createMailStatisticsKey(MailTransaction mt)
+    {
+        String sourceDomain = getDomainOfEmail(mt.getSourceaddr());
+        String targetDomain = getDomainOfEmail(mt.getRelayaddr());
+        Date mailDate = new Date(mt.getTs());
+        int quarterHourOfDay = getQuarterHour(mt.getTs());
+
+        MailStatisticsKey mailStatisticsKey = new MailStatisticsKey(mailDate, quarterHourOfDay, sourceDomain,
+                                                                    targetDomain);
+        return mailStatisticsKey;
     }
 
     private String getDomainOfEmail(String email)
