@@ -428,7 +428,7 @@ public class AdminHandler
         List<Long> forwardedMails = new LinkedList<>();
         List<Timestamp> timestamps = new LinkedList<>();
 
-        processStatisticsData(getStatistics(0), droppedMails, forwardedMails, timestamps, 1);
+        processStatisticsData(getStatistics(0, true), droppedMails, forwardedMails, timestamps, 1);
 
         html.render("lastDayTimestamps", timestamps);
         html.render("lastDayDroppedData", droppedMails);
@@ -439,7 +439,7 @@ public class AdminHandler
         timestamps = new LinkedList<>();
         forwardedMails = new LinkedList<>();
 
-        processStatisticsData(getStatistics(6), droppedMails, forwardedMails, timestamps, 4);
+        processStatisticsData(getStatistics(6, false), droppedMails, forwardedMails, timestamps, 4);
         html.render("lastWeekTimestamps", timestamps);
         html.render("lastWeekDroppedData", droppedMails);
         html.render("lastWeekForwardedData", forwardedMails);
@@ -486,21 +486,39 @@ public class AdminHandler
      * @return
      * @return
      */
-    private List<SqlRow> getStatistics(int lastNDays)
+
+    /**
+     * Function to retrieve email statistics data for the given last n days. In case sliding window is true, then the
+     * result will be day overlapping based on the current quarter hour of the day
+     * 
+     * @param lastNDays
+     * @param slidingWindow
+     *            boolean value inidicating whether a sliding window (day overlapping) result is desired. If false the
+     *            result will only contain full days including the current
+     * @return
+     */
+    private List<SqlRow> getStatistics(int lastNDays, boolean slidingWindow)
     {
         if (lastNDays < 0)
             lastNDays = 0;
 
+        if (slidingWindow)
+            lastNDays++;
+
         // new line
         String newLine = "\n";
 
-        StringBuilder sb = new StringBuilder(5000);
+        Ebean.createSqlUpdate("set @currentQuarter = (hour(CURRENT_TIME()) * 4) + minute(CURRENT_TIME()) / 15;")
+             .execute();
 
+        StringBuilder sb = new StringBuilder(5000);
         sb.append("select temp.DATE");
-        sb.append(", ms.QUARTER_HOUR");
-        sb.append(", sum(ms.DROP_COUNT) as sum_dropped");
-        sb.append(", sum(ms.FORWARD_COUNT) as sum_forwarded").append(newLine);
+        sb.append(", temp.X as QUARTER_HOUR");
+        sb.append(", coalesce(sum(ms.DROP_COUNT), 0) as sum_dropped");
+        sb.append(", coalesce(sum(ms.FORWARD_COUNT), 0) as sum_forwarded ").append(newLine);
         sb.append("from (");
+        sb.append("select date,X ");
+        sb.append("from (").append(newLine);
 
         for (int i = 0; i < lastNDays + 1; i++)
         {
@@ -509,13 +527,26 @@ public class AdminHandler
 
             sb.append("select CURRENT_DATE() - " + i + " as date from dual").append(newLine);
         }
-
+        sb.append(") ").append(newLine);
+        sb.append("cross join (select X from system_range(0,95))").append(newLine);
         sb.append(") temp").append(newLine);
+
         sb.append("left ");
         sb.append("join  MAIL_STATISTICS ms");
-        sb.append("  on  ms.DATE = temp.date").append(newLine);
-        sb.append("group by temp.DATE, ms.QUARTER_HOUR").append(newLine);
-        sb.append("order by temp.date, ms.QUARTER_HOUR;").append(newLine);
+        sb.append("  on  ms.DATE = temp.date ").append(newLine);
+        sb.append(" and ms.quarter_hour = temp.X").append(newLine);
+
+        if (slidingWindow)
+        {
+            sb.append("where ");
+            sb.append("(temp.DATE < CURRENT_DATE()");
+            sb.append(" and temp.X > @currentQuarter)");
+            sb.append(" or (temp.DATE = CURRENT_DATE()");
+            sb.append(" and temp.X <= @currentQuarter)").append(newLine);
+        }
+
+        sb.append("group by temp.DATE, temp.X").append(newLine);
+        sb.append("order by temp.date, temp.X;").append(newLine);
 
         return Ebean.createSqlQuery(sb.toString()).findList();
     }
