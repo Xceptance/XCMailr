@@ -1,13 +1,10 @@
 package models;
 
 import java.io.Serializable;
-import java.sql.Date;
 
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
@@ -19,24 +16,8 @@ public class MailStatistics extends AbstractEntity implements Serializable
      */
     private static final long serialVersionUID = -3113332265454761498L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
-    @Column(nullable = false)
-    private Date date;
-
-    /**
-     * The n-th 15-minute intervall in the day indicated by "date". A day usually has 96 15-minute intervalls
-     */
-    @Column(name = "QUARTER_HOUR", nullable = false)
-    private int quarterHour;
-
-    @Column(name = "FROM_DOMAIN", nullable = false)
-    private String fromDomain;
-
-    @Column(name = "TARGET_DOMAIN", nullable = false)
-    private String targetDomain;
+    @EmbeddedId
+    private MailStatisticsKey key;
 
     @Column(name = "DROP_COUNT")
     private int dropCount;
@@ -44,54 +25,14 @@ public class MailStatistics extends AbstractEntity implements Serializable
     @Column(name = "FORWARD_COUNT")
     private int forwardCount;
 
-    public long getId()
+    public MailStatisticsKey getKey()
     {
-        return id;
+        return key;
     }
 
-    public void setId(long id)
+    public void setKey(MailStatisticsKey key)
     {
-        this.id = id;
-    }
-
-    public Date getDate()
-    {
-        return date;
-    }
-
-    public void setDate(Date date)
-    {
-        this.date = date;
-    }
-
-    public int getQuarterHour()
-    {
-        return quarterHour;
-    }
-
-    public void setQuarterHour(int quarterHour)
-    {
-        this.quarterHour = quarterHour;
-    }
-
-    public String getFromDomain()
-    {
-        return fromDomain;
-    }
-
-    public void setFromDomain(String fromDomain)
-    {
-        this.fromDomain = fromDomain;
-    }
-
-    public String getTargetDomain()
-    {
-        return targetDomain;
-    }
-
-    public void setTargetDomain(String targetDomain)
-    {
-        this.targetDomain = targetDomain;
+        this.key = key;
     }
 
     public int getDropCount()
@@ -124,13 +65,9 @@ public class MailStatistics extends AbstractEntity implements Serializable
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((date == null) ? 0 : date.hashCode());
         result = prime * result + dropCount;
         result = prime * result + forwardCount;
-        result = prime * result + ((fromDomain == null) ? 0 : fromDomain.hashCode());
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + quarterHour;
-        result = prime * result + ((targetDomain == null) ? 0 : targetDomain.hashCode());
+        result = prime * result + ((key == null) ? 0 : key.hashCode());
         return result;
     }
 
@@ -155,17 +92,6 @@ public class MailStatistics extends AbstractEntity implements Serializable
             return false;
         }
         MailStatistics other = (MailStatistics) obj;
-        if (date == null)
-        {
-            if (other.date != null)
-            {
-                return false;
-            }
-        }
-        else if (!date.equals(other.date))
-        {
-            return false;
-        }
         if (dropCount != other.dropCount)
         {
             return false;
@@ -174,40 +100,14 @@ public class MailStatistics extends AbstractEntity implements Serializable
         {
             return false;
         }
-        if (fromDomain == null)
+        if (key == null)
         {
-            if (other.fromDomain != null)
+            if (other.key != null)
             {
                 return false;
             }
         }
-        else if (!fromDomain.equals(other.fromDomain))
-        {
-            return false;
-        }
-        if (id == null)
-        {
-            if (other.id != null)
-            {
-                return false;
-            }
-        }
-        else if (!id.equals(other.id))
-        {
-            return false;
-        }
-        if (quarterHour != other.quarterHour)
-        {
-            return false;
-        }
-        if (targetDomain == null)
-        {
-            if (other.targetDomain != null)
-            {
-                return false;
-            }
-        }
-        else if (!targetDomain.equals(other.targetDomain))
+        else if (!key.equals(other.key))
         {
             return false;
         }
@@ -222,7 +122,8 @@ public class MailStatistics extends AbstractEntity implements Serializable
     @Override
     public String toString()
     {
-        return String.format("MailStatistics [id=%s, date=%s, quarterHour=%s, fromDomain=%s, targetDomain=%s, dropCount=%s, forwardCount=%s]",
-                             id, date, quarterHour, fromDomain, targetDomain, dropCount, forwardCount);
+        return String.format("MailStatistics [date=%s, quarterHour=%s, fromDomain=%s, targetDomain=%s, dropCount=%s, forwardCount=%s]",
+                             key.getDate(), key.getQuarterHour(), key.getFromDomain(), key.getTargetDomain(), dropCount,
+                             forwardCount);
     }
 }

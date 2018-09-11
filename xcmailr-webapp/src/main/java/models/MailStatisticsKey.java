@@ -1,18 +1,26 @@
-package etc;
+package models;
 
 import java.sql.Date;
 
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+
+@Embeddable
 public class MailStatisticsKey
 {
+    @Column(nullable = false)
     private Date date;
 
     /**
      * The n-th 15-minute intervall in the day indicated by "date". A day usually has 96 15-minute intervalls
      */
+    @Column(name = "QUARTER_HOUR", nullable = false)
     private int quarterHour;
 
+    @Column(name = "FROM_DOMAIN", nullable = false)
     private String fromDomain;
 
+    @Column(name = "TARGET_DOMAIN", nullable = false)
     private String targetDomain;
 
     public MailStatisticsKey(Date date, int quarterHour, String fromDomain, String targetDomain)

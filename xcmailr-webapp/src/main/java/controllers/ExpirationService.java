@@ -16,10 +16,10 @@ import org.slf4j.LoggerFactory;
 import com.avaje.ebean.Ebean;
 
 import conf.XCMailrConf;
-import etc.MailStatisticsKey;
 import etc.StatisticsEntry;
 import models.MBox;
 import models.MailStatistics;
+import models.MailStatisticsKey;
 import models.MailTransaction;
 
 public class ExpirationService implements Runnable
@@ -126,12 +126,9 @@ public class ExpirationService implements Runnable
                     // there is no entry, we need to create a new one
                     MailStatistics mailStatisticEntry = new MailStatistics();
                     mailStatisticEntry.setId((long) 0);
-                    mailStatisticEntry.setDate(mailStatisticsKey.getDate());
-                    mailStatisticEntry.setQuarterHour(mailStatisticsKey.getQuarterHour());
+                    mailStatisticEntry.setKey(mailStatisticsKey);
                     mailStatisticEntry.setDropCount(additionalMailDropCount);
                     mailStatisticEntry.setForwardCount(additionalMailForwardCount);
-                    mailStatisticEntry.setFromDomain(mailStatisticsKey.getFromDomain());
-                    mailStatisticEntry.setTargetDomain(mailStatisticsKey.getTargetDomain());
 
                     try
                     {

@@ -35,7 +35,7 @@
 				<tbody>
 					<#list mailSenderTable.getPage(x) as entry>
 						<tr>
-							<td>${entry.fromDomain}</td>
+							<td>${entry.key.fromDomain}</td>
 							<td>${entry.dropCount?string[",##0"]}</td>
 							<td>${entry.forwardCount?string[",##0"]}</td>
 						</tr>
