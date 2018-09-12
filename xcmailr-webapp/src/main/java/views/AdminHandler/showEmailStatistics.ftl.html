@@ -3,15 +3,15 @@
 
 <#import "../layout/macros.ftl.html" as pag/>
 <div>
-	<h1 class="legendary">Email Statistics</h1>
+	<h1 class="legendary">${i18n("adminStatisticsTitle")}</h1>
 		
-	<h3 class="legendary">Daily</h3>
+	<h3 class="legendary">${i18n("adminStatisticsToday")}</h3>
 	<canvas id="lastDay" width="600" height="200"></canvas>
 	
-	<h3 class="legendary">Weekly</h3>
+	<h3 class="legendary">${i18n("adminStatisticsWeek")}</h3>
 	<canvas id="lastWeek" width="600" height="200"></canvas>
 	
-	<h3 class="legendary">Today's sender domains</h3>
+	<h3 class="legendary">${i18n("adminStatisticsTodaySenderDomains")}</h3>
 	<!-- begin rowcount -->
 	<@pag.entrycount/>
 	<!-- end rowcount -->
@@ -27,9 +27,9 @@
 			<table class="table tablesorter table-hover table-condensed">
 				<thead>
 					<tr>
-						<th class="header">Sender Domain</th>
-						<th class="header">Dropped Mails</th>
-						<th class="header">Forwarded Mails</th>
+						<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -76,12 +76,12 @@
 			data: {
 					labels: lastDayTimestamps,
 					datasets: [{
-						label: "Dropped mails",
+						label: "${i18n("adminStatisticsDroppedMails")}",
 						data: currentDayData,
 						borderColor: 'rgb(255, 99, 132)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }, {
-					  	label: "Forwarded mails",
+					  	label: "${i18n("adminStatisticsSenderDomain")}",
 						data: lastDayForwardedData,
 						borderColor: 'rgb(54, 162, 235)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
@@ -99,7 +99,7 @@
             	    yAxes: [{
                 		ticks: {
                     		callback: function(value, index, values) {
-                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                     		}
                 		}
             		}]
@@ -112,12 +112,12 @@
 			data: {
 					labels: lastWeekTimestamps,
 					datasets: [{
-						label: "Dropped mails",
+						label: "${i18n("adminStatisticsDroppedMails")}",
 						data: currentWeekData,
 						borderColor: 'rgb(255, 99, 132)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }, {
-						label: "Forwarded mails",
+						label: "${i18n("adminStatisticsSenderDomain")}",
 						data: lastWeekForwardedData,
 						borderColor: 'rgb(54, 162, 235)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
