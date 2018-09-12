@@ -44,7 +44,7 @@ public class ExpirationService implements Runnable
     // stores statistic data about emails that have been received that won't be forwarded
     // AtomicInteger is overkill since there is no multi threading access but it provides the convenient increment
     // method
-    HashMap<MailStatisticsKey, StatisticsEntry> droppedMailStatisticsCache = new HashMap<>();
+    HashMap<MailStatisticsKey, StatisticsEntry> mailStatisticsCache = new HashMap<>();
 
     @Override
     public void run()
@@ -81,21 +81,21 @@ public class ExpirationService implements Runnable
             if (mt.getStatus() == 100)
             {
                 MailStatisticsKey mailStatisticsKey = createMailStatisticsKey(mt);
-                if (!droppedMailStatisticsCache.containsKey(mailStatisticsKey))
+                if (!mailStatisticsCache.containsKey(mailStatisticsKey))
                 {
-                    droppedMailStatisticsCache.put(mailStatisticsKey, new StatisticsEntry());
+                    mailStatisticsCache.put(mailStatisticsKey, new StatisticsEntry());
                 }
-                droppedMailStatisticsCache.get(mailStatisticsKey).incrementDropCount();
+                mailStatisticsCache.get(mailStatisticsKey).incrementDropCount();
             }
             else if (mt.getStatus() == 300)
             {
                 MailStatisticsKey mailStatisticsKey = createMailStatisticsKey(mt);
 
-                if (!droppedMailStatisticsCache.containsKey(mailStatisticsKey))
+                if (!mailStatisticsCache.containsKey(mailStatisticsKey))
                 {
-                    droppedMailStatisticsCache.put(mailStatisticsKey, new StatisticsEntry());
+                    mailStatisticsCache.put(mailStatisticsKey, new StatisticsEntry());
                 }
-                droppedMailStatisticsCache.get(mailStatisticsKey).incrementForwardCount();
+                mailStatisticsCache.get(mailStatisticsKey).incrementForwardCount();
             }
             else
             {
@@ -106,9 +106,9 @@ public class ExpirationService implements Runnable
 
         try
         {
-            log.info("Write mail statistics to DB, length: " + droppedMailStatisticsCache.size());
+            log.info("Write mail statistics to DB, length: " + mailStatisticsCache.size());
 
-            for (Entry<MailStatisticsKey, StatisticsEntry> statisticEntry : droppedMailStatisticsCache.entrySet())
+            for (Entry<MailStatisticsKey, StatisticsEntry> statisticEntry : mailStatisticsCache.entrySet())
             {
                 MailStatisticsKey mailStatisticsKey = statisticEntry.getKey();
                 int additionalMailDropCount = statisticEntry.getValue().getDropCount();
@@ -146,7 +146,7 @@ public class ExpirationService implements Runnable
                     Ebean.update(entry);
                 }
             }
-            droppedMailStatisticsCache.clear();
+            mailStatisticsCache.clear();
             log.info("Finished writing mail statistics to DB");
         }
         catch (Exception e)
