@@ -18,7 +18,7 @@
 	<div class="row">
 	<!-- begin user table -->
 	<div class="tab-content">
-		<#list 1..(mailSenderTable.getPageCount())!0 as x >
+		<#list 1..(todaysDroppedSenderTable.getPageCount())!0 as x >
 			<#if x = 1 >
 				<div class="tab-pane active" id="${x}">
 			<#else>
@@ -33,7 +33,43 @@
 					</tr>
 				</thead>
 				<tbody>
-					<#list mailSenderTable.getPage(x) as entry>
+					<#list todaysDroppedSenderTable.getPage(x) as entry>
+						<tr>
+							<td>${entry.key.fromDomain}</td>
+							<td>${entry.dropCount?string[",##0"]}</td>
+							<td>${entry.forwardCount?string[",##0"]}</td>
+						</tr>
+					</#list>
+				</tbody>
+			</table>
+			</div><!--  /tab-pane (active)-->
+		</#list>
+	</div><!-- /tab-content -->
+	<!-- end statistics table -->
+	
+	<h3 class="legendary">${i18n("adminStatisticsWeekSenderDomains")}</h3>
+	<!-- begin rowcount -->
+	<@pag.entrycount/>
+	<!-- end rowcount -->
+	<div class="row">
+	<!-- begin user table -->
+	<div class="tab-content">
+		<#list 1..(weeksDroppedSenderTable.getPageCount())!0 as x >
+			<#if x = 1 >
+				<div class="tab-pane active" id="${x}">
+			<#else>
+				<div class="tab-pane" id="${x}">
+			</#if>
+			<table class="table tablesorter table-hover table-condensed">
+				<thead>
+					<tr>
+						<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<#list weeksDroppedSenderTable.getPage(x) as entry>
 						<tr>
 							<td>${entry.key.fromDomain}</td>
 							<td>${entry.dropCount?string[",##0"]}</td>
@@ -148,6 +184,7 @@
 		lastWeekChart.update();
 	</script>
 </div>
-<@pag.pager name=mailSenderTable/>
+<@pag.pager name=todaysDroppedSenderTable/>
+<@pag.pager name=weeksDroppedSenderTable/>
 <@pag.incSorter/>
 </@layout.adminLayout>

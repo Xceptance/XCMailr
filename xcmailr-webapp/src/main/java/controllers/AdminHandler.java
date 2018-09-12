@@ -446,20 +446,28 @@ public class AdminHandler
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSession().get("no"));
 
-        List<MailStatistics> droppedMailSender = getTodaysMailSenderList();
-        PageList<MailStatistics> pagedDroppedMailSender = new PageList<>(droppedMailSender, entries);
-        html.render("mailSenderTable", pagedDroppedMailSender);
+        List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0);
+        PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entries);
+
+        List<MailStatistics> weeksDroppedMailSender = getMailSenderList(6);
+        PageList<MailStatistics> pagedWeeksDroppedMailSender = new PageList<>(weeksDroppedMailSender, entries);
+
+        html.render("todaysDroppedSenderTable", pagedTodaysDroppedMailSender);
+        html.render("weeksDroppedSenderTable", pagedWeeksDroppedMailSender);
 
         return html;
     }
 
-    private List<MailStatistics> getTodaysMailSenderList()
+    private List<MailStatistics> getMailSenderList(int lastNDays)
     {
+        if (lastNDays < 0)
+            lastNDays = 0;
+
         // daily top for dropped mail sender
         StringBuilder sql = new StringBuilder();
         sql.append("select ms.FROM_DOMAIN, sum(ms.DROP_COUNT) as \"dropped\", sum(ms.FORWARD_COUNT) as \"forwarded\"");
         sql.append("  from MAIL_STATISTICS ms");
-        sql.append(" where ms.DATE = CURRENT_DATE()");
+        sql.append(" where ms.DATE >= CURRENT_DATE() - " + lastNDays);
         sql.append(" group by ms.FROM_DOMAIN");
         sql.append(" order by \"dropped\" desc;");
 
@@ -473,6 +481,7 @@ public class AdminHandler
 
             droppedMailSender.add(ms);
         });
+
         return droppedMailSender;
     }
 
