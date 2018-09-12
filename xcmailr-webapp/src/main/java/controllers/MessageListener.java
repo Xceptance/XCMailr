@@ -255,16 +255,17 @@ public class MessageListener implements SimpleMessageListener
         MimeMessage mail;
         try
         {
-            mail = new MimeMessage(session, data);
-            final Address forwardAddress;
             final MBox mailBox = doMboxPreconditionChecks(from, recipient);
 
             if (mailBox == null)
             {
                 return;
             }
+
+            final Address forwardAddress;
             final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
 
+            mail = new MimeMessage(session, data);
             // check for a possible loop ...
             String loopError = checkForLoop(mail);
             if (loopError != null)
