@@ -458,6 +458,13 @@ public class AdminHandler
         return html;
     }
 
+    /**
+     * Returns a list of email sender domains that were received in the given last N days
+     * 
+     * @param lastNDays
+     *            A positive integer that specifies how many days should be aggregated
+     * @return
+     */
     private List<MailStatistics> getMailSenderList(int lastNDays)
     {
         if (lastNDays < 0)
