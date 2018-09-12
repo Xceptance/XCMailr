@@ -251,7 +251,7 @@ public class MessageListener implements SimpleMessageListener
     public void deliver(String from, String recipient, InputStream data)
     {
         final Session session = mailrSenderFactory.getSession();
-        session.setDebug(false);
+        session.setDebug(false); // TODO: enable configuration via application.conf
         MimeMessage mail;
         try
         {
