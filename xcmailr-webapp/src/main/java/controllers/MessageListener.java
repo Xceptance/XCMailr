@@ -250,9 +250,6 @@ public class MessageListener implements SimpleMessageListener
     @Override
     public void deliver(String from, String recipient, InputStream data)
     {
-        final Session session = mailrSenderFactory.getSession();
-        session.setDebug(false); // TODO: enable configuration via application.conf
-        MimeMessage mail;
         try
         {
             final MBox mailBox = doMboxPreconditionChecks(from, recipient);
@@ -265,7 +262,9 @@ public class MessageListener implements SimpleMessageListener
             final Address forwardAddress;
             final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
 
-            mail = new MimeMessage(session, data);
+            final Session session = mailrSenderFactory.getSession();
+            session.setDebug(false); // TODO: enable configuration via application.conf
+            MimeMessage mail = new MimeMessage(session, data);
             // check for a possible loop ...
             String loopError = checkForLoop(mail);
             if (loopError != null)
