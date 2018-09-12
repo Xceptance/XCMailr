@@ -89,6 +89,7 @@ public class ExpirationService implements Runnable
             }
             else if (mt.getStatus() == 300)
             {
+                // forwarded mail
                 MailStatisticsKey mailStatisticsKey = createMailStatisticsKey(mt);
 
                 if (!mailStatisticsCache.containsKey(mailStatisticsKey))
