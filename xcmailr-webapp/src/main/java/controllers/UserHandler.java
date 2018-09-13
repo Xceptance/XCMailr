@@ -19,6 +19,17 @@ package controllers;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.base.Optional;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
+import etc.ApiToken;
+import etc.HelperUtils;
+import etc.TokenGenerator;
+import filters.SecureFilter;
 import models.Domain;
 import models.User;
 import models.UserFormData;
@@ -30,16 +41,6 @@ import ninja.i18n.Lang;
 import ninja.i18n.Messages;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import conf.XCMailrConf;
-import etc.HelperUtils;
-import filters.SecureFilter;
 
 /**
  * Handles the actions of the User-Object
@@ -253,5 +254,29 @@ public class UserHandler
         User.delete(user.getId());
         context.getFlashScope().success("deleteUser_Flash_Success");
         return Results.redirect(context.getContextPath() + "/");
+    }
+
+    public Result createNewApiToken(Context context)
+    {
+        Result result = Results.json();
+        TokenGenerator tokenGenerator = new TokenGenerator(50);
+        String newToken = tokenGenerator.nextString();
+
+        User user = context.getAttribute("user", User.class);
+        user.setApiToken(newToken);
+        user.save();
+
+        result.render(new ApiToken(newToken));
+
+        return result;
+    }
+
+    public Result revokeApiToken(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        user.setApiToken(null);
+        user.save();
+
+        return Results.json();
     }
 }

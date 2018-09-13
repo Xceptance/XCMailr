@@ -107,6 +107,8 @@ public class User extends AbstractEntity implements Serializable
     @JsonManagedReference
     public List<MBox> boxes;
 
+    private String apiToken;
+
     // ----------------------------- Getter and Setter ------------------------
     /**
      * Default-Constructor, just initializes the Variables
@@ -360,6 +362,16 @@ public class User extends AbstractEntity implements Serializable
         this.language = language;
     }
 
+    public String getApiToken()
+    {
+        return apiToken;
+    }
+
+    public void setApiToken(String apiToken)
+    {
+        this.apiToken = apiToken;
+    }
+
     // ---------------------------- EBean-Functions----------------------
     /**
      * @return the List of all Users in the Database
@@ -535,5 +547,4 @@ public class User extends AbstractEntity implements Serializable
         }
         return Ebean.find(User.class).where().like("mail", "%" + input + "%").findList();
     }
-
 }

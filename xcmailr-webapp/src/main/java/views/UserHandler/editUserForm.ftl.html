@@ -26,5 +26,28 @@
 		$('.passwords').removeClass("error");
 		$('#editUserForm')[0].reset();
 	});
+	
+	$('#requestNewToken')
+		.click(
+				function() {
+					$.ajax({url: "/user/newApiToken", 
+						success: function(result) {
+        							$("#token").val(result['token']);
+    							 }
+    					  });
+				}
+		      );
+		      
+		      
+	$('#revokeToken')
+		.click(
+			function() {
+				$.ajax({url: "/user/revokeApiToken", 
+						success: function(result) {
+									$('#token').val('');
+    							 }
+    					  });
+			}
+		);
 </script>
 </@layout.xcLayout>

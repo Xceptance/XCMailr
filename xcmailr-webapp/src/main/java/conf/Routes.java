@@ -63,6 +63,9 @@ public class Routes implements ApplicationRoutes
 
         router.POST().route("/user/delete").with(UserHandler.class, "deleteUserProcess");
 
+        router.GET().route("/user/newApiToken").with(UserHandler.class, "createNewApiToken");
+        router.GET().route("/user/revokeApiToken").with(UserHandler.class, "revokeApiToken");
+
         /*
          * Routes for the Mail-Handling (Controller: BoxHandler)
          */
