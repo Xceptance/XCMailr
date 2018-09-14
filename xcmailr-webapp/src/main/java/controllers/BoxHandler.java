@@ -24,22 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import models.MBox;
-import models.User;
-import ninja.Context;
-import ninja.FilterWith;
-import ninja.Result;
-import ninja.Results;
-import ninja.i18n.Messages;
-import ninja.params.Param;
-import ninja.params.PathParam;
-import ninja.validation.JSR303Validation;
-import ninja.validation.Validation;
+import javax.persistence.PersistenceException;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
+import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
@@ -51,6 +42,17 @@ import etc.HelperUtils;
 import etc.TypeRef;
 import filters.JsonSecureFilter;
 import filters.SecureFilter;
+import models.MBox;
+import models.User;
+import ninja.Context;
+import ninja.FilterWith;
+import ninja.Result;
+import ninja.Results;
+import ninja.i18n.Messages;
+import ninja.params.Param;
+import ninja.params.PathParam;
+import ninja.validation.JSR303Validation;
+import ninja.validation.Validation;
 
 /**
  * Handles all actions for the (virtual) Mailboxes like add, delete and edit box
@@ -683,6 +685,76 @@ public class BoxHandler
             }
         }
         return boxIds;
+    }
+
+    public Result createTemporaryMailAddress(@PathParam("token") String apiToken,
+                                             @PathParam("mailAddress") String desiredMailAddress,
+                                             @PathParam("validTime") String validTime, Context context)
+    {
+        // check token
+        User user;
+        try
+        {
+            user = Ebean.find(User.class).where().eq("API_TOKEN", apiToken).findUnique();
+            if (user == null)
+            {
+                // there is no user with that api token
+                return Results.forbidden();
+            }
+        }
+        catch (PersistenceException e)
+        {
+            // in case there is more than one user with the exact same token
+            // this should never ever happen except someone is extreme lucky
+            return Results.forbidden();
+        }
+
+        // check mail address
+        String[] desiredMailAddressParts = desiredMailAddress.split("\\@");
+        if (desiredMailAddressParts.length != 2)
+        {
+            Result json = Results.json();
+            json.render("error", "Desired mail address is invalid");
+            json.render("address", desiredMailAddress);
+
+            return json;
+        }
+
+        String desiredMailLocalPart = desiredMailAddressParts[0];
+        String desiredMailDomain = desiredMailAddressParts[1];
+
+        List<MBox> existingAddress = Ebean.find(MBox.class).where() //
+                                          .ieq("domain", desiredMailDomain) //
+                                          .ieq("address", desiredMailLocalPart)//
+                                          .findList();
+
+        if (existingAddress.size() > 0)
+        {
+            // mail address already exists
+            return Results.forbidden();
+        }
+
+        String[] domainList = xcmConfiguration.DOMAIN_LIST;
+
+        boolean foundDomain = false;
+        for (String domain : domainList)
+        {
+            if (domain.equalsIgnoreCase(desiredMailDomain))
+            {
+                foundDomain = true;
+            }
+        }
+
+        if (!foundDomain)
+        { // domain of desired mail address isn't configured for XCMailr
+            return Results.forbidden();
+        }
+
+        // create mailbox
+        long validUntil = System.currentTimeMillis() + (Integer.valueOf(validTime) * 60 * 1000);
+        new MBox(desiredMailLocalPart, desiredMailDomain, validUntil, false, user).save();
+
+        return Results.ok();
     }
 
 }

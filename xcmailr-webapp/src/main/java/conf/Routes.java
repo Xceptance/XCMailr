@@ -99,6 +99,9 @@ public class Routes implements ApplicationRoutes
 
         router.GET().route("/mail/domainlist").with(BoxHandler.class, "jsonDomainList");
 
+        router.GET().route("/create/temporaryMail/{token}/{mailAddress}/{validTime}")
+              .with(BoxHandler.class, "createTemporaryMailAddress");
+
         /*
          * Routes in the admin-section (Controller: AdminHandler)
          */
@@ -133,7 +136,6 @@ public class Routes implements ApplicationRoutes
          */
         router.GET().route("/assets/webjars/{fileName: .*}").with(AssetsController.class, "serveWebJars");
         router.GET().route("/assets/{fileName: .*}").with(AssetsController.class, "serveStatic");
-
     }
 
 }
