@@ -75,16 +75,17 @@
 					</div>
 					<br />
 					<label class="col-sm-2 control-label" for="token">${i18n("editUser_ApiToken_Title")}</label>
-					<div class="col-sm-8">
+					<div class="col-sm-10">
 						<input class="form-control" type="text" id="token" name="token" placeholder="${i18n("editUser_ApiToken_TokenPlaceholder")}" />
 					</div>
-					<div class="col-sm-2">
-						<input type="button" id="requestNewToken" value="${i18n("editUser_ApiToken_Create_Label")}" class="btn btn-success pull-right" />
+				</div>
+				
+				<div class="col-sm-2"></div>
+				<div class="col-sm-10">
+					<div class="form-group row modal-footer">
+						<input type="button" id="revokeToken" class="btn btn-warning" value="${i18n("editUser_ApiToken_Revoke_Label")}" />
+						<input type="button" id="requestNewToken" class="btn btn-success" value="${i18n("editUser_ApiToken_Create_Label")}" />
 					</div>
-					<div class="col-sm-2">
-						<input type="button" id="revokeToken" class="btn  btn-warning pull-right" value=${i18n("editUser_ApiToken_Revoke_Label")}/>
-					</div>
-					
 				</div>
 			</div>
 		</div>
