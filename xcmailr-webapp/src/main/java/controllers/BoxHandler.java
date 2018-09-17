@@ -728,10 +728,26 @@ public class BoxHandler
                                           .ieq("address", desiredMailLocalPart)//
                                           .findList();
 
+        boolean reactivateAddress = false;
+        MBox reactivationMailBox = null;
+
         if (existingAddress.size() > 0)
         {
             // mail address already exists
-            return Results.forbidden();
+            // check if the owner of that address is the current user in order to simply reactivate the mail address
+            for (MBox messageBox : existingAddress)
+            {
+                if (messageBox.belongsTo(user.getId()) && messageBox.isExpired())
+                {
+                    reactivationMailBox = messageBox;
+                    reactivateAddress = true;
+                    break;
+                }
+            }
+
+            // the mail address belongs to another user and can not be reactivated
+            if (!reactivateAddress)
+                return Results.forbidden();
         }
 
         String[] domainList = xcmConfiguration.DOMAIN_LIST;
@@ -750,9 +766,20 @@ public class BoxHandler
             return Results.forbidden();
         }
 
-        // create mailbox
         long validUntil = System.currentTimeMillis() + (Integer.valueOf(validTime) * 60 * 1000);
-        new MBox(desiredMailLocalPart, desiredMailDomain, validUntil, false, user).save();
+
+        if (reactivateAddress)
+        {
+            // reactivate mailbox
+            reactivationMailBox.enable();
+            reactivationMailBox.setTs_Active(validUntil);
+            reactivationMailBox.save();
+        }
+        else
+        {
+            // create mailbox
+            new MBox(desiredMailLocalPart, desiredMailDomain, validUntil, false, user).save();
+        }
 
         return Results.ok();
     }
