@@ -588,16 +588,21 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Sets the valid Box as invalid and vice versa (and updates the database!)
-     * 
-     * @return Value of true means that the Box is now enabled (== not expired)
+     * Sets the Box as valid (and updates the database!)
      */
-
-    public boolean enable()
+    public void enable()
     {
-        this.setExpired(!expired);
+        this.setExpired(false);
         Ebean.update(this);
-        return !this.isExpired();
+    }
+
+    /**
+     * Sets the Box as invalid (and updates the database!)
+     */
+    public void disable()
+    {
+        this.setExpired(true);
+        Ebean.update(this);
     }
 
     /**
