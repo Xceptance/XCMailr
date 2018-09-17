@@ -10,10 +10,6 @@ import static org.junit.Assert.fail;
 import java.util.HashMap;
 import java.util.Map;
 
-import models.MBox;
-import models.User;
-import ninja.NinjaTest;
-
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -24,6 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 
 import etc.HelperUtils;
+import models.MBox;
+import models.User;
+import ninja.NinjaTest;
 
 public class BoxHandlerTest extends NinjaTest
 {
@@ -181,8 +180,8 @@ public class BoxHandlerTest extends NinjaTest
 
         testMb = setValues(new MBox(), "abox", "xcmailr.test", timeStamp, false, user);
         testMb.setDateTime(ts);
-        //TODO
-//        testMb = new MBoxTestModel("abox", "xcmailr.test", timeStamp, false, user, ts);
+        // TODO
+        // testMb = new MBoxTestModel("abox", "xcmailr.test", timeStamp, false, user, ts);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
 
         // check that the add of the mbox was not successful
@@ -217,7 +216,9 @@ public class BoxHandlerTest extends NinjaTest
          */
         // add the box
 
-        testMb = setValues(new MBox(), "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a", "xcmailr.test", 0L, false, user);
+        testMb = setValues(new MBox(),
+                           "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
+                           "xcmailr.test", 0L, false, user);
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
         // check that the add of the mbox failed and the overview-page is shown
         assertTrue(result.contains("\"success\":false"));
@@ -232,7 +233,10 @@ public class BoxHandlerTest extends NinjaTest
          */
         // add the box
 
-        testMb = setValues(new MBox(), "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a", "a12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890a", 0L, false, user);
+        testMb = setValues(new MBox(),
+                           "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
+                           "a12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
+                           0L, false, user);
         // testMb = new MBoxTestModel(
         // "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
         // "a12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890a.test",
@@ -242,9 +246,8 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.contains("\"success\":false"));
         // check that there is no mailbox with that address
         assertNull(MBox.getByName("a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
-                                  "a12345678901234567890123456789012345678901234567890123456789012345678901234567890"
-                                      + "aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa"
-                                      + "12345678901234567890123456789012345678901234567890123456789012345678901234567890a.test"));
+                                  "a12345678901234567890123456789012345678901234567890123456789012345678901234567890" + "aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa"
+                                                                                                                        + "12345678901234567890123456789012345678901234567890123456789012345678901234567890a.test"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
@@ -431,7 +434,7 @@ public class BoxHandlerTest extends NinjaTest
         // change the local-part of the mbox and the timestamp
         jsm.setAddress("abcde");
         DateTime dt = new DateTime().plusHours(1);
-         jsm.setDateTime(HelperUtils.parseStringTs(dt.getMillis()));
+        jsm.setDateTime(HelperUtils.parseStringTs(dt.getMillis()));
 
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
         assertTrue(result.contains("\"success\":true"));
@@ -442,7 +445,7 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: a wrong timestamp
          */
 
-         jsm.setDateTime("01-01-00");
+        jsm.setDateTime("01-01-00");
         result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
         assertTrue(result.contains("\"success\":false"));
         assertFalse(result.contains("FreeMarker template error"));
@@ -465,334 +468,335 @@ public class BoxHandlerTest extends NinjaTest
         assertFalse(result.contains("<title>404 - not found</title>"));
 
     }
-    
-     @Test
-     public void testExpireBox()
-     {
-     /*
-     * TEST: expire a box normally
-     */
-     // create a new unlimited email-forward (mbox) to expire
-     MBox mailbox = new MBox("abcdefg", "xcmailr.test", 0L, false, user);
-     mailbox.save();
-     formParams.clear();
-     result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/expire/"
-     + mailbox.getId(), headers, formParams);
-    
-     assertTrue(result.contains("\"success\":true"));
-     assertFalse(result.contains("FreeMarker template error"));
-     assertFalse(result.contains("<title>404 - not found</title>"));
-    
-     /*
-     * TEST: expire/reactivate a box with a timestamp in the past
-     */
-     // create a new mail address(mbox) to expire
-     DateTime dt = DateTime.now().minusHours(2);
-     MBox mailbox2 = new MBox("abcdefg", "xcmailr.test", dt.getMillis(), false, user);
-     mailbox2.save();
-     formParams.clear();
-     // we want to reactivate the box and expect the edit-page then (because its expired)
-     result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/expire/"
-     + mailbox2.getId(), headers, formParams);
-     assertTrue(result.contains("\"success\":false"));
-     assertFalse(result.contains("FreeMarker template error"));
-     assertFalse(result.contains("<title>404 - not found</title>"));
-     }
-    
-     @Test
-     public void testResetBoxCounters()
-     {
-     MBox mailbox = new MBox("abcdefg", "xcmailr.test", 0L, false, user);
-     mailbox.save();
-     // increase the suppressions and forwards
-     mailbox.increaseForwards();
-     mailbox.increaseForwards();
-     mailbox.increaseForwards();
-     mailbox.increaseSuppressions();
-     mailbox.increaseSuppressions();
-     mailbox.increaseSuppressions();
-     mailbox.update();
-     assertEquals(3, mailbox.getSuppressions());
-     assertEquals(3, mailbox.getForwards());
-    
-     formParams.clear();
-     // try to reset the box via controller method
-     result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/reset/"
-     + mailbox.getId(), headers, formParams);
-     MBox mailbox2 = MBox.getById(mailbox.getId());
-    
-     assertEquals(0, mailbox2.getSuppressions());
-     assertEquals(0, mailbox2.getForwards());
-     assertFalse(result.contains("FreeMarker template error"));
-     assertFalse(result.contains("<title>404 - not found</title>"));
-     assertTrue(result.contains("\"success\":true"));
-    
-     }
-    
-     @Test
-     public void testBulkReset()
-     {
-     MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
-     mailbox1.setForwards(3);
-     mailbox1.setSuppressions(3);
-     mailbox1.save();
-     MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
-     mailbox2.setForwards(2);
-     mailbox2.setSuppressions(2);
-     mailbox2.save();
-    
-     MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
-     mailbox3.setForwards(1);
-     mailbox3.setSuppressions(1);
-     mailbox3.save();
-    
-     // check the correct numbers
-     assertEquals(3, mailbox1.getSuppressions());
-     assertEquals(3, mailbox1.getForwards());
-     assertEquals(2, mailbox2.getSuppressions());
-     assertEquals(2, mailbox2.getForwards());
-     assertEquals(1, mailbox3.getSuppressions());
-     assertEquals(1, mailbox3.getForwards());
-    
-     // check that the boxes are active
-     assertTrue(mailbox1.isActive());
-     assertTrue(mailbox2.isActive());
-     assertTrue(mailbox3.isActive());
-    
-     formParams.clear();
-     Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
-     testmap.put(mailbox1.getId(), true);
-     testmap.put(mailbox2.getId(), true);
-     testmap.put(mailbox3.getId(), true);
-    
-     result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkReset", testmap);
-    
-     assertTrue(result.contains("\"success\":true"));
-    
-     // update the boxes
-     MBox mailbox1new = MBox.getById(mailbox1.getId());
-     MBox mailbox2new = MBox.getById(mailbox2.getId());
-     MBox mailbox3new = MBox.getById(mailbox3.getId());
-     // check that the boxes are disabled
-     assertEquals(0, mailbox1new.getSuppressions());
-     assertEquals(0, mailbox1new.getForwards());
-     assertEquals(0, mailbox2new.getSuppressions());
-     assertEquals(0, mailbox2new.getForwards());
-     assertEquals(0, mailbox3new.getSuppressions());
-     assertEquals(0, mailbox3new.getForwards());
-     assertFalse(result.contains("FreeMarker template error"));
-     assertFalse(result.contains("<title>404 - not found</title>"));
-     }
-    
-     @Test
-     public void testBulkEnablePossible()
-     {
-     MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
-     mailbox1.save();
-     MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
-     mailbox2.save();
-     MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
-     mailbox3.save();
-    
-     mailbox1.enable();
-     mailbox2.enable();
-     mailbox3.enable();
-     // check that the boxes are disabled
-     assertFalse(mailbox1.isActive());
-     assertFalse(mailbox2.isActive());
-     assertFalse(mailbox3.isActive());
-    
-     formParams.clear();
-     // generate the boxid-map
-     Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
-     testmap.put(mailbox1.getId(), true);
-     testmap.put(mailbox2.getId(), true);
-     testmap.put(mailbox3.getId(), true);
-    
-     // try to enable the boxes via controller method
-     result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkEnablePossible", testmap);
-     // update the boxes
-     MBox mailbox1new = MBox.getById(mailbox1.getId());
-     MBox mailbox2new = MBox.getById(mailbox2.getId());
-     MBox mailbox3new = MBox.getById(mailbox3.getId());
-    
-     // check for a successful change
-     assertTrue(result.contains("\"success\":true"));
-     // the boxes should now be active
-     assertTrue(mailbox1new.isActive());
-     assertTrue(mailbox2new.isActive());
-     assertTrue(mailbox3new.isActive());
-    
-     // try to disable the boxes via controller method
-     result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkEnablePossible", testmap);
-     // update the boxes
-     mailbox1 = MBox.getById(mailbox1.getId());
-     mailbox2 = MBox.getById(mailbox2.getId());
-     mailbox3 = MBox.getById(mailbox3.getId());
-     // check that the boxes are still active
-     assertTrue(mailbox1.isActive());
-     assertTrue(mailbox2.isActive());
-     assertTrue(mailbox3.isActive());
-    
-     // check the original timestamp
-     assertEquals(0L, mailbox1.getTs_Active());
-     assertEquals(0L, mailbox2.getTs_Active());
-     assertEquals(0L, mailbox3.getTs_Active());
-     assertTrue(result.contains("\"success\":true"));
-     assertFalse(result.contains("FreeMarker template error"));
-     assertFalse(result.contains("<title>404 - not found</title>"));
-    
-     }
-     @Test
-     public void testBulkDisable()
-     {
-     MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
-     mailbox1.save();
-     MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
-     mailbox2.save();
-     MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
-     mailbox3.save();
-    
-     mailbox3.enable();
-     // check that the boxes are enabled (except mailbox3)
-     assertTrue(mailbox1.isActive());
-     assertTrue(mailbox2.isActive());
-     assertFalse(mailbox3.isActive());
-    
-     // generate the boxid-map
-     Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
-     testmap.put(mailbox1.getId(), true);
-     testmap.put(mailbox2.getId(), true);
-     testmap.put(mailbox3.getId(), true);
-    
-     // try to enable the boxes via controller method
-     result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkDisable", testmap);
-     // update the boxes
-     MBox mailbox1new = MBox.getById(mailbox1.getId());
-     MBox mailbox2new = MBox.getById(mailbox2.getId());
-     MBox mailbox3new = MBox.getById(mailbox3.getId());
-    
-     // check for a successful change
-     assertTrue(result.contains("\"success\":true"));
-     // the boxes should now be inactive
-     assertFalse(mailbox1new.isActive());
-     assertFalse(mailbox2new.isActive());
-     assertFalse(mailbox3new.isActive());
-    
-     // try to disable the boxes via controller method again
-     result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkDisable", testmap);
-     // update the boxes
-     mailbox1 = MBox.getById(mailbox1.getId());
-     mailbox2 = MBox.getById(mailbox2.getId());
-     mailbox3 = MBox.getById(mailbox3.getId());
-    
-     // check that the boxes are still inactive
-     assertFalse(mailbox1.isActive());
-     assertFalse(mailbox2.isActive());
-     assertFalse(mailbox3.isActive());
-    
-     // check the original timestamp
-     assertEquals(0L, mailbox1.getTs_Active());
-     assertEquals(0L, mailbox2.getTs_Active());
-     assertEquals(0L, mailbox3.getTs_Active());
-     assertTrue(result.contains("\"success\":true"));
-     assertFalse(result.contains("FreeMarker template error"));
-     assertFalse(result.contains("<title>404 - not found</title>"));
-    
-     }
-    
-     @Test
-     public void testBulkNewDate()
-     {
-     MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
-     mailbox1.save();
-     MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
-     mailbox2.save();
-     MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
-     mailbox3.save();
-    
-     mailbox1.enable();
-     mailbox2.enable();
-     mailbox3.enable();
-     // check that the boxes are disabled
-     assertFalse(mailbox1.isActive());
-     assertFalse(mailbox2.isActive());
-     assertFalse(mailbox3.isActive());
-    
-     formParams.clear();
-     // generate the boxid-map
-     Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
-     testmap.put(mailbox1.getId(), true);
-     testmap.put(mailbox2.getId(), true);
-     testmap.put(mailbox3.getId(), true);
-    
-     Map<String, Object> testmap2 = new HashMap<String, Object>();
-     testmap2.put("boxes", testmap);
-     String timeStamp = HelperUtils.parseStringTs(DateTime.now().plusHours(1).getMillis());
-     testmap2.put("newDateTime", timeStamp);
-    
-     // try to enable the boxes via controller method
-     result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkNewDate", testmap2);
-     // update the boxes
-     MBox mailbox1new = MBox.getById(mailbox1.getId());
-     MBox mailbox2new = MBox.getById(mailbox2.getId());
-     MBox mailbox3new = MBox.getById(mailbox3.getId());
-    
-     // check for a successful change
-     assertTrue(result.contains("\"success\":true"));
-     // the boxes should now be active
-     assertTrue(mailbox1new.isActive());
-     assertTrue(mailbox1new.getDatetime().equals(timeStamp));
-     assertTrue(mailbox2new.getDatetime().equals(timeStamp));
-     assertTrue(mailbox3new.getDatetime().equals(timeStamp));
-    
-     assertTrue(result.contains("\"success\":true"));
-     assertFalse(result.contains("FreeMarker template error"));
-     assertFalse(result.contains("<title>404 - not found</title>"));
-    
-     }
-    
-    
-     @Test
-     public void testBulkDelete()
-     {
-     MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
-     mailbox1.save();
-     MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
-     mailbox2.save();
-     MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
-     mailbox3.save();
-    
-     // generate the boxid-map
-     Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
-     testmap.put(mailbox1.getId(), true);
-     testmap.put(mailbox2.getId(), true);
-     testmap.put(mailbox3.getId(), true);
-    
-     // try to enable the boxes via controller method
-     result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkDelete", testmap);
-     // update the boxes
-     MBox mailbox1new = MBox.getById(mailbox1.getId());
-     MBox mailbox2new = MBox.getById(mailbox2.getId());
-     MBox mailbox3new = MBox.getById(mailbox3.getId());
-    
-     // check for a successful change
-     assertTrue(result.contains("\"success\":true"));
-     assertFalse(result.contains("FreeMarker template error"));
-     assertFalse(result.contains("<title>404 - not found</title>"));
-     // the boxes should now be active
-     assertNull(mailbox1new);
-     assertNull(mailbox2new);
-     assertNull(mailbox3new);
-     }
-     
-     private MBox setValues(MBox testMbox, String local, String domain, long ts, boolean expired, User usr){
-         testMbox.setAddress(local);
-         testMbox.setDomain(domain);
-         testMbox.setTs_Active(ts);
-         testMbox.setExpired(expired);
-         testMbox.setUsr(usr);
-         
-         return testMbox;
-     }
+
+    @Test
+    public void testExpireBox()
+    {
+        /*
+         * TEST: expire a box normally
+         */
+        // create a new unlimited email-forward (mbox) to expire
+        MBox mailbox = new MBox("abcdefg", "xcmailr.test", 0L, false, user);
+        mailbox.save();
+        formParams.clear();
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/expire/"
+                                                                    + mailbox.getId(), headers, formParams);
+
+        assertTrue(result.contains("\"success\":true"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: expire/reactivate a box with a timestamp in the past
+         */
+        // create a new mail address(mbox) to expire
+        DateTime dt = DateTime.now().minusHours(2);
+        MBox mailbox2 = new MBox("abcdefg", "xcmailr.test", dt.getMillis(), false, user);
+        mailbox2.save();
+        formParams.clear();
+        // we want to reactivate the box and expect the edit-page then (because its expired)
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/expire/"
+                                                                    + mailbox2.getId(), headers, formParams);
+        assertTrue(result.contains("\"success\":false"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+    }
+
+    @Test
+    public void testResetBoxCounters()
+    {
+        MBox mailbox = new MBox("abcdefg", "xcmailr.test", 0L, false, user);
+        mailbox.save();
+        // increase the suppressions and forwards
+        mailbox.increaseForwards();
+        mailbox.increaseForwards();
+        mailbox.increaseForwards();
+        mailbox.increaseSuppressions();
+        mailbox.increaseSuppressions();
+        mailbox.increaseSuppressions();
+        mailbox.update();
+        assertEquals(3, mailbox.getSuppressions());
+        assertEquals(3, mailbox.getForwards());
+
+        formParams.clear();
+        // try to reset the box via controller method
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/reset/"
+                                                                    + mailbox.getId(), headers, formParams);
+        MBox mailbox2 = MBox.getById(mailbox.getId());
+
+        assertEquals(0, mailbox2.getSuppressions());
+        assertEquals(0, mailbox2.getForwards());
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+        assertTrue(result.contains("\"success\":true"));
+
+    }
+
+    @Test
+    public void testBulkReset()
+    {
+        MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
+        mailbox1.setForwards(3);
+        mailbox1.setSuppressions(3);
+        mailbox1.save();
+        MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
+        mailbox2.setForwards(2);
+        mailbox2.setSuppressions(2);
+        mailbox2.save();
+
+        MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
+        mailbox3.setForwards(1);
+        mailbox3.setSuppressions(1);
+        mailbox3.save();
+
+        // check the correct numbers
+        assertEquals(3, mailbox1.getSuppressions());
+        assertEquals(3, mailbox1.getForwards());
+        assertEquals(2, mailbox2.getSuppressions());
+        assertEquals(2, mailbox2.getForwards());
+        assertEquals(1, mailbox3.getSuppressions());
+        assertEquals(1, mailbox3.getForwards());
+
+        // check that the boxes are active
+        assertTrue(mailbox1.isActive());
+        assertTrue(mailbox2.isActive());
+        assertTrue(mailbox3.isActive());
+
+        formParams.clear();
+        Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
+        testmap.put(mailbox1.getId(), true);
+        testmap.put(mailbox2.getId(), true);
+        testmap.put(mailbox3.getId(), true);
+
+        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkReset", testmap);
+
+        assertTrue(result.contains("\"success\":true"));
+
+        // update the boxes
+        MBox mailbox1new = MBox.getById(mailbox1.getId());
+        MBox mailbox2new = MBox.getById(mailbox2.getId());
+        MBox mailbox3new = MBox.getById(mailbox3.getId());
+        // check that the boxes are disabled
+        assertEquals(0, mailbox1new.getSuppressions());
+        assertEquals(0, mailbox1new.getForwards());
+        assertEquals(0, mailbox2new.getSuppressions());
+        assertEquals(0, mailbox2new.getForwards());
+        assertEquals(0, mailbox3new.getSuppressions());
+        assertEquals(0, mailbox3new.getForwards());
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+    }
+
+    @Test
+    public void testBulkEnablePossible()
+    {
+        MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
+        mailbox1.save();
+        MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
+        mailbox2.save();
+        MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
+        mailbox3.save();
+
+        mailbox1.enable();
+        mailbox2.enable();
+        mailbox3.enable();
+        // check that the boxes are disabled
+        assertFalse(mailbox1.isActive());
+        assertFalse(mailbox2.isActive());
+        assertFalse(mailbox3.isActive());
+
+        formParams.clear();
+        // generate the boxid-map
+        Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
+        testmap.put(mailbox1.getId(), true);
+        testmap.put(mailbox2.getId(), true);
+        testmap.put(mailbox3.getId(), true);
+
+        // try to enable the boxes via controller method
+        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkEnablePossible", testmap);
+        // update the boxes
+        MBox mailbox1new = MBox.getById(mailbox1.getId());
+        MBox mailbox2new = MBox.getById(mailbox2.getId());
+        MBox mailbox3new = MBox.getById(mailbox3.getId());
+
+        // check for a successful change
+        assertTrue(result.contains("\"success\":true"));
+        // the boxes should now be active
+        assertTrue(mailbox1new.isActive());
+        assertTrue(mailbox2new.isActive());
+        assertTrue(mailbox3new.isActive());
+
+        // try to disable the boxes via controller method
+        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkEnablePossible", testmap);
+        // update the boxes
+        mailbox1 = MBox.getById(mailbox1.getId());
+        mailbox2 = MBox.getById(mailbox2.getId());
+        mailbox3 = MBox.getById(mailbox3.getId());
+        // check that the boxes are still active
+        assertTrue(mailbox1.isActive());
+        assertTrue(mailbox2.isActive());
+        assertTrue(mailbox3.isActive());
+
+        // check the original timestamp
+        assertEquals(0L, mailbox1.getTs_Active());
+        assertEquals(0L, mailbox2.getTs_Active());
+        assertEquals(0L, mailbox3.getTs_Active());
+        assertTrue(result.contains("\"success\":true"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+    }
+
+    @Test
+    public void testBulkDisable()
+    {
+        MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
+        mailbox1.save();
+        MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
+        mailbox2.save();
+        MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
+        mailbox3.save();
+
+        mailbox3.enable();
+        // check that the boxes are enabled (except mailbox3)
+        assertTrue(mailbox1.isActive());
+        assertTrue(mailbox2.isActive());
+        assertFalse(mailbox3.isActive());
+
+        // generate the boxid-map
+        Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
+        testmap.put(mailbox1.getId(), true);
+        testmap.put(mailbox2.getId(), true);
+        testmap.put(mailbox3.getId(), true);
+
+        // try to enable the boxes via controller method
+        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkDisable", testmap);
+        // update the boxes
+        MBox mailbox1new = MBox.getById(mailbox1.getId());
+        MBox mailbox2new = MBox.getById(mailbox2.getId());
+        MBox mailbox3new = MBox.getById(mailbox3.getId());
+
+        // check for a successful change
+        assertTrue(result.contains("\"success\":true"));
+        // the boxes should now be inactive
+        assertFalse(mailbox1new.isActive());
+        assertFalse(mailbox2new.isActive());
+        assertFalse(mailbox3new.isActive());
+
+        // try to disable the boxes via controller method again
+        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkDisable", testmap);
+        // update the boxes
+        mailbox1 = MBox.getById(mailbox1.getId());
+        mailbox2 = MBox.getById(mailbox2.getId());
+        mailbox3 = MBox.getById(mailbox3.getId());
+
+        // check that the boxes are still inactive
+        assertFalse(mailbox1.isActive());
+        assertFalse(mailbox2.isActive());
+        assertFalse(mailbox3.isActive());
+
+        // check the original timestamp
+        assertEquals(0L, mailbox1.getTs_Active());
+        assertEquals(0L, mailbox2.getTs_Active());
+        assertEquals(0L, mailbox3.getTs_Active());
+        assertTrue(result.contains("\"success\":true"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+    }
+
+    @Test
+    public void testBulkNewDate()
+    {
+        MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
+        mailbox1.save();
+        MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
+        mailbox2.save();
+        MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
+        mailbox3.save();
+
+        mailbox1.enable();
+        mailbox2.enable();
+        mailbox3.enable();
+        // check that the boxes are disabled
+        assertFalse(mailbox1.isActive());
+        assertFalse(mailbox2.isActive());
+        assertFalse(mailbox3.isActive());
+
+        formParams.clear();
+        // generate the boxid-map
+        Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
+        testmap.put(mailbox1.getId(), true);
+        testmap.put(mailbox2.getId(), true);
+        testmap.put(mailbox3.getId(), true);
+
+        Map<String, Object> testmap2 = new HashMap<String, Object>();
+        testmap2.put("boxes", testmap);
+        String timeStamp = HelperUtils.parseStringTs(DateTime.now().plusHours(1).getMillis());
+        testmap2.put("newDateTime", timeStamp);
+
+        // try to enable the boxes via controller method
+        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkNewDate", testmap2);
+        // update the boxes
+        MBox mailbox1new = MBox.getById(mailbox1.getId());
+        MBox mailbox2new = MBox.getById(mailbox2.getId());
+        MBox mailbox3new = MBox.getById(mailbox3.getId());
+
+        // check for a successful change
+        assertTrue(result.contains("\"success\":true"));
+        // the boxes should now be active
+        assertTrue(mailbox1new.isActive());
+        assertTrue(mailbox1new.getDatetime().equals(timeStamp));
+        assertTrue(mailbox2new.getDatetime().equals(timeStamp));
+        assertTrue(mailbox3new.getDatetime().equals(timeStamp));
+
+        assertTrue(result.contains("\"success\":true"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+    }
+
+    @Test
+    public void testBulkDelete()
+    {
+        MBox mailbox1 = new MBox("mail1", "xcmailr.test", 0L, false, user);
+        mailbox1.save();
+        MBox mailbox2 = new MBox("mail2", "xcmailr.test", 0L, false, user);
+        mailbox2.save();
+        MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
+        mailbox3.save();
+
+        // generate the boxid-map
+        Map<Long, Boolean> testmap = new HashMap<Long, Boolean>();
+        testmap.put(mailbox1.getId(), true);
+        testmap.put(mailbox2.getId(), true);
+        testmap.put(mailbox3.getId(), true);
+
+        // try to enable the boxes via controller method
+        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkDelete", testmap);
+        // update the boxes
+        MBox mailbox1new = MBox.getById(mailbox1.getId());
+        MBox mailbox2new = MBox.getById(mailbox2.getId());
+        MBox mailbox3new = MBox.getById(mailbox3.getId());
+
+        // check for a successful change
+        assertTrue(result.contains("\"success\":true"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+        // the boxes should now be active
+        assertNull(mailbox1new);
+        assertNull(mailbox2new);
+        assertNull(mailbox3new);
+    }
+
+    private MBox setValues(MBox testMbox, String local, String domain, long ts, boolean expired, User usr)
+    {
+        testMbox.setAddress(local);
+        testMbox.setDomain(domain);
+        testMbox.setTs_Active(ts);
+        testMbox.setExpired(expired);
+        testMbox.setUsr(usr);
+
+        return testMbox;
+    }
 }
