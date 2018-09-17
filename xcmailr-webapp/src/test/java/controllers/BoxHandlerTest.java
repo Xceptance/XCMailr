@@ -597,9 +597,9 @@ public class BoxHandlerTest extends NinjaTest
         MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
         mailbox3.save();
 
-        mailbox1.enable();
-        mailbox2.enable();
-        mailbox3.enable();
+        mailbox1.disable();
+        mailbox2.disable();
+        mailbox3.disable();
         // check that the boxes are disabled
         assertFalse(mailbox1.isActive());
         assertFalse(mailbox2.isActive());
@@ -657,7 +657,7 @@ public class BoxHandlerTest extends NinjaTest
         MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
         mailbox3.save();
 
-        mailbox3.enable();
+        mailbox3.disable();
         // check that the boxes are enabled (except mailbox3)
         assertTrue(mailbox1.isActive());
         assertTrue(mailbox2.isActive());
@@ -715,9 +715,9 @@ public class BoxHandlerTest extends NinjaTest
         MBox mailbox3 = new MBox("mail3", "xcmailr.test", 0L, false, user);
         mailbox3.save();
 
-        mailbox1.enable();
-        mailbox2.enable();
-        mailbox3.enable();
+        mailbox1.disable();
+        mailbox2.disable();
+        mailbox3.disable();
         // check that the boxes are disabled
         assertFalse(mailbox1.isActive());
         assertFalse(mailbox2.isActive());
