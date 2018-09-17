@@ -388,13 +388,11 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public void increaseFwd()
     {
-        StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET FORWARDS = FORWARDS + 1 WHERE ID=");
-        sqlSb.append(getId());
-        sqlSb.append(";");
-        SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-        down.execute();
         setForwards(getForwards() + 1);
+        Ebean.createSqlUpdate("update mailboxes set forwards = ? where id = ?;") //
+             .setParameter(1, getForwards()) //
+             .setParameter(2, getId()) //
+             .execute();
     }
 
     /**
@@ -402,13 +400,11 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public void increaseSup()
     {
-        StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = SUPPRESSIONS + 1 WHERE ID=");
-        sqlSb.append(getId());
-        sqlSb.append(";");
-        SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-        down.execute();
         setSuppressions(getSuppressions() + 1);
+        Ebean.createSqlUpdate("update mailboxes set suppressions = ? where id = ?;") //
+             .setParameter(1, getSuppressions()) //
+             .setParameter(2, getId()) //
+             .execute();
     }
 
     /**
