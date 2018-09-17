@@ -63,7 +63,7 @@ public class ExpirationService implements Runnable
             mailBox = mailBoxIterator.next();
             if (dt.isAfter(mailBox.getTs_Active()) && (mailBox.getTs_Active() != 0))
             { // this element is now expired
-                mailBox.enable();
+                mailBox.disable();
                 log.debug("now expired: " + mailBox.getFullAddress());
             }
         }
