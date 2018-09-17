@@ -695,7 +695,7 @@ public class BoxHandler
         User user;
         try
         {
-            user = Ebean.find(User.class).where().eq("API_TOKEN", apiToken).findUnique();
+            user = Ebean.find(User.class).where().eq("API_TOKEN", apiToken).eq("active", true).findUnique();
             if (user == null)
             {
                 // there is no user with that api token
