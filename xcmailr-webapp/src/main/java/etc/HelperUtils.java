@@ -20,16 +20,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import ninja.Context;
-import ninja.Result;
-import ninja.i18n.Messages;
+import javax.persistence.PersistenceException;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.avaje.ebean.Ebean;
 import com.google.common.base.Optional;
 import com.google.inject.Singleton;
+
+import models.User;
+import ninja.Context;
+import ninja.Result;
+import ninja.i18n.Messages;
 
 /**
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
@@ -188,9 +192,69 @@ public class HelperUtils
             languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult).get();
             availableLanguageList.add(new String[]
                 {
-                    abbreviatedLanguageCode, languageTranslation
+                  abbreviatedLanguageCode, languageTranslation
                 });
         }
         return availableLanguageList;
+    }
+
+    /**
+     * Searchs the user the given API token. If it doesn't exist or if token's value isn't unique then null will be
+     * returned+
+     * 
+     * @param apiToken
+     * @return
+     */
+    public static User checkApiToken(String apiToken)
+    {
+        try
+        {
+            return Ebean.find(User.class).where().eq("API_TOKEN", apiToken).eq("active", true).findUnique();
+        }
+        catch (PersistenceException e)
+        {
+            // in case there is more than one user with the exact same token
+            // this should never ever happen except someone is extreme lucky
+            return null;
+        }
+    }
+
+    /**
+     * Check the given mail address to match format "localpart@domain". Also checks if domain is configured in XCMailr
+     * 
+     * @param dOMAIN_LIST
+     * @param mailAddress
+     * @return false if any of the checks fails
+     */
+    public static boolean checkEmailAddressValidness(String[] mailAddressParts, String[] domainList)
+    {
+        if (mailAddressParts.length != 2)
+        {
+            return false;
+        }
+
+        // check if the domain of that email address is available to XCMailr
+        boolean foundDomain = false;
+        for (String domain : domainList)
+        {
+            if (domain.equalsIgnoreCase(mailAddressParts[1]))
+            {
+                foundDomain = true;
+                break;
+            }
+        }
+
+        return foundDomain;
+    }
+
+    /**
+     * Splits an email address at the '@' and returns an array containing the local and domain part.
+     * 
+     * @param mailAddress
+     * @return
+     */
+    public static String[] splitMailAddress(String mailAddress)
+    {
+        return mailAddress.split("\\@");
     }
 }

@@ -30,15 +30,18 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 
+import com.avaje.ebean.Ebean;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
 import etc.MessageComposer;
 import models.MBox;
+import models.Mail;
 import models.MailTransaction;
 import models.User;
 
@@ -265,6 +268,10 @@ public class MessageListener implements SimpleMessageListener
             final Session session = mailrSenderFactory.getSession();
             session.setDebug(false); // TODO: enable configuration via application.conf
             MimeMessage mail = new MimeMessage(session, data);
+
+            // write to mail table
+            persistMail(mailBox, from, mail);
+
             // check for a possible loop ...
             String loopError = checkForLoop(mail);
             if (loopError != null)
@@ -331,6 +338,22 @@ public class MessageListener implements SimpleMessageListener
             // either the session can't be created or the input-stream was wrong
             log.error(e.getMessage());
         }
+        catch (IOException e)
+        {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void persistMail(MBox mailBox, String from, MimeMessage mail) throws MessagingException, IOException
+    {
+        Mail newMail = new Mail();
+        newMail.setMailbox(mailBox);
+        newMail.setSender(from);
+        newMail.setSubject(mail.getSubject());
+        newMail.setMessage(IOUtils.toString(mail.getInputStream()));
+        newMail.setRecieveTime(System.currentTimeMillis());
+
+        Ebean.save(newMail);
     }
 
     private void createMtxAndAddToQueue(final int status, final String from, final String recipient,

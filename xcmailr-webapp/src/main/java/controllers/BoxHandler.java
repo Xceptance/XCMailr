@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.persistence.PersistenceException;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -691,97 +689,94 @@ public class BoxHandler
                                              @PathParam("mailAddress") String desiredMailAddress,
                                              @PathParam("validTime") String validTime, Context context)
     {
+        if (apiToken == null || desiredMailAddress == null || validTime == null)
+            return Results.badRequest();
+
+        log.trace("passed null check");
+
+        if (desiredMailAddress.length() < 5) // "a@b.c" == 5
+            return Results.badRequest();
+
         // check token
-        User user;
+        User user = HelperUtils.checkApiToken(apiToken);
+        if (user == null)
+        {
+            // there is no user assigned with that api token
+            log.debug("Token invalid");
+            return Results.forbidden();
+        }
+
+        // check desired mail address
+        String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress.toLowerCase());
+        if (!HelperUtils.checkEmailAddressValidness(mailAddressParts, xcmConfiguration.DOMAIN_LIST))
+        { // mail is not in format "localpart@domain" or domain is not configured in XCMailr
+            log.debug("Email address invalid: " + desiredMailAddress);
+            return Results.forbidden();
+        }
+
+        int parsedValidTimeMinutes;
+        // check valid time
         try
         {
-            user = Ebean.find(User.class).where().eq("API_TOKEN", apiToken).eq("active", true).findUnique();
-            if (user == null)
+            parsedValidTimeMinutes = Integer.valueOf(validTime);
+            if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > 10)
+            { // TODO: discuss 1 <= x <= 10 minutes for valid
+                return Results.badRequest();
+            }
+        }
+        catch (NumberFormatException e)
+        {
+            // invalid format
+            log.debug("Email valid time invalid: " + validTime);
+            return Results.badRequest();
+        }
+
+        // check if that email address is already claimed by someone
+        MBox mailbox = Ebean.find(MBox.class).where()//
+                            .eq("address", mailAddressParts[0]) //
+                            .eq("domain", mailAddressParts[1]).findUnique();
+
+        if (mailbox != null)
+        {
+            // mailbox exists, check if the user releated to it is the same as the token bearer
+            if (mailbox.getUsr().getId() == user.getId())
             {
-                // there is no user with that api token
+                log.debug("Reactivate mailbox");
+                // reactivate address
+                long validUntil = System.currentTimeMillis() + (Integer.valueOf(validTime) * 60 * 1000);
+
+                mailbox.enable();
+                mailbox.setTs_Active(validUntil);
+                mailbox.save();
+            }
+            else
+            {
+                // another user owns that address
+                log.debug("Email address is owned by user: " + mailbox.getUsr().getMail());
                 return Results.forbidden();
             }
-        }
-        catch (PersistenceException e)
-        {
-            // in case there is more than one user with the exact same token
-            // this should never ever happen except someone is extreme lucky
-            return Results.forbidden();
-        }
-
-        // check mail address
-        String[] desiredMailAddressParts = desiredMailAddress.split("\\@");
-        if (desiredMailAddressParts.length != 2)
-        {
-            Result json = Results.json();
-            json.render("error", "Desired mail address is invalid");
-            json.render("address", desiredMailAddress);
-
-            return json;
-        }
-
-        String desiredMailLocalPart = desiredMailAddressParts[0];
-        String desiredMailDomain = desiredMailAddressParts[1];
-
-        List<MBox> existingAddress = Ebean.find(MBox.class).where() //
-                                          .ieq("domain", desiredMailDomain) //
-                                          .ieq("address", desiredMailLocalPart)//
-                                          .findList();
-
-        boolean reactivateAddress = false;
-        MBox reactivationMailBox = null;
-
-        if (existingAddress.size() > 0)
-        {
-            // mail address already exists
-            // check if the owner of that address is the current user in order to simply reactivate the mail address
-            for (MBox messageBox : existingAddress)
-            {
-                if (messageBox.belongsTo(user.getId()) && messageBox.isExpired())
-                {
-                    reactivationMailBox = messageBox;
-                    reactivateAddress = true;
-                    break;
-                }
-            }
-
-            // the mail address belongs to another user and can not be reactivated
-            if (!reactivateAddress)
-                return Results.forbidden();
-        }
-
-        String[] domainList = xcmConfiguration.DOMAIN_LIST;
-
-        boolean foundDomain = false;
-        for (String domain : domainList)
-        {
-            if (domain.equalsIgnoreCase(desiredMailDomain))
-            {
-                foundDomain = true;
-            }
-        }
-
-        if (!foundDomain)
-        { // domain of desired mail address isn't configured for XCMailr
-            return Results.forbidden();
-        }
-
-        long validUntil = System.currentTimeMillis() + (Integer.valueOf(validTime) * 60 * 1000);
-
-        if (reactivateAddress)
-        {
-            // reactivate mailbox
-            reactivationMailBox.enable();
-            reactivationMailBox.setTs_Active(validUntil);
-            reactivationMailBox.save();
         }
         else
         {
-            // create mailbox
-            new MBox(desiredMailLocalPart, desiredMailDomain, validUntil, false, user).save();
+            log.debug("Create mailbox " + desiredMailAddress);
+            // create the address for the current user
+            new MBox(mailAddressParts[0], mailAddressParts[1], parsedValidTimeMinutes, false, user).save();
         }
 
         return Results.ok();
+
     }
 
+    public Result queryMailbox(@PathParam("token") String apiToken, @PathParam("mailAddress") String desiredMailAddress,
+                               Context context)
+    {
+        User user = HelperUtils.checkApiToken(apiToken);
+
+        if (user == null)
+            return Results.forbidden();
+
+        // checkEmailAddress(desiredMailAddress);
+
+        return Results.ok();
+    }
 }
