@@ -18,6 +18,7 @@ import com.avaje.ebean.Ebean;
 import conf.XCMailrConf;
 import etc.StatisticsEntry;
 import models.MBox;
+import models.Mail;
 import models.MailStatistics;
 import models.MailStatisticsKey;
 import models.MailTransaction;
@@ -67,6 +68,13 @@ public class ExpirationService implements Runnable
                 log.debug("now expired: " + mailBox.getFullAddress());
             }
         }
+
+        // delete expired mails
+        long olderThan10Minutes = System.currentTimeMillis() - (10 * 60 * 1000);
+        List<Mail> findList = Ebean.find(Mail.class).where().lt("recieveTime", olderThan10Minutes).findList();
+        findList.forEach((mail) -> {
+            mail.delete();
+        });
 
         // add the new Mailtransactions
         List<MailTransaction> mtxToSave = new LinkedList<MailTransaction>();
