@@ -209,7 +209,7 @@ public class HelperUtils
     {
         try
         {
-            return Ebean.find(User.class).where().eq("API_TOKEN", apiToken).eq("active", true).findUnique();
+            return Ebean.find(User.class).where().eq("APITOKEN", apiToken).eq("active", true).findUnique();
         }
         catch (PersistenceException e)
         {

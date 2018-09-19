@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,10 +38,12 @@ import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
 import etc.HelperUtils;
+import etc.MailboxEntry;
 import etc.TypeRef;
 import filters.JsonSecureFilter;
 import filters.SecureFilter;
 import models.MBox;
+import models.Mail;
 import models.User;
 import ninja.Context;
 import ninja.FilterWith;
@@ -702,7 +705,7 @@ public class BoxHandler
         if (user == null)
         {
             // there is no user assigned with that api token
-            log.debug("Token invalid");
+            log.error("Token invalid");
             return Results.forbidden();
         }
 
@@ -710,7 +713,7 @@ public class BoxHandler
         String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress.toLowerCase());
         if (!HelperUtils.checkEmailAddressValidness(mailAddressParts, xcmConfiguration.DOMAIN_LIST))
         { // mail is not in format "localpart@domain" or domain is not configured in XCMailr
-            log.debug("Email address invalid: " + desiredMailAddress);
+            log.error("Email address invalid: " + desiredMailAddress);
             return Results.forbidden();
         }
 
@@ -727,7 +730,7 @@ public class BoxHandler
         catch (NumberFormatException e)
         {
             // invalid format
-            log.debug("Email valid time invalid: " + validTime);
+            log.error("Email valid time invalid: " + validTime);
             return Results.badRequest();
         }
 
@@ -736,15 +739,14 @@ public class BoxHandler
                             .eq("address", mailAddressParts[0]) //
                             .eq("domain", mailAddressParts[1]).findUnique();
 
+        long validUntil = System.currentTimeMillis() + (Integer.valueOf(validTime) * 60 * 1000);
         if (mailbox != null)
         {
             // mailbox exists, check if the user releated to it is the same as the token bearer
             if (mailbox.getUsr().getId() == user.getId())
             {
-                log.debug("Reactivate mailbox");
+                log.info("Reactivate mailbox: " + desiredMailAddress);
                 // reactivate address
-                long validUntil = System.currentTimeMillis() + (Integer.valueOf(validTime) * 60 * 1000);
-
                 mailbox.enable();
                 mailbox.setTs_Active(validUntil);
                 mailbox.save();
@@ -752,31 +754,54 @@ public class BoxHandler
             else
             {
                 // another user owns that address
-                log.debug("Email address is owned by user: " + mailbox.getUsr().getMail());
+                log.info("Email address is owned by user: " + mailbox.getUsr().getMail());
                 return Results.forbidden();
             }
         }
         else
         {
-            log.debug("Create mailbox " + desiredMailAddress);
+            log.info("Create mailbox " + desiredMailAddress);
             // create the address for the current user
-            new MBox(mailAddressParts[0], mailAddressParts[1], parsedValidTimeMinutes, false, user).save();
+            new MBox(mailAddressParts[0], mailAddressParts[1], validUntil, false, user).save();
         }
 
         return Results.ok();
 
     }
 
-    public Result queryMailbox(@PathParam("token") String apiToken, @PathParam("mailAddress") String desiredMailAddress,
+    public Result queryMailbox(@PathParam("token") String apiToken, @PathParam("mailAddress") String mailAddress,
                                Context context)
     {
+        if (apiToken == null || mailAddress == null)
+            return Results.badRequest();
+
+        log.trace("passed null check");
         User user = HelperUtils.checkApiToken(apiToken);
 
         if (user == null)
+        {
+            // there is no user assigned with that api token
+            log.error("Token invalid");
             return Results.forbidden();
+        }
 
-        // checkEmailAddress(desiredMailAddress);
+        String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress.toLowerCase());
+        MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
 
-        return Results.ok();
+        if (mailbox == null)
+        {
+            log.info("Mailbox not found: " + mailAddress);
+            return Results.badRequest();
+        }
+
+        List<Mail> emails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
+        List<MailboxEntry> entries = new LinkedList<>();
+
+        for (Mail email : emails)
+        {
+            entries.add(new MailboxEntry(email.getSender(), email.getSubject(), email.getRecieveTime()));
+        }
+
+        return Results.json().status(Result.SC_200_OK).render(entries);
     }
 }
