@@ -43,8 +43,6 @@ public class ExpirationService implements Runnable
     }
 
     // stores statistic data about emails that have been received that won't be forwarded
-    // AtomicInteger is overkill since there is no multi threading access but it provides the convenient increment
-    // method
     HashMap<MailStatisticsKey, StatisticsEntry> mailStatisticsCache = new HashMap<>();
 
     @Override
