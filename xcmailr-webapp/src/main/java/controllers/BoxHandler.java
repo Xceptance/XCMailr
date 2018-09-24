@@ -808,6 +808,19 @@ public class BoxHandler
             entries.add(new MailboxEntry(email.getSender(), email.getSubject(), email.getRecieveTime()));
         }
 
+        String parameter = context.getParameter("format", "html").toLowerCase();
+
+        if ("html".equals(parameter))
+        {
+            return Results.ok();
+        }
+        else if ("json".equals(parameter))
+        {
         return Results.json().status(Result.SC_200_OK).render(entries);
+    }
+        else
+        {
+            return Results.badRequest();
+        }
     }
 }
