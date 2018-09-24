@@ -816,8 +816,8 @@ public class BoxHandler
         }
         else if ("json".equals(parameter))
         {
-        return Results.json().status(Result.SC_200_OK).render(entries);
-    }
+            return Results.json().status(Result.SC_200_OK).render(entries);
+        }
         else
         {
             return Results.badRequest();
