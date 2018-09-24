@@ -794,6 +794,12 @@ public class BoxHandler
             return Results.badRequest();
         }
 
+        if (!mailbox.belongsTo(user.getId()))
+        {
+            log.error("Mailbox belongs to another user");
+            return Results.badRequest();
+        }
+
         List<Mail> emails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
         List<MailboxEntry> entries = new LinkedList<>();
 
