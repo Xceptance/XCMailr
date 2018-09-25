@@ -102,7 +102,9 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/create/temporaryMail/{token}/{mailAddress}/{validTime}")
               .with(BoxHandler.class, "createTemporaryMailAddress");
 
-        router.GET().route("/mailbox/{token}/{mailAddress}").with(BoxHandler.class, "queryMailbox");
+        router.GET().route("/mailbox/{mailAddress}/{token}").with(BoxHandler.class, "queryMailbox");
+        router.GET().route("/mailbox").with(BoxHandler.class, "queryMailbox");
+        router.GET().route("/mails").with(BoxHandler.class, "queryAllMailboxes");
 
         /*
          * Routes in the admin-section (Controller: AdminHandler)
