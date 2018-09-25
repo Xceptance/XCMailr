@@ -76,6 +76,9 @@ public class BoxHandler
     @Inject
     ObjectMapper objectMapper;
 
+    @Inject
+    CachingSessionHandler cachingSessionHandler;
+
     /**
      * Opens the empty delete-box-dialog (just rendering the template).
      * 
@@ -98,8 +101,8 @@ public class BoxHandler
         // set a default entry for the validity-period
         // per default now+1h
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour))
-                      .render("tsMillis", nowPlusOneHour);
+        return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour)).render("tsMillis",
+                                                                                                    nowPlusOneHour);
     }
 
     /**
@@ -500,8 +503,8 @@ public class BoxHandler
         // no changes were made
         mailboxFormData = MBox.getById(mailBox.getId());
 
-        return result.render("success", true).render("currentBox", mailboxFormData)
-                     .render("statusmsg", "No changes made");
+        return result.render("success", true).render("currentBox", mailboxFormData).render("statusmsg",
+                                                                                           "No changes made");
     }
 
     /**
@@ -782,10 +785,21 @@ public class BoxHandler
         {
             // there is no user assigned with that api token
             log.error("Token invalid");
-            return Results.forbidden();
+            return Results.unauthorized();
         }
 
+        // we put the username into the cookie, but use the id of the cookie for authentication
+        String sessionKey = context.getSession().getId();
+        cachingSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, user);
+        // set a reverse mapped user-mail -> sessionId-list in the memcached server to handle
+        // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
+        // logged-in)
+        cachingSessionHandler.setSessionUser(user, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
+
+        context.getSession().put("username", user.getMail());
+
         String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress.toLowerCase());
+
         MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
 
         if (mailbox == null)
@@ -800,27 +814,70 @@ public class BoxHandler
             return Results.badRequest();
         }
 
+        List<MBox> userMailBoxes = new LinkedList<>();
+        userMailBoxes.add(mailbox);
+
         List<Mail> emails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
         List<MailboxEntry> entries = new LinkedList<>();
 
         for (Mail email : emails)
         {
-            entries.add(new MailboxEntry(email.getSender(), email.getSubject(), email.getRecieveTime()));
+            entries.add(new MailboxEntry(mailAddress, email.getSender(), email.getSubject(), email.getRecieveTime()));
         }
 
-        String parameter = context.getParameter("format", "html").toLowerCase();
-
-        if ("html".equals(parameter))
+        String formatParameter = context.getParameter("format", "html").toLowerCase();
+        if ("html".equals(formatParameter))
         {
-            return Results.ok();
+            Result html = Results.html();
+            html.render("accountEmails", entries);
+            html.render("mailaddress", mailAddress);
+
+            return html;
         }
-        else if ("json".equals(parameter))
+        else if ("json".equals(formatParameter))
         {
             return Results.json().status(Result.SC_200_OK).render(entries);
         }
         else
         {
-            return Results.badRequest();
+            return Results.forbidden();
+        }
+    }
+
+    @FilterWith(SecureFilter.class)
+    public Result queryAllMailboxes(Context context)
+    {
+        User user = context.getAttribute("user", User.class);
+        List<MBox> mailboxes = user.getBoxes();
+
+        List<MailboxEntry> result = new LinkedList<>();
+        for (int i = 0; i < mailboxes.size(); i++)
+        {
+            MBox mailbox = mailboxes.get(i);
+            List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
+            for (Mail mail : mails)
+            {
+                result.add(new MailboxEntry(mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
+                                            mail.getRecieveTime()));
+            }
+        }
+
+        String formatParameter = context.getParameter("format", "html").toLowerCase();
+
+        Result html = Results.html();
+        if ("html".equals(formatParameter))
+        {
+            html.render("accountEmails", result).render("showMails", true);
+
+            return html;
+        }
+        else if ("json".equals(formatParameter))
+        {
+            return Results.json().status(Result.SC_200_OK).render(result);
+        }
+        else
+        {
+            return Results.forbidden();
         }
     }
 }
