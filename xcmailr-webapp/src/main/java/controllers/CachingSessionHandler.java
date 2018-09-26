@@ -122,7 +122,8 @@ public class CachingSessionHandler
     /**
      * Updates the user-object for all sessions of this user.
      * <p>
-     * <b>WARNING:</b> if the email has been changed, use {@link #updateUsersSessions(User)} to change the user-session mapping too
+     * <b>WARNING:</b> if the email has been changed, use {@link #updateUsersSessions(User)} to change the user-session
+     * mapping too
      * </p>
      * 
      * @param user

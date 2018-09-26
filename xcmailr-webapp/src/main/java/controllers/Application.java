@@ -87,7 +87,8 @@ public class Application
         }
 
         // show the index-page
-        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, messages);
+        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result,
+                                                                  messages);
         return result.render("available_langs", languageList);
     }
 
@@ -104,7 +105,8 @@ public class Application
     {
         Result result = Results.html();
         // render the available languages
-        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result, messages);
+        List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result,
+                                                                  messages);
         return result.render("available_langs", languageList).render("registerUserData", new UserFormData());
     }
 

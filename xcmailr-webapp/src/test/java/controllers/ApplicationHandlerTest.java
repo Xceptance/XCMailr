@@ -17,7 +17,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Maps;
 
-
 public class ApplicationHandlerTest extends NinjaTest
 {
     Map<String, String> headers = Maps.newHashMap();

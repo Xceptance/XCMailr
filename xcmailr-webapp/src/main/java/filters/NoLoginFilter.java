@@ -36,7 +36,7 @@ public class NoLoginFilter implements Filter
 {
     @Inject
     CachingSessionHandler csh;
-    
+
     @Override
     public Result filter(FilterChain chain, Context context)
     {

@@ -88,15 +88,13 @@ public class AdminHandlerTest extends NinjaTest
 
         assertFalse(testUser.isActive());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/activate/" + testUser.getId(),
-                                                                    headers,
+                                                                    + "admin/activate/" + testUser.getId(), headers,
                                                                     formParams);
         testUser = User.getUsrByMail("testuser@xcmailr.test");
         assertTrue(testUser.isActive());
         // deactivate
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/activate/" + testUser.getId(),
-                                                                    headers,
+                                                                    + "admin/activate/" + testUser.getId(), headers,
                                                                     formParams);
         testUser = User.getUsrByMail("testuser@xcmailr.test");
 
@@ -107,13 +105,13 @@ public class AdminHandlerTest extends NinjaTest
          * TEST: promote and demote the testuser
          */
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/promote/" + testUser.getId(), headers,
+                                                                    + "admin/promote/" + testUser.getId(), headers,
                                                                     formParams);
 
         testUser = User.getUsrByMail("testuser@xcmailr.test");
         assertTrue(testUser.isAdmin());
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/promote/" + testUser.getId(), headers,
+                                                                    + "admin/promote/" + testUser.getId(), headers,
                                                                     formParams);
         testUser = User.getUsrByMail("testuser@xcmailr.test");
         assertFalse(testUser.isAdmin());
@@ -122,9 +120,8 @@ public class AdminHandlerTest extends NinjaTest
         /*
          * TEST: delete the testuser
          */
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/delete/" + testUser.getId(), headers,
-                                                                    formParams);
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress() + "admin/delete/"
+                                                                    + testUser.getId(), headers, formParams);
         testUser = User.getUsrByMail("testuser@xcmailr.test");
         assertNull(testUser);
         assertFalse(result.contains("FreeMarker template error"));
@@ -134,7 +131,7 @@ public class AdminHandlerTest extends NinjaTest
          */
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/activate/" + admin.getId(), headers,
+                                                                    + "admin/activate/" + admin.getId(), headers,
                                                                     formParams);
         admin = User.getById(admin.getId());
         assertTrue(admin.isActive());
@@ -144,9 +141,8 @@ public class AdminHandlerTest extends NinjaTest
          * TEST: We should not be able to delete our own account
          */
 
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/delete/" + admin.getId(), headers,
-                                                                    formParams);
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress() + "admin/delete/"
+                                                                    + admin.getId(), headers, formParams);
         admin = User.getById(admin.getId());
         assertNotNull(admin);
         assertFalse(result.contains("FreeMarker template error"));
@@ -156,7 +152,7 @@ public class AdminHandlerTest extends NinjaTest
          */
 
         result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
-                                                                        + "admin/promote/" + admin.getId(), headers,
+                                                                    + "admin/promote/" + admin.getId(), headers,
                                                                     formParams);
         admin = User.getById(admin.getId());
         assertTrue(admin.isAdmin());

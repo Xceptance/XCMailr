@@ -625,7 +625,8 @@ public class MBox extends AbstractEntity implements Serializable
             {
                 case (1): // the entry may be something like "@domain" or "address@"
                     return exList1.or(Expr.like("address", "%" + split[0] + "%"),
-                                      Expr.like("domain", "%" + split[0] + "%")).findList();
+                                      Expr.like("domain", "%" + split[0] + "%"))
+                                  .findList();
 
                 case (2): // the entry was something like "address@domain"
                     return exList1.eq("address", split[0]).like("domain", "%" + split[1] + "%").findList();
@@ -702,7 +703,6 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * 
      * @param boxes
      *            the list of mail boxed
      * @return the List of Mails as Text
@@ -718,9 +718,9 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and deletes all given Boxes.
-     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
-     * correctness of the string (esp. thinking on SQL-Injections, etc.)
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and deletes all given Boxes. <strong> WARNING:</strong>
+     * The Box-ID-String won't be checked again! The calling method has to self-check the correctness of the string
+     * (esp. thinking on SQL-Injections, etc.)
      * 
      * @param userId
      *            the userID to whom the boxes should belong (should prevent deletion of 'foreign' boxes)
@@ -737,9 +737,8 @@ public class MBox extends AbstractEntity implements Serializable
 
     /**
      * Takes the user-ID and Box-IDs, builds an SQL-Statement and resets the suppression and forward-counters of the
-     * given Boxes.
-     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
-     * correctness of the string (esp. thinking on SQL-Injections, etc.)
+     * given Boxes. <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to
+     * self-check the correctness of the string (esp. thinking on SQL-Injections, etc.)
      * 
      * @param userId
      *            the userID to whom the boxes should belong (should prevent reset of 'foreign' boxes)
@@ -756,9 +755,9 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and disables the given Boxes.
-     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
-     * correctness of the String (esp. thinking on SQL-Injections, etc.)
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and disables the given Boxes. <strong> WARNING:</strong>
+     * The Box-ID-String won't be checked again! The calling method has to self-check the correctness of the String
+     * (esp. thinking on SQL-Injections, etc.)
      * 
      * @param userId
      *            the userID to whom the boxes should belong (should prevent disabling of 'foreign' boxes)
@@ -794,9 +793,9 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and sets a new timestamp for the given Boxes.
-     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
-     * correctness of the String (esp. thinking on SQL-Injections, etc.)
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and sets a new timestamp for the given Boxes. <strong>
+     * WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the correctness
+     * of the String (esp. thinking on SQL-Injections, etc.)
      * 
      * @param userId
      *            the userID to whom the boxes should belong (should prevent new timestamp for 'foreign' boxes)

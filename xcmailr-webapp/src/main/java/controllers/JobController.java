@@ -78,7 +78,8 @@ public class JobController
         if (xcmConfiguration.ADMIN_PASSWORD != null && !User.mailExists(xcmConfiguration.ADMIN_ADDRESS))
         { // if a password is set in application.conf ...and the admin-account doesn't exist
           // create the admin-account
-            User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADDRESS, xcmConfiguration.ADMIN_PASSWORD, "en");
+            User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADDRESS, xcmConfiguration.ADMIN_PASSWORD,
+                                 "en");
 
             // set the status and admin flags
             user.setAdmin(true);
