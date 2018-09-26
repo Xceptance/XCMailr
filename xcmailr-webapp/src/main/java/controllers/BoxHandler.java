@@ -19,9 +19,11 @@ package controllers;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -768,8 +770,35 @@ public class BoxHandler
             new MBox(mailAddressParts[0], mailAddressParts[1], validUntil, false, user).save();
         }
 
-        return Results.ok();
+        Result html = Results.html();
+        Calendar calendar = Calendar.getInstance(Locale.ROOT);
+        calendar.add(Calendar.MINUTE, parsedValidTimeMinutes);
 
+        String formatParameter = context.getParameter("format", "html").toLowerCase();
+        if ("html".equals(formatParameter))
+        {
+            html.render("emailAddress", desiredMailAddress);
+            html.render("emailValidity", parsedValidTimeMinutes);
+            html.render("emailValidUntil", calendar.getTime().getTime());
+            html.render("emailValidUntilDate", calendar.getTime().toString());
+
+            return html;
+        }
+        else if ("json".equals(formatParameter))
+        {
+            Result json = Results.json();
+            json.status(Result.SC_200_OK);
+            json.render("emailAddress", desiredMailAddress);
+            json.render("emailValidity", parsedValidTimeMinutes);
+            json.render("emailValidUntil", calendar.getTime().getTime());
+            json.render("emailValidUntilDate", calendar.getTime().toString());
+
+            return json;
+        }
+        else
+        {
+            return Results.forbidden();
+        }
     }
 
     public Result queryMailbox(@PathParam("token") String apiToken, @PathParam("mailAddress") String mailAddress,
