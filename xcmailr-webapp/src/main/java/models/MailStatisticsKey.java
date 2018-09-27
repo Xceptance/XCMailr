@@ -1,13 +1,19 @@
 package models;
 
-import java.sql.Date;
+import java.io.Serializable;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
 @Embeddable
-public class MailStatisticsKey
+public class MailStatisticsKey implements Serializable
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 7389603963231984012L;
+
     @Column(nullable = false)
     private Date date;
 

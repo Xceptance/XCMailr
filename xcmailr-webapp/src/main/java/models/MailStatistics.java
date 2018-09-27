@@ -9,12 +9,12 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "MAIL_STATISTICS")
-public class MailStatistics extends AbstractEntity implements Serializable
+public class MailStatistics implements Serializable
 {
     /**
      * 
      */
-    private static final long serialVersionUID = -3113332265454761498L;
+    private static final long serialVersionUID = 6489599509883330752L;
 
     @EmbeddedId
     private MailStatisticsKey key;

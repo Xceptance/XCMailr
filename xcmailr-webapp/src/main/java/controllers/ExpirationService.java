@@ -132,7 +132,6 @@ public class ExpirationService implements Runnable
                 {
                     // there is no entry, we need to create a new one
                     MailStatistics mailStatisticEntry = new MailStatistics();
-                    mailStatisticEntry.setId((long) 0);
                     mailStatisticEntry.setKey(mailStatisticsKey);
                     mailStatisticEntry.setDropCount(additionalMailDropCount);
                     mailStatisticEntry.setForwardCount(additionalMailForwardCount);
