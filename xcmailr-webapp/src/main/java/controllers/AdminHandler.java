@@ -522,6 +522,7 @@ public class AdminHandler
         // new line
         String newLine = "\n";
 
+        // set current quarter of the day as a variable
         Ebean.createSqlUpdate("set @currentQuarter = (hour(CURRENT_TIME()) * 4) + minute(CURRENT_TIME()) / 15;")
              .execute();
 
