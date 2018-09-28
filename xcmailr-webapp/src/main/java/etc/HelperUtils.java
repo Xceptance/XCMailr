@@ -18,6 +18,7 @@ package etc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import javax.persistence.PersistenceException;
@@ -27,7 +28,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.avaje.ebean.Ebean;
-import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 
 import models.User;
