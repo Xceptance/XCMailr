@@ -61,16 +61,30 @@ public class ScriptRunner
 
                 // drop all XCMailr structures
                 Log.info("Execute database structure drop script");
-                fileName = "conf/default-drop.sql";
+                fileName = "default-drop.sql";
                 RunScript.execute(connection, new FileReader(fileName));
 
                 // create XCMailr structures
                 Log.info("Execute database structure creation script");
-                fileName = "conf/default-create.sql";
+                fileName = "default-create.sql";
                 RunScript.execute(connection, new FileReader(fileName));
 
                 connection.close();
                 Log.info("Finished executing DB initialization scripts. Remove parameter \"xcmailr.xcmstart.droptables\" then start XCMailr again.");
+                System.exit(0);
+            }
+
+            if (System.getProperty("xcmailr.xcmstart.upgrade") != null)
+            {
+                connection = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
+                Log.info("Got Connection.");
+
+                Log.info("Upgrade DB using upgrade_db.sql");
+                fileName = "upgrade_db.sql";
+                RunScript.execute(connection, new FileReader(fileName));
+
+                connection.close();
+                Log.info("Finished executing upgrade DB script. Remove parameter \"xcmailr.xcmstart.upgrade\" then start XCMailr again.");
                 System.exit(0);
             }
         }
