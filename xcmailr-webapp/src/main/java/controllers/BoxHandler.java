@@ -778,8 +778,8 @@ public class BoxHandler
         try
         {
             parsedValidTimeMinutes = Integer.valueOf(validTime);
-            if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > 10)
-            { // TODO: discuss 1 <= x <= 10 minutes for valid
+            if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > 30)
+            {
                 return Results.badRequest();
             }
         }
