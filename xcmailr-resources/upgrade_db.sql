@@ -28,6 +28,3 @@ create table if not exists MAIL_STATISTICS (
 );
 
 create sequence if not exists mail_seq;
-
---
---create sequence if not exists MAIL_STATISTICS_seq;
