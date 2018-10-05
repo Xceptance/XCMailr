@@ -18,11 +18,7 @@ package xcmailrstarter;
 
 import java.io.FileReader;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 import org.h2.tools.RunScript;
 import org.mortbay.log.Log;
@@ -93,41 +89,6 @@ public class ScriptRunner
             Log.warn("Error while executing: " + config.XCM_DB_DRIVER, e);
             e.printStackTrace();
             System.exit(0);
-        }
-    }
-
-    /**
-     * Adds a column with the given name to the given table if its not already existing
-     * 
-     * @param tableName
-     *            the name of the table to alter
-     * @param columnName
-     *            the name of the column to add
-     * @param conn
-     *            the database connection
-     * @param md
-     *            the metadata of the database
-     * @throws SQLException
-     */
-    public void alterTable(String tableName, String columnName, Connection conn, DatabaseMetaData md)
-        throws SQLException
-    {
-        // get the table with the given table-name
-        ResultSet rs = md.getColumns(null, "PUBLIC", tableName, null);
-
-        // get all column-names of the "tableName"
-        String columns = "";
-        while (rs.next())
-        { // create a list with the current column-names
-            columns += rs.getString("COLUMN_NAME");
-            columns += "; ";
-        }
-        // alter the "tableName"-table if it has no column with the given columnName
-        if (!columns.contains(columnName))
-        {
-            Statement stmnt = conn.createStatement();
-            stmnt.execute("ALTER TABLE " + tableName + " ADD " + columnName + " VARCHAR");
-            Log.info("Altered table " + tableName + ", added column " + columnName);
         }
     }
 }
