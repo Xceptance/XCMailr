@@ -854,6 +854,7 @@ public class BoxHandler
 
     public Result queryMailbox(@PathParam("token") String apiToken, @PathParam("mailAddress") String mailAddress,
                                Context context)
+        throws Exception
     {
         if (apiToken == null || mailAddress == null)
             return Results.badRequest();
@@ -902,7 +903,8 @@ public class BoxHandler
 
         for (Mail email : emails)
         {
-            entries.add(new MailboxEntry(mailAddress, email.getSender(), email.getSubject(), email.getRecieveTime()));
+            entries.add(new MailboxEntry(mailAddress, email.getSender(), email.getSubject(), email.getRecieveTime(),
+                                         email.getMessage()));
         }
 
         String formatParameter = context.getParameter("format", "html").toLowerCase();
@@ -925,7 +927,7 @@ public class BoxHandler
     }
 
     @FilterWith(SecureFilter.class)
-    public Result queryAllMailboxes(Context context)
+    public Result queryAllMailboxes(Context context) throws Exception
     {
         User user = context.getAttribute("user", User.class);
         List<MBox> mailboxes = user.getBoxes();
@@ -938,7 +940,7 @@ public class BoxHandler
             for (Mail mail : mails)
             {
                 result.add(new MailboxEntry(mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
-                                            mail.getRecieveTime()));
+                                            mail.getRecieveTime(), mail.getMessage()));
             }
         }
 

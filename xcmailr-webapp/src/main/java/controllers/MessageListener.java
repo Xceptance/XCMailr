@@ -16,8 +16,10 @@
  */
 package controllers;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -267,10 +269,14 @@ public class MessageListener implements SimpleMessageListener
 
             final Session session = mailrSenderFactory.getSession();
             session.setDebug(false); // TODO: enable configuration via application.conf
-            MimeMessage mail = new MimeMessage(session, data);
+
+            // TODO: reject big emails
+
+            String rawContent = IOUtils.toString(data, Charset.defaultCharset());
+            MimeMessage mail = new MimeMessage(session, new ByteArrayInputStream(rawContent.getBytes()));
 
             // write to mail table
-            persistMail(mailBox, from, mail);
+            persistMail(mailBox, from, mail, rawContent);
 
             // check for a possible loop ...
             String loopError = checkForLoop(mail);
@@ -344,13 +350,14 @@ public class MessageListener implements SimpleMessageListener
         }
     }
 
-    private void persistMail(MBox mailBox, String from, MimeMessage mail) throws MessagingException, IOException
+    private void persistMail(MBox mailBox, String from, MimeMessage mail, String rawMessage)
+        throws MessagingException, IOException
     {
         Mail newMail = new Mail();
         newMail.setMailbox(mailBox);
         newMail.setSender(from);
         newMail.setSubject(mail.getSubject());
-        newMail.setMessage(IOUtils.toString(mail.getInputStream()));
+        newMail.setMessage(rawMessage);
         newMail.setRecieveTime(System.currentTimeMillis());
 
         Ebean.save(newMail);
