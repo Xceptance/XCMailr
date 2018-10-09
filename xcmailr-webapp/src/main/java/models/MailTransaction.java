@@ -16,12 +16,17 @@
  */
 package models;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
 import org.joda.time.DateTime;
 import org.joda.time.Period;
+
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Query;
 import com.avaje.ebean.RawSql;
@@ -121,38 +126,7 @@ public class MailTransaction
      */
     public String getTsAsString()
     {
-        DateTime dt = new DateTime(this.ts);
-        String day = "";
-        String mon = "";
-        String hou = "";
-        String min = "";
-
-        // add a leading "0" if the value is under ten
-        if (dt.getDayOfMonth() < 10)
-        {
-            day += "0";
-        }
-        day += String.valueOf(dt.getDayOfMonth());
-
-        if (dt.getMonthOfYear() < 10)
-        {
-            mon += "0";
-        }
-        mon += String.valueOf(dt.getMonthOfYear());
-
-        if (dt.getHourOfDay() < 10)
-        {
-            hou += "0";
-        }
-        hou += String.valueOf(dt.getHourOfDay());
-
-        if (dt.getMinuteOfHour() < 10)
-        {
-            min += "0";
-        }
-        min += String.valueOf(dt.getMinuteOfHour());
-
-        return day + "." + mon + "." + dt.getYear() + " " + hou + ":" + min;
+        return new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(this.ts)).toString();
     }
 
     /**
