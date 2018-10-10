@@ -180,6 +180,11 @@ public class XCMailrConf
      */
     public final int MAX_MAIL_SIZE;
 
+    /**
+     * The maximum time a temporary mail can be valid
+     */
+    public final int TEMPORARY_MAIL_MAX_VALID_TIME;
+
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
     {
@@ -226,5 +231,7 @@ public class XCMailrConf
                                        + "Otherwise this app will not work");
         }
         MAX_MAIL_SIZE = ninjaProp.getIntegerOrDie("mbox.mail.maxsize");
+        TEMPORARY_MAIL_MAX_VALID_TIME = ninjaProp.getIntegerOrDie("application.temporarymail.maximumvalidtime");
+
     }
 }

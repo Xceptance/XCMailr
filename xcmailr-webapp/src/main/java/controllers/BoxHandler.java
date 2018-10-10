@@ -778,7 +778,7 @@ public class BoxHandler
         try
         {
             parsedValidTimeMinutes = Integer.valueOf(validTime);
-            if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > 30)
+            if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > xcmConfiguration.TEMPORARY_MAIL_MAX_VALID_TIME)
             {
                 return Results.badRequest();
             }
