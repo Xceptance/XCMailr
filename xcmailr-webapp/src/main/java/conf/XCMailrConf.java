@@ -16,9 +16,10 @@
  */
 package conf;
 
-import ninja.utils.NinjaProperties;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import ninja.utils.NinjaProperties;
 
 /**
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
