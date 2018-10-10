@@ -175,6 +175,11 @@ public class XCMailrConf
      */
     public final String SESSION_EXPIRETIME;
 
+    /**
+     * Maximum size of a single mail that will be handled. Mails that exceed that size will be dropped.
+     */
+    public final int MAX_MAIL_SIZE;
+
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
     {
@@ -220,5 +225,6 @@ public class XCMailrConf
             throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "
                                        + "Otherwise this app will not work");
         }
+        MAX_MAIL_SIZE = ninjaProp.getIntegerOrDie("mbox.mail.maxsize");
     }
 }

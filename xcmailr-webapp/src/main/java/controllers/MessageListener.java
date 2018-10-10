@@ -270,7 +270,13 @@ public class MessageListener implements SimpleMessageListener
             final Session session = mailrSenderFactory.getSession();
             session.setDebug(xcmConfiguration.OUT_SMTP_DEBUG);
 
-            // TODO: reject large emails
+            // drop email if the size exceeds defined limit
+            if (data.available() > xcmConfiguration.MAX_MAIL_SIZE)
+            {
+                log.error("Cancel mail processing due to restriction of mail size. Dropped mail: " + from + " => "
+                          + recipient + ", size: " + data.available() + " bytes");
+                return;
+            }
 
             String rawContent = IOUtils.toString(data, Charset.defaultCharset());
             MimeMessage mail = new MimeMessage(session, new ByteArrayInputStream(rawContent.getBytes()));
