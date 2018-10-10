@@ -268,9 +268,9 @@ public class MessageListener implements SimpleMessageListener
             final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
 
             final Session session = mailrSenderFactory.getSession();
-            session.setDebug(false); // TODO: enable configuration via application.conf
+            session.setDebug(xcmConfiguration.OUT_SMTP_DEBUG);
 
-            // TODO: reject big emails
+            // TODO: reject large emails
 
             String rawContent = IOUtils.toString(data, Charset.defaultCharset());
             MimeMessage mail = new MimeMessage(session, new ByteArrayInputStream(rawContent.getBytes()));
