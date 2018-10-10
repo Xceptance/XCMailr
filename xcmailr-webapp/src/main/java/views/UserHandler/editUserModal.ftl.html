@@ -68,6 +68,25 @@
 						<a href="#deleteUserModal" role="button" class="btn btn-danger pull-right remove-user" data-toggle="modal">${i18n("editUser_Button_DeleteAccount")}</a>
 					</div>
 				</div>
+				<div class="form-group row">
+					<legend>${i18n("editUser_ApiToken_Title")}</legend>
+					<div class="form-group col-sm-12">
+						${i18n("editUser_ApiToken_Description")}
+					</div>
+					<br />
+					<label class="col-sm-2 control-label" for="token">${i18n("editUser_ApiToken_Title")}</label>
+					<div class="col-sm-10">
+						<input class="form-control" type="text" id="token" name="token" placeholder="${i18n("editUser_ApiToken_TokenPlaceholder")}" />
+					</div>
+				</div>
+				
+				<div class="col-sm-2"></div>
+				<div class="col-sm-10">
+					<div class="form-group row modal-footer">
+						<input type="button" id="revokeToken" class="btn btn-warning" value="${i18n("editUser_ApiToken_Revoke_Label")}" />
+						<input type="button" id="requestNewToken" class="btn btn-success" value="${i18n("editUser_ApiToken_Create_Label")}" />
+					</div>
+				</div>
 			</div>
 		</div>
 	</fieldset>

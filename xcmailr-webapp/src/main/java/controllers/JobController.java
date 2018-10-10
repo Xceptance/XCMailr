@@ -18,22 +18,11 @@ package controllers;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import models.MBox;
-import models.MailTransaction;
-import models.User;
-import ninja.lifecycle.Dispose;
-import ninja.lifecycle.Start;
-import ninja.utils.NinjaProperties;
-
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListenerAdapter;
 import org.subethamail.smtp.server.SMTPServer;
@@ -42,6 +31,11 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
+import models.MailTransaction;
+import models.User;
+import ninja.lifecycle.Dispose;
+import ninja.lifecycle.Start;
+import ninja.utils.NinjaProperties;
 
 /**
  * Handles the Jobs which will be executed on Start and Stop of the Application
@@ -84,7 +78,8 @@ public class JobController
         if (xcmConfiguration.ADMIN_PASSWORD != null && !User.mailExists(xcmConfiguration.ADMIN_ADDRESS))
         { // if a password is set in application.conf ...and the admin-account doesn't exist
           // create the admin-account
-            User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADDRESS, xcmConfiguration.ADMIN_PASSWORD, "en");
+            User user = new User("Site", "Admin", xcmConfiguration.ADMIN_ADDRESS, xcmConfiguration.ADMIN_PASSWORD,
+                                 "en");
 
             // set the status and admin flags
             user.setAdmin(true);
@@ -105,53 +100,8 @@ public class JobController
         // create the executor-service to check the mail-addresses which were expired since the last run and disable
         // them
         // and also all new MailTransactions will be stored here and old entries will be removed
-        expirationService.scheduleAtFixedRate(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                log.debug("Emailaddress Expiration Task run");
-
-                // get the number of MBox-Elements that will expire in the next "MB_INT"-minutes
-                List<MBox> expiringMailBoxesList = MBox.getNextBoxes(xcmConfiguration.MB_INTERVAL);
-                ListIterator<MBox> mailBoxIterator = expiringMailBoxesList.listIterator();
-
-                DateTime dt = new DateTime();
-                MBox mailBox;
-                // disable expired mail-addresses
-                while (mailBoxIterator.hasNext())
-                {
-                    mailBox = mailBoxIterator.next();
-                    if (dt.isAfter(mailBox.getTs_Active()) && (mailBox.getTs_Active() != 0))
-                    { // this element is now expired
-                        mailBox.enable();
-                        log.debug("now expired: " + mailBox.getFullAddress());
-                    }
-                }
-
-                // add the new Mailtransactions
-                List<MailTransaction> mtxToSave = new LinkedList<MailTransaction>();
-
-                // add all transactions from the queue to a list
-                while (!mtxQueue.isEmpty())
-                {
-                    mtxToSave.add(mtxQueue.poll());
-                }
-                // and save all entries of this list in one transaction to the list
-                MailTransaction.saveMultipleTx(mtxToSave);
-                log.info("stored " + mtxToSave.size() + " entries in the database");
-
-                // remove old MailTransactions
-                if (deleteTransactions)
-                { // execute only if a value has been set
-                    log.debug("Cleanup Mailtransaction-list");
-                    long removalTS = dt.minusHours(xcmConfiguration.MTX_MAX_AGE).getMillis();
-
-                    MailTransaction.deleteTxInPeriod(removalTS);
-                    log.debug("finished Mailtransaction cleanup");
-                }
-            }
-        }, new Long(0), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
+        expirationService.scheduleAtFixedRate(new ExpirationService(mtxQueue, deleteTransactions, xcmConfiguration),
+                                              new Long(0), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
 
     }
 

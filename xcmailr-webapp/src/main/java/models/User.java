@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -106,6 +107,9 @@ public class User extends AbstractEntity implements Serializable
     @OneToMany(mappedBy = "usr", cascade = CascadeType.ALL)
     @JsonManagedReference
     public List<MBox> boxes;
+
+    @Column(name = "apitoken")
+    private String apiToken;
 
     // ----------------------------- Getter and Setter ------------------------
     /**
@@ -360,6 +364,16 @@ public class User extends AbstractEntity implements Serializable
         this.language = language;
     }
 
+    public String getApiToken()
+    {
+        return apiToken;
+    }
+
+    public void setApiToken(String apiToken)
+    {
+        this.apiToken = apiToken;
+    }
+
     // ---------------------------- EBean-Functions----------------------
     /**
      * @return the List of all Users in the Database
@@ -535,5 +549,4 @@ public class User extends AbstractEntity implements Serializable
         }
         return Ebean.find(User.class).where().like("mail", "%" + input + "%").findList();
     }
-
 }

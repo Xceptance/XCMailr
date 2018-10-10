@@ -35,6 +35,7 @@ public class Domain extends AbstractEntity implements Serializable
 {
     /** UID to serialize this object */
     private static final long serialVersionUID = 2659762572278339375L;
+
     /**
      * the domainname
      */
@@ -49,7 +50,6 @@ public class Domain extends AbstractEntity implements Serializable
     {
         this.domainname = domainname;
     }
-
 
     public String getDomainname()
     {

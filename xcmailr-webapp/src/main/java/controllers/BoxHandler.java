@@ -19,12 +19,34 @@ package controllers;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+
+import com.avaje.ebean.Ebean;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import conf.XCMailrConf;
+import etc.HelperUtils;
+import etc.MailboxEntry;
+import etc.TypeRef;
+import filters.JsonSecureFilter;
+import filters.SecureFilter;
 import models.MBox;
+import models.Mail;
 import models.User;
 import ninja.Context;
 import ninja.FilterWith;
@@ -35,22 +57,6 @@ import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import conf.XCMailrConf;
-import etc.HelperUtils;
-import etc.TypeRef;
-import filters.JsonSecureFilter;
-import filters.SecureFilter;
 
 /**
  * Handles all actions for the (virtual) Mailboxes like add, delete and edit box
@@ -72,6 +78,9 @@ public class BoxHandler
 
     @Inject
     ObjectMapper objectMapper;
+
+    @Inject
+    CachingSessionHandler cachingSessionHandler;
 
     /**
      * Opens the empty delete-box-dialog (just rendering the template).
@@ -95,8 +104,8 @@ public class BoxHandler
         // set a default entry for the validity-period
         // per default now+1h
         long nowPlusOneHour = DateTime.now().plusHours(1).getMillis();
-        return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour))
-                      .render("tsMillis", nowPlusOneHour);
+        return Results.html().render("timeStamp", HelperUtils.parseStringTs(nowPlusOneHour)).render("tsMillis",
+                                                                                                    nowPlusOneHour);
     }
 
     /**
@@ -248,8 +257,18 @@ public class BoxHandler
      * @return a json-object with a "success" key and a boolean value
      */
     @FilterWith(JsonSecureFilter.class)
-    public Result bulkDeleteBoxes(Map<String, Boolean> boxIdMap, Context context)
+    public Result bulkDeleteBoxes(Object parameter, Context context)
     {
+        Map<String, Boolean> boxIdMap = null;
+        if (parameter instanceof LinkedHashMap<?, ?>)
+        {
+            boxIdMap = (Map<String, Boolean>) parameter;
+        }
+        else
+        {
+            return Results.badRequest();
+        }
+
         Result result = Results.json();
         if (boxIdMap == null || boxIdMap.isEmpty())
             return result.render("success", false);
@@ -271,8 +290,18 @@ public class BoxHandler
      *         the number of changed items
      */
     @FilterWith(JsonSecureFilter.class)
-    public Result bulkDisableBoxes(Map<String, Boolean> boxIdMap, Context context)
+    public Result bulkDisableBoxes(Object parameter, Context context)
     {
+        Map<String, Boolean> boxIdMap = null;
+        if (parameter instanceof LinkedHashMap<?, ?>)
+        {
+            boxIdMap = (Map<String, Boolean>) parameter;
+        }
+        else
+        {
+            return Results.badRequest();
+        }
+
         Result result = Results.json();
 
         if (boxIdMap == null || boxIdMap.isEmpty())
@@ -295,8 +324,18 @@ public class BoxHandler
      *         the number of changed items
      */
     @FilterWith(JsonSecureFilter.class)
-    public Result bulkEnablePossibleBoxes(Map<String, Boolean> boxIdMap, Context context)
+    public Result bulkEnablePossibleBoxes(Object parameter, Context context)
     {
+        Map<String, Boolean> boxIdMap = null;
+        if (parameter instanceof LinkedHashMap<?, ?>)
+        {
+            boxIdMap = (Map<String, Boolean>) parameter;
+        }
+        else
+        {
+            return Results.badRequest();
+        }
+
         Result result = Results.json();
 
         if (boxIdMap == null || boxIdMap.isEmpty())
@@ -319,8 +358,18 @@ public class BoxHandler
      *         the number of changed items
      */
     @FilterWith(JsonSecureFilter.class)
-    public Result bulkNewDate(Map<String, Object> input, Context context)
+    public Result bulkNewDate(Object parameter, Context context)
     {
+        Map<String, Object> input = null;
+        if (parameter instanceof LinkedHashMap<?, ?>)
+        {
+            input = (Map<String, Object>) parameter;
+        }
+        else
+        {
+            return Results.badRequest();
+        }
+
         Result result = Results.json();
         User user = context.getAttribute("user", User.class);
 
@@ -350,8 +399,18 @@ public class BoxHandler
      *         the number of changed items
      */
     @FilterWith(JsonSecureFilter.class)
-    public Result bulkResetBoxes(Map<String, Boolean> boxIdMap, Context context)
+    public Result bulkResetBoxes(Object parameter, Context context)
     {
+        Map<String, Boolean> boxIdMap = null;
+        if (parameter instanceof LinkedHashMap<?, ?>)
+        {
+            boxIdMap = (Map<String, Boolean>) parameter;
+        }
+        else
+        {
+            return Results.badRequest();
+        }
+
         Result result = Results.json();
 
         if (boxIdMap == null || boxIdMap.isEmpty())
@@ -497,8 +556,8 @@ public class BoxHandler
         // no changes were made
         mailboxFormData = MBox.getById(mailBox.getId());
 
-        return result.render("success", true).render("currentBox", mailboxFormData)
-                     .render("statusmsg", "No changes made");
+        return result.render("success", true).render("currentBox", mailboxFormData).render("statusmsg",
+                                                                                           "No changes made");
     }
 
     /**
@@ -685,4 +744,222 @@ public class BoxHandler
         return boxIds;
     }
 
+    public Result createTemporaryMailAddress(@PathParam("token") String apiToken,
+                                             @PathParam("mailAddress") String desiredMailAddress,
+                                             @PathParam("validTime") String validTime, Context context)
+    {
+        if (apiToken == null || desiredMailAddress == null || validTime == null)
+            return Results.badRequest();
+
+        log.trace("passed null check");
+
+        if (desiredMailAddress.length() < 5) // "a@b.c" == 5
+            return Results.badRequest();
+
+        // check token
+        User user = HelperUtils.checkApiToken(apiToken);
+        if (user == null)
+        {
+            // there is no user assigned with that api token
+            log.error("Token invalid");
+            return Results.forbidden();
+        }
+
+        // check desired mail address
+        String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress.toLowerCase());
+        if (!HelperUtils.checkEmailAddressValidness(mailAddressParts, xcmConfiguration.DOMAIN_LIST))
+        { // mail is not in format "localpart@domain" or domain is not configured in XCMailr
+            log.error("Email address invalid: " + desiredMailAddress);
+            return Results.forbidden();
+        }
+
+        int parsedValidTimeMinutes;
+        // check valid time
+        try
+        {
+            parsedValidTimeMinutes = Integer.valueOf(validTime);
+            if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > 30)
+            {
+                return Results.badRequest();
+            }
+        }
+        catch (NumberFormatException e)
+        {
+            // invalid format
+            log.error("Email valid time invalid: " + validTime);
+            return Results.badRequest();
+        }
+
+        // check if that email address is already claimed by someone
+        MBox mailbox = Ebean.find(MBox.class).where()//
+                            .eq("address", mailAddressParts[0]) //
+                            .eq("domain", mailAddressParts[1]).findUnique();
+
+        long validUntil = System.currentTimeMillis() + (Integer.valueOf(validTime) * 60 * 1000);
+        if (mailbox != null)
+        {
+            // mailbox exists, check if the user releated to it is the same as the token bearer
+            if (mailbox.getUsr().getId() == user.getId())
+            {
+                log.info("Reactivate mailbox: " + desiredMailAddress);
+                // reactivate address
+                mailbox.enable();
+                mailbox.setTs_Active(validUntil);
+                mailbox.save();
+            }
+            else
+            {
+                // another user owns that address
+                log.info("Email address is owned by user: " + mailbox.getUsr().getMail());
+                return Results.forbidden();
+            }
+        }
+        else
+        {
+            log.info("Create mailbox " + desiredMailAddress);
+            // create the address for the current user
+            new MBox(mailAddressParts[0], mailAddressParts[1], validUntil, false, user).save();
+        }
+
+        Result html = Results.html();
+        Calendar calendar = Calendar.getInstance(Locale.ROOT);
+        calendar.add(Calendar.MINUTE, parsedValidTimeMinutes);
+
+        String formatParameter = context.getParameter("format", "html").toLowerCase();
+        if ("html".equals(formatParameter))
+        {
+            html.render("emailAddress", desiredMailAddress);
+            html.render("emailValidity", parsedValidTimeMinutes);
+            html.render("emailValidUntil", calendar.getTime().getTime());
+            html.render("emailValidUntilDate", calendar.getTime().toString());
+
+            return html;
+        }
+        else if ("json".equals(formatParameter))
+        {
+            Result json = Results.json();
+            json.status(Result.SC_200_OK);
+            json.render("emailAddress", desiredMailAddress);
+            json.render("emailValidity", parsedValidTimeMinutes);
+            json.render("emailValidUntil", calendar.getTime().getTime());
+            json.render("emailValidUntilDate", calendar.getTime().toString());
+
+            return json;
+        }
+        else
+        {
+            return Results.forbidden();
+        }
+    }
+
+    public Result queryMailbox(@PathParam("token") String apiToken, @PathParam("mailAddress") String mailAddress,
+                               Context context)
+        throws Exception
+    {
+        if (apiToken == null || mailAddress == null)
+            return Results.badRequest();
+
+        log.trace("passed null check");
+        User user = HelperUtils.checkApiToken(apiToken);
+
+        if (user == null)
+        {
+            // there is no user assigned with that api token
+            log.error("Token invalid");
+            return Results.unauthorized();
+        }
+
+        // we put the username into the cookie, but use the id of the cookie for authentication
+        String sessionKey = context.getSession().getId();
+        cachingSessionHandler.set(sessionKey, xcmConfiguration.COOKIE_EXPIRETIME, user);
+        // set a reverse mapped user-mail -> sessionId-list in the memcached server to handle
+        // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
+        // logged-in)
+        cachingSessionHandler.setSessionUser(user, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
+
+        context.getSession().put("username", user.getMail());
+
+        String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress.toLowerCase());
+
+        MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
+
+        if (mailbox == null)
+        {
+            log.info("Mailbox not found: " + mailAddress);
+            return Results.badRequest();
+        }
+
+        if (!mailbox.belongsTo(user.getId()))
+        {
+            log.error("Mailbox belongs to another user");
+            return Results.badRequest();
+        }
+
+        List<MBox> userMailBoxes = new LinkedList<>();
+        userMailBoxes.add(mailbox);
+
+        List<Mail> emails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
+        List<MailboxEntry> entries = new LinkedList<>();
+
+        for (Mail email : emails)
+        {
+            entries.add(new MailboxEntry(mailAddress, email.getSender(), email.getSubject(), email.getRecieveTime(),
+                                         email.getMessage()));
+        }
+
+        String formatParameter = context.getParameter("format", "html").toLowerCase();
+        if ("html".equals(formatParameter))
+        {
+            Result html = Results.html();
+            html.render("accountEmails", entries);
+            html.render("mailaddress", mailAddress);
+
+            return html;
+        }
+        else if ("json".equals(formatParameter))
+        {
+            return Results.json().status(Result.SC_200_OK).render(entries);
+        }
+        else
+        {
+            return Results.forbidden();
+        }
+    }
+
+    @FilterWith(SecureFilter.class)
+    public Result queryAllMailboxes(Context context) throws Exception
+    {
+        User user = context.getAttribute("user", User.class);
+        List<MBox> mailboxes = user.getBoxes();
+
+        List<MailboxEntry> result = new LinkedList<>();
+        for (int i = 0; i < mailboxes.size(); i++)
+        {
+            MBox mailbox = mailboxes.get(i);
+            List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
+            for (Mail mail : mails)
+            {
+                result.add(new MailboxEntry(mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
+                                            mail.getRecieveTime(), mail.getMessage()));
+            }
+        }
+
+        String formatParameter = context.getParameter("format", "html").toLowerCase();
+
+        Result html = Results.html();
+        if ("html".equals(formatParameter))
+        {
+            html.render("accountEmails", result).render("showMails", true);
+
+            return html;
+        }
+        else if ("json".equals(formatParameter))
+        {
+            return Results.json().status(Result.SC_200_OK).render(result);
+        }
+        else
+        {
+            return Results.forbidden();
+        }
+    }
 }

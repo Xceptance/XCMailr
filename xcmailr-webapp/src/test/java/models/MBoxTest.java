@@ -1,6 +1,9 @@
 package models;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -65,7 +68,7 @@ public class MBoxTest extends NinjaTest
         /*
          * TEST: change the MBox values
          */
-        mailbox.enable();
+        mailbox.disable();
         mailbox.setAddress("test001");
         mailbox.update();
         mailbox2 = MBox.getById(mailbox.getId());
@@ -127,7 +130,7 @@ public class MBoxTest extends NinjaTest
 
         // expired and ts in the past
         mailbox.setTs_Active(DateTime.now().minusHours(2).getMillis());
-        mailbox.enable();
+        mailbox.disable();
         assertTrue(mailbox.isExpiredByTimestamp());
     }
 

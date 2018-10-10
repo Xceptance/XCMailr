@@ -388,13 +388,11 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public void increaseFwd()
     {
-        StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET FORWARDS = FORWARDS + 1 WHERE ID=");
-        sqlSb.append(getId());
-        sqlSb.append(";");
-        SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-        down.execute();
         setForwards(getForwards() + 1);
+        Ebean.createSqlUpdate("update mailboxes set forwards = ? where id = ?;") //
+             .setParameter(1, getForwards()) //
+             .setParameter(2, getId()) //
+             .execute();
     }
 
     /**
@@ -402,13 +400,11 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public void increaseSup()
     {
-        StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = SUPPRESSIONS + 1 WHERE ID=");
-        sqlSb.append(getId());
-        sqlSb.append(";");
-        SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
-        down.execute();
         setSuppressions(getSuppressions() + 1);
+        Ebean.createSqlUpdate("update mailboxes set suppressions = ? where id = ?;") //
+             .setParameter(1, getSuppressions()) //
+             .setParameter(2, getId()) //
+             .execute();
     }
 
     /**
@@ -588,16 +584,21 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Sets the valid Box as invalid and vice versa (and updates the database!)
-     * 
-     * @return Value of true means that the Box is now enabled (== not expired)
+     * Sets the Box as valid (and updates the database!)
      */
-
-    public boolean enable()
+    public void enable()
     {
-        this.setExpired(!expired);
+        this.setExpired(false);
         Ebean.update(this);
-        return !this.isExpired();
+    }
+
+    /**
+     * Sets the Box as invalid (and updates the database!)
+     */
+    public void disable()
+    {
+        this.setExpired(true);
+        Ebean.update(this);
     }
 
     /**
@@ -624,7 +625,8 @@ public class MBox extends AbstractEntity implements Serializable
             {
                 case (1): // the entry may be something like "@domain" or "address@"
                     return exList1.or(Expr.like("address", "%" + split[0] + "%"),
-                                      Expr.like("domain", "%" + split[0] + "%")).findList();
+                                      Expr.like("domain", "%" + split[0] + "%"))
+                                  .findList();
 
                 case (2): // the entry was something like "address@domain"
                     return exList1.eq("address", split[0]).like("domain", "%" + split[1] + "%").findList();
@@ -701,7 +703,6 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * 
      * @param boxes
      *            the list of mail boxed
      * @return the List of Mails as Text
@@ -717,9 +718,9 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and deletes all given Boxes.
-     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
-     * correctness of the string (esp. thinking on SQL-Injections, etc.)
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and deletes all given Boxes. <strong> WARNING:</strong>
+     * The Box-ID-String won't be checked again! The calling method has to self-check the correctness of the string
+     * (esp. thinking on SQL-Injections, etc.)
      * 
      * @param userId
      *            the userID to whom the boxes should belong (should prevent deletion of 'foreign' boxes)
@@ -736,9 +737,8 @@ public class MBox extends AbstractEntity implements Serializable
 
     /**
      * Takes the user-ID and Box-IDs, builds an SQL-Statement and resets the suppression and forward-counters of the
-     * given Boxes.
-     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
-     * correctness of the string (esp. thinking on SQL-Injections, etc.)
+     * given Boxes. <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to
+     * self-check the correctness of the string (esp. thinking on SQL-Injections, etc.)
      * 
      * @param userId
      *            the userID to whom the boxes should belong (should prevent reset of 'foreign' boxes)
@@ -755,9 +755,9 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and disables the given Boxes.
-     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
-     * correctness of the String (esp. thinking on SQL-Injections, etc.)
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and disables the given Boxes. <strong> WARNING:</strong>
+     * The Box-ID-String won't be checked again! The calling method has to self-check the correctness of the String
+     * (esp. thinking on SQL-Injections, etc.)
      * 
      * @param userId
      *            the userID to whom the boxes should belong (should prevent disabling of 'foreign' boxes)
@@ -793,9 +793,9 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the user-ID and Box-IDs, builds an SQL-Statement and sets a new timestamp for the given Boxes.
-     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
-     * correctness of the String (esp. thinking on SQL-Injections, etc.)
+     * Takes the user-ID and Box-IDs, builds an SQL-Statement and sets a new timestamp for the given Boxes. <strong>
+     * WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the correctness
+     * of the String (esp. thinking on SQL-Injections, etc.)
      * 
      * @param userId
      *            the userID to whom the boxes should belong (should prevent new timestamp for 'foreign' boxes)

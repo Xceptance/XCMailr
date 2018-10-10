@@ -1,0 +1,25 @@
+<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout title=i18n("editUser_Title")>
+	<#include "../layout/header.ftl.html"/>
+	
+	<div class="container">
+		<div id="mailbox">
+			<div class="receiver">Mailbox: ${mailaddress!''}</div>
+			<table class="table table-hover table-condensed tsort" id="table-mailbox-overview">
+				<thead>
+					<td>Received</td>
+					<td>Sender</td>
+					<td>Subject</td>
+				</thead>
+				<tbody>
+					<#list accountEmails![] as entry>
+						<tr>
+							<td class="time">${entry.receivedTime}</td>
+							<td class="sender">${entry.sender}</td>
+							<td class="subject">${entry.subject}</td>
+						</tr>
+					</#list>				
+				</tbody>
+			</table>
+		</div>
+	</div>
+</@layout.xcLayout>

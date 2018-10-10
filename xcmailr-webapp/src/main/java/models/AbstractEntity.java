@@ -35,7 +35,6 @@ public abstract class AbstractEntity
     {
         this.id = id;
     }
-    
 
     /**
      * Deletes the object from the database
@@ -44,6 +43,7 @@ public abstract class AbstractEntity
     {
         Ebean.delete(this);
     }
+
     /**
      * Stores the object in the Database
      */

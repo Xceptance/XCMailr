@@ -1,0 +1,190 @@
+<#import "../layout/adminLayout.ftl.html" as layout>
+<@layout.adminLayout title=i18n("admin_Welcome")>
+
+<#import "../layout/macros.ftl.html" as pag/>
+<div>
+	<h1 class="legendary">${i18n("adminStatisticsTitle")}</h1>
+		
+	<h3 class="legendary">${i18n("adminStatisticsToday")}</h3>
+	<canvas id="lastDay" width="600" height="200"></canvas>
+	
+	<h3 class="legendary">${i18n("adminStatisticsWeek")}</h3>
+	<canvas id="lastWeek" width="600" height="200"></canvas>
+	
+	<h3 class="legendary">${i18n("adminStatisticsTodaySenderDomains")}</h3>
+	<!-- begin rowcount -->
+	<@pag.entrycount/>
+	<!-- end rowcount -->
+	<div class="row">
+	<!-- begin user table -->
+	<div class="tab-content">
+		<#list 1..(todaysDroppedSenderTable.getPageCount())!0 as x >
+			<#if x = 1 >
+				<div class="tab-pane active" id="${x}">
+			<#else>
+				<div class="tab-pane" id="${x}">
+			</#if>
+			<table class="table tablesorter table-hover table-condensed">
+				<thead>
+					<tr>
+						<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<#list todaysDroppedSenderTable.getPage(x) as entry>
+						<tr>
+							<td>${entry.key.fromDomain}</td>
+							<td>${entry.dropCount?string[",##0"]}</td>
+							<td>${entry.forwardCount?string[",##0"]}</td>
+						</tr>
+					</#list>
+				</tbody>
+			</table>
+			</div><!--  /tab-pane (active)-->
+		</#list>
+	</div><!-- /tab-content -->
+	<!-- end statistics table -->
+	
+	<h3 class="legendary">${i18n("adminStatisticsWeekSenderDomains")}</h3>
+	<!-- begin rowcount -->
+	<@pag.entrycount/>
+	<!-- end rowcount -->
+	<div class="row">
+	<!-- begin user table -->
+	<div class="tab-content">
+		<#list 1..(weeksDroppedSenderTable.getPageCount())!0 as x >
+			<#if x = 1 >
+				<div class="tab-pane active" id="${x}">
+			<#else>
+				<div class="tab-pane" id="${x}">
+			</#if>
+			<table class="table tablesorter table-hover table-condensed">
+				<thead>
+					<tr>
+						<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<#list weeksDroppedSenderTable.getPage(x) as entry>
+						<tr>
+							<td>${entry.key.fromDomain}</td>
+							<td>${entry.dropCount?string[",##0"]}</td>
+							<td>${entry.forwardCount?string[",##0"]}</td>
+						</tr>
+					</#list>
+				</tbody>
+			</table>
+			</div><!--  /tab-pane (active)-->
+		</#list>
+	</div><!-- /tab-content -->
+	<!-- end statistics table -->
+	
+	<script>
+		var lastDayTimestamps = [<#list lastDayTimestamps as value>"${value}",</#list>]
+		var lastDayDroppedData = [<#list lastDayDroppedData as value>${value},</#list>]
+		var lastDayForwardedData = [<#list lastDayForwardedData as value>${value},</#list>]
+		
+		var lastWeekTimestamps = [<#list lastWeekTimestamps as value>"${value}",</#list>]
+		var lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
+		var lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
+		
+		var currentDayData = [];
+		for (var i = 0; i < lastDayDroppedData.length; i++) {
+			currentDayData[i] = { "y": lastDayDroppedData[i],
+						   	      "t": lastDayTimestamps[i]};
+		}
+		
+		var currentWeekData = [];
+		for (var i = 0; i < lastWeekDroppedData.length; i++) {
+			currentWeekData[i] = {  "y": lastWeekDroppedData[i],
+						   	   		"t": lastWeekTimestamps[i]};
+		}
+		 
+	
+		var lastDayChart = new Chart(document.getElementById("lastDay").getContext('2d'), {
+			type: 'line',
+			backgroundColor: '#ff6384',
+			
+			data: {
+					labels: lastDayTimestamps,
+					datasets: [{
+						label: "${i18n("adminStatisticsDroppedMails")}",
+						data: currentDayData,
+						borderColor: 'rgb(255, 99, 132)',
+						backgroundColor: 'rgba(0, 0, 0, 0.1)'
+					  }, {
+					  	label: "${i18n("adminStatisticsForwardedMails")}",
+						data: lastDayForwardedData,
+						borderColor: 'rgb(54, 162, 235)',
+						backgroundColor: 'rgba(0, 0, 0, 0.1)'
+					  }]
+				  },
+		    options: { 
+		    	scales: {
+                	xAxes: [{
+                    	type: 'time',
+                    	time: {
+	                        unit: 'hour',
+    	                    parser: "DD.MM.YYYY hh:mm:ss"
+        	            }
+            	    }],
+            	    yAxes: [{
+                		ticks: {
+                    		callback: function(value, index, values) {
+                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    		}
+                		}
+            		}]
+            	}
+            }
+		});
+		
+		var lastWeekChart = new Chart(document.getElementById("lastWeek").getContext('2d'), {
+			type: 'line',
+			data: {
+					labels: lastWeekTimestamps,
+					datasets: [{
+						label: "${i18n("adminStatisticsDroppedMails")}",
+						data: currentWeekData,
+						borderColor: 'rgb(255, 99, 132)',
+						backgroundColor: 'rgba(0, 0, 0, 0.1)'
+					  }, {
+						label: "${i18n("adminStatisticsForwardedMails")}",
+						data: lastWeekForwardedData,
+						borderColor: 'rgb(54, 162, 235)',
+						backgroundColor: 'rgba(0, 0, 0, 0.1)'
+					  }]
+				  },
+			options: { 
+		    	scales: {
+                	xAxes: [{
+                		type: 'time',
+                    	time: {
+	                        unit: 'day',
+    	                    parser: "DD.MM.YYYY hh:mm:ss"
+        	            }
+            	    }],
+            	    yAxes: [{
+                		ticks: {
+                    		callback: function(value, index, values) {
+                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    		}
+                		}
+            		}]
+            	}
+            }
+		});
+		
+		
+		lastDayChart.update();
+		lastWeekChart.update();
+	</script>
+</div>
+<@pag.pager name=todaysDroppedSenderTable/>
+<@pag.pager name=weeksDroppedSenderTable/>
+<@pag.incSorter/>
+</@layout.adminLayout>

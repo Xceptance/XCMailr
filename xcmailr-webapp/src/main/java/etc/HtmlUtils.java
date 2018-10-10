@@ -14,8 +14,7 @@ import javax.swing.text.html.parser.ParserDelegator;
 public class HtmlUtils
 {
     /**
-     * Takes an HTML Document as String and parses it.
-     * It will generate the body of a page as String without the head.
+     * Takes an HTML Document as String and parses it. It will generate the body of a page as String without the head.
      * 
      * @param result
      *            - the HTML Document as String

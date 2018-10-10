@@ -241,13 +241,13 @@ public class UserHandlerTest extends NinjaTest
         assertFalse(result.contains("<title>404 - not found</title>"));
         // the returned data should (in cause of the error) now be equal to the (unchanged)userdata
         TestUtils.testMapEntryEquality(userData, returnedData);
-        
+
         /*
          * TEST: Try to change the mail to an existing address
          */
         User anotherUser = new User("first", "last", "user@localhost.test", "1234", "en");
         anotherUser.save();
-        
+
         formParams.clear();
         formParams.put("firstName", "Johnny");
         formParams.put("surName", "Doey");
@@ -261,8 +261,8 @@ public class UserHandlerTest extends NinjaTest
 
         assertTrue(result.contains("class=\"alert alert-danger\">"));
         assertFalse(result.contains("FreeMarker template error"));
-        assertFalse(result.contains("<title>404 - not found</title>"));  
-        
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
         /*
          * TEST: Edit the Userdata correctly (fore- and surname only)
          */
@@ -401,7 +401,7 @@ public class UserHandlerTest extends NinjaTest
         formParams.put("password", "1234");
         user2 = User.getUsrByMail("admin@xcmailr.test");
         assertTrue(user2.isLastAdmin());
-        
+
         result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));

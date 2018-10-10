@@ -57,7 +57,7 @@ public class HtmlUtils
             { // found an input-field
                 String key = (String) attr.getAttribute(HTML.Attribute.NAME);
                 String value = (String) attr.getAttribute(HTML.Attribute.VALUE);
-                if ((key != null) && (value !=null) &&!(value.equals("")))
+                if ((key != null) && (value != null) && !(value.equals("")))
                 {
                     // store the name of an input field and its value
                     map.put(key, value);

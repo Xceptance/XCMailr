@@ -24,6 +24,12 @@
 		<#else>
 			<a class="list-group-item show-whitelist" href="${contextPath}/admin/whitelist">Domain Whitelist</a>
 		</#if>
+		
+		<#if (emailStatistics)??>
+			<a class="list-group-item active show-emailStatistics" href="${contextPath}/admin/emailStatistics">Email Statistics</a>
+		<#else>
+			<a class="list-group-item show-emailStatistics" href="${contextPath}/admin/emailStatistics">Email Statistics</a>
+		</#if>
 	</div>
 </div>
 <!-- admin menu end-->

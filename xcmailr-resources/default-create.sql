@@ -17,6 +17,26 @@ create table mailboxes (
   constraint pk_mailboxes primary key (id))
 ;
 
+create table mail (
+  id                        bigint not null,
+  sender                    varchar(255),
+  subject                   varchar(255) not null,
+  recieve_time              bigint not null,
+  message                   clob,
+  mailbox_id                bigint,
+  constraint pk_mail primary key (id))
+;
+
+create table MAIL_STATISTICS (
+  date                      date not null,
+  QUARTER_HOUR              integer not null,
+  FROM_DOMAIN               varchar(255) not null,
+  TARGET_DOMAIN             varchar(255) not null,
+  DROP_COUNT                integer,
+  FORWARD_COUNT             integer,
+  constraint pk_MAIL_STATISTICS primary key (date, QUARTER_HOUR, FROM_DOMAIN, TARGET_DOMAIN))
+;
+
 create table mailtransactions (
   id                        bigint not null,
   ts                        bigint,
@@ -39,6 +59,7 @@ create table users (
   ts_confirm                bigint,
   bad_pw_count              integer,
   language                  varchar(255),
+  apitoken                  varchar(255),
   constraint pk_users primary key (id))
 ;
 
@@ -46,11 +67,17 @@ create sequence register_domains_seq;
 
 create sequence mailboxes_seq;
 
+create sequence mail_seq;
+
+create sequence MAIL_STATISTICS_seq;
+
 create sequence mailtransactions_seq;
 
 create sequence users_seq;
 
 alter table mailboxes add constraint fk_mailboxes_usr_1 foreign key (usr_id) references users (id) on delete restrict on update restrict;
 create index ix_mailboxes_usr_1 on mailboxes (usr_id);
+alter table mail add constraint fk_mail_mailbox_2 foreign key (mailbox_id) references mailboxes (id) on delete restrict on update restrict;
+create index ix_mail_mailbox_2 on mail (mailbox_id);
 
 

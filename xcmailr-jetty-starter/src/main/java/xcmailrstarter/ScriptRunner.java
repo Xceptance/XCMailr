@@ -18,11 +18,8 @@ package xcmailrstarter;
 
 import java.io.FileReader;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+
 import org.h2.tools.RunScript;
 import org.mortbay.log.Log;
 
@@ -42,121 +39,56 @@ public class ScriptRunner
         {
             Class.forName(config.XCM_DB_DRIVER);
             Log.info("Driver Loaded.");
-
-            connection = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
-            Log.info("Got Connection.");
-
-            boolean usrTable = false;
-            boolean mbxTable = false;
-            boolean mtxTable = false;
-            boolean fk_mtxTable_usr_id = false;
-            boolean domainTable = false;
-
-            // if xcmstarter has been started with the parameter "-Dxcmailr.xcmstart.droptables=true"
-            // drop all tables
-            if (System.getProperty("xcmailr.xcmstart.droptables") != null)
-            {
-                RunScript.execute(connection, new FileReader("conf/default-drop.sql"));
-                Log.info("Executed Drop Table.");
-            }
-
-            // get the DB-metadata
-            DatabaseMetaData md = connection.getMetaData();
-            ResultSet rs = md.getTables(null, null, "%", null);
-            // check if all tables exist
-            while (rs.next())
-            {
-                if (rs.getString(3).equals("USERS"))
-                {
-                    usrTable = true;
-                }
-                if (rs.getString(3).equals("MAILBOXES"))
-                {
-                    mbxTable = true;
-                }
-                if (rs.getString(3).equals("MAILTRANSACTIONS"))
-                {
-                    mtxTable = true;
-                }
-                if (rs.getString(3).equals("REGISTER_DOMAINS"))
-                {
-                    domainTable = true;
-                }
-            }
-
-            // create the tables if they not exist
-            if (!(usrTable && mbxTable && mtxTable && domainTable))
-            { // simply execute the create-script
-                RunScript.execute(connection, new FileReader("conf/default-create.sql"));
-                Log.info("Executed Create Table.");
-            }
-
-            // check whether the foreign-key of the mailbox-table (usr_id->USER) exists
-            rs = md.getImportedKeys(connection.getCatalog(), null, "MAILBOXES");
-            while (rs.next())
-            {
-                String name = rs.getString("FK_NAME");
-                if (name.equals("FK_MAILBOXES_USR_1"))
-                {
-                    fk_mtxTable_usr_id = true;
-                }
-            }
-
-            if (!fk_mtxTable_usr_id)
-            { // add the foreign-key if not exist
-                Statement statement = connection.createStatement();
-                statement.execute("alter table mailboxes add constraint fk_mailboxes_usr_1 foreign key (usr_id) references users (id) on delete restrict on update restrict;");
-            }
-
-            //
-            alterTable("USERS", "LANGUAGE", connection, md);
-            alterTable("MAILTRANSACTIONS", "RELAYADDR", connection, md);
-            Statement statement = connection.createStatement();
-            statement.execute("CREATE INDEX IF NOT EXISTS ix_mailtransactions_ts_1 ON mailtransactions (ts);");
-
-            connection.close();
-
         }
         catch (Exception e)
         {
-            Log.warn("Got an exception! Connection error or Script execution failed.");
+            Log.warn("Error while loading driver: " + config.XCM_DB_DRIVER, e);
             e.printStackTrace();
             System.exit(0);
         }
-    }
 
-    /**
-     * Adds a column with the given name to the given table if its not already existing
-     * 
-     * @param tableName
-     *            the name of the table to alter
-     * @param columnName
-     *            the name of the column to add
-     * @param conn
-     *            the database connection
-     * @param md
-     *            the metadata of the database
-     * @throws SQLException
-     */
-    public void alterTable(String tableName, String columnName, Connection conn, DatabaseMetaData md)
-        throws SQLException
-    {
-        // get the table with the given table-name
-        ResultSet rs = md.getColumns(null, "PUBLIC", tableName, null);
-
-        // get all column-names of the "tableName"
-        String columns = "";
-        while (rs.next())
-        { // create a list with the current column-names
-            columns += rs.getString("COLUMN_NAME");
-            columns += "; ";
-        }
-        // alter the "tableName"-table if it has no column with the given columnName
-        if (!columns.contains(columnName))
+        String fileName = "";
+        try
         {
-            Statement stmnt = conn.createStatement();
-            stmnt.execute("ALTER TABLE " + tableName + " ADD " + columnName + " VARCHAR");
-            Log.info("Altered table " + tableName + ", added column " + columnName);
+            if (System.getProperty("xcmailr.xcmstart.droptables") != null)
+            {
+                connection = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
+                Log.info("Got Connection.");
+
+                // drop all XCMailr structures
+                Log.info("Execute database structure drop script");
+                fileName = "default-drop.sql";
+                RunScript.execute(connection, new FileReader(fileName));
+
+                // create XCMailr structures
+                Log.info("Execute database structure creation script");
+                fileName = "default-create.sql";
+                RunScript.execute(connection, new FileReader(fileName));
+
+                connection.close();
+                Log.info("Finished executing DB initialization scripts. Remove parameter \"xcmailr.xcmstart.droptables\" then start XCMailr again.");
+                System.exit(0);
+            }
+
+            if (System.getProperty("xcmailr.xcmstart.upgrade") != null)
+            {
+                connection = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
+                Log.info("Got Connection.");
+
+                Log.info("Upgrade DB using upgrade_db.sql");
+                fileName = "upgrade_db.sql";
+                RunScript.execute(connection, new FileReader(fileName));
+
+                connection.close();
+                Log.info("Finished executing upgrade DB script. Remove parameter \"xcmailr.xcmstart.upgrade\" then start XCMailr again.");
+                System.exit(0);
+            }
+        }
+        catch (Exception e)
+        {
+            Log.warn("Error while executing: " + config.XCM_DB_DRIVER, e);
+            e.printStackTrace();
+            System.exit(0);
         }
     }
 }

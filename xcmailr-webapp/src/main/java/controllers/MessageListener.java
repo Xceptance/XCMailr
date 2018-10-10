@@ -16,8 +16,10 @@
  */
 package controllers;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,18 +32,20 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 
-import models.MBox;
-import models.MailTransaction;
-import models.User;
-
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 
+import com.avaje.ebean.Ebean;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
 import etc.MessageComposer;
+import models.MBox;
+import models.Mail;
+import models.MailTransaction;
+import models.User;
 
 /**
  * Handles all Actions for incoming Mails
@@ -251,20 +255,28 @@ public class MessageListener implements SimpleMessageListener
     @Override
     public void deliver(String from, String recipient, InputStream data)
     {
-        final Session session = mailrSenderFactory.getSession();
-        session.setDebug(true);
-        MimeMessage mail;
         try
         {
-            mail = new MimeMessage(session, data);
-            final Address forwardAddress;
             final MBox mailBox = doMboxPreconditionChecks(from, recipient);
 
             if (mailBox == null)
             {
                 return;
             }
+
+            final Address forwardAddress;
             final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
+
+            final Session session = mailrSenderFactory.getSession();
+            session.setDebug(false); // TODO: enable configuration via application.conf
+
+            // TODO: reject big emails
+
+            String rawContent = IOUtils.toString(data, Charset.defaultCharset());
+            MimeMessage mail = new MimeMessage(session, new ByteArrayInputStream(rawContent.getBytes()));
+
+            // write to mail table
+            persistMail(mailBox, from, mail, rawContent);
 
             // check for a possible loop ...
             String loopError = checkForLoop(mail);
@@ -332,6 +344,23 @@ public class MessageListener implements SimpleMessageListener
             // either the session can't be created or the input-stream was wrong
             log.error(e.getMessage());
         }
+        catch (IOException e)
+        {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void persistMail(MBox mailBox, String from, MimeMessage mail, String rawMessage)
+        throws MessagingException, IOException
+    {
+        Mail newMail = new Mail();
+        newMail.setMailbox(mailBox);
+        newMail.setSender(from);
+        newMail.setSubject(mail.getSubject());
+        newMail.setMessage(rawMessage);
+        newMail.setRecieveTime(System.currentTimeMillis());
+
+        Ebean.save(newMail);
     }
 
     private void createMtxAndAddToQueue(final int status, final String from, final String recipient,
@@ -339,7 +368,7 @@ public class MessageListener implements SimpleMessageListener
     {
         if (xcmConfiguration.MTX_MAX_AGE != 0)
         {// if mailtransaction.maxage is set to 0 -> log nothing
-            final MailTransaction mtx = new MailTransaction(status, from , recipient, forwardTarget);
+            final MailTransaction mtx = new MailTransaction(status, from, recipient, forwardTarget);
             jobController.mtxQueue.add(mtx);
         }
     }
