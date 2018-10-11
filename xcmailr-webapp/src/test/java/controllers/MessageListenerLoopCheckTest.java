@@ -10,6 +10,7 @@ import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -32,6 +33,7 @@ public class MessageListenerLoopCheckTest
      * @throws FileNotFoundException
      */
     @Test
+    @Ignore
     public void testReturnPath() throws MessagingException, FileNotFoundException
     {
         MimeMessage mail = loadMailFromFile("ReturnPath.eml");
@@ -221,6 +223,7 @@ public class MessageListenerLoopCheckTest
      * @throws MessagingException
      */
     @Test
+    @Ignore
     public void testOutOfOffice() throws FileNotFoundException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("outofoffice.eml");
@@ -236,6 +239,7 @@ public class MessageListenerLoopCheckTest
      * @throws MessagingException
      */
     @Test
+    @Ignore
     public void testBounceMail() throws FileNotFoundException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("bouncemail.eml");
