@@ -111,24 +111,26 @@ public class MessageListener implements SimpleMessageListener
     {
         String errorMessage;
 
+        // TODO: 2018-10-11: return path header isn't send by default (thunderbird does, but gmail web doesn't)
+        // disabled code until fixed
         // check the first Return-Path header
-        String[] returnPathHeaders = mail.getHeader("Return-Path");
-
-        if (returnPathHeaders != null)
-        {
-            String returnPathHeader = returnPathHeaders[0];
-            if (returnPathHeader.equals("") || returnPathHeader.equals("<>") || returnPathHeader.equals("< >"))
-            {
-                // loop detected;
-                errorMessage = "Return-Path is empty";
-                return errorMessage;
-            }
-        }
-        else
-        {
-            errorMessage = "Don't forward mails without a return path header";
-            return errorMessage;
-        }
+        // String[] returnPathHeaders = mail.getHeader("Return-Path");
+        //
+        // if (returnPathHeaders != null)
+        // {
+        // String returnPathHeader = returnPathHeaders[0];
+        // if (returnPathHeader.equals("") || returnPathHeader.equals("<>") || returnPathHeader.equals("< >"))
+        // {
+        // // loop detected;
+        // errorMessage = "Return-Path is empty";
+        // return errorMessage;
+        // }
+        // }
+        // else
+        // {
+        // errorMessage = "Don't forward mails without a return path header";
+        // return errorMessage;
+        // }
 
         // check custom X-Loop header
         String customHeader = mail.getHeader(LOOP_HEADER_NAME, "###");
