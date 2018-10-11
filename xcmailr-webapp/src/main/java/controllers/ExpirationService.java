@@ -148,7 +148,7 @@ public class ExpirationService implements Runnable
                 else
                 {
                     entry.setDropCount(entry.getDropCount() + additionalMailDropCount);
-                    entry.setDropCount(entry.getDropCount() + additionalMailForwardCount);
+                    entry.setForwardCount(entry.getForwardCount() + additionalMailForwardCount);
                     Ebean.update(entry);
                 }
             }

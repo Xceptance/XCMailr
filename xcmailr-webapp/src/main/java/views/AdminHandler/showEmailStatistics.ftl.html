@@ -84,11 +84,11 @@
 	<!-- end statistics table -->
 	
 	<script>
-		var lastDayTimestamps = [<#list lastDayTimestamps as value>"${value}",</#list>]
+		var lastDayTimestamps = [<#list lastDayTimestamps as value>${value},</#list>]
 		var lastDayDroppedData = [<#list lastDayDroppedData as value>${value},</#list>]
 		var lastDayForwardedData = [<#list lastDayForwardedData as value>${value},</#list>]
 		
-		var lastWeekTimestamps = [<#list lastWeekTimestamps as value>"${value}",</#list>]
+		var lastWeekTimestamps = [<#list lastWeekTimestamps as value>${value},</#list>]
 		var lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
 		var lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
 		
@@ -129,7 +129,7 @@
                     	type: 'time',
                     	time: {
 	                        unit: 'hour',
-    	                    parser: "DD.MM.YYYY hh:mm:ss"
+    	                    parser: 'x'
         	            }
             	    }],
             	    yAxes: [{
@@ -165,7 +165,7 @@
                 		type: 'time',
                     	time: {
 	                        unit: 'day',
-    	                    parser: "DD.MM.YYYY hh:mm:ss"
+    	                    parser: 'x'
         	            }
             	    }],
             	    yAxes: [{

@@ -422,7 +422,7 @@ public class AdminHandler
         // today statistics
         List<Long> droppedMails = new LinkedList<>();
         List<Long> forwardedMails = new LinkedList<>();
-        List<Timestamp> timestamps = new LinkedList<>();
+        List<Long> timestamps = new LinkedList<>();
 
         processStatisticsData(getStatistics(0, true), droppedMails, forwardedMails, timestamps);
 
@@ -571,7 +571,7 @@ public class AdminHandler
     }
 
     private void processStatisticsData(List<SqlRow> statisticsData, List<Long> droppedMails, List<Long> forwardedMails,
-                                       List<Timestamp> timestamps)
+                                       List<Long> timestamps)
     {
         for (SqlRow sqlRow : statisticsData)
         {
@@ -579,7 +579,7 @@ public class AdminHandler
             int quarterHour = sqlRow.getInteger("QUARTER_HOUR");
 
             Timestamp timestamp = new Timestamp(date.getTime() + (quarterHour * 15 * 60 * 1000));
-            timestamps.add(timestamp);
+            timestamps.add(timestamp.getTime());
             droppedMails.add(sqlRow.getLong("SUM_DROPPED"));
             forwardedMails.add(sqlRow.getLong("SUM_FORWARDED"));
         }
@@ -601,7 +601,7 @@ public class AdminHandler
      *            Out parameter! An empty list of timestamps
      */
     private void reduceStatisticsData(int rowsToCombine, List<SqlRow> statisticsData, List<Long> outDroppedMails,
-                                      List<Long> outForwardedMails, List<Timestamp> outTimestamps)
+                                      List<Long> outForwardedMails, List<Long> outTimestamps)
     {
         SqlRow sqlRow;
         for (int i = 0; i < statisticsData.size(); i += rowsToCombine)
@@ -611,7 +611,7 @@ public class AdminHandler
             int quarterHour = sqlRow.getInteger("QUARTER_HOUR");
 
             Timestamp timestamp = new Timestamp(date.getTime() + (quarterHour * 15 * 60 * 1000));
-            outTimestamps.add(timestamp);
+            outTimestamps.add(timestamp.getTime());
 
             long sumDropped = 0;
             long sumForwarded = 0;
