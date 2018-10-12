@@ -227,7 +227,7 @@ public class XCMailrConf
             OUT_SMTP_PASS = null;
         }
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
-        OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", true);
+        OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", false);
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");
         SESSION_EXPIRETIME = COOKIE_EXPIRETIME + "s";
         if (DOMAIN_LIST == null)
