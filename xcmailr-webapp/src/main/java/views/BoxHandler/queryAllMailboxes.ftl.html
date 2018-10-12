@@ -6,15 +6,15 @@
 		<div id="mailbox">
 			<table class="table table-hover table-condensed tsort" id="table-mailbox-overview">
 				<thead>
-					<td>Received</td>
-					<td>My Mail Address</td>
-					<td>Sender</td>
-					<td>Subject</td>
+					<th>Received</th>
+					<th>My Mail Address</th>
+					<th>Sender</th>
+					<th>Subject</th>
 				</thead>
 				<tbody>
 					<#list accountEmails as entry>
-						<tr>
-							<td class="time">${entry.receivedTime}</td>
+						<tr class="clickable" onClick="updateMailContent('${entry.subject}', '${entry.textContent}', '${entry.htmlContent}')">
+							<td class="time">${entry.getReceivedTimeAsString()}</td>
 							<td class="receiver">${entry.mailAddress}</td>
 							<td class="sender">${entry.sender}</td>
 							<td class="subject">${entry.subject}</td>
@@ -22,6 +22,33 @@
 					</#list>				
 				</tbody>
 			</table>
+			<div id="mailContent" style="display: none;">
+					<span><b>Attachments: </b>not implemented yet :(</span><div class="attachments"></div>
+					<br />
+					<span><b>Subject: </b></span><div class="subject"></div>
+					<br />
+					<span><b>Content (text): </b></span><div class="text-content"></div>
+					<br />
+					<span><b>Content (html): </b></span><div class="html-content">
+						<iframe id="iframe-html-content" class="iframe" width="100%" style="border:none;">
+						</iframe>
+					</div>
+			</div>
 		</div>
 	</div>
+	<script>
+		function updateMailContent(subject, textContent, htmlContent, attachments) {
+			console.log(subject);
+			$('#mailContent .subject').html(subject);
+			$('#mailContent .text-content').html(textContent);
+			$('#mailContent .iframe .html-content').html(htmlContent);
+			$('#mailContent .attachments').html(attachments);
+			
+			$('#iframe-html-content').ready(function(){
+       			$('#iframe-html-content').contents().find('body').html(htmlContent	);
+    		});
+    		
+			$('#mailContent').show();
+		};
+	</script>
 </@layout.xcLayout>
