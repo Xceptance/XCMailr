@@ -28,6 +28,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.joda.time.DateTime;
@@ -901,13 +903,38 @@ public class BoxHandler
         List<Mail> emails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
         List<MailboxEntry> entries = new LinkedList<>();
 
+        String subjectRegex = context.getParameter("subjectRegex", ".*");
+        String plainTextRegex = context.getParameter("plainTextRegex", ".*");
+        String htmlTextRegex = context.getParameter("htmlTextRegex", ".*");
+
+        Pattern subjectPattern = null;
+        Pattern plainTextPattern = null;
+        Pattern htmlTextPattern = null;
+        try
+        {
+            subjectPattern = Pattern.compile(subjectRegex);
+            plainTextPattern = Pattern.compile(plainTextRegex);
+            htmlTextPattern = Pattern.compile(htmlTextRegex);
+        }
+        catch (PatternSyntaxException e)
+        {
+            return Results.badRequest();
+        }
+
         for (Mail email : emails)
         {
-            entries.add(new MailboxEntry(mailAddress, email.getSender(), email.getSubject(), email.getReceiveTime(),
-                                         email.getMessage()));
+            MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email.getSender(), email.getSubject(),
+                                                         email.getReceiveTime(), email.getMessage());
+            if (subjectPattern.matcher(mailboxEntry.subject).matches() //
+                && plainTextPattern.matcher(mailboxEntry.textContent).matches() //
+                && htmlTextPattern.matcher(mailboxEntry.htmlContent).matches())
+            {
+                entries.add(mailboxEntry);
+            }
         }
 
         String formatParameter = context.getParameter("format", "html").toLowerCase();
+
         if ("html".equals(formatParameter))
         {
             Result html = Results.html();
@@ -937,7 +964,8 @@ public class BoxHandler
         {
             MBox mailbox = mailboxes.get(i);
             List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId())
-                                    .setMaxRows(xcmConfiguration.MAILBOX_MAX_MAIL_COUNT).findList();
+                                    .setMaxRows(xcmConfiguration.MAILBOX_MAX_MAIL_COUNT).order("recieve_time")
+                                    .findList();
             for (Mail mail : mails)
             {
                 result.add(new MailboxEntry(mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
