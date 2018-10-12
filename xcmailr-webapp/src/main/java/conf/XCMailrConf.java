@@ -185,6 +185,11 @@ public class XCMailrConf
      */
     public final int TEMPORARY_MAIL_MAX_VALID_TIME;
 
+    /**
+     * The maximum amount of mails that should be displayed in the mailbox.
+     */
+    public final int MAILBOX_MAX_MAIL_COUNT;
+
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
     {
@@ -233,5 +238,6 @@ public class XCMailrConf
         MAX_MAIL_SIZE = ninjaProp.getIntegerOrDie("mbox.mail.maxsize");
         TEMPORARY_MAIL_MAX_VALID_TIME = ninjaProp.getIntegerOrDie("application.temporarymail.maximumvalidtime");
 
+        MAILBOX_MAX_MAIL_COUNT = ninjaProp.getIntegerOrDie("application.mailbox.maxdisplaycount");
     }
 }

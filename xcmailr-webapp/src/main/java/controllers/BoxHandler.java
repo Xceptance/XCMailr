@@ -936,7 +936,8 @@ public class BoxHandler
         for (int i = 0; i < mailboxes.size(); i++)
         {
             MBox mailbox = mailboxes.get(i);
-            List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
+            List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId())
+                                    .setMaxRows(xcmConfiguration.MAILBOX_MAX_MAIL_COUNT).findList();
             for (Mail mail : mails)
             {
                 result.add(new MailboxEntry(mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
