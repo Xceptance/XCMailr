@@ -62,12 +62,12 @@ public class Mail extends AbstractEntity implements Serializable
         this.subject = subject;
     }
 
-    public long getRecieveTime()
+    public long getReceiveTime()
     {
         return recieveTime;
     }
 
-    public void setRecieveTime(long recieveTime)
+    public void setReceiveTime(long recieveTime)
     {
         this.recieveTime = recieveTime;
     }

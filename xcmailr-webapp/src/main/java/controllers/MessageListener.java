@@ -366,7 +366,7 @@ public class MessageListener implements SimpleMessageListener
         newMail.setSender(from);
         newMail.setSubject(mail.getSubject());
         newMail.setMessage(rawMessage);
-        newMail.setRecieveTime(System.currentTimeMillis());
+        newMail.setReceiveTime(System.currentTimeMillis());
 
         Ebean.save(newMail);
     }

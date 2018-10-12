@@ -903,7 +903,7 @@ public class BoxHandler
 
         for (Mail email : emails)
         {
-            entries.add(new MailboxEntry(mailAddress, email.getSender(), email.getSubject(), email.getRecieveTime(),
+            entries.add(new MailboxEntry(mailAddress, email.getSender(), email.getSubject(), email.getReceiveTime(),
                                          email.getMessage()));
         }
 
@@ -941,7 +941,7 @@ public class BoxHandler
             for (Mail mail : mails)
             {
                 result.add(new MailboxEntry(mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
-                                            mail.getRecieveTime(), mail.getMessage()));
+                                            mail.getReceiveTime(), mail.getMessage()));
             }
         }
 
