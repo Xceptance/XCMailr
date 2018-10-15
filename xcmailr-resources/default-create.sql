@@ -21,7 +21,7 @@ create table mail (
   id                        bigint not null,
   sender                    varchar(255),
   subject                   varchar(255) not null,
-  recieve_time              bigint not null,
+  receive_time              bigint not null,
   message                   clob,
   mailbox_id                bigint,
   constraint pk_mail primary key (id))

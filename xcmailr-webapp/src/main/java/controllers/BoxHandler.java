@@ -962,7 +962,7 @@ public class BoxHandler
         {
             MBox mailbox = mailboxes.get(i);
             List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId())
-                                    .setMaxRows(xcmConfiguration.MAILBOX_MAX_MAIL_COUNT).order("recieve_time")
+                                    .setMaxRows(xcmConfiguration.MAILBOX_MAX_MAIL_COUNT).order("receive_time")
                                     .findList();
             for (Mail mail : mails)
             {

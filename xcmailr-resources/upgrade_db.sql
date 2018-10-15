@@ -15,6 +15,7 @@ create table if not exists mail (
   mailbox_id                bigint,
   constraint pk_mail primary key (id)
 );
+alter table mail alter column recieve_time rename to receive_time;
 
 -- create table that holds mail statistics
 create table if not exists MAIL_STATISTICS (
