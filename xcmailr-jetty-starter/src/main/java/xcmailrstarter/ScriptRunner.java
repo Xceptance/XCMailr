@@ -71,6 +71,14 @@ public class ScriptRunner
                 Log.info("Finished executing upgrade DB script. Remove parameter \"xcmailr.xcmstart.upgrade\" then start XCMailr again.");
                 System.exit(0);
             }
+
+            String customSqlScript = System.getProperty("xcmailr.xcmstart.script");
+            if (customSqlScript != null)
+            {
+                Log.info("Run sql script: " + customSqlScript);
+                runScript(config, customSqlScript);
+                System.exit(0);
+            }
         }
         catch (Exception e)
         {
