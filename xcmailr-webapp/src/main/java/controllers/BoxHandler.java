@@ -878,11 +878,9 @@ public class BoxHandler
         // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
         // logged-in)
         cachingSessionHandler.setSessionUser(user, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
-
         context.getSession().put("username", user.getMail());
 
         String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress.toLowerCase());
-
         MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
 
         if (mailbox == null)
