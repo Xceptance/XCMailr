@@ -69,7 +69,7 @@ public class ExpirationService implements Runnable
 
         // delete expired mails
         long olderThan10Minutes = System.currentTimeMillis() - (10 * 60 * 1000);
-        List<Mail> findList = Ebean.find(Mail.class).where().lt("recieveTime", olderThan10Minutes).findList();
+        List<Mail> findList = Ebean.find(Mail.class).where().lt("receiveTime", olderThan10Minutes).findList();
         findList.forEach((mail) -> {
             mail.delete();
         });
