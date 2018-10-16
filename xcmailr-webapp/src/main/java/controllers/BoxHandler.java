@@ -898,12 +898,15 @@ public class BoxHandler
         List<MBox> userMailBoxes = new LinkedList<>();
         userMailBoxes.add(mailbox);
 
-        List<Mail> emails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
-        List<MailboxEntry> entries = new LinkedList<>();
+        List<Mail> emails = Ebean.find(Mail.class).where() //
+                                 .eq("mailbox_id", mailbox.getId()) //
+                                 .order("receiveTime")//
+                                 .findList();
 
         String subjectRegex = context.getParameter("subjectRegex", ".*");
         String plainTextRegex = context.getParameter("plainTextRegex", ".*");
         String htmlTextRegex = context.getParameter("htmlTextRegex", ".*");
+        boolean lastMatch = context.getParameterAs("lastMatch", Boolean.class, false);
 
         Pattern subjectPattern = null;
         Pattern plainTextPattern = null;
@@ -919,6 +922,7 @@ public class BoxHandler
             return Results.badRequest();
         }
 
+        List<MailboxEntry> entries = new LinkedList<>();
         for (Mail email : emails)
         {
             MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email.getSender(), email.getSubject(),
@@ -929,6 +933,14 @@ public class BoxHandler
             {
                 entries.add(mailboxEntry);
             }
+        }
+
+        if (entries.size() > 1 && lastMatch)
+        {
+            // only retrieve the last match
+            MailboxEntry lastEntry = entries.get(entries.size() - 1);
+            entries.clear();
+            entries.add(lastEntry);
         }
 
         String formatParameter = context.getParameter("format", "html").toLowerCase();
