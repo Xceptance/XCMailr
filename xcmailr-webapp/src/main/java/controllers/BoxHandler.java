@@ -906,16 +906,19 @@ public class BoxHandler
         String subjectRegex = context.getParameter("subjectRegex", ".*");
         String plainTextRegex = context.getParameter("plainTextRegex", ".*");
         String htmlTextRegex = context.getParameter("htmlTextRegex", ".*");
-        boolean lastMatch = context.getParameterAs("lastMatch", Boolean.class, false);
+        String rawMailRegex = context.getParameter("rawMailRegex", ".*");
+        boolean lastMatch = context.getParameter("lastMatch") == null ? false : true;
 
         Pattern subjectPattern = null;
         Pattern plainTextPattern = null;
         Pattern htmlTextPattern = null;
+        Pattern rawMailPattern = null;
         try
         {
             subjectPattern = Pattern.compile(subjectRegex);
             plainTextPattern = Pattern.compile(plainTextRegex);
             htmlTextPattern = Pattern.compile(htmlTextRegex);
+            rawMailPattern = Pattern.compile(rawMailRegex);
         }
         catch (PatternSyntaxException e)
         {
@@ -929,7 +932,8 @@ public class BoxHandler
                                                          email.getReceiveTime(), email.getMessage());
             if (subjectPattern.matcher(mailboxEntry.subject).matches() //
                 && plainTextPattern.matcher(mailboxEntry.textContent).matches() //
-                && htmlTextPattern.matcher(mailboxEntry.htmlContent).matches())
+                && htmlTextPattern.matcher(mailboxEntry.htmlContent).matches() //
+                && rawMailPattern.matcher(mailboxEntry.rawContent).matches())
             {
                 entries.add(mailboxEntry);
             }
@@ -947,6 +951,9 @@ public class BoxHandler
 
         if ("html".equals(formatParameter))
         {
+            // remove raw mail content
+            clearRawMailFromList(entries);
+
             Result html = Results.html();
             html.render("accountEmails", entries);
             html.render("mailaddress", mailAddress);
@@ -955,11 +962,32 @@ public class BoxHandler
         }
         else if ("json".equals(formatParameter))
         {
+            // remove raw mail content
+            clearRawMailFromList(entries);
+
             return Results.json().status(Result.SC_200_OK).render(entries);
+        }
+        else if ("raw".equals(formatParameter))
+        {
+            List<String> rawMails = new LinkedList<>();
+            for (MailboxEntry mailboxEntry : entries)
+            {
+                rawMails.add(mailboxEntry.rawContent);
+            }
+
+            return Results.json().status(Result.SC_200_OK).render(rawMails);
         }
         else
         {
             return Results.forbidden();
+        }
+    }
+
+    private void clearRawMailFromList(List<MailboxEntry> entries)
+    {
+        for (MailboxEntry mailboxEntry : entries)
+        {
+            mailboxEntry.rawContent = "";
         }
     }
 

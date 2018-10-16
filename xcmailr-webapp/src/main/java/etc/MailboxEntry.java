@@ -27,11 +27,14 @@ public class MailboxEntry
 
     public List<AttachmentEntry> attachments = new LinkedList<>();
 
+    public String rawContent;
+
     public MailboxEntry(String mailAddress, String sender, String subject, long receivedTime, String rawContent)
         throws Exception
     {
         this.mailAddress = mailAddress;
         this.sender = sender;
+        this.rawContent = rawContent;
         this.subject = subject == null ? "" : subject;
         this.receivedTime = receivedTime;
 
