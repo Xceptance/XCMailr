@@ -915,10 +915,10 @@ public class BoxHandler
         Pattern rawMailPattern = null;
         try
         {
-            subjectPattern = Pattern.compile(subjectRegex);
-            plainTextPattern = Pattern.compile(plainTextRegex);
-            htmlTextPattern = Pattern.compile(htmlTextRegex);
-            rawMailPattern = Pattern.compile(rawMailRegex);
+            subjectPattern = Pattern.compile(subjectRegex, Pattern.MULTILINE | Pattern.DOTALL);
+            plainTextPattern = Pattern.compile(plainTextRegex, Pattern.MULTILINE | Pattern.DOTALL);
+            htmlTextPattern = Pattern.compile(htmlTextRegex, Pattern.MULTILINE | Pattern.DOTALL);
+            rawMailPattern = Pattern.compile(rawMailRegex, Pattern.MULTILINE | Pattern.DOTALL);
         }
         catch (PatternSyntaxException e)
         {
