@@ -33,7 +33,7 @@ public class MessageListenerLoopCheckTest
      * @throws FileNotFoundException
      */
     @Test
-    @Ignore
+    @Ignore // TODO: disabled due to broken loop detection
     public void testReturnPath() throws MessagingException, FileNotFoundException
     {
         MimeMessage mail = loadMailFromFile("ReturnPath.eml");
@@ -223,7 +223,7 @@ public class MessageListenerLoopCheckTest
      * @throws MessagingException
      */
     @Test
-    @Ignore
+    @Ignore // TODO: disabled due to broken loop detection
     public void testOutOfOffice() throws FileNotFoundException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("outofoffice.eml");
@@ -239,7 +239,7 @@ public class MessageListenerLoopCheckTest
      * @throws MessagingException
      */
     @Test
-    @Ignore
+    @Ignore // TODO: disabled due to broken loop detection
     public void testBounceMail() throws FileNotFoundException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("bouncemail.eml");
