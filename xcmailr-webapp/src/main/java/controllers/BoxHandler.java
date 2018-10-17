@@ -933,10 +933,12 @@ public class BoxHandler
         {
             MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email.getSender(), email.getSubject(),
                                                          email.getReceiveTime(), email.getMessage());
-            if (subjectPattern.matcher(mailboxEntry.subject).matches() //
-                && plainTextPattern.matcher(mailboxEntry.textContent).matches() //
-                && htmlTextPattern.matcher(mailboxEntry.htmlContent).matches() //
-                && rawMailPattern.matcher(mailboxEntry.rawContent).matches())
+            if (true //
+                && senderPattern.matcher(mailboxEntry.sender).find() //
+                && subjectPattern.matcher(mailboxEntry.subject).find() //
+                && plainTextPattern.matcher(mailboxEntry.textContent).find() //
+                && htmlTextPattern.matcher(mailboxEntry.htmlContent).find() //
+                && rawMailPattern.matcher(mailboxEntry.rawContent).find())
             {
                 entries.add(mailboxEntry);
             }
