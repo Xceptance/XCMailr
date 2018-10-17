@@ -956,6 +956,8 @@ public class BoxHandler
 
         if ("html".equals(formatParameter))
         {
+            // display content site embedded
+
             // remove raw mail content
             clearRawMailFromList(entries);
 
@@ -967,6 +969,8 @@ public class BoxHandler
         }
         else if ("json".equals(formatParameter))
         {
+            // return content as json structure
+
             // remove raw mail content
             clearRawMailFromList(entries);
 
@@ -974,10 +978,19 @@ public class BoxHandler
         }
         else if ("plain".equals(formatParameter))
         {
+            // output plain mail
+
+            // plain mail output supports only one item at a time
             List<String> rawMails = new LinkedList<>();
             for (MailboxEntry mailboxEntry : entries)
             {
                 rawMails.add(mailboxEntry.rawContent);
+            }
+
+            if (entries.size() > 1)
+            {
+                // render error?! html error? json object containing error message? no clue
+                return Results.status(400);
             }
 
             return Results.json().status(Result.SC_200_OK).render(rawMails);
