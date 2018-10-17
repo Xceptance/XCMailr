@@ -903,10 +903,11 @@ public class BoxHandler
                                  .order("receiveTime")//
                                  .findList();
 
-        String subjectRegex = context.getParameter("subjectRegex", ".*");
-        String plainTextRegex = context.getParameter("plainTextRegex", ".*");
-        String htmlTextRegex = context.getParameter("htmlTextRegex", ".*");
-        String rawMailRegex = context.getParameter("rawMailRegex", ".*");
+        String senderRegex = context.getParameter("from", ".*");
+        String subjectRegex = context.getParameter("subject", ".*");
+        String plainTextRegex = context.getParameter("textContent", ".*");
+        String htmlTextRegex = context.getParameter("htmlContent", ".*");
+        String rawMailRegex = context.getParameter("plainMail", ".*");
         boolean lastMatch = context.getParameter("lastMatch") == null ? false : true;
 
         Pattern subjectPattern = null;
