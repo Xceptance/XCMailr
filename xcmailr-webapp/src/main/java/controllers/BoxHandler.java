@@ -910,12 +910,14 @@ public class BoxHandler
         String rawMailRegex = context.getParameter("plainMail", ".*");
         boolean lastMatch = context.getParameter("lastMatch") == null ? false : true;
 
+        Pattern senderPattern = null;
         Pattern subjectPattern = null;
         Pattern plainTextPattern = null;
         Pattern htmlTextPattern = null;
         Pattern rawMailPattern = null;
         try
         {
+            senderPattern = Pattern.compile(senderRegex, Pattern.MULTILINE | Pattern.DOTALL);
             subjectPattern = Pattern.compile(subjectRegex, Pattern.MULTILINE | Pattern.DOTALL);
             plainTextPattern = Pattern.compile(plainTextRegex, Pattern.MULTILINE | Pattern.DOTALL);
             htmlTextPattern = Pattern.compile(htmlTextRegex, Pattern.MULTILINE | Pattern.DOTALL);
