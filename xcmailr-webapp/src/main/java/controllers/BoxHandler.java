@@ -972,7 +972,7 @@ public class BoxHandler
 
             return Results.json().status(Result.SC_200_OK).render(entries);
         }
-        else if ("raw".equals(formatParameter))
+        else if ("plain".equals(formatParameter))
         {
             List<String> rawMails = new LinkedList<>();
             for (MailboxEntry mailboxEntry : entries)
