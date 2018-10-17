@@ -956,7 +956,7 @@ public class BoxHandler
 
         if ("html".equals(formatParameter))
         {
-            // display content site embedded
+            // display content embedded in the site
 
             // remove raw mail content
             clearRawMailFromList(entries);
