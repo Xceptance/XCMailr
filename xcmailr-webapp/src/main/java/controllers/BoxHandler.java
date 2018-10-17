@@ -943,16 +943,16 @@ public class BoxHandler
                 entries.add(mailboxEntry);
             }
         }
+        String formatParameter = context.getParameter("format", "html").toLowerCase();
 
-        if (entries.size() > 1 && lastMatch)
+        if ((entries.size() > 1 && lastMatch) || "plain".equals(formatParameter))
         {
-            // only retrieve the last match
+            // only retrieve the last match, also for plain format since we can not distinct multiple entries in the
+            // output
             MailboxEntry lastEntry = entries.get(entries.size() - 1);
             entries.clear();
             entries.add(lastEntry);
         }
-
-        String formatParameter = context.getParameter("format", "html").toLowerCase();
 
         if ("html".equals(formatParameter))
         {
@@ -980,20 +980,13 @@ public class BoxHandler
         {
             // output plain mail
 
-            // plain mail output supports only one item at a time
-            List<String> rawMails = new LinkedList<>();
-            for (MailboxEntry mailboxEntry : entries)
+            // safety check
+            if (entries.size() == 0 || entries.size() > 1)
             {
-                rawMails.add(mailboxEntry.rawContent);
+                return Results.badRequest();
             }
 
-            if (entries.size() > 1)
-            {
-                // render error?! html error? json object containing error message? no clue
-                return Results.status(400);
-            }
-
-            return Results.json().status(Result.SC_200_OK).render(rawMails);
+            return Results.text().render(entries.get(0).rawContent);
         }
         else
         {
