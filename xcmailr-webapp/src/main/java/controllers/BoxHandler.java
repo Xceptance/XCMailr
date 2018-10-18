@@ -164,6 +164,7 @@ public class BoxHandler
                 randomName = RandomStringUtils.randomAlphanumeric(7).toLowerCase();
             }
         }
+        mailboxData.setForwardEmails(true); // default value
 
         // set a default entry for the validity-period
         // per default now+1h
