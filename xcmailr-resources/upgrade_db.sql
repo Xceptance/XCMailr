@@ -29,3 +29,8 @@ create table if not exists MAIL_STATISTICS (
 );
 
 create sequence if not exists mail_seq;
+
+
+
+alter table MAILBOXES add column if not exists forward_emails boolean default true;
+alter table users add column if not exists API_TOKEN_EXPIRATION bigint default 0;
