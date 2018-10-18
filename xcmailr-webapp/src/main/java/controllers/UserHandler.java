@@ -17,6 +17,7 @@
 package controllers;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -264,9 +265,15 @@ public class UserHandler
 
         User user = context.getAttribute("user", User.class);
         user.setApiToken(newToken);
+
+        // set token expiration 1 month in the future
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MONTH, 1);
+
+        user.setApiTokenExpiration(calendar.getTimeInMillis());
         user.save();
 
-        result.render(new ApiToken(newToken));
+        result.render(new ApiToken(newToken, calendar.getTimeInMillis()));
 
         return result;
     }

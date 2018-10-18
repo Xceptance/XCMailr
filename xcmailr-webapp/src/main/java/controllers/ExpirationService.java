@@ -1,6 +1,7 @@
 package controllers;
 
 import java.sql.Date;
+import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -22,6 +23,7 @@ import models.Mail;
 import models.MailStatistics;
 import models.MailStatisticsKey;
 import models.MailTransaction;
+import models.User;
 
 public class ExpirationService implements Runnable
 {
@@ -70,8 +72,24 @@ public class ExpirationService implements Runnable
         // delete expired mails
         long olderThan10Minutes = System.currentTimeMillis() - (10 * 60 * 1000);
         List<Mail> findList = Ebean.find(Mail.class).where().lt("receiveTime", olderThan10Minutes).findList();
-        findList.forEach((mail) -> {
-            mail.delete();
+
+        if (findList.size() > 0)
+        {
+            findList.forEach((mail) -> {
+                mail.delete();
+            });
+            log.info(MessageFormat.format("deleted {0} emails", findList.size()));
+        }
+
+        // delete expired API token
+        List<User> expiredUserToken = Ebean.find(User.class).where()
+                                           .between("apiTokenExpiration", 1, System.currentTimeMillis()).findList();
+
+        expiredUserToken.forEach((user) -> {
+            user.setApiToken(null);
+            user.setApiTokenExpiration(0);
+            user.save();
+            log.info(MessageFormat.format("User API token expired for user {0}", user.getMail()));
         });
 
         // add the new Mailtransactions

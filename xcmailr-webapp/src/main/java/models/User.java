@@ -111,6 +111,11 @@ public class User extends AbstractEntity implements Serializable
     @Column(name = "apitoken")
     private String apiToken;
 
+    /**
+     * the timestamp when the token will expire
+     */
+    private long apiTokenExpiration;
+
     // ----------------------------- Getter and Setter ------------------------
     /**
      * Default-Constructor, just initializes the Variables
@@ -372,6 +377,16 @@ public class User extends AbstractEntity implements Serializable
     public void setApiToken(String apiToken)
     {
         this.apiToken = apiToken;
+    }
+
+    public long getApiTokenExpiration()
+    {
+        return apiTokenExpiration;
+    }
+
+    public void setApiTokenExpiration(long apiTokenExpiration)
+    {
+        this.apiTokenExpiration = apiTokenExpiration;
     }
 
     // ---------------------------- EBean-Functions----------------------
