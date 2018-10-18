@@ -286,6 +286,11 @@ public class MessageListener implements SimpleMessageListener
             // write to mail table
             persistMail(mailBox, from, mail, rawContent);
 
+            // check if the mail address is configured to forward emails
+            // the mail is still persisted (see above)
+            if (!mailBox.isForwardEmails())
+                return;
+
             // check for a possible loop ...
             String loopError = checkForLoop(mail);
             if (loopError != null)

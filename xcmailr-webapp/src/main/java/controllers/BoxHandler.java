@@ -544,6 +544,13 @@ public class BoxHandler
             mailBox.setTs_Active(ts);
             changes = true;
         }
+
+        if (mailBox.isForwardEmails() != mailboxFormData.isForwardEmails())
+        {
+            mailBox.setForwardEmails(mailboxFormData.isForwardEmails());
+            changes = true;
+        }
+
         // Updates the Box if changes were made
         if (changes)
         {
