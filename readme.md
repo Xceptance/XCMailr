@@ -75,6 +75,53 @@ So you host XCMailr yourself, you control security, you control availability, yo
 
 * We set the basedir to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it can be reached with this configuration at http://mydomain/xcmailr. 
 
+
+## 
+
+## API Token
+XCMailr supports API token to access some XCMailr functionality without using e-mail and password to authenticate. An API token can be genererated in the edit profile menu.
+[token](images/API_Token.png)
+
+You can create a new token or revoke an earlier generated token.
+
+## API
+An http based API was added to XCMailr containing the following functionality.
+
+### Create a temporary email address
+Create a new temporary email address that will be associated with you already registered account. That temporary email address has a limited life span which can be defined with parameter validTime. The parameter is a natural number indicating how many minutes that temporary email will be active. The upper limit for the maximum allowed time span can be configured in application.conf (application.temporarymail.maximumvalidtime, default value is 30).
+
+The parameter mailAddress is the full address that is desired to claim. E.g. foo@bar.com provided that you configured XCMailr to serve email for bar.com
+The parameter token is the token that can be created in thee edit profile menu. 
+   
+http://xcmailrhost/create/temporaryMail/{token}/{mailAddress}/{validTime}
+
+e.g. http://xcmailrhost/create/temporaryMail/MyAccessToken/foo@bar.com/5
+Uses the token (here "MyAccessToken" for) to claim address foo@bar.com. The mail address can receive emails for 5 minutes before the address expires. An expired address can be reactivated by using the same call given that your account is associated with the desired address. In case another account claimed that address before a http error is thrown.  
+
+In case of any error during temporary mail creation an http error is thrown, no further advice is given.
+
+### Access mailbox
+XCMailr behavior has changed recently. Emails sent to an active mail address will now be saved for a limited time (10 minutes, this can't be changed at the moment). The received emails can be accessed through the web interface. See "My Emails" once you are logged in.
+  
+There is also an API functionality which allows to also filter received emails for a given mail address. In order to do so one can use the following URL and the following parameter.
+mailAddress is the full address that is claimed by the used account. The parameter token can be generated in the edit profile dialog 
+http://xcmailrhost/mailbox/{mailAddress}/{token} 
+
+Url parameter
+
+from: a regular expression to find in the address the mail was sent from
+subject: a regular expression to find in the emails subject
+textContent: a regular expression to find in the emails text content
+htmlContent: a regular expression to find in the emails html content
+plainMail: a regular expression to find in the plain mails
+lastMatch: a parameter without value that limits the result set to one entry. This is the last filter that will be applied to result set.
+format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "json" and "plain". With format json the results will be returned as json formatted string. The format plain is used to retrieve the mail in the format the mail server received it. This contains also all email header and encoding fields. Also the plain format will automatically limit the results to one entry since multiple results could hardly distinguished in the repsonse.
+
+Note: plain mail filter will be used on the mails raw byte stream that is stored on receive.
+
+http://xcmailrhost/mailbox/foo@bar.com/MyAccessToken?subject=
+
+
 ## Frameworks/Librarys/Code/etc. Provided by Others
 ### AngularJS
 * http://angularjs.org
