@@ -81,13 +81,19 @@ public class ExpirationService implements Runnable
             log.info(MessageFormat.format("deleted {0} emails", findList.size()));
         }
 
+        // set token expiration
+        Calendar tokenExpiration = Calendar.getInstance();
+        tokenExpiration.add(Calendar.DAY_OF_MONTH, -1 * xcmConfiguration.APITOKEN_EXPIRATION);
+
         // delete expired API token
-        List<User> expiredUserToken = Ebean.find(User.class).where()
-                                           .between("apiTokenExpiration", 1, System.currentTimeMillis()).findList();
+        List<User> expiredUserToken = Ebean.find(User.class).where() //
+                                           .between("API_TOKEN_CREATION_TIMESTAMP", 1,
+                                                    tokenExpiration.getTimeInMillis())
+                                           .findList();
 
         expiredUserToken.forEach((user) -> {
             user.setApiToken(null);
-            user.setApiTokenExpiration(0);
+            user.setApiTokenCreationTimestamp(0);
             user.save();
             log.info(MessageFormat.format("User API token expired for user {0}", user.getMail()));
         });

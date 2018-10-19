@@ -112,9 +112,9 @@ public class User extends AbstractEntity implements Serializable
     private String apiToken;
 
     /**
-     * the timestamp when the token will expire
+     * the timestamp when the token was created
      */
-    private long apiTokenExpiration;
+    private long apiTokenCreationTimestamp;
 
     // ----------------------------- Getter and Setter ------------------------
     /**
@@ -379,14 +379,14 @@ public class User extends AbstractEntity implements Serializable
         this.apiToken = apiToken;
     }
 
-    public long getApiTokenExpiration()
+    public long getApiTokenCreationTimestamp()
     {
-        return apiTokenExpiration;
+        return apiTokenCreationTimestamp;
     }
 
-    public void setApiTokenExpiration(long apiTokenExpiration)
+    public void setApiTokenCreationTimestamp(long timestamp)
     {
-        this.apiTokenExpiration = apiTokenExpiration;
+        this.apiTokenCreationTimestamp = timestamp;
     }
 
     // ---------------------------- EBean-Functions----------------------

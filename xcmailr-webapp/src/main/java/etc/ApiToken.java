@@ -4,11 +4,8 @@ public class ApiToken
 {
     public String token;
 
-    public long expirationTimestamp;
-
-    public ApiToken(String token, long expirationTimestamp)
+    public ApiToken(String token)
     {
         this.token = token;
-        this.expirationTimestamp = expirationTimestamp;
     }
 }
