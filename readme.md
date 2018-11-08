@@ -91,7 +91,7 @@ An http based API was added to XCMailr containing the following functionality.
 Create a new temporary email address that will be associated with you already registered account. That temporary email address has a limited life span which can be defined with parameter validTime. The parameter is a natural number indicating how many minutes that temporary email will be active. The upper limit for the maximum allowed time span can be configured in application.conf (application.temporarymail.maximumvalidtime, default value is 30).
 
 The parameter mailAddress is the full address that is desired to claim. E.g. foo@bar.com provided that you configured XCMailr to serve email for bar.com
-The parameter token is the token that can be created in thee edit profile menu. 
+The parameter token is the token that can be created in the edit profile menu. 
    
 http://xcmailrhost/create/temporaryMail/{token}/{mailAddress}/{validTime}
 
