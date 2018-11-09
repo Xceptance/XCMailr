@@ -86,28 +86,28 @@
 	<!-- end statistics table -->
 	
 	<script>
-		var lastDayTimestamps = [<#list lastDayTimestamps as value>${value},</#list>]
-		var lastDayDroppedData = [<#list lastDayDroppedData as value>${value},</#list>]
-		var lastDayForwardedData = [<#list lastDayForwardedData as value>${value},</#list>]
+		let lastDayTimestamps = [<#list lastDayTimestamps as value>${value},</#list>]
+		let lastDayDroppedData = [<#list lastDayDroppedData as value>${value},</#list>]
+		let lastDayForwardedData = [<#list lastDayForwardedData as value>${value},</#list>]
 		
-		var lastWeekTimestamps = [<#list lastWeekTimestamps as value>${value},</#list>]
-		var lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
-		var lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
+		let lastWeekTimestamps = [<#list lastWeekTimestamps as value>${value},</#list>]
+		let lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
+		let lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
 		
-		var currentDayData = [];
-		for (var i = 0; i < lastDayDroppedData.length; i++) {
+		let currentDayData = [];
+		for (let i = 0; i < lastDayDroppedData.length; i++) {
 			currentDayData[i] = { "y": lastDayDroppedData[i],
 						   	      "t": lastDayTimestamps[i]};
 		}
 		
-		var currentWeekData = [];
-		for (var i = 0; i < lastWeekDroppedData.length; i++) {
+		let currentWeekData = [];
+		for (let i = 0; i < lastWeekDroppedData.length; i++) {
 			currentWeekData[i] = {  "y": lastWeekDroppedData[i],
 						   	   		"t": lastWeekTimestamps[i]};
 		}
 		 
 	
-		var lastDayChart = new Chart(document.getElementById("lastDay").getContext('2d'), {
+		let lastDayChart = new Chart(document.getElementById("lastDay").getContext('2d'), {
 			type: 'line',
 			backgroundColor: '#ff6384',
 			
@@ -145,7 +145,7 @@
             }
 		});
 		
-		var lastWeekChart = new Chart(document.getElementById("lastWeek").getContext('2d'), {
+		let lastWeekChart = new Chart(document.getElementById("lastWeek").getContext('2d'), {
 			type: 'line',
 			data: {
 					labels: lastWeekTimestamps,
