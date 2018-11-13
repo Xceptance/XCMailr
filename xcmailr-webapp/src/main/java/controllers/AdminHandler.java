@@ -444,7 +444,15 @@ public class AdminHandler
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
-        int entries = Integer.parseInt(context.getSession().get("no"));
+        int entriesPerPage;
+        try
+        {
+            entriesPerPage = Integer.parseInt(context.getSession().get("no"));
+        }
+        catch (NumberFormatException e)
+        {
+            entriesPerPage = 15;
+        }
 
         List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0);
         PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entries);
