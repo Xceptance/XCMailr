@@ -152,11 +152,13 @@
 					datasets: [{
 						label: "${i18n("adminStatisticsDroppedMails")}",
 						data: lastDayDroppedData,
+						yAxisID: 'dropped',
 						borderColor: 'rgb(255, 99, 132)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }, {
 					  	label: "${i18n("adminStatisticsForwardedMails")}",
 						data: lastDayForwardedData,
+						yAxisID: 'forwarded',
 						borderColor: 'rgb(54, 162, 235)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }]
@@ -171,12 +173,35 @@
         	            }
             	    }],
             	    yAxes: [{
+            	    	id: 'dropped',
+            	    	position: 'left',
+            	    	type: 'linear',
+            	    	scaleLabel: {
+            	    		display: true,
+            	    		labelString: '${i18n("adminStatisticsDroppedMailsGraphAxesLabel")}'
+            	    	},
                 		ticks: {
                     		callback: function(value, index, values) {
                         		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                     		}
                 		}
+            		}, {
+            			id: 'forwarded',
+            			position: 'right',
+            			type: 'linear',
+            			scaleLabel: {
+            				display: true,
+            				labelString: '${i18n("adminStatisticsForwardedMailsGraphAxesLabel")}'
+            			},
+            			ticks: {
+            				callback: function(value, index, values) {
+            					return value.toString().replace(/\B(?=(\d{3})+(?!}d))/g, ".");
+            				}
+            			}
             		}]
+            	},
+            	animation: {
+            		duration: 100
             	}
             }
 		});
@@ -187,11 +212,13 @@
 					labels: lastWeekTimestamps,
 					datasets: [{
 						label: "${i18n("adminStatisticsDroppedMails")}",
+						yAxisID: 'dropped',
 						data: lastWeekDroppedData,
 						borderColor: 'rgb(255, 99, 132)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }, {
 						label: "${i18n("adminStatisticsForwardedMails")}",
+						yAxisID: 'forwarded',
 						data: lastWeekForwardedData,
 						borderColor: 'rgb(54, 162, 235)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
@@ -207,12 +234,35 @@
         	            }
             	    }],
             	    yAxes: [{
+            	    	id: 'dropped',
+            	    	position: 'left',
+            	    	type: 'linear',
+            	    	scaleLabel: {
+            	    		display: true,
+            	    		labelString: '${i18n("adminStatisticsDroppedMailsGraphAxesLabel")}'
+            	    	},
+                		ticks: {
+                    		callback: function(value, index, values) {
+                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    		}
+                		}
+            		}, {
+            			id: 'forwarded',
+            			position: 'right',
+            			type: 'linear',
+            			scaleLabel: {
+            				display: true,
+            				labelString: '${i18n("adminStatisticsForwardedMailsGraphAxesLabel")}'
+            			},
                 		ticks: {
                     		callback: function(value, index, values) {
                         		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     		}
                 		}
             		}]
+            	},
+            	animation: {
+            		duration: 0
             	}
             }
 		});
