@@ -225,7 +225,7 @@
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }]
 				  },
-			options: { 
+			options: {
 		    	scales: {
                 	xAxes: [{
                 		type: 'time',
@@ -255,7 +255,7 @@
             				display: true,
             				labelString: '${i18n("adminStatisticsForwardedMailsGraphAxesLabel")}'
             			},
-                		ticks: {
+            			ticks: {
                     		callback: function(value, index, values) {
                         		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     		}
