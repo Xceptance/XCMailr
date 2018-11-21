@@ -28,6 +28,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.joda.time.DateTime;
@@ -162,6 +164,7 @@ public class BoxHandler
                 randomName = RandomStringUtils.randomAlphanumeric(7).toLowerCase();
             }
         }
+        mailboxData.setForwardEmails(true); // default value
 
         // set a default entry for the validity-period
         // per default now+1h
@@ -542,6 +545,13 @@ public class BoxHandler
             mailBox.setTs_Active(ts);
             changes = true;
         }
+
+        if (mailBox.isForwardEmails() != mailboxFormData.isForwardEmails())
+        {
+            mailBox.setForwardEmails(mailboxFormData.isForwardEmails());
+            changes = true;
+        }
+
         // Updates the Box if changes were made
         if (changes)
         {
@@ -778,7 +788,7 @@ public class BoxHandler
         try
         {
             parsedValidTimeMinutes = Integer.valueOf(validTime);
-            if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > 30)
+            if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > xcmConfiguration.TEMPORARY_MAIL_MAX_VALID_TIME)
             {
                 return Results.badRequest();
             }
@@ -876,11 +886,9 @@ public class BoxHandler
         // session-expiration for admin-actions (e.g. if an admin deletes a user that is currently
         // logged-in)
         cachingSessionHandler.setSessionUser(user, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
-
         context.getSession().put("username", user.getMail());
 
         String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress.toLowerCase());
-
         MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
 
         if (mailbox == null)
@@ -898,18 +906,69 @@ public class BoxHandler
         List<MBox> userMailBoxes = new LinkedList<>();
         userMailBoxes.add(mailbox);
 
-        List<Mail> emails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
-        List<MailboxEntry> entries = new LinkedList<>();
+        List<Mail> emails = Ebean.find(Mail.class).where() //
+                                 .eq("mailbox_id", mailbox.getId()) //
+                                 .order("receiveTime")//
+                                 .findList();
 
-        for (Mail email : emails)
+        String senderRegex = context.getParameter("from", ".*");
+        String subjectRegex = context.getParameter("subject", ".*");
+        String plainTextRegex = context.getParameter("textContent", ".*");
+        String htmlTextRegex = context.getParameter("htmlContent", ".*");
+        String rawMailRegex = context.getParameter("plainMail", ".*");
+        boolean lastMatch = context.getParameter("lastMatch") == null ? false : true;
+
+        Pattern senderPattern = null;
+        Pattern subjectPattern = null;
+        Pattern plainTextPattern = null;
+        Pattern htmlTextPattern = null;
+        Pattern rawMailPattern = null;
+        try
         {
-            entries.add(new MailboxEntry(mailAddress, email.getSender(), email.getSubject(), email.getRecieveTime(),
-                                         email.getMessage()));
+            senderPattern = Pattern.compile(senderRegex, Pattern.MULTILINE | Pattern.DOTALL);
+            subjectPattern = Pattern.compile(subjectRegex, Pattern.MULTILINE | Pattern.DOTALL);
+            plainTextPattern = Pattern.compile(plainTextRegex, Pattern.MULTILINE | Pattern.DOTALL);
+            htmlTextPattern = Pattern.compile(htmlTextRegex, Pattern.MULTILINE | Pattern.DOTALL);
+            rawMailPattern = Pattern.compile(rawMailRegex, Pattern.MULTILINE | Pattern.DOTALL);
+        }
+        catch (PatternSyntaxException e)
+        {
+            return Results.badRequest();
         }
 
+        List<MailboxEntry> entries = new LinkedList<>();
+        for (Mail email : emails)
+        {
+            MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email.getSender(), email.getSubject(),
+                                                         email.getReceiveTime(), email.getMessage());
+            if (true //
+                && senderPattern.matcher(mailboxEntry.sender).find() //
+                && subjectPattern.matcher(mailboxEntry.subject).find() //
+                && plainTextPattern.matcher(mailboxEntry.textContent).find() //
+                && htmlTextPattern.matcher(mailboxEntry.htmlContent).find() //
+                && rawMailPattern.matcher(mailboxEntry.rawContent).find())
+            {
+                entries.add(mailboxEntry);
+            }
+        }
         String formatParameter = context.getParameter("format", "html").toLowerCase();
+
+        if ((entries.size() > 1 && lastMatch) || "plain".equals(formatParameter))
+        {
+            // only retrieve the last match, also for plain format since we can not distinct multiple entries in the
+            // output
+            MailboxEntry lastEntry = entries.get(entries.size() - 1);
+            entries.clear();
+            entries.add(lastEntry);
+        }
+
         if ("html".equals(formatParameter))
         {
+            // display content embedded in the site
+
+            // remove raw mail content
+            clearRawMailFromList(entries);
+
             Result html = Results.html();
             html.render("accountEmails", entries);
             html.render("mailaddress", mailAddress);
@@ -918,11 +977,36 @@ public class BoxHandler
         }
         else if ("json".equals(formatParameter))
         {
+            // return content as json structure
+
+            // remove raw mail content
+            clearRawMailFromList(entries);
+
             return Results.json().status(Result.SC_200_OK).render(entries);
+        }
+        else if ("plain".equals(formatParameter))
+        {
+            // output plain mail
+
+            // safety check
+            if (entries.size() == 0 || entries.size() > 1)
+            {
+                return Results.badRequest();
+            }
+
+            return Results.text().render(entries.get(0).rawContent);
         }
         else
         {
             return Results.forbidden();
+        }
+    }
+
+    private void clearRawMailFromList(List<MailboxEntry> entries)
+    {
+        for (MailboxEntry mailboxEntry : entries)
+        {
+            mailboxEntry.rawContent = "";
         }
     }
 
@@ -936,11 +1020,13 @@ public class BoxHandler
         for (int i = 0; i < mailboxes.size(); i++)
         {
             MBox mailbox = mailboxes.get(i);
-            List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId()).findList();
+            List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId())
+                                    .setMaxRows(xcmConfiguration.MAILBOX_MAX_MAIL_COUNT).order("receive_time")
+                                    .findList();
             for (Mail mail : mails)
             {
                 result.add(new MailboxEntry(mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
-                                            mail.getRecieveTime(), mail.getMessage()));
+                                            mail.getReceiveTime(), mail.getMessage()));
             }
         }
 

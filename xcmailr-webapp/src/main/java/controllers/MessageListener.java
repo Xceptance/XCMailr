@@ -270,15 +270,26 @@ public class MessageListener implements SimpleMessageListener
             final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
 
             final Session session = mailrSenderFactory.getSession();
-            session.setDebug(false); // TODO: enable configuration via application.conf
+            session.setDebug(xcmConfiguration.OUT_SMTP_DEBUG);
 
-            // TODO: reject big emails
+            // drop email if the size exceeds defined limit
+            if (data.available() > xcmConfiguration.MAX_MAIL_SIZE)
+            {
+                log.error("Cancel mail processing due to restriction of mail size. Dropped mail: " + from + " => "
+                          + recipient + ", size: " + data.available() + " bytes");
+                return;
+            }
 
             String rawContent = IOUtils.toString(data, Charset.defaultCharset());
             MimeMessage mail = new MimeMessage(session, new ByteArrayInputStream(rawContent.getBytes()));
 
             // write to mail table
             persistMail(mailBox, from, mail, rawContent);
+
+            // check if the mail address is configured to forward emails
+            // the mail is still persisted (see above)
+            if (!mailBox.isForwardEmails())
+                return;
 
             // check for a possible loop ...
             String loopError = checkForLoop(mail);
@@ -360,7 +371,7 @@ public class MessageListener implements SimpleMessageListener
         newMail.setSender(from);
         newMail.setSubject(mail.getSubject());
         newMail.setMessage(rawMessage);
-        newMail.setRecieveTime(System.currentTimeMillis());
+        newMail.setReceiveTime(System.currentTimeMillis());
 
         Ebean.save(newMail);
     }

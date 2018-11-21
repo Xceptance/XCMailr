@@ -137,7 +137,8 @@
 									</div>
 								</div>
 							</td>
-							<td ng-if="!mBox.expired"><span class="mailbox-status mailbox-status-mailActive">${i18n("mailbox_Label_MailActive")}<span></td>
+							<td ng-if="!mBox.expired && mBox.forwardEmails"><span class="mailbox-status mailbox-status-mailActive">${i18n("mailbox_Label_MailActive")}<span></td>
+							<td ng-if="!mBox.expired && !mBox.forwardEmails"><span class="mailbox-status mailbox-status-mailActive">${i18n("mailbox_Label_MailActiveNoForward")}<span></td>
 							<td ng-if="mBox.expired && (${ts_now} > mBox.ts_Active)"><span class="mailbox-status mailbox-status-mailExpired">${i18n("mailbox_Label_MailExpired")}</span></td>
 							<td ng-if="mBox.expired && (${ts_now} < mBox.ts_Active)"><span class="mailbox-status mailbox-status-mailInactive">${i18n("mailbox_Label_MailInactive")}</span></td>
 						</tr>

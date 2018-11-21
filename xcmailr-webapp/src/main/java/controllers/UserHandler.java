@@ -264,6 +264,7 @@ public class UserHandler
 
         User user = context.getAttribute("user", User.class);
         user.setApiToken(newToken);
+        user.setApiTokenCreationTimestamp(System.currentTimeMillis());
         user.save();
 
         result.render(new ApiToken(newToken));

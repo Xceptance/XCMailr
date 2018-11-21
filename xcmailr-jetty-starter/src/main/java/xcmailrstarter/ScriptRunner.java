@@ -16,9 +16,13 @@
  */
 package xcmailrstarter;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.text.MessageFormat;
 
 import org.h2.tools.RunScript;
 import org.mortbay.log.Log;
@@ -30,15 +34,18 @@ import org.mortbay.log.Log;
  */
 public class ScriptRunner
 {
+    private static final String CREATE_DB_SQL_FILE = "default-create.sql";
+
+    private static final String DROP_DB_SQL_FILE = "default-drop.sql";
+
+    private static final String UPGRADE_DB_SQL_FILE = "upgrade_db.sql";
 
     public ScriptRunner(StarterConf config)
     {
-        // Handle the connection
-        Connection connection;
         try
         {
+            Log.info("Load database driver: " + config.XCM_DB_DRIVER);
             Class.forName(config.XCM_DB_DRIVER);
-            Log.info("Driver Loaded.");
         }
         catch (Exception e)
         {
@@ -47,40 +54,29 @@ public class ScriptRunner
             System.exit(0);
         }
 
-        String fileName = "";
         try
         {
             if (System.getProperty("xcmailr.xcmstart.droptables") != null)
             {
-                connection = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
-                Log.info("Got Connection.");
-
-                // drop all XCMailr structures
-                Log.info("Execute database structure drop script");
-                fileName = "default-drop.sql";
-                RunScript.execute(connection, new FileReader(fileName));
-
-                // create XCMailr structures
-                Log.info("Execute database structure creation script");
-                fileName = "default-create.sql";
-                RunScript.execute(connection, new FileReader(fileName));
-
-                connection.close();
+                Log.info("Initialize DB structure");
+                runScript(config, DROP_DB_SQL_FILE, CREATE_DB_SQL_FILE);
                 Log.info("Finished executing DB initialization scripts. Remove parameter \"xcmailr.xcmstart.droptables\" then start XCMailr again.");
                 System.exit(0);
             }
 
             if (System.getProperty("xcmailr.xcmstart.upgrade") != null)
             {
-                connection = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
-                Log.info("Got Connection.");
-
-                Log.info("Upgrade DB using upgrade_db.sql");
-                fileName = "upgrade_db.sql";
-                RunScript.execute(connection, new FileReader(fileName));
-
-                connection.close();
+                Log.info("Start DB upgrade");
+                runScript(config, UPGRADE_DB_SQL_FILE);
                 Log.info("Finished executing upgrade DB script. Remove parameter \"xcmailr.xcmstart.upgrade\" then start XCMailr again.");
+                System.exit(0);
+            }
+
+            String customSqlScript = System.getProperty("xcmailr.xcmstart.script");
+            if (customSqlScript != null)
+            {
+                Log.info("Run sql script: " + customSqlScript);
+                runScript(config, customSqlScript);
                 System.exit(0);
             }
         }
@@ -90,5 +86,25 @@ public class ScriptRunner
             e.printStackTrace();
             System.exit(0);
         }
+    }
+
+    private void runScript(StarterConf config, String... filenames) throws FileNotFoundException, SQLException
+    {
+        if (filenames == null)
+        {
+            throw new IllegalArgumentException("Parameter filenames mustn't be null");
+        }
+
+        Log.info(MessageFormat.format("Open database: ''{0}'' as user  ''{1}''", config.XCM_DB_URL,
+                                      config.XCM_DB_USER));
+        Connection connection = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
+
+        for (String filename : filenames)
+        {
+            Log.info("Execute sql script from file: " + filename);
+            RunScript.execute(connection, new BufferedReader(new FileReader(filename)));
+        }
+        Log.info("Execution finished. Close database");
+        connection.close();
     }
 }

@@ -15,6 +15,7 @@ create table if not exists mail (
   mailbox_id                bigint,
   constraint pk_mail primary key (id)
 );
+alter table mail alter column recieve_time rename to receive_time;
 
 -- create table that holds mail statistics
 create table if not exists MAIL_STATISTICS (
@@ -28,3 +29,8 @@ create table if not exists MAIL_STATISTICS (
 );
 
 create sequence if not exists mail_seq;
+
+
+
+alter table MAILBOXES add column if not exists forward_emails boolean default true;
+alter table users add column if not exists API_TOKEN_EXPIRATION bigint default 0;

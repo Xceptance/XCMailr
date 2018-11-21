@@ -16,9 +16,10 @@
  */
 package conf;
 
-import ninja.utils.NinjaProperties;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import ninja.utils.NinjaProperties;
 
 /**
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
@@ -174,6 +175,26 @@ public class XCMailrConf
      */
     public final String SESSION_EXPIRETIME;
 
+    /**
+     * Maximum size of a single mail that will be handled. Mails that exceed that size will be dropped.
+     */
+    public final int MAX_MAIL_SIZE;
+
+    /**
+     * The maximum time a temporary mail can be valid
+     */
+    public final int TEMPORARY_MAIL_MAX_VALID_TIME;
+
+    /**
+     * The maximum amount of mails that should be displayed in the mailbox.
+     */
+    public final int MAILBOX_MAX_MAIL_COUNT;
+
+    /**
+     * The amount of days an API token should be valid
+     */
+    public final int APITOKEN_EXPIRATION;
+
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
     {
@@ -211,7 +232,7 @@ public class XCMailrConf
             OUT_SMTP_PASS = null;
         }
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
-        OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", true);
+        OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", false);
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");
         SESSION_EXPIRETIME = COOKIE_EXPIRETIME + "s";
         if (DOMAIN_LIST == null)
@@ -219,5 +240,10 @@ public class XCMailrConf
             throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "
                                        + "Otherwise this app will not work");
         }
+        MAX_MAIL_SIZE = ninjaProp.getIntegerOrDie("mbox.mail.maxsize");
+        TEMPORARY_MAIL_MAX_VALID_TIME = ninjaProp.getIntegerOrDie("application.temporarymail.maximumvalidtime");
+
+        MAILBOX_MAX_MAIL_COUNT = ninjaProp.getIntegerOrDie("application.mailbox.maxdisplaycount");
+        APITOKEN_EXPIRATION = ninjaProp.getIntegerOrDie("application.api.tokenexpirationtime");
     }
 }

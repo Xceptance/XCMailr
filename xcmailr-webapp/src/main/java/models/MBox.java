@@ -92,6 +92,9 @@ public class MBox extends AbstractEntity implements Serializable
     @JoinColumn(name = "usr_id", nullable = false)
     private User usr;
 
+    /** should emails forwarded for this address */
+    private boolean forwardEmails;
+
     /**
      * Default-Constructor
      */
@@ -833,5 +836,22 @@ public class MBox extends AbstractEntity implements Serializable
     public String toString()
     {
         return getFullAddress() + " " + getTSAsStringWithNull() + " expired:" + isExpired();
+    }
+
+    /**
+     * @return boolean indicating whether arriving emails should be forwarded to accounts email address or not
+     */
+    public boolean isForwardEmails()
+    {
+        return forwardEmails;
+    }
+
+    /**
+     * @param forwardEmails
+     *            set if emails should be forwarde to accounts email address or not
+     */
+    public void setForwardEmails(boolean forwardEmails)
+    {
+        this.forwardEmails = forwardEmails;
     }
 }

@@ -33,7 +33,7 @@ public class Mail extends AbstractEntity implements Serializable
      * timestamp when the email was received
      */
     @NotNull
-    private long recieveTime;
+    private long receiveTime;
 
     @Lob
     private String message;
@@ -62,14 +62,14 @@ public class Mail extends AbstractEntity implements Serializable
         this.subject = subject;
     }
 
-    public long getRecieveTime()
+    public long getReceiveTime()
     {
-        return recieveTime;
+        return receiveTime;
     }
 
-    public void setRecieveTime(long recieveTime)
+    public void setReceiveTime(long receiveTime)
     {
-        this.recieveTime = recieveTime;
+        this.receiveTime = receiveTime;
     }
 
     public String getMessage()

@@ -38,7 +38,7 @@ title=i18n("admin_Title_Transactions") >
 	    <tbody>
 	    <#list plist.getPage(curPage) as mtx>
 			<#switch mtx.status>
-		    		<#case 100> <tr class="error" id="$mtx{mtx.id}"> <#break>
+		    		<#case 100> <tr class="error" id="mtx${mtx.id}"> <#break>
 		    		<#case 200> <tr class="warning" id="mtx${mtx.id}"> <#break>
 		    		<#case 300> <tr class="success" id="mtx${mtx.id}"> <#break>
 		    		<#case 400> <tr class="error" id="mtx${mtx.id}"> <#break>
@@ -53,8 +53,8 @@ title=i18n("admin_Title_Transactions") >
 				    		<#case 200>	${i18n("admin_MtxStatus200")} <#break>
 				    		<#case 300> ${i18n("admin_MtxStatus300")} <#break>
 				    		<#case 400> ${i18n("admin_MtxStatus400")} <#break>
-						<#case 500> ${i18n("admin_MtxStatus500")} <#break>
-						<#case 600> ${i18n("admin_MtxStatus600")} <#break>
+							<#case 500> ${i18n("admin_MtxStatus500")} <#break>
+							<#case 600> ${i18n("admin_MtxStatus600")} <#break>
 				    		<#default> ${i18n("admin_MtxStatusUnknown")}
 				    	</#switch>
 				    </td>

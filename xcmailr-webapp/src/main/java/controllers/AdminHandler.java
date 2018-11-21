@@ -420,31 +420,39 @@ public class AdminHandler
         Result html = Results.html();
 
         // today statistics
-        List<Long> droppedMails = new LinkedList<>();
-        List<Long> forwardedMails = new LinkedList<>();
-        List<Long> timestamps = new LinkedList<>();
+        List<Long> dailyDroppedMails = new LinkedList<>();
+        List<Long> dailyForwardedMails = new LinkedList<>();
+        List<Long> dailyTimestamps = new LinkedList<>();
 
-        processStatisticsData(getStatistics(0, true), droppedMails, forwardedMails, timestamps);
+        processStatisticsData(getStatistics(0, true), dailyDroppedMails, dailyForwardedMails, dailyTimestamps);
 
-        html.render("lastDayTimestamps", timestamps);
-        html.render("lastDayDroppedData", droppedMails);
-        html.render("lastDayForwardedData", forwardedMails);
+        html.render("lastDayTimestamps", dailyTimestamps);
+        html.render("lastDayDroppedData", dailyDroppedMails);
+        html.render("lastDayForwardedData", dailyForwardedMails);
+
+        List<Long> weeklyDroppedMails = new LinkedList<>();
+        List<Long> weeklyForwardedMails = new LinkedList<>();
+        List<Long> weeklyTimestamps = new LinkedList<>();
 
         // week statistics
-        droppedMails = new LinkedList<>();
-        timestamps = new LinkedList<>();
-        forwardedMails = new LinkedList<>();
+        reduceStatisticsData(4, getStatistics(6, false), weeklyDroppedMails, weeklyForwardedMails, weeklyTimestamps);
 
-        reduceStatisticsData(4, getStatistics(6, false), droppedMails, forwardedMails, timestamps);
-
-        html.render("lastWeekTimestamps", timestamps);
-        html.render("lastWeekDroppedData", droppedMails);
-        html.render("lastWeekForwardedData", forwardedMails);
+        html.render("lastWeekTimestamps", weeklyTimestamps);
+        html.render("lastWeekDroppedData", weeklyDroppedMails);
+        html.render("lastWeekForwardedData", weeklyForwardedMails);
 
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
-        int entries = Integer.parseInt(context.getSession().get("no"));
+        int entriesPerPage;
+        try
+        {
+            entriesPerPage = Integer.parseInt(context.getSession().get("no"));
+        }
+        catch (NumberFormatException e)
+        {
+            entriesPerPage = 15;
+        }
 
         List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0);
         PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entries);

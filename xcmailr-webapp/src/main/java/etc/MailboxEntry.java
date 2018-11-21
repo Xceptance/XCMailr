@@ -1,5 +1,7 @@
 package etc;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,33 +21,42 @@ public class MailboxEntry
 
     public long receivedTime;
 
-    public String rawContent;
-
-    public String plainContent;
+    public String textContent;
 
     public String htmlContent;
 
     public List<AttachmentEntry> attachments = new LinkedList<>();
+
+    public String rawContent;
 
     public MailboxEntry(String mailAddress, String sender, String subject, long receivedTime, String rawContent)
         throws Exception
     {
         this.mailAddress = mailAddress;
         this.sender = sender;
-        this.subject = subject;
-        this.receivedTime = receivedTime;
         this.rawContent = rawContent;
+        this.subject = subject == null ? "" : subject;
+        this.receivedTime = receivedTime;
 
         MimeMessage mimeMessage = MimeMessageUtils.createMimeMessage(null, rawContent);
         MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
         mimeMessageParser.parse();
 
-        this.plainContent = mimeMessageParser.getPlainContent();
-        this.htmlContent = mimeMessageParser.getHtmlContent();
+        this.textContent = mimeMessageParser.getPlainContent() == null ? "" : mimeMessageParser.getPlainContent();
+        this.htmlContent = mimeMessageParser.getHtmlContent() == null ? "" : mimeMessageParser.getHtmlContent();
 
         for (DataSource attachment : mimeMessageParser.getAttachmentList())
         {
             attachments.add(new AttachmentEntry(attachment));
         }
     }
+
+    /**
+     * @return the Timestamp as String in the Format "dd.MM.yyyy hh:mm"
+     */
+    public String getReceivedTimeAsString()
+    {
+        return new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(this.receivedTime)).toString();
+    }
+
 }
