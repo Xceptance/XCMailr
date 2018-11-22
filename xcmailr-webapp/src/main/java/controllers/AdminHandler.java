@@ -493,6 +493,7 @@ public class AdminHandler
             MailStatisticsKey key = new MailStatisticsKey(null, 0, row.getString("FROM_DOMAIN"), null);
             ms.setKey(key);
             ms.setDropCount(row.getInteger("dropped"));
+            ms.setForwardCount(row.getInteger("forwarded"));
 
             droppedMailSender.add(ms);
         });
