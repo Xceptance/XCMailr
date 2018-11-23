@@ -3,16 +3,17 @@
 <div>
 	<h1 class="legendary">${i18n("adminStatisticsTitle")}</h1>
 		
-	<h3 class="legendary">${i18n("adminStatisticsToday")}</h3>
+	<span class="subheading">${i18n("adminStatisticsToday")}</span>
 	<canvas id="lastDay" width="600" height="200"></canvas>
-	
-	<h3 class="legendary">${i18n("adminStatisticsWeek")}</h3>
+	<#--  class="legendary" -->
+	<p></p>
+	<span class="subheading">${i18n("adminStatisticsWeek")}</span>
 	<canvas id="lastWeek" width="600" height="200"></canvas>
-	
-	<h3 class="legendary">${i18n("adminStatisticsTodaySenderDomains")}</h3>
+	<p></p>
 	
 	<!-- begin menu entries/page -->
-	<div class="pull-right">
+	<!--  class="pull-right" -->
+	<div>
 		<ul class="pagination">
 			<li class="disabled btn-xs"><a>${i18n("macro_EntriesPerPage")}</a></li>
 			<li><a class="btn btn-default btn-link btn-xs" href="?no=5">5</a></li>
@@ -20,8 +21,12 @@
 			<li><a class="btn btn-default btn-link btn-xs" href="?no=25">25</a></li>
 			<li><a class="btn btn-default btn-link btn-xs" href="?no=all">all</a></li>
 		</ul>
-	</div><!-- /pagination -->
+	</div>
+	<!-- /pagination -->
 	<!-- end menu entries/page -->
+	
+	<!-- <div class="h-divider"> -->
+	<span class="subheading">${i18n("adminStatisticsTodaySenderDomains")}</span>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
@@ -75,7 +80,7 @@
 	</div><!-- /row -->
 	<!-- end statistics table -->
 	
-	<h3 class="legendary">${i18n("adminStatisticsWeekSenderDomains")}</h3>
+	<span class="subheading">${i18n("adminStatisticsWeekSenderDomains")}</span>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="weeklyList">
@@ -93,7 +98,7 @@
 						<li ><a href="#weeklyListPane${x}" data-toggle="tab">${x}</a></li>
 					</#if>
 				</#list>
-				</ul>  
+				</ul>
 			</#if>
 			</div> <!-- /pagination -->
 			<!-- end pager-list -->
