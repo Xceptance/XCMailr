@@ -957,9 +957,12 @@ public class BoxHandler
         {
             // only retrieve the last match, also for plain format since we can not distinct multiple entries in the
             // output
-            MailboxEntry lastEntry = entries.get(entries.size() - 1);
-            entries.clear();
-            entries.add(lastEntry);
+            if (entries.size() >= 1)
+            {
+                MailboxEntry lastEntry = entries.get(entries.size() - 1);
+                entries.clear();
+                entries.add(lastEntry);
+            }
         }
 
         if ("html".equals(formatParameter))

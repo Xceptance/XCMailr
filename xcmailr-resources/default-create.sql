@@ -14,6 +14,7 @@ create table mailboxes (
   suppressions              integer,
   usr_id                    bigint,
   version                   bigint not null,
+  forward_emails            boolean default true,
   constraint pk_mailboxes primary key (id))
 ;
 
@@ -60,6 +61,7 @@ create table users (
   bad_pw_count              integer,
   language                  varchar(255),
   apitoken                  varchar(255),
+  API_TOKEN_CREATION_TIMESTAMP bigint default 0,
   constraint pk_users primary key (id))
 ;
 

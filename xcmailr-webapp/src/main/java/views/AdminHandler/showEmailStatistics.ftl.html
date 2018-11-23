@@ -142,19 +142,6 @@
 		let lastWeekTimestamps = [<#list lastWeekTimestamps as value>${value},</#list>]
 		let lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
 		let lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
-		
-		let currentDayData = [];
-		for (let i = 0; i < lastDayDroppedData.length; i++) {
-			currentDayData[i] = { "y": lastDayDroppedData[i],
-						   	      "t": lastDayTimestamps[i]};
-		}
-		
-		let currentWeekData = [];
-		for (let i = 0; i < lastWeekDroppedData.length; i++) {
-			currentWeekData[i] = {  "y": lastWeekDroppedData[i],
-						   	   		"t": lastWeekTimestamps[i]};
-		}
-		 
 	
 		let lastDayChart = new Chart(document.getElementById("lastDay").getContext('2d'), {
 			type: 'line',
@@ -164,7 +151,7 @@
 					labels: lastDayTimestamps,
 					datasets: [{
 						label: "${i18n("adminStatisticsDroppedMails")}",
-						data: currentDayData,
+						data: lastDayDroppedData,
 						borderColor: 'rgb(255, 99, 132)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }, {
@@ -200,7 +187,7 @@
 					labels: lastWeekTimestamps,
 					datasets: [{
 						label: "${i18n("adminStatisticsDroppedMails")}",
-						data: currentWeekData,
+						data: lastWeekDroppedData,
 						borderColor: 'rgb(255, 99, 132)',
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }, {
