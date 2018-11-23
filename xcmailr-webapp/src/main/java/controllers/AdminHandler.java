@@ -455,10 +455,10 @@ public class AdminHandler
         }
 
         List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0);
-        PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entries);
+        PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entriesPerPage);
 
         List<MailStatistics> weeksDroppedMailSender = getMailSenderList(6);
-        PageList<MailStatistics> pagedWeeksDroppedMailSender = new PageList<>(weeksDroppedMailSender, entries);
+        PageList<MailStatistics> pagedWeeksDroppedMailSender = new PageList<>(weeksDroppedMailSender, entriesPerPage);
 
         html.render("todaysDroppedSenderTable", pagedTodaysDroppedMailSender);
         html.render("weeksDroppedSenderTable", pagedWeeksDroppedMailSender);
