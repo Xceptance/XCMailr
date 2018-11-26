@@ -424,7 +424,7 @@ public class AdminHandler
         List<Long> dailyForwardedMails = new LinkedList<>();
         List<Long> dailyTimestamps = new LinkedList<>();
 
-        processStatisticsData(getStatistics(0, true), dailyDroppedMails, dailyForwardedMails, dailyTimestamps);
+        reduceStatisticsData(4, getStatistics(0, true), dailyDroppedMails, dailyForwardedMails, dailyTimestamps);
 
         html.render("lastDayTimestamps", dailyTimestamps);
         html.render("lastDayDroppedData", dailyDroppedMails);
@@ -531,9 +531,8 @@ public class AdminHandler
         // new line
         String newLine = "\n";
 
-        // set current quarter of the day as a variable
-        Ebean.createSqlUpdate("set @currentQuarter = (hour(CURRENT_TIME()) * 4) + minute(CURRENT_TIME()) / 15;")
-             .execute();
+        // set starting quarter of the day as a variable for sliding window results
+        Ebean.createSqlUpdate("set @startingQuarter = ((hour(CURRENT_TIME()) + 1)  * 4)").execute();
 
         StringBuilder sb = new StringBuilder(5000);
         sb.append("select temp.DATE");
@@ -564,9 +563,9 @@ public class AdminHandler
         {
             sb.append("where ");
             sb.append("(temp.DATE < CURRENT_DATE()");
-            sb.append(" and temp.X > @currentQuarter)");
+            sb.append(" and temp.X >= @startingQuarter)");
             sb.append(" or (temp.DATE = CURRENT_DATE()");
-            sb.append(" and temp.X <= @currentQuarter)").append(newLine);
+            sb.append(" and temp.X < @startingQuarter)").append(newLine);
         }
 
         sb.append("group by temp.DATE, temp.X").append(newLine);
