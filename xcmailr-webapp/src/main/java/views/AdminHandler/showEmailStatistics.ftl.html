@@ -183,6 +183,7 @@
             	    		labelString: '${i18n("adminStatisticsDroppedMailsGraphAxesLabel")}'
             	    	},
                 		ticks: {
+                			min: 0,
                     		callback: function(value, index, values) {
                         		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
                     		}
@@ -232,6 +233,7 @@
             	    		labelString: '${i18n("adminStatisticsDroppedMailsGraphAxesLabel")}'
             			},
             			ticks: {
+                			min: 0,
                     		callback: function(value, index, values) {
                         		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
                     		}
