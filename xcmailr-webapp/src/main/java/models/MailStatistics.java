@@ -1,6 +1,8 @@
 package models;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
@@ -126,4 +128,16 @@ public class MailStatistics implements Serializable
                              key.getDate(), key.getQuarterHour(), key.getFromDomain(), key.getTargetDomain(), dropCount,
                              forwardCount);
     }
+
+    public static String format(int value)
+    {
+        DecimalFormat formatter = new DecimalFormat("");
+        DecimalFormatSymbols decimalFormatSymbols = DecimalFormatSymbols.getInstance();
+        decimalFormatSymbols.setGroupingSeparator(' ');
+        formatter.setDecimalFormatSymbols(decimalFormatSymbols);
+        formatter.setGroupingUsed(true);
+
+        return formatter.format(value);
+    }
+
 }

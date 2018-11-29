@@ -69,8 +69,8 @@
 						<#list todaysDroppedSenderTable.getPage(x) as entry>
 							<tr>
 								<td>${entry.key.fromDomain}</td>
-								<td>${entry.dropCount?string[",##0"]}</td>
-								<td>${entry.forwardCount?string[",##0"]}</td>
+								<td>${entry.format(entry.dropCount)}</td>
+								<td>${entry.format(entry.forwardCount)}</td>
 							</tr>
 						</#list>
 					</tbody>
@@ -123,8 +123,8 @@
 						<#list weeksDroppedSenderTable.getPage(x) as entry>
 							<tr>
 								<td>${entry.key.fromDomain}</td>
-								<td>${entry.dropCount?string[",##0"]}</td>
-								<td>${entry.forwardCount?string[",##0"]}</td>
+								<td>${entry.format(entry.dropCount)}</td>
+								<td>${entry.format(entry.forwardCount)}</td>
 							</tr>
 						</#list>
 					</tbody>
