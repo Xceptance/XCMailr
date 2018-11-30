@@ -34,22 +34,22 @@
 <!-- end pager-list -->
 </#macro>
 
-<#macro paging name="plist" currentPage=1>
+<#macro paging name="plist" currentPage=1 urlParameterName="p">
 <!-- start pager-list -->
 <div class="pagination">
 <#if (name.getPageCount() > 1) >
-	<ul >
+	<ul class="pagination" >
 	<li class="disabled"><a>${i18n("macro_Page")}: </a></li>
 	<#list 1..name.getPageCount() as x >  
 		<#if (x >= (currentPage -3)) && (x <= currentPage +3)>	
 			<#if x = currentPage >
-				<li class="active"><a href="?p=${x}">${x}</a></li>
+				<li class="active"><a onclick="createLink('${urlParameterName}', ${x});" href="javascript:void(0);">${x}</a></li>
 			<#else>
-				<li ><a href="?p=${x}">${x}</a></li>
+				<li ><a onclick="createLink('${urlParameterName}', ${x});" href="javascript:void(0);">${x}</a></li>
 			</#if>
 		<#else>
 			<#if (x = currentPage - 4) >
-				<li ><a href="?p=1">1</a></li>
+				<li ><a onclick="createLink('${urlParameterName}', 1);" href="javascript:void(0);">1</a></li>
 				<#if !(x == 1)>
 				<li class="disabled"><a>...</a></li>
 				</#if>
@@ -58,12 +58,22 @@
 				<#if !(x == name.getPageCount())> 
 				<li class="disabled"><a>...</a></li>
 				</#if>
-				<li ><a href="?p=${name.getPageCount()}">${name.getPageCount()}</a></li>
+				<li ><a onclick="createLink('${urlParameterName}', ${name.getPageCount()});" href="javascript:void(0);">${name.getPageCount()}</a></li>
 			</#if>
 		</#if>
 	</#list>
-	</ul>  
-
+	</ul>
+	<script>
+		function createLink(parameterName, parameterValue) {
+			let url = new URL(window.location.href);
+			let params = new URLSearchParams(url.search.slice(1));
+			
+			params.set(parameterName, parameterValue);
+			
+			let newUrl = window.location.origin + window.location.pathname + '?' + params.toString();
+			window.location.href = newUrl;
+		}
+	</script>
 </#if>
 </div> <!-- /pagination -->
 <!-- end pager-list -->

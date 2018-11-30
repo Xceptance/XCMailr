@@ -415,7 +415,7 @@ public class AdminHandler
      *            the context of this request
      * @return
      */
-    public Result showEmailStatistics(Context context)
+    public Result showEmailStatistics(Context context, @Param("dayPage") int dayPage, @Param("weekPage") int weekPage)
     {
         Result html = Results.html();
 
@@ -462,6 +462,12 @@ public class AdminHandler
 
         html.render("todaysDroppedSenderTable", pagedTodaysDroppedMailSender);
         html.render("weeksDroppedSenderTable", pagedWeeksDroppedMailSender);
+
+        // set a default value if there's no one given
+        dayPage = (dayPage == 0) ? 1 : dayPage;
+        weekPage = (weekPage == 0) ? 1 : weekPage;
+        html.render("dayPage", dayPage);
+        html.render("weekPage", weekPage);
 
         return html;
     }

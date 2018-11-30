@@ -1,4 +1,6 @@
 <#import "../layout/adminLayout.ftl.html" as layout>
+<#import "../layout/macros.ftl.html" as pagination/>
+<#import "../layout/macros.ftl.html" as pagination2/>
 <@layout.adminLayout title=i18n("admin_Welcome")>
 <div>
 	<h1 class="legendary">${i18n("adminStatisticsTitle")}</h1>
@@ -13,8 +15,7 @@
 	<p>&nbsp;</p>
 	
 	<!-- begin menu entries/page -->
-	<!--  class="pull-right" -->
-	<div>
+	<div class="pull-right">
 		<ul class="pagination">
 			<li class="disabled btn-xs"><a>${i18n("macro_EntriesPerPage")}</a></li>
 			<li><a class="btn btn-default btn-link btn-xs" href="?no=5">5</a></li>
@@ -28,109 +29,62 @@
 	
 	<!-- <div class="h-divider"> -->
 	<span class="subheading">${i18n("adminStatisticsTodaySenderDomains")}</span>
+	<br>
+	<@pagination.paging name=todaysDroppedSenderTable currentPage = dayPage urlParameterName="dayPage"/>
+	<#-- <@pagination.incSorter/>  -->
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
-			<!-- begin rowcount -->
-			
-			<!-- start pager-list -->
-			<div class="pagination">
-			<#if (todaysDroppedSenderTable.getPageCount() > 1) >
-				<ul class="pagination">
-				<li class="disabled"><a>${i18n("macro_Page")}: </a></li>
-				<#list 1..todaysDroppedSenderTable.getPageCount() as x >  
-					<#if x = 1 >
-						<li class="active"><a href="#dailyListPane${x}" data-toggle="tab">${x}</a></li>
-					<#else>
-						<li ><a href="#dailyListPane${x}" data-toggle="tab">${x}</a></li>
-					</#if>
+			<div class="tab-pane active" id="${dayPage}">
+			<table class="table tablesorter table-hover table-condensed">
+				<thead>
+					<tr>
+						<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
+					</tr>
+				</thead>
+				<tbody>
+				<#list todaysDroppedSenderTable.getPage(dayPage) as entry>
+					<tr>
+						<td>${entry.key.fromDomain}</td>
+						<td>${entry.format(entry.dropCount)}</td>
+						<td>${entry.format(entry.forwardCount)}</td>
+					</tr>
 				</#list>
-				</ul>  
-			</#if>
-			</div> <!-- /pagination -->
-			<!-- end pager-list -->
-			
-			<!-- end rowcount -->
-			<#list 1..(todaysDroppedSenderTable.getPageCount())!0 as x >
-				<#if x = 1 >
-					<div class="tab-pane active" id="dailyListPane${x}">
-				<#else>
-					<div class="tab-pane" id="dailyListPane${x}">
-				</#if>
-				<table class="table tablesorter table-hover table-condensed">
-					<thead>
-						<tr>
-							<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
-							<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
-							<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
-						</tr>
-					</thead>
-					<tbody>
-						<#list todaysDroppedSenderTable.getPage(x) as entry>
-							<tr>
-								<td>${entry.key.fromDomain}</td>
-								<td>${entry.format(entry.dropCount)}</td>
-								<td>${entry.format(entry.forwardCount)}</td>
-							</tr>
-						</#list>
-					</tbody>
-				</table>
-				</div><!--  /tab-pane (active)-->
-			</#list>
+				</tbody>
+			</table>
+			</div><!--  /tab-pane (active)-->
 		</div><!-- /tab-content -->
 	</div><!-- /row -->
 	<!-- end statistics table -->
 	<p>&nbsp;</p>
 	<span class="subheading">${i18n("adminStatisticsWeekSenderDomains")}</span>
+	<br>
+	<@pagination2.paging name=weeksDroppedSenderTable currentPage = weekPage urlParameterName="weekPage"/>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="weeklyList">
-			<!-- begin rowcount -->
-			
-			<!-- start pager-list -->
-			<div class="pagination">
-			<#if (weeksDroppedSenderTable.getPageCount() > 1) >
-				<ul class="pagination">
-				<li class="disabled"><a>${i18n("macro_Page")}: </a></li>
-				<#list 1..weeksDroppedSenderTable.getPageCount() as x >  
-					<#if x = 1 >
-						<li class="active"><a href="#weeklyListPane${x}" data-toggle="tab">${x}</a></li>
-					<#else>
-						<li ><a href="#weeklyListPane${x}" data-toggle="tab">${x}</a></li>
-					</#if>
-				</#list>
-				</ul>
-			</#if>
-			</div> <!-- /pagination -->
-			<!-- end pager-list -->
-			
-			<!-- end rowcount -->
-			<#list 1..(weeksDroppedSenderTable.getPageCount())!0 as x >
-				<#if x = 1 >
-					<div class="tab-pane active" id="weeklyListPane${x}">
-				<#else>
-					<div class="tab-pane" id="weeklyListPane${x}">
-				</#if>
-				<table class="table tablesorter table-hover table-condensed">
-					<thead>
+			<div class="tab-pane active" id="${weekPage}">
+			<table class="table tablesorter table-hover table-condensed">
+				<thead>
+					<tr>
+						<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<#list weeksDroppedSenderTable.getPage(weekPage) as entry>
 						<tr>
-							<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
-							<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
-							<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
+							<td>${entry.key.fromDomain}</td>
+							<td>${entry.format(entry.dropCount)}</td>
+							<td>${entry.format(entry.forwardCount)}</td>
 						</tr>
-					</thead>
-					<tbody>
-						<#list weeksDroppedSenderTable.getPage(x) as entry>
-							<tr>
-								<td>${entry.key.fromDomain}</td>
-								<td>${entry.format(entry.dropCount)}</td>
-								<td>${entry.format(entry.forwardCount)}</td>
-							</tr>
-						</#list>
-					</tbody>
-				</table>
-				</div><!--  /tab-pane (active)-->
-			</#list>
+					</#list>
+				</tbody>
+			</table>
+			</div><!--  /tab-pane (active)-->
 		</div><!-- /tab-content -->
 	</div><!-- /row -->
 	<!-- end statistics table -->
