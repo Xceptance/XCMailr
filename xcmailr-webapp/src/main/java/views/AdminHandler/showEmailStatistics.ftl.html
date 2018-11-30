@@ -38,9 +38,9 @@
 			<table class="table tablesorter table-hover table-condensed">
 				<thead>
 					<tr>
-						<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
-						<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
-						<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
+						<th class="header" onclick="setSortFilter('sortDailyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header" onclick="setSortFilter('sortDailyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header" onclick="setSortFilter('sortDailyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -68,9 +68,9 @@
 			<table class="table tablesorter table-hover table-condensed">
 				<thead>
 					<tr>
-						<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
-						<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
-						<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
+						<th class="header" onclick="setSortFilter('sortWeeklyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header" onclick="setSortFilter('sortWeeklyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header" onclick="setSortFilter('sortWeeklyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -202,6 +202,51 @@
 		
 		lastDayChart.update();
 		lastWeekChart.update();
+		
+		function setSortFilter(parameterName, column) {
+			let parameterValue = getUrlParameter(parameterName);
+			
+			if (parameterValue !== undefined) {
+				let orderData = parameterValue.split("_");
+				if (orderData.length !== 2)
+					return;
+					
+				if (orderData[0] === column) {
+					if (orderData[1] === 'asc') {
+						orderData[1] = 'desc';
+					} else {
+						orderData[1] = 'asc';
+					}
+				} else {
+					orderData[0] = column;
+					orderData[1] = 'asc';
+				}
+				createLink(parameterName, orderData.join('_'));
+			} else {
+				createLink(parameterName, column + '_asc');
+			}
+		}
+		
+		function createLink(parameterName, parameterValue) {
+			let url = new URL(window.location.href);
+			let params = new URLSearchParams(url.search.slice(1));
+			
+			params.set(parameterName, parameterValue);
+			
+			let newUrl = window.location.origin + window.location.pathname + '?' + params.toString();
+			window.location.href = newUrl;
+		}
+		
+		function getUrlParameter(parameterName) {
+			let url = new URL(window.location.href);
+			let params = new URLSearchParams(url.search.slice(1));
+			
+			if (params.has(parameterName)) {
+				return params.get(parameterName);
+			} else {
+				return undefined;
+			}
+		}
 	</script>
 </div>
 </@layout.adminLayout>

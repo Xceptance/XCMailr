@@ -415,7 +415,9 @@ public class AdminHandler
      *            the context of this request
      * @return
      */
-    public Result showEmailStatistics(Context context, @Param("dayPage") int dayPage, @Param("weekPage") int weekPage)
+    public Result showEmailStatistics(Context context, @Param("dayPage") int dayPage, @Param("weekPage") int weekPage,
+                                      @Param("sortDailyList") String sortDailyList,
+                                      @Param("sortWeeklyList") String sortWeeklyList)
     {
         Result html = Results.html();
 
@@ -454,10 +456,10 @@ public class AdminHandler
             entriesPerPage = 15;
         }
 
-        List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0);
+        List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0, sortDailyList);
         PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entriesPerPage);
 
-        List<MailStatistics> weeksDroppedMailSender = getMailSenderList(6);
+        List<MailStatistics> weeksDroppedMailSender = getMailSenderList(6, sortWeeklyList);
         PageList<MailStatistics> pagedWeeksDroppedMailSender = new PageList<>(weeksDroppedMailSender, entriesPerPage);
 
         html.render("todaysDroppedSenderTable", pagedTodaysDroppedMailSender);
@@ -479,24 +481,50 @@ public class AdminHandler
      *            A positive integer that specifies how many days should be aggregated
      * @return
      */
-    private List<MailStatistics> getMailSenderList(int lastNDays)
+    private List<MailStatistics> getMailSenderList(int lastNDays, String orderBy)
     {
         if (lastNDays < 0)
             lastNDays = 0;
 
         // daily top for dropped mail sender
         StringBuilder sql = new StringBuilder();
-        sql.append("select ms.FROM_DOMAIN, sum(ms.DROP_COUNT) as \"dropped\", sum(ms.FORWARD_COUNT) as \"forwarded\"");
+        sql.append("select ms.FROM_DOMAIN as \"domain\", sum(ms.DROP_COUNT) as \"dropped\", sum(ms.FORWARD_COUNT) as \"forwarded\"");
         sql.append("  from MAIL_STATISTICS ms");
         sql.append(" where ms.DATE >= CURRENT_DATE() - " + lastNDays);
         sql.append(" group by ms.FROM_DOMAIN");
-        sql.append(" order by \"dropped\" desc;");
+
+        String orderColumn = "dropped"; // the column that is used to order data; dropped = default
+        String order = "desc"; // the direction of order (asc or desc); desc = default
+
+        List<String> validColumns = new ArrayList<>();
+        validColumns.add("domain");
+        validColumns.add("dropped");
+        validColumns.add("forwarded");
+
+        List<String> validOrder = new ArrayList<>();
+        validOrder.add("asc");
+        validOrder.add("desc");
+
+        String[] parts = null;
+        if (orderBy != null)
+        {
+            parts = orderBy.split("_");
+        }
+        if (parts != null && parts.length == 2)
+        {
+            if (validColumns.contains(parts[0]))
+                orderColumn = parts[0];
+
+            if (validOrder.contains(parts[1]))
+                order = parts[1];
+        }
+        sql.append(" order by \"" + orderColumn + "\" " + order);
 
         List<SqlRow> droppedMail = Ebean.createSqlQuery(sql.toString()).findList();
         List<MailStatistics> droppedMailSender = new LinkedList<>();
         droppedMail.forEach((SqlRow row) -> {
             MailStatistics ms = new MailStatistics();
-            MailStatisticsKey key = new MailStatisticsKey(null, 0, row.getString("FROM_DOMAIN"), null);
+            MailStatisticsKey key = new MailStatisticsKey(null, 0, row.getString("domain"), null);
             ms.setKey(key);
             ms.setDropCount(row.getInteger("dropped"));
             ms.setForwardCount(row.getInteger("forwarded"));
@@ -506,15 +534,6 @@ public class AdminHandler
 
         return droppedMailSender;
     }
-
-    /**
-     * Function to retrieve email statistics data for the given (lastNDays) days
-     * 
-     * @param lastNDays
-     *            an positive integer value that limits results to last n days
-     * @return
-     * @return
-     */
 
     /**
      * Function to retrieve email statistics data for the given last n days. In case sliding window is true, then the
@@ -582,21 +601,6 @@ public class AdminHandler
         // System.out.println("==========================================");
 
         return Ebean.createSqlQuery(sb.toString()).findList();
-    }
-
-    private void processStatisticsData(List<SqlRow> statisticsData, List<Long> droppedMails, List<Long> forwardedMails,
-                                       List<Long> timestamps)
-    {
-        for (SqlRow sqlRow : statisticsData)
-        {
-            Date date = sqlRow.getDate("DATE");
-            int quarterHour = sqlRow.getInteger("QUARTER_HOUR");
-
-            Timestamp timestamp = new Timestamp(date.getTime() + (quarterHour * 15 * 60 * 1000));
-            timestamps.add(timestamp.getTime());
-            droppedMails.add(sqlRow.getLong("SUM_DROPPED"));
-            forwardedMails.add(sqlRow.getLong("SUM_FORWARDED"));
-        }
     }
 
     /**
