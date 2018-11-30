@@ -1,6 +1,6 @@
 <#import "../layout/adminLayout.ftl.html" as layout>
 <#import "../layout/macros.ftl.html" as pagination/>
-<#import "../layout/macros.ftl.html" as pagination2/>
+
 <@layout.adminLayout title=i18n("admin_Welcome")>
 <div>
 	<h1 class="legendary">${i18n("adminStatisticsTitle")}</h1>
@@ -31,7 +31,6 @@
 	<span class="subheading">${i18n("adminStatisticsTodaySenderDomains")}</span>
 	<br>
 	<@pagination.paging name=todaysDroppedSenderTable currentPage = dayPage urlParameterName="dayPage"/>
-	<#-- <@pagination.incSorter/>  -->
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
@@ -61,7 +60,7 @@
 	<p>&nbsp;</p>
 	<span class="subheading">${i18n("adminStatisticsWeekSenderDomains")}</span>
 	<br>
-	<@pagination2.paging name=weeksDroppedSenderTable currentPage = weekPage urlParameterName="weekPage"/>
+	<@pagination.paging name=weeksDroppedSenderTable currentPage = weekPage urlParameterName="weekPage"/>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="weeklyList">
