@@ -35,12 +35,12 @@
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
 			<div class="tab-pane active" id="${dayPage}">
-			<table class="table tablesorter table-hover table-condensed">
+			<table class="table tsort">
 				<thead>
 					<tr>
-						<th class="header" onclick="setSortFilter('sortDailyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
-						<th class="header" onclick="setSortFilter('sortDailyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
-						<th class="header" onclick="setSortFilter('sortDailyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
+						<th class="header headerSort" id="dailyListDomain" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header headerSort" id="dailyListDropped" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header headerSort" id="dailyListForwarded" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -65,12 +65,12 @@
 		<!-- begin user table -->
 		<div class="tab-content" id="weeklyList">
 			<div class="tab-pane active" id="${weekPage}">
-			<table class="table tablesorter table-hover table-condensed">
+			<table class="table tsort">
 				<thead>
 					<tr>
-						<th class="header" onclick="setSortFilter('sortWeeklyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
-						<th class="header" onclick="setSortFilter('sortWeeklyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
-						<th class="header" onclick="setSortFilter('sortWeeklyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
+						<th class="header headerSort" id="weeklyListDomain" onclick="setSortFilter(this, 'weeklyListDomain', 'sortWeeklyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header headerSort" id="weeklyListDropped" onclick="setSortFilter(this, 'weeklyListDropped', 'sortWeeklyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header headerSort" id="weeklyListForwarded" onclick="setSortFilter(this, 'weeklyListForwarded', 'sortWeeklyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -203,8 +203,11 @@
 		lastDayChart.update();
 		lastWeekChart.update();
 		
-		function setSortFilter(parameterName, column) {
+		function setSortFilter(element, elementId, parameterName, column) {
 			let parameterValue = getUrlParameter(parameterName);
+			
+			$('#' + elementId + ' .header').removeClass('ordered');
+			element.classList.add('ordered');
 			
 			if (parameterValue !== undefined) {
 				let orderData = parameterValue.split("_");
@@ -221,6 +224,7 @@
 					orderData[0] = column;
 					orderData[1] = 'asc';
 				}
+				
 				createLink(parameterName, orderData.join('_'));
 			} else {
 				createLink(parameterName, column + '_asc');
