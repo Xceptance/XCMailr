@@ -38,9 +38,33 @@
 			<table class="table tsort">
 				<thead>
 					<tr>
-						<th class="header headerSort" id="dailyListDomain" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
-						<th class="header headerSort" id="dailyListDropped" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
-						<th class="header headerSort" id="dailyListForwarded" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
+						<th class="header headerSort
+							<#if dailyListOrderColumn="domain">
+								<#if dailyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="dailyListDomain" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header headerSort
+							<#if dailyListOrderColumn="dropped">
+								<#if dailyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+							" id="dailyListDropped" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header headerSort
+							<#if dailyListOrderColumn="forwarded">
+								<#if dailyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="dailyListForwarded" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -68,9 +92,33 @@
 			<table class="table tsort">
 				<thead>
 					<tr>
-						<th class="header headerSort" id="weeklyListDomain" onclick="setSortFilter(this, 'weeklyListDomain', 'sortWeeklyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
-						<th class="header headerSort" id="weeklyListDropped" onclick="setSortFilter(this, 'weeklyListDropped', 'sortWeeklyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
-						<th class="header headerSort" id="weeklyListForwarded" onclick="setSortFilter(this, 'weeklyListForwarded', 'sortWeeklyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
+						<th class="header headerSort
+							<#if weeklyListOrderColumn="domain">
+								<#if weeklyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="weeklyListDomain" onclick="setSortFilter(this, 'weeklyListDomain', 'sortWeeklyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header headerSort
+							<#if weeklyListOrderColumn="dropped">
+								<#if weeklyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="weeklyListDropped" onclick="setSortFilter(this, 'weeklyListDropped', 'sortWeeklyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header headerSort
+							<#if weeklyListOrderColumn="forwarded">
+								<#if weeklyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="weeklyListForwarded" onclick="setSortFilter(this, 'weeklyListForwarded', 'sortWeeklyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>

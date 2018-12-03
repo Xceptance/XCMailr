@@ -465,6 +465,12 @@ public class AdminHandler
         html.render("todaysDroppedSenderTable", pagedTodaysDroppedMailSender);
         html.render("weeksDroppedSenderTable", pagedWeeksDroppedMailSender);
 
+        html.render("dailyListOrderColumn", getOrderColumn(sortDailyList));
+        html.render("dailyListOrderDirection", getOrderDirection(sortDailyList));
+
+        html.render("weeklyListOrderColumn", getOrderColumn(sortWeeklyList));
+        html.render("weeklyListOrderDirection", getOrderDirection(sortWeeklyList));
+
         // set a default value if there's no one given
         dayPage = (dayPage == 0) ? 1 : dayPage;
         weekPage = (weekPage == 0) ? 1 : weekPage;
@@ -493,31 +499,9 @@ public class AdminHandler
         sql.append(" where ms.DATE >= CURRENT_DATE() - " + lastNDays);
         sql.append(" group by ms.FROM_DOMAIN");
 
-        String orderColumn = "dropped"; // the column that is used to order data; dropped = default
-        String order = "desc"; // the direction of order (asc or desc); desc = default
+        String orderColumn = getOrderColumn(orderBy);
+        String order = getOrderDirection(orderBy);
 
-        List<String> validColumns = new ArrayList<>();
-        validColumns.add("domain");
-        validColumns.add("dropped");
-        validColumns.add("forwarded");
-
-        List<String> validOrder = new ArrayList<>();
-        validOrder.add("asc");
-        validOrder.add("desc");
-
-        String[] parts = null;
-        if (orderBy != null)
-        {
-            parts = orderBy.split("_");
-        }
-        if (parts != null && parts.length == 2)
-        {
-            if (validColumns.contains(parts[0]))
-                orderColumn = parts[0];
-
-            if (validOrder.contains(parts[1]))
-                order = parts[1];
-        }
         sql.append(" order by \"" + orderColumn + "\" " + order);
 
         List<SqlRow> droppedMail = Ebean.createSqlQuery(sql.toString()).findList();
@@ -533,6 +517,51 @@ public class AdminHandler
         });
 
         return droppedMailSender;
+    }
+
+    private String getOrderColumn(String orderBy)
+    {
+        String orderColumn = "dropped"; // the column that is used to order data; dropped = default
+
+        List<String> validColumns = new ArrayList<>();
+        validColumns.add("domain");
+        validColumns.add("dropped");
+        validColumns.add("forwarded");
+
+        String[] parts = null;
+        if (orderBy != null)
+        {
+            parts = orderBy.split("_");
+        }
+        if (parts != null && parts.length == 2)
+        {
+            if (validColumns.contains(parts[0]))
+                orderColumn = parts[0];
+        }
+
+        return orderColumn;
+    }
+
+    private String getOrderDirection(String orderBy)
+    {
+        String order = "desc"; // the direction of order (asc or desc); desc = default
+
+        List<String> validOrder = new ArrayList<>();
+        validOrder.add("asc");
+        validOrder.add("desc");
+
+        String[] parts = null;
+        if (orderBy != null)
+        {
+            parts = orderBy.split("_");
+        }
+        if (parts != null && parts.length == 2)
+        {
+            if (validOrder.contains(parts[1]))
+                order = parts[1];
+        }
+
+        return order;
     }
 
     /**
