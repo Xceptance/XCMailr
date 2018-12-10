@@ -449,11 +449,11 @@ public class AdminHandler
         int entriesPerPage;
         try
         {
-            entriesPerPage = Integer.parseInt(context.getSession().get("no"));
+            entriesPerPage = Integer.parseInt(context.getParameter("no"));
         }
         catch (NumberFormatException e)
         {
-            entriesPerPage = 15;
+            entriesPerPage = xcmConfiguration.APP_DEFAULT_ENTRYNO;
         }
 
         List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0, sortDailyList);
