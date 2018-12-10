@@ -78,6 +78,10 @@ table.tsort thead tr .headerSortDown, table.tsort thead tr .headerSortUp {
 	cursor: pointer;
 }
 
+.text-align-right {
+	text-align: right;
+}
+
 div.tooltip-inner {
 	text-align: center;
 	max-width: 666px;
