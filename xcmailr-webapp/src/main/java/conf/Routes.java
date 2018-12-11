@@ -134,6 +134,7 @@ public class Routes implements ApplicationRoutes
         router.POST().route("/admin/whitelist/add").with(AdminHandler.class, "addDomain");
 
         router.GET().route("/admin/emailStatistics").with(AdminHandler.class, "showEmailStatistics");
+        router.GET().route("/admin/emailSenderPage").with(AdminHandler.class, "getEmailSenderTablePage");
 
         /*
          * Assets-Handling (Ninja's AssetsController)

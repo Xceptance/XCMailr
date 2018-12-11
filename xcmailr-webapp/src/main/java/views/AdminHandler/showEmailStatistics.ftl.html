@@ -33,7 +33,6 @@
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
-			<div class="tab-pane active" id="${dayPage}">
 			<table class="table tsort">
 				<thead>
 					<tr>
@@ -45,7 +44,7 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="dailyListDomain" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
+						" id="dailyListDomain" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'domain'), ${dayPage}, '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsSenderDomain")}</th>
 						<th class="header headerSort
 							<#if dailyListOrderColumn="dropped">
 								<#if dailyListOrderDirection="asc">
@@ -54,7 +53,7 @@
 									headerSortUp
 								</#if>
 							</#if>
-							" id="dailyListDropped" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
+						" id="dailyListDropped" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'dropped'), ${dayPage}, '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsDroppedMails")}</th>
 						<th class="header headerSort
 							<#if dailyListOrderColumn="forwarded">
 								<#if dailyListOrderDirection="asc">
@@ -63,20 +62,12 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="dailyListForwarded" onclick="setSortFilter(this, 'dailyList', 'sortDailyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
+						" id="dailyListForwarded" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'forwarded'), ${dayPage}, '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
-				<#list todaysDroppedSenderTable.getPage(dayPage) as entry>
-					<tr>
-						<td>${entry.key.fromDomain}</td>
-						<td class="text-align-right">${entry.format(entry.dropCount)}</td>
-						<td class="text-align-right">${entry.format(entry.forwardCount)}</td>
-					</tr>
-				</#list>
 				</tbody>
 			</table>
-			</div><!--  /tab-pane (active)-->
 		</div><!-- /tab-content -->
 	</div><!-- /row -->
 	<!-- end statistics table -->
@@ -87,7 +78,6 @@
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="weeklyList">
-			<div class="tab-pane active" id="${weekPage}">
 			<table class="table tsort">
 				<thead>
 					<tr>
@@ -99,7 +89,8 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="weeklyListDomain" onclick="setSortFilter(this, 'weeklyListDomain', 'sortWeeklyList', 'domain')">${i18n("adminStatisticsSenderDomain")}</th>
+						" id="weeklyListDomain" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'domain'), ${weekPage}, '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsSenderDomain")}</th>
+						 
 						<th class="header headerSort
 							<#if weeklyListOrderColumn="dropped">
 								<#if weeklyListOrderDirection="asc">
@@ -108,7 +99,7 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="weeklyListDropped" onclick="setSortFilter(this, 'weeklyListDropped', 'sortWeeklyList', 'dropped')">${i18n("adminStatisticsDroppedMails")}</th>
+						" id="weeklyListDropped" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'dropped'), ${weekPage}, '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsDroppedMails")}</th>
 						<th class="header headerSort
 							<#if weeklyListOrderColumn="forwarded">
 								<#if weeklyListOrderDirection="asc">
@@ -117,20 +108,12 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="weeklyListForwarded" onclick="setSortFilter(this, 'weeklyListForwarded', 'sortWeeklyList', 'forwarded')">${i18n("adminStatisticsForwardedMails")}</th>
+						" id="weeklyListForwarded" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'forwarded'), ${weekPage}, '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
-					<#list weeksDroppedSenderTable.getPage(weekPage) as entry>
-						<tr>
-							<td>${entry.key.fromDomain}</td>
-							<td class="text-align-right">${entry.format(entry.dropCount)}</td>
-							<td class="text-align-right">${entry.format(entry.forwardCount)}</td>
-						</tr>
-					</#list>
 				</tbody>
 			</table>
-			</div><!--  /tab-pane (active)-->
 		</div><!-- /tab-content -->
 	</div><!-- /row -->
 	<!-- end statistics table -->
@@ -143,6 +126,8 @@
 		let lastWeekTimestamps = [<#list lastWeekTimestamps as value>${value},</#list>]
 		let lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
 		let lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
+		
+		let formatter = new Intl.NumberFormat('${i18n("locale")}', { style: 'decimal'});
 	
 		let lastDayChart = new Chart(document.getElementById("lastDay").getContext('2d'), {
 			type: 'line',
@@ -185,7 +170,7 @@
                 		ticks: {
                 			min: 0,
                     		callback: function(value, index, values) {
-                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                    			return formatter.format(value);
                     		}
                 		}
             		}]
@@ -235,7 +220,7 @@
             			ticks: {
                 			min: 0,
                     		callback: function(value, index, values) {
-                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                    			return formatter.format(value);
                     		}
                 		}
             		}]
@@ -246,16 +231,16 @@
             }
 		});
 		
+		getSenderPage('day', 'dropped_desc', ${dayPage}, '#dailyList tbody', '#dailyList table', undefined);
+		getSenderPage('week', 'dropped_desc', ${weekPage}, '#weeklyList tbody', '#weeklyList table', undefined);
 		
 		lastDayChart.update();
 		lastWeekChart.update();
 		
-		function setSortFilter(element, elementId, parameterName, column) {
-			let parameterValue = getUrlParameter(parameterName);
-			
-			$('#' + elementId + ' .header').removeClass('ordered');
-			element.classList.add('ordered');
-			
+		function setSortFilter(parameterName, column) {
+			// let parameterValue = getUrlParameter(parameterName);
+			let parameterValue = window[parameterName];
+					
 			if (parameterValue !== undefined) {
 				let orderData = parameterValue.split("_");
 				if (orderData.length !== 2)
@@ -272,9 +257,16 @@
 					orderData[1] = 'asc';
 				}
 				
-				createLink(parameterName, orderData.join('_'));
+				let newValue = orderData.join('_');
+				window[parameterName] = newValue;
+				 
+				return newValue;
 			} else {
-				createLink(parameterName, column + '_asc');
+				let newValue = column + '_asc';
+				window[parameterName] = newValue;
+					
+				// default
+				return newValue;
 			}
 		}
 		
@@ -297,6 +289,75 @@
 			} else {
 				return undefined;
 			}
+		}
+		
+		function getSenderPage(scope, orderBy, page, removeElement, appendTo, clickedElement) {
+			if (clickedElement !== undefined)
+				console.log(clickedElement['id']);
+		
+			let params = new URLSearchParams();
+			params.set('scope', scope);
+			params.set('orderBy', orderBy);
+			params.set('page', page);
+			
+			$.ajax({url: "/admin/emailSenderPage?" + params.toString(), 
+					success: function (result) {
+								$(removeElement).remove();
+								$(appendTo).append(createTable(result.data));
+								
+								if (clickedElement !== undefined) {
+									let tableHeader = clickedElement.parentElement.getElementsByTagName('th');
+									
+									clickedElement.classList.toggle('headerSortDown');
+									clickedElement.classList.toggle('headerSortUp');
+									
+									for (let i = 0; i < tableHeader.length; i++) {
+										tableHeader[i].classList.remove('headerSortDown');
+										tableHeader[i].classList.remove('headerSortUp');
+									}
+									
+									if (orderBy.endsWith('asc')) {
+										clickedElement.classList.add('headerSortDown');
+									} else {
+										clickedElement.classList.add('headerSortUp');
+									}
+									
+									
+								}
+								
+							 },
+					error: 	function (error) {
+								console.log('getSenderPage', 'error', error);
+							}
+				  });
+		}
+		
+		function createTable(json) {
+			let newBody = document.createElement('tbody')
+			
+			for (let i = 0; i < json.length; i++) {
+				let newRow = document.createElement('tr');
+				newBody.append(newRow);
+				
+				let domainCell = document.createElement('td');
+				domainCell.innerHTML = json[i].key.fromDomain;
+				
+				newRow.append(domainCell);
+				
+				let droppedCell = document.createElement('td');
+				droppedCell.classList.add('text-align-right');
+				droppedCell.innerHTML = formatter.format(json[i].dropCount);
+				
+				newRow.append(droppedCell);
+				
+				let forwardedCell = document.createElement('td');
+				forwardedCell.classList.add('text-align-right');
+				forwardedCell.innerHTML = formatter.format(json[i].forwardCount);
+				
+				newRow.append(forwardedCell);
+			}
+
+			return newBody;
 		}
 	</script>
 </div>

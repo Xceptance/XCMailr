@@ -443,8 +443,6 @@ public class AdminHandler
         html.render("lastWeekDroppedData", weeklyDroppedMails);
         html.render("lastWeekForwardedData", weeklyForwardedMails);
 
-        // set a default number or the number which the user had chosen
-        HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
         int entriesPerPage;
         try
@@ -478,6 +476,47 @@ public class AdminHandler
         html.render("weekPage", weekPage);
 
         return html;
+    }
+
+    public Result getEmailSenderTablePage(Context context, @Param("scope") String scope, @Param("page") int page,
+                                          @Param("orderBy") String orderBy)
+    {
+        // get the default number of entries per page
+        int entriesPerPage;
+        try
+        {
+            entriesPerPage = Integer.parseInt(context.getSession().get("no"));
+        }
+        catch (NumberFormatException e)
+        {
+            entriesPerPage = xcmConfiguration.APP_DEFAULT_ENTRYNO;
+        }
+
+        System.out.println("================ scope: " + scope);
+        List<MailStatistics> data = null;
+        switch (scope)
+        {
+            case "day":
+                data = getMailSenderList(0, orderBy);
+                break;
+
+            case "week":
+                data = getMailSenderList(6, orderBy);
+                break;
+
+            default:
+                return Results.badRequest();
+        }
+
+        PageList<MailStatistics> pagedData = new PageList<>(data, entriesPerPage);
+        List<MailStatistics> dataPage = pagedData.getPage(page);
+
+        Result result = Results.html();
+        result = Results.json();
+        result.render("data", dataPage);
+        result.render("maxPages", pagedData.getPageCount());
+        
+        return result;
     }
 
     /**
