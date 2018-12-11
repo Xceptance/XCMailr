@@ -1,15 +1,18 @@
 <#import "../layout/adminLayout.ftl.html" as layout>
+<#import "../layout/macros.ftl.html" as pagination/>
+
 <@layout.adminLayout title=i18n("admin_Welcome")>
 <div>
 	<h1 class="legendary">${i18n("adminStatisticsTitle")}</h1>
 		
-	<h3 class="legendary">${i18n("adminStatisticsToday")}</h3>
+	<span class="subheading">${i18n("adminStatisticsToday")}</span>
 	<canvas id="lastDay" width="600" height="200"></canvas>
-	
-	<h3 class="legendary">${i18n("adminStatisticsWeek")}</h3>
+	<p>&nbsp;</p>
+	<p>&nbsp;</p>
+	<#--  class="legendary" -->
+	<span class="subheading">${i18n("adminStatisticsWeek")}</span>
 	<canvas id="lastWeek" width="600" height="200"></canvas>
-	
-	<h3 class="legendary">${i18n("adminStatisticsTodaySenderDomains")}</h3>
+	<p>&nbsp;</p>
 	
 	<!-- begin menu entries/page -->
 	<div class="pull-right">
@@ -18,113 +21,101 @@
 			<li><a class="btn btn-default btn-link btn-xs" href="?no=5">5</a></li>
 			<li><a class="btn btn-default btn-link btn-xs" href="?no=15">15</a></li>
 			<li><a class="btn btn-default btn-link btn-xs" href="?no=25">25</a></li>
-			<li><a class="btn btn-default btn-link btn-xs" href="?no=all">all</a></li>
 		</ul>
-	</div><!-- /pagination -->
+	</div>
+	<!-- /pagination -->
 	<!-- end menu entries/page -->
+	
+	<!-- <div class="h-divider"> -->
+	<span class="subheading">${i18n("adminStatisticsTodaySenderDomains")}</span>
+	<br>
+	<div class="pagination" id="dayPagination">
+	</div>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
-			<!-- begin rowcount -->
-			
-			<!-- start pager-list -->
-			<div class="pagination">
-			<#if (todaysDroppedSenderTable.getPageCount() > 1) >
-				<ul class="pagination">
-				<li class="disabled"><a>${i18n("macro_Page")}: </a></li>
-				<#list 1..todaysDroppedSenderTable.getPageCount() as x >  
-					<#if x = 1 >
-						<li class="active"><a href="#dailyListPane${x}" data-toggle="tab">${x}</a></li>
-					<#else>
-						<li ><a href="#dailyListPane${x}" data-toggle="tab">${x}</a></li>
-					</#if>
-				</#list>
-				</ul>  
-			</#if>
-			</div> <!-- /pagination -->
-			<!-- end pager-list -->
-			
-			<!-- end rowcount -->
-			<#list 1..(todaysDroppedSenderTable.getPageCount())!0 as x >
-				<#if x = 1 >
-					<div class="tab-pane active" id="dailyListPane${x}">
-				<#else>
-					<div class="tab-pane" id="dailyListPane${x}">
-				</#if>
-				<table class="table tablesorter table-hover table-condensed">
-					<thead>
-						<tr>
-							<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
-							<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
-							<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
-						</tr>
-					</thead>
-					<tbody>
-						<#list todaysDroppedSenderTable.getPage(x) as entry>
-							<tr>
-								<td>${entry.key.fromDomain}</td>
-								<td>${entry.dropCount?string[",##0"]}</td>
-								<td>${entry.forwardCount?string[",##0"]}</td>
-							</tr>
-						</#list>
-					</tbody>
-				</table>
-				</div><!--  /tab-pane (active)-->
-			</#list>
+			<table class="table tsort">
+				<thead>
+					<tr>
+						<th class="header headerSort
+							<#if dailyListOrderColumn="domain">
+								<#if dailyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="dailyListDomain" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'domain'), window['dayPage'], '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsSenderDomain")}</th>
+						<th class="header headerSort
+							<#if dailyListOrderColumn="dropped">
+								<#if dailyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="dailyListDropped" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'dropped'), window['dayPage'], '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header headerSort
+							<#if dailyListOrderColumn="forwarded">
+								<#if dailyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="dailyListForwarded" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'forwarded'), window['dayPage'], '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsForwardedMails")}</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
 		</div><!-- /tab-content -->
 	</div><!-- /row -->
 	<!-- end statistics table -->
-	
-	<h3 class="legendary">${i18n("adminStatisticsWeekSenderDomains")}</h3>
+	<p>&nbsp;</p>
+	<span class="subheading">${i18n("adminStatisticsWeekSenderDomains")}</span>
+	<br>
+	<div class="pagination" id="weekPagination">
+	</div>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="weeklyList">
-			<!-- begin rowcount -->
-			
-			<!-- start pager-list -->
-			<div class="pagination">
-			<#if (weeksDroppedSenderTable.getPageCount() > 1) >
-				<ul class="pagination">
-				<li class="disabled"><a>${i18n("macro_Page")}: </a></li>
-				<#list 1..weeksDroppedSenderTable.getPageCount() as x >  
-					<#if x = 1 >
-						<li class="active"><a href="#weeklyListPane${x}" data-toggle="tab">${x}</a></li>
-					<#else>
-						<li ><a href="#weeklyListPane${x}" data-toggle="tab">${x}</a></li>
-					</#if>
-				</#list>
-				</ul>  
-			</#if>
-			</div> <!-- /pagination -->
-			<!-- end pager-list -->
-			
-			<!-- end rowcount -->
-			<#list 1..(weeksDroppedSenderTable.getPageCount())!0 as x >
-				<#if x = 1 >
-					<div class="tab-pane active" id="weeklyListPane${x}">
-				<#else>
-					<div class="tab-pane" id="weeklyListPane${x}">
-				</#if>
-				<table class="table tablesorter table-hover table-condensed">
-					<thead>
-						<tr>
-							<th class="header">${i18n("adminStatisticsSenderDomain")}</th>
-							<th class="header">${i18n("adminStatisticsDroppedMails")}</th>
-							<th class="header">${i18n("adminStatisticsForwardedMails")}</th>
-						</tr>
-					</thead>
-					<tbody>
-						<#list weeksDroppedSenderTable.getPage(x) as entry>
-							<tr>
-								<td>${entry.key.fromDomain}</td>
-								<td>${entry.dropCount?string[",##0"]}</td>
-								<td>${entry.forwardCount?string[",##0"]}</td>
-							</tr>
-						</#list>
-					</tbody>
-				</table>
-				</div><!--  /tab-pane (active)-->
-			</#list>
+			<table class="table tsort">
+				<thead>
+					<tr>
+						<th class="header headerSort
+							<#if weeklyListOrderColumn="domain">
+								<#if weeklyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="weeklyListDomain" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'domain'), window['weekPage'], '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsSenderDomain")}</th>
+						 
+						<th class="header headerSort
+							<#if weeklyListOrderColumn="dropped">
+								<#if weeklyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="weeklyListDropped" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'dropped'), window['weekPage'], '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsDroppedMails")}</th>
+						<th class="header headerSort
+							<#if weeklyListOrderColumn="forwarded">
+								<#if weeklyListOrderDirection="asc">
+									headerSortDown
+								<#else>
+									headerSortUp
+								</#if>
+							</#if>
+						" id="weeklyListForwarded" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'forwarded'), window['weekPage'], '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsForwardedMails")}</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
 		</div><!-- /tab-content -->
 	</div><!-- /row -->
 	<!-- end statistics table -->
@@ -137,6 +128,11 @@
 		let lastWeekTimestamps = [<#list lastWeekTimestamps as value>${value},</#list>]
 		let lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
 		let lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
+		
+		window['dayPage'] = ${dayPage};
+		window['weekPage'] = ${weekPage};
+		
+		let formatter = new Intl.NumberFormat('${i18n("locale")}', { style: 'decimal'});
 	
 		let lastDayChart = new Chart(document.getElementById("lastDay").getContext('2d'), {
 			type: 'line',
@@ -163,15 +159,29 @@
                     	time: {
 	                        unit: 'hour',
     	                    parser: 'x'
+        	            },
+        	            scaleLabel: {
+        	            	display: true,
+        	            	labelString: '${i18n("adminStatisticsTimeAxisLabel")}'
         	            }
             	    }],
             	    yAxes: [{
+            	    	position: 'left',
+            	    	type: 'linear',
+            	    	scaleLabel: {
+            	    		display: true,
+            	    		labelString: '${i18n("adminStatisticsDroppedMailsGraphAxesLabel")}'
+            	    	},
                 		ticks: {
+                			min: 0,
                     		callback: function(value, index, values) {
-                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    			return formatter.format(value);
                     		}
                 		}
             		}]
+            	},
+            	animation: {
+            		duration: 0
             	}
             }
 		});
@@ -192,29 +202,242 @@
 						backgroundColor: 'rgba(0, 0, 0, 0.1)'
 					  }]
 				  },
-			options: { 
+			options: {
 		    	scales: {
                 	xAxes: [{
                 		type: 'time',
                     	time: {
 	                        unit: 'day',
     	                    parser: 'x'
+        	            },
+        	            scaleLabel: {
+        	            	display: true,
+        	            	labelString: '${i18n("adminStatisticsTimeAxisLabel")}'
         	            }
             	    }],
             	    yAxes: [{
-                		ticks: {
+            	    	position: 'left',
+            			type: 'linear',
+            			scaleLabel: {
+            				display: true,
+            	    		labelString: '${i18n("adminStatisticsDroppedMailsGraphAxesLabel")}'
+            			},
+            			ticks: {
+                			min: 0,
                     		callback: function(value, index, values) {
-                        		return  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    			return formatter.format(value);
                     		}
                 		}
             		}]
+            	},
+            	animation: {
+            		duration: 0
             	}
             }
 		});
 		
+		getSenderPage('day', 'dropped_desc', ${dayPage}, '#dailyList tbody', '#dailyList table', undefined);
+		getSenderPage('week', 'dropped_desc', ${weekPage}, '#weeklyList tbody', '#weeklyList table', undefined);
 		
 		lastDayChart.update();
 		lastWeekChart.update();
+		
+		function setSortFilter(parameterName, column) {
+			// let parameterValue = getUrlParameter(parameterName);
+			let parameterValue = window[parameterName];
+					
+			if (parameterValue !== undefined) {
+				let orderData = parameterValue.split("_");
+				if (orderData.length !== 2)
+					return;
+					
+				if (orderData[0] === column) {
+					if (orderData[1] === 'asc') {
+						orderData[1] = 'desc';
+					} else {
+						orderData[1] = 'asc';
+					}
+				} else {
+					orderData[0] = column;
+					orderData[1] = 'asc';
+				}
+				
+				let newValue = orderData.join('_');
+				window[parameterName] = newValue;
+				 
+				return newValue;
+			} else {
+				let newValue = column + '_asc';
+				window[parameterName] = newValue;
+					
+				// default
+				return newValue;
+			}
+		}
+		
+		function createLink(parameterName, parameterValue) {
+			let url = new URL(window.location.href);
+			let params = new URLSearchParams(url.search.slice(1));
+			
+			params.set(parameterName, parameterValue);
+			
+			let newUrl = window.location.origin + window.location.pathname + '?' + params.toString();
+			window.location.href = newUrl;
+		}
+		
+		function getUrlParameter(parameterName) {
+			let url = new URL(window.location.href);
+			let params = new URLSearchParams(url.search.slice(1));
+			
+			if (params.has(parameterName)) {
+				return params.get(parameterName);
+			} else {
+				return undefined;
+			}
+		}
+		
+		function getSenderPage(scope, orderBy, page, removeElement, appendTo, clickedElement) {
+			let params = new URLSearchParams();
+			params.set('scope', scope);
+			params.set('orderBy', orderBy);
+			params.set('page', page);
+			
+			$.ajax({url: "/admin/emailSenderPage?" + params.toString(), 
+					success: function (result) {
+								$(removeElement).remove();
+								$(appendTo).append(createTable(result.data));
+								
+								if (clickedElement !== undefined) {
+									let tableHeader = clickedElement.parentElement.getElementsByTagName('th');
+									
+									clickedElement.classList.toggle('headerSortDown');
+									clickedElement.classList.toggle('headerSortUp');
+									
+									for (let i = 0; i < tableHeader.length; i++) {
+										tableHeader[i].classList.remove('headerSortDown');
+										tableHeader[i].classList.remove('headerSortUp');
+									}
+									
+									if (orderBy.endsWith('asc')) {
+										clickedElement.classList.add('headerSortDown');
+									} else {
+										clickedElement.classList.add('headerSortUp');
+									}
+								}
+								
+								if (scope === 'day') {
+									window['dayPage'] = page;
+									createPagination(document.getElementById('dayPagination'), result.maxPages, page, scope, '#dailyList tbody', '#dailyList table');
+								} else {
+									window['weekPage'] = page;
+									createPagination(document.getElementById('weekPagination'), result.maxPages, page, scope, '#weeklyList tbody', '#weeklyList table');
+								}
+							 },
+					error: 	function (error) {
+								console.log('getSenderPage', 'error', error);
+							}
+				  });
+		}
+		
+		function createTable(json) {
+			let newBody = document.createElement('tbody')
+			
+			for (let i = 0; i < json.length; i++) {
+				let newRow = document.createElement('tr');
+				newBody.append(newRow);
+				
+				let domainCell = document.createElement('td');
+				domainCell.innerHTML = json[i].key.fromDomain;
+				
+				newRow.append(domainCell);
+				
+				let droppedCell = document.createElement('td');
+				droppedCell.classList.add('text-align-right');
+				droppedCell.innerHTML = formatter.format(json[i].dropCount);
+				
+				newRow.append(droppedCell);
+				
+				let forwardedCell = document.createElement('td');
+				forwardedCell.classList.add('text-align-right');
+				forwardedCell.innerHTML = formatter.format(json[i].forwardCount);
+				
+				newRow.append(forwardedCell);
+			}
+
+			return newBody;
+		}
+		
+		function createPagination(paginationElement, maxPages, currentPage, scope, removeElement, appendTo) {
+			while (paginationElement.hasChildNodes()) {
+    			paginationElement.removeChild(paginationElement.lastChild);
+			}
+			
+			let unorderedList = document.createElement('ul');
+			unorderedList.classList.add('pagination');
+			paginationElement.append(unorderedList);
+			
+			let descriptor = document.createElement('li');
+			descriptor.classList.add('disabled');
+			descriptor.innerHTML = '<a>${i18n("macro_Page")}: </a>';
+			
+			unorderedList.append(descriptor);
+			
+			for (let i = 1; i <= maxPages; i++) {
+				if (i >= currentPage - 3 && i <= currentPage + 3) {
+					let pageElement = document.createElement('li');
+					pageElement.append(createPaginationLink(scope, i, removeElement, appendTo));
+					
+					if (i == currentPage) {
+						pageElement.classList.add('active');
+					}
+					unorderedList.append(pageElement);
+				} else {
+					if (i == currentPage - 4) {
+						let pageElement = document.createElement('li');
+						pageElement.append(createPaginationLink(scope, 1, removeElement, appendTo));
+						unorderedList.append(pageElement);
+						
+						if (i > 1) {
+							let spacerElement = document.createElement('li');
+							spacerElement.classList.add('disabled');
+							spacerElement.innerHTML = '<a>...</a>';
+							
+							unorderedList.append(spacerElement);
+						}
+					}
+					
+					if (i == currentPage + 4) {
+						let pageElement = document.createElement('li');
+						pageElement.append(createPaginationLink(scope, maxPages, removeElement, appendTo));
+						
+						if (i < maxPages) {
+							let spacerElement = document.createElement('li');
+							spacerElement.classList.add('disabled');
+							spacerElement.innerHTML = '<a>...</a>';
+							
+							unorderedList.append(spacerElement);
+						}
+						unorderedList.append(pageElement);
+					}
+				}
+			}
+			
+			function createPaginationLink(scope, page, removeElement, appendTo) {			
+				let link = document.createElement('a');
+				let sortBy = undefined;
+				
+				if (scope === 'day') {
+					sortBy = window['sortDailyList'];
+				} else {
+					sortBy = window['sortWeeklyList'];
+				}
+				
+				link.innerHTML = page;
+				link.addEventListener('click', function() { getSenderPage(scope, sortBy, page, removeElement, appendTo, undefined) }, true);
+				
+				return link;
+			}
+		}
 	</script>
 </div>
 </@layout.adminLayout>

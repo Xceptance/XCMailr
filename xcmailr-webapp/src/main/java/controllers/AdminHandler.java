@@ -415,7 +415,9 @@ public class AdminHandler
      *            the context of this request
      * @return
      */
-    public Result showEmailStatistics(Context context)
+    public Result showEmailStatistics(Context context, @Param("dayPage") int dayPage, @Param("weekPage") int weekPage,
+                                      @Param("sortDailyList") String sortDailyList,
+                                      @Param("sortWeeklyList") String sortWeeklyList)
     {
         Result html = Results.html();
 
@@ -424,7 +426,7 @@ public class AdminHandler
         List<Long> dailyForwardedMails = new LinkedList<>();
         List<Long> dailyTimestamps = new LinkedList<>();
 
-        processStatisticsData(getStatistics(0, true), dailyDroppedMails, dailyForwardedMails, dailyTimestamps);
+        reduceStatisticsData(4, getStatistics(0, true), dailyDroppedMails, dailyForwardedMails, dailyTimestamps);
 
         html.render("lastDayTimestamps", dailyTimestamps);
         html.render("lastDayDroppedData", dailyDroppedMails);
@@ -441,8 +443,44 @@ public class AdminHandler
         html.render("lastWeekDroppedData", weeklyDroppedMails);
         html.render("lastWeekForwardedData", weeklyForwardedMails);
 
-        // set a default number or the number which the user had chosen
-        HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
+        // get the default number of entries per page
+        int entriesPerPage;
+        try
+        {
+            entriesPerPage = Integer.parseInt(context.getParameter("no"));
+        }
+        catch (NumberFormatException e)
+        {
+            entriesPerPage = xcmConfiguration.APP_DEFAULT_ENTRYNO;
+        }
+
+        List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0, sortDailyList);
+        PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entriesPerPage);
+
+        List<MailStatistics> weeksDroppedMailSender = getMailSenderList(6, sortWeeklyList);
+        PageList<MailStatistics> pagedWeeksDroppedMailSender = new PageList<>(weeksDroppedMailSender, entriesPerPage);
+
+        html.render("todaysDroppedSenderTable", pagedTodaysDroppedMailSender);
+        html.render("weeksDroppedSenderTable", pagedWeeksDroppedMailSender);
+
+        html.render("dailyListOrderColumn", getOrderColumn(sortDailyList));
+        html.render("dailyListOrderDirection", getOrderDirection(sortDailyList));
+
+        html.render("weeklyListOrderColumn", getOrderColumn(sortWeeklyList));
+        html.render("weeklyListOrderDirection", getOrderDirection(sortWeeklyList));
+
+        // set a default value if there's no one given
+        dayPage = (dayPage == 0) ? 1 : dayPage;
+        weekPage = (weekPage == 0) ? 1 : weekPage;
+        html.render("dayPage", dayPage);
+        html.render("weekPage", weekPage);
+
+        return html;
+    }
+
+    public Result getEmailSenderTablePage(Context context, @Param("scope") String scope, @Param("page") int page,
+                                          @Param("orderBy") String orderBy)
+    {
         // get the default number of entries per page
         int entriesPerPage;
         try
@@ -451,19 +489,33 @@ public class AdminHandler
         }
         catch (NumberFormatException e)
         {
-            entriesPerPage = 15;
+            entriesPerPage = xcmConfiguration.APP_DEFAULT_ENTRYNO;
         }
 
-        List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0);
-        PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entriesPerPage);
+        List<MailStatistics> data = null;
+        switch (scope)
+        {
+            case "day":
+                data = getMailSenderList(0, orderBy);
+                break;
 
-        List<MailStatistics> weeksDroppedMailSender = getMailSenderList(6);
-        PageList<MailStatistics> pagedWeeksDroppedMailSender = new PageList<>(weeksDroppedMailSender, entriesPerPage);
+            case "week":
+                data = getMailSenderList(6, orderBy);
+                break;
 
-        html.render("todaysDroppedSenderTable", pagedTodaysDroppedMailSender);
-        html.render("weeksDroppedSenderTable", pagedWeeksDroppedMailSender);
+            default:
+                return Results.badRequest();
+        }
 
-        return html;
+        PageList<MailStatistics> pagedData = new PageList<>(data, entriesPerPage);
+        List<MailStatistics> dataPage = pagedData.getPage(page);
+
+        Result result = Results.html();
+        result = Results.json();
+        result.render("data", dataPage);
+        result.render("maxPages", pagedData.getPageCount());
+
+        return result;
     }
 
     /**
@@ -473,24 +525,28 @@ public class AdminHandler
      *            A positive integer that specifies how many days should be aggregated
      * @return
      */
-    private List<MailStatistics> getMailSenderList(int lastNDays)
+    private List<MailStatistics> getMailSenderList(int lastNDays, String orderBy)
     {
         if (lastNDays < 0)
             lastNDays = 0;
 
         // daily top for dropped mail sender
         StringBuilder sql = new StringBuilder();
-        sql.append("select ms.FROM_DOMAIN, sum(ms.DROP_COUNT) as \"dropped\", sum(ms.FORWARD_COUNT) as \"forwarded\"");
+        sql.append("select ms.FROM_DOMAIN as \"domain\", sum(ms.DROP_COUNT) as \"dropped\", sum(ms.FORWARD_COUNT) as \"forwarded\"");
         sql.append("  from MAIL_STATISTICS ms");
         sql.append(" where ms.DATE >= CURRENT_DATE() - " + lastNDays);
         sql.append(" group by ms.FROM_DOMAIN");
-        sql.append(" order by \"dropped\" desc;");
+
+        String orderColumn = getOrderColumn(orderBy);
+        String order = getOrderDirection(orderBy);
+
+        sql.append(" order by \"" + orderColumn + "\" " + order);
 
         List<SqlRow> droppedMail = Ebean.createSqlQuery(sql.toString()).findList();
         List<MailStatistics> droppedMailSender = new LinkedList<>();
         droppedMail.forEach((SqlRow row) -> {
             MailStatistics ms = new MailStatistics();
-            MailStatisticsKey key = new MailStatisticsKey(null, 0, row.getString("FROM_DOMAIN"), null);
+            MailStatisticsKey key = new MailStatisticsKey(null, 0, row.getString("domain"), null);
             ms.setKey(key);
             ms.setDropCount(row.getInteger("dropped"));
             ms.setForwardCount(row.getInteger("forwarded"));
@@ -501,14 +557,50 @@ public class AdminHandler
         return droppedMailSender;
     }
 
-    /**
-     * Function to retrieve email statistics data for the given (lastNDays) days
-     * 
-     * @param lastNDays
-     *            an positive integer value that limits results to last n days
-     * @return
-     * @return
-     */
+    private String getOrderColumn(String orderBy)
+    {
+        String orderColumn = "dropped"; // the column that is used to order data; dropped = default
+
+        List<String> validColumns = new ArrayList<>();
+        validColumns.add("domain");
+        validColumns.add("dropped");
+        validColumns.add("forwarded");
+
+        String[] parts = null;
+        if (orderBy != null)
+        {
+            parts = orderBy.split("_");
+        }
+        if (parts != null && parts.length == 2)
+        {
+            if (validColumns.contains(parts[0]))
+                orderColumn = parts[0];
+        }
+
+        return orderColumn;
+    }
+
+    private String getOrderDirection(String orderBy)
+    {
+        String order = "desc"; // the direction of order (asc or desc); desc = default
+
+        List<String> validOrder = new ArrayList<>();
+        validOrder.add("asc");
+        validOrder.add("desc");
+
+        String[] parts = null;
+        if (orderBy != null)
+        {
+            parts = orderBy.split("_");
+        }
+        if (parts != null && parts.length == 2)
+        {
+            if (validOrder.contains(parts[1]))
+                order = parts[1];
+        }
+
+        return order;
+    }
 
     /**
      * Function to retrieve email statistics data for the given last n days. In case sliding window is true, then the
@@ -531,9 +623,8 @@ public class AdminHandler
         // new line
         String newLine = "\n";
 
-        // set current quarter of the day as a variable
-        Ebean.createSqlUpdate("set @currentQuarter = (hour(CURRENT_TIME()) * 4) + minute(CURRENT_TIME()) / 15;")
-             .execute();
+        // set starting quarter of the day as a variable for sliding window results
+        Ebean.createSqlUpdate("set @startingQuarter = ((hour(CURRENT_TIME()) + 1)  * 4)").execute();
 
         StringBuilder sb = new StringBuilder(5000);
         sb.append("select temp.DATE");
@@ -564,9 +655,9 @@ public class AdminHandler
         {
             sb.append("where ");
             sb.append("(temp.DATE < CURRENT_DATE()");
-            sb.append(" and temp.X > @currentQuarter)");
+            sb.append(" and temp.X >= @startingQuarter)");
             sb.append(" or (temp.DATE = CURRENT_DATE()");
-            sb.append(" and temp.X <= @currentQuarter)").append(newLine);
+            sb.append(" and temp.X < @startingQuarter)").append(newLine);
         }
 
         sb.append("group by temp.DATE, temp.X").append(newLine);
@@ -577,21 +668,6 @@ public class AdminHandler
         // System.out.println("==========================================");
 
         return Ebean.createSqlQuery(sb.toString()).findList();
-    }
-
-    private void processStatisticsData(List<SqlRow> statisticsData, List<Long> droppedMails, List<Long> forwardedMails,
-                                       List<Long> timestamps)
-    {
-        for (SqlRow sqlRow : statisticsData)
-        {
-            Date date = sqlRow.getDate("DATE");
-            int quarterHour = sqlRow.getInteger("QUARTER_HOUR");
-
-            Timestamp timestamp = new Timestamp(date.getTime() + (quarterHour * 15 * 60 * 1000));
-            timestamps.add(timestamp.getTime());
-            droppedMails.add(sqlRow.getLong("SUM_DROPPED"));
-            forwardedMails.add(sqlRow.getLong("SUM_FORWARDED"));
-        }
     }
 
     /**

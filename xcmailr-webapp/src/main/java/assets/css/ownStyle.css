@@ -22,6 +22,18 @@ h3.legendary {
 	border-bottom: 1px solid #e5e5e5;
 }
 
+.h-divider{
+ margin-top:5px;
+ margin-bottom:5px;
+ height:1px;
+ width:100%;
+ border-top:1px solid gray;
+}
+
+span.subheading {
+	font-size: 16px;
+}
+
 form.nomarg {
 	margin: 0 0 0px;
 }
@@ -64,6 +76,10 @@ table.tsort thead tr .headerSortDown, table.tsort thead tr .headerSortUp {
 	background-repeat: no-repeat;
 	background-position: center right;
 	cursor: pointer;
+}
+
+.text-align-right {
+	text-align: right;
 }
 
 div.tooltip-inner {
