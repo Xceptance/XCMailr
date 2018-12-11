@@ -492,7 +492,6 @@ public class AdminHandler
             entriesPerPage = xcmConfiguration.APP_DEFAULT_ENTRYNO;
         }
 
-        System.out.println("================ scope: " + scope);
         List<MailStatistics> data = null;
         switch (scope)
         {
@@ -515,7 +514,7 @@ public class AdminHandler
         result = Results.json();
         result.render("data", dataPage);
         result.render("maxPages", pagedData.getPageCount());
-        
+
         return result;
     }
 
