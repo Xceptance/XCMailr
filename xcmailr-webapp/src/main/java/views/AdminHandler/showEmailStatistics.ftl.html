@@ -29,7 +29,8 @@
 	<!-- <div class="h-divider"> -->
 	<span class="subheading">${i18n("adminStatisticsTodaySenderDomains")}</span>
 	<br>
-	<@pagination.paging name=todaysDroppedSenderTable currentPage = dayPage urlParameterName="dayPage"/>
+	<div class="pagination" id="dayPagination">
+	</div>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
@@ -44,7 +45,7 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="dailyListDomain" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'domain'), ${dayPage}, '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsSenderDomain")}</th>
+						" id="dailyListDomain" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'domain'), window['dayPage'], '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsSenderDomain")}</th>
 						<th class="header headerSort
 							<#if dailyListOrderColumn="dropped">
 								<#if dailyListOrderDirection="asc">
@@ -53,7 +54,7 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="dailyListDropped" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'dropped'), ${dayPage}, '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsDroppedMails")}</th>
+						" id="dailyListDropped" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'dropped'), window['dayPage'], '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsDroppedMails")}</th>
 						<th class="header headerSort
 							<#if dailyListOrderColumn="forwarded">
 								<#if dailyListOrderDirection="asc">
@@ -62,7 +63,7 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="dailyListForwarded" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'forwarded'), ${dayPage}, '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsForwardedMails")}</th>
+						" id="dailyListForwarded" onClick="getSenderPage('day', setSortFilter('sortDailyList', 'forwarded'), window['dayPage'], '#dailyList tbody', '#dailyList table', this)">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -74,7 +75,8 @@
 	<p>&nbsp;</p>
 	<span class="subheading">${i18n("adminStatisticsWeekSenderDomains")}</span>
 	<br>
-	<@pagination.paging name=weeksDroppedSenderTable currentPage = weekPage urlParameterName="weekPage"/>
+	<div class="pagination" id="weekPagination">
+	</div>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="weeklyList">
@@ -89,7 +91,7 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="weeklyListDomain" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'domain'), ${weekPage}, '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsSenderDomain")}</th>
+						" id="weeklyListDomain" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'domain'), window['weekPage'], '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsSenderDomain")}</th>
 						 
 						<th class="header headerSort
 							<#if weeklyListOrderColumn="dropped">
@@ -99,7 +101,7 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="weeklyListDropped" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'dropped'), ${weekPage}, '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsDroppedMails")}</th>
+						" id="weeklyListDropped" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'dropped'), window['weekPage'], '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsDroppedMails")}</th>
 						<th class="header headerSort
 							<#if weeklyListOrderColumn="forwarded">
 								<#if weeklyListOrderDirection="asc">
@@ -108,7 +110,7 @@
 									headerSortUp
 								</#if>
 							</#if>
-						" id="weeklyListForwarded" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'forwarded'), ${weekPage}, '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsForwardedMails")}</th>
+						" id="weeklyListForwarded" onClick="getSenderPage('week', setSortFilter('sortWeeklyList', 'forwarded'), window['weekPage'], '#weeklyList tbody', '#weeklyList table', this)">${i18n("adminStatisticsForwardedMails")}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -126,6 +128,9 @@
 		let lastWeekTimestamps = [<#list lastWeekTimestamps as value>${value},</#list>]
 		let lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
 		let lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
+		
+		window['dayPage'] = ${dayPage};
+		window['weekPage'] = ${weekPage};
 		
 		let formatter = new Intl.NumberFormat('${i18n("locale")}', { style: 'decimal'});
 	
@@ -292,9 +297,6 @@
 		}
 		
 		function getSenderPage(scope, orderBy, page, removeElement, appendTo, clickedElement) {
-			if (clickedElement !== undefined)
-				console.log(clickedElement['id']);
-		
 			let params = new URLSearchParams();
 			params.set('scope', scope);
 			params.set('orderBy', orderBy);
@@ -321,10 +323,15 @@
 									} else {
 										clickedElement.classList.add('headerSortUp');
 									}
-									
-									
 								}
 								
+								if (scope === 'day') {
+									window['dayPage'] = page;
+									createPagination(document.getElementById('dayPagination'), result.maxPages, page, scope, '#dailyList tbody', '#dailyList table');
+								} else {
+									window['weekPage'] = page;
+									createPagination(document.getElementById('weekPagination'), result.maxPages, page, scope, '#weeklyList tbody', '#weeklyList table');
+								}
 							 },
 					error: 	function (error) {
 								console.log('getSenderPage', 'error', error);
@@ -358,6 +365,78 @@
 			}
 
 			return newBody;
+		}
+		
+		function createPagination(paginationElement, maxPages, currentPage, scope, removeElement, appendTo) {
+			while (paginationElement.hasChildNodes()) {
+    			paginationElement.removeChild(paginationElement.lastChild);
+			}
+			
+			let unorderedList = document.createElement('ul');
+			unorderedList.classList.add('pagination');
+			paginationElement.append(unorderedList);
+			
+			let descriptor = document.createElement('li');
+			descriptor.classList.add('disabled');
+			descriptor.innerHTML = '<a>${i18n("macro_Page")}: </a>';
+			
+			unorderedList.append(descriptor);
+			
+			for (let i = 1; i <= maxPages; i++) {
+				if (i >= currentPage - 3 && i <= currentPage + 3) {
+					let pageElement = document.createElement('li');
+					pageElement.append(createPaginationLink(scope, i, removeElement, appendTo));
+					
+					if (i == currentPage) {
+						pageElement.classList.add('active');
+					}
+					unorderedList.append(pageElement);
+				} else {
+					if (i == currentPage - 4) {
+						let pageElement = document.createElement('li');
+						pageElement.append(createPaginationLink(scope, 1, removeElement, appendTo));
+						unorderedList.append(pageElement);
+						
+						if (i > 1) {
+							let spacerElement = document.createElement('li');
+							spacerElement.classList.add('disabled');
+							spacerElement.innerHTML = '<a>...</a>';
+							
+							unorderedList.append(spacerElement);
+						}
+					}
+					
+					if (i == currentPage + 4) {
+						let pageElement = document.createElement('li');
+						pageElement.append(createPaginationLink(scope, maxPages, removeElement, appendTo));
+						
+						if (i < maxPages) {
+							let spacerElement = document.createElement('li');
+							spacerElement.classList.add('disabled');
+							spacerElement.innerHTML = '<a>...</a>';
+							
+							unorderedList.append(spacerElement);
+						}
+						unorderedList.append(pageElement);
+					}
+				}
+			}
+			
+			function createPaginationLink(scope, page, removeElement, appendTo) {			
+				let link = document.createElement('a');
+				let sortBy = undefined;
+				
+				if (scope === 'day') {
+					sortBy = window['sortDailyList'];
+				} else {
+					sortBy = window['sortWeeklyList'];
+				}
+				
+				link.innerHTML = page;
+				link.addEventListener('click', function() { getSenderPage(scope, sortBy, page, removeElement, appendTo, undefined) }, true);
+				
+				return link;
+			}
 		}
 	</script>
 </div>
