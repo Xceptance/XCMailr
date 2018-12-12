@@ -623,6 +623,8 @@ public class AdminHandler
         // new line
         String newLine = "\n";
 
+        Transaction transaction = Ebean.beginTransaction();
+
         // set starting quarter of the day as a variable for sliding window results
         Ebean.createSqlUpdate("set @startingQuarter = ((hour(CURRENT_TIME()) + 1)  * 4)").execute();
 
@@ -667,7 +669,10 @@ public class AdminHandler
         // System.out.println(sb.toString());
         // System.out.println("==========================================");
 
-        return Ebean.createSqlQuery(sb.toString()).findList();
+        List<SqlRow> result = Ebean.createSqlQuery(sb.toString()).findList();
+        transaction.commit();
+
+        return result;
     }
 
     /**
