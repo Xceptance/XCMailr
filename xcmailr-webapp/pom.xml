@@ -50,36 +50,15 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.0.5.v20130815</version>
+                <groupId>org.ninjaframework</groupId>
+                <artifactId>ninja-maven-plugin</artifactId>
+                <version>${ninja.version}</version>
                 <configuration>
-                    <contextPath>/</contextPath>
-                    <stopKey>stop</stopKey>
-                    <stopPort>8889</stopPort>
-                    <scanIntervalSeconds>10</scanIntervalSeconds>
-                    <reload>manual</reload>
-                    <classesDirectory>
-                        target/classes
-                    </classesDirectory>
-                    <scanTargetPatterns>
-                        <scanTargetPattern>
-                            <directory>target/classes</directory>
-                            <includes>
-                                <include>**/*</include>
-                            </includes>
-                            <excludes>
-                                <exclude>**/*.ftl.html</exclude>
-                                <exclude>assets/**</exclude>
-                            </excludes>
-                        </scanTargetPattern>
-                    </scanTargetPatterns>
-                    <systemProperties>
-                        <systemProperty>
-                            <name>ninja.mode</name>
-                            <value>dev</value>
-                        </systemProperty>
-                    </systemProperties>
+                    <mode>dev</mode>
+                    <useDefaultExcludes>true</useDefaultExcludes>
+                    <excludes>
+                        <exclude>(.*)ftl.html$</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
