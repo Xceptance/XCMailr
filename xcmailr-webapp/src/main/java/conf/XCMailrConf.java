@@ -108,6 +108,17 @@ public class XCMailrConf
     public final Integer MB_PORT;
 
     /**
+     * Whether or not the inbound SMTP server supports upgrading the connection to TLS.
+     */
+    public final Boolean MB_ENABLE_TLS;
+
+    /**
+     * Whether or not the inbound SMTP server requires the client to upgrade the connection to TLS. Effective only when
+     * {@link #MB_ENABLE_TLS} is <code>true</code>.
+     */
+    public final Boolean MB_REQUIRE_TLS;
+
+    /**
      * specified with memcached.host
      */
     public final String MEMCA_HOST;
@@ -209,15 +220,20 @@ public class XCMailrConf
         CONFIRMATION_PERIOD = ninjaProp.getIntegerOrDie("confirm.period");
         COOKIE_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
         COOKIE_EXPIRETIME = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
+
         D_LIST = ninjaProp.getOrDie("mbox.dlist");
         DOMAIN_LIST = ninjaProp.getStringArray("mbox.dlist");
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
+        MB_ENABLE_TLS = ninjaProp.getBooleanWithDefault("mbox.enableTls", true);
+        MB_REQUIRE_TLS = MB_ENABLE_TLS && ninjaProp.getBooleanWithDefault("mbox.requireTls", false);
         MB_INTERVAL = ninjaProp.getIntegerOrDie("mbox.interval");
+
         MTX_LIMIT = ninjaProp.getIntegerWithDefault("mailtransaction.displaylimit", 0);
         MTX_MAX_AGE = ninjaProp.getIntegerWithDefault("mailtransaction.maxage", -1);
         MEMCA_HOST = ninjaProp.getOrDie("memcached.host");
         MSG_REWRITE = ninjaProp.getBooleanWithDefault("mail.msg.rewrite", false);
+
         OUT_SMTP_HOST = ninjaProp.getOrDie("mail.smtp.host");
         OUT_SMTP_PORT = ninjaProp.getIntegerOrDie("mail.smtp.port");
         OUT_SMTP_AUTH = ninjaProp.getBooleanOrDie("mail.smtp.auth");
@@ -233,6 +249,7 @@ public class XCMailrConf
         }
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
         OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", false);
+
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");
         SESSION_EXPIRETIME = COOKIE_EXPIRETIME + "s";
         if (DOMAIN_LIST == null)
