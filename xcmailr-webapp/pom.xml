@@ -55,6 +55,10 @@
                 <version>${ninja.version}</version>
                 <configuration>
                     <mode>dev</mode>
+                    <jvmArgs>
+                        -Dlogback.configurationFile=logback_dev.xml
+                        -Dninja.external.configuration=application_dev.conf
+                    </jvmArgs>
                     <useDefaultExcludes>true</useDefaultExcludes>
                     <excludes>
                         <exclude>(.*)ftl.html$</exclude>
