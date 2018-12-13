@@ -20,6 +20,10 @@
         <version>2.0.2</version>
     </parent>
 
+    <properties>
+        <ninja.version>6.3.0</ninja.version>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -203,7 +207,7 @@
         <dependency>
             <groupId>org.ninjaframework</groupId>
             <artifactId>ninja-core</artifactId>
-            <version>6.3.0</version>
+            <version>${ninja.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -214,7 +218,7 @@
         <dependency>
             <groupId>org.ninjaframework</groupId>
             <artifactId>ninja-test-utilities</artifactId>
-            <version>6.3.0</version>
+            <version>${ninja.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -230,7 +234,7 @@
         <dependency>
             <groupId>org.ninjaframework</groupId>
             <artifactId>ninja-servlet</artifactId>
-            <version>6.3.0</version>
+            <version>${ninja.version}</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
