@@ -29,6 +29,7 @@ import org.joda.time.DateTime;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlRow;
+import com.avaje.ebean.Transaction;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
