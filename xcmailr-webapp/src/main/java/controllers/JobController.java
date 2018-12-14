@@ -87,14 +87,8 @@ public class JobController
             user.save();
 
         }
-        // create the server for incoming mails
-        smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(messageListener));
-
-        // use a dynamic port for the smtp in test-mode or the port specified in application.conf in all other modes
-        int port = ninjaProperties.isTest() ? findAvailablePort(49152, 65535) : xcmConfiguration.MB_PORT;
-
-        // set the port and start the SMTP-Server
-        smtpServer.setPort(port);
+        // create and start the server for incoming mails
+        smtpServer = createSmtpServer();
         smtpServer.start();
 
         // create the executor-service to check the mail-addresses which were expired since the last run and disable
@@ -102,7 +96,6 @@ public class JobController
         // and also all new MailTransactions will be stored here and old entries will be removed
         expirationService.scheduleAtFixedRate(new ExpirationService(mtxQueue, deleteTransactions, xcmConfiguration),
                                               new Long(0), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
-
     }
 
     /**
@@ -116,6 +109,27 @@ public class JobController
 
         // stop the job to expire the mailboxes
         expirationService.shutdown();
+    }
+
+    /**
+     * Creates the {@link SMTPServer} instance responsible for incoming mails and sets it up.
+     * 
+     * @return the configured SMTP server
+     */
+    private SMTPServer createSmtpServer()
+    {
+        SMTPServer smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(messageListener));
+
+        // use a dynamic port for the smtp in test-mode or the port specified in application.conf in all other modes
+        int port = ninjaProperties.isTest() ? findAvailablePort(49152, 65535) : xcmConfiguration.MB_PORT;
+
+        smtpServer.setPort(port);
+
+        // configure TLS support
+        smtpServer.setEnableTLS(xcmConfiguration.MB_ENABLE_TLS);
+        smtpServer.setRequireTLS(xcmConfiguration.MB_REQUIRE_TLS);
+
+        return smtpServer;
     }
 
     /**

@@ -58,6 +58,8 @@
                     <jvmArgs>
                         -Dlogback.configurationFile=logback_dev.xml
                         -Dninja.external.configuration=application_dev.conf
+                        -Djavax.net.ssl.keyStore=../xcmailr-resources/conf/keystore.jks
+                        -Djavax.net.ssl.keyStorePassword=topsecret
                     </jvmArgs>
                     <useDefaultExcludes>true</useDefaultExcludes>
                     <excludes>
