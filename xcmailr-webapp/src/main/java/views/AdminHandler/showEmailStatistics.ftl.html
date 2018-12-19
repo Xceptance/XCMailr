@@ -16,7 +16,7 @@
 	
 	<!-- <div class="h-divider"> -->
 	<span class="subheading">${i18n("adminStatisticsTodaySenderDomains")}</span>
-	<br>
+	<p>&nbsp;</p>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
@@ -30,9 +30,9 @@
        data-toggle="table" data-url="/admin/emailSenderPage?scope=day">
 	    <thead>
 	        <tr>
-	        	<th class="domain" data-field="fromDomain" data-sortable="true">fromDomain</th>
-	            <th class="dropped" data-field="droppedCount" data-sortable="true" data-formatter="cellFormatter">droppedCount</th>
-	            <th class="forwarded" data-field="forwardedCount" data-sortable="true" data-formatter="cellFormatter">forwardedCount</th>
+	        	<th class="domain" data-field="fromDomain" data-sortable="true">${i18n("adminStatisticsSenderDomain")}</th>
+	            <th class="dropped" data-field="droppedCount" data-sortable="true" data-formatter="cellFormatter">${i18n("adminStatisticsDroppedMails")}</th>
+	            <th class="forwarded" data-field="forwardedCount" data-sortable="true" data-formatter="cellFormatter">${i18n("adminStatisticsForwardedMails")}</th>
 	        </tr>
 	    </thead>
 	</table>
@@ -41,7 +41,7 @@
 	<!-- end statistics table -->
 	<p>&nbsp;</p>
 	<span class="subheading">${i18n("adminStatisticsWeekSenderDomains")}</span>
-	<br>
+	<p>&nbsp;</p>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="weeklyList">
@@ -55,9 +55,9 @@
        data-toggle="table" data-url="/admin/emailSenderPage?scope=week">
 	    <thead>
 	        <tr>
-	        	<th class="domain" data-field="fromDomain" data-sortable="true">fromDomain</th>
-	            <th class="dropped" data-field="droppedCount" data-sortable="true" data-formatter="cellFormatter">droppedCount</th>
-	            <th class="forwarded" data-field="forwardedCount" data-sortable="true" data-formatter="cellFormatter">forwardedCount</th>
+	        	<th class="domain" data-field="fromDomain" data-sortable="true">${i18n("adminStatisticsSenderDomain")}</th>
+	            <th class="dropped" data-field="droppedCount" data-sortable="true" data-formatter="cellFormatter">${i18n("adminStatisticsDroppedMails")}</th>
+	            <th class="forwarded" data-field="forwardedCount" data-sortable="true" data-formatter="cellFormatter">${i18n("adminStatisticsForwardedMails")}</th>
 	        </tr>
 	    </thead>
 	</table>
