@@ -17,8 +17,6 @@
 	<!-- <div class="h-divider"> -->
 	<span class="subheading">${i18n("adminStatisticsTodaySenderDomains")}</span>
 	<br>
-	<div class="pagination" id="dayPagination">
-	</div>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
@@ -33,8 +31,8 @@
 	    <thead>
 	        <tr>
 	        	<th class="domain" data-field="fromDomain" data-sortable="true">fromDomain</th>
-	            <th class="dropped" data-field="droppedCount" data-sortable="true">droppedCount</th>
-	            <th class="forwarded" data-field="forwardedCount" data-sortable="true">forwardedCount</th>
+	            <th class="dropped" data-field="droppedCount" data-sortable="true" data-formatter="cellFormatter">droppedCount</th>
+	            <th class="forwarded" data-field="forwardedCount" data-sortable="true" data-formatter="cellFormatter">forwardedCount</th>
 	        </tr>
 	    </thead>
 	</table>
@@ -44,8 +42,6 @@
 	<p>&nbsp;</p>
 	<span class="subheading">${i18n("adminStatisticsWeekSenderDomains")}</span>
 	<br>
-	<div class="pagination" id="weekPagination">
-	</div>
 	<div class="row">
 		<!-- begin user table -->
 		<div class="tab-content" id="weeklyList">
@@ -60,8 +56,8 @@
 	    <thead>
 	        <tr>
 	        	<th class="domain" data-field="fromDomain" data-sortable="true">fromDomain</th>
-	            <th class="dropped" data-field="droppedCount" data-sortable="true">droppedCount</th>
-	            <th class="forwarded" data-field="forwardedCount" data-sortable="true">forwardedCount</th>
+	            <th class="dropped" data-field="droppedCount" data-sortable="true" data-formatter="cellFormatter">droppedCount</th>
+	            <th class="forwarded" data-field="forwardedCount" data-sortable="true" data-formatter="cellFormatter">forwardedCount</th>
 	        </tr>
 	    </thead>
 	</table>
@@ -70,6 +66,11 @@
 	<!-- end statistics table -->
 	
 	<script>
+		function cellFormatter(value, row, index, field) {
+			let formatter = new Intl.NumberFormat('${i18n("locale")}', { style: 'decimal'});
+			return formatter.format(value);
+		}
+	
 		let lastDayTimestamps = [<#list lastDayTimestamps as value>${value},</#list>]
 		let lastDayDroppedData = [<#list lastDayDroppedData as value>${value},</#list>]
 		let lastDayForwardedData = [<#list lastDayForwardedData as value>${value},</#list>]
