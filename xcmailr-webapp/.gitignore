@@ -1,8 +1,11 @@
 /xcmailr-build/
 /target/
+/log/
 .DS_Store
 .DS_Store?
 .classpath
 .project
 .settings
 .metadata
+application_dev.conf
+logback_dev.xml

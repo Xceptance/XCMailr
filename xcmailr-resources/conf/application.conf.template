@@ -52,6 +52,15 @@ application.whitelist = false
 mbox.port=25000
 # Name of the server (used in the mail for pw-forgot)
 mbox.host=xcmailr.test
+
+# Whether the inbound SMTP server supports upgrading the connection to TLS
+# (via STARTTLS command).
+mbox.enableTls = true
+
+# Whether the inbound SMTP server requires the client to upgrade the connection
+# to TLS (via STARTTLS command). Effective only when mbox.enableTls = true.
+mbox.requireTls = false
+
 # check interval for the expiration of mailboxes (in minutes!)
 mbox.interval=1
 # List of available Domains, separated by commas

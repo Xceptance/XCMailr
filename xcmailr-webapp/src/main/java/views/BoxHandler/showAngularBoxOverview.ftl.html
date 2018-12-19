@@ -102,10 +102,10 @@
 					</thead>
 					<tbody>
 						<!-- begin no-addresses-row -->
-						<tr class="info" ng-show="(filteredBoxes.length == 0) && (searchString == '')">
+						<tr class="info" ng-show="filteredBoxes.length == 0">
 							<td></td>
-							<td colspan="5">${i18n("mailbox_Label_NoEntries")} <a href="javascript:;" class="btn btn-link btn-link-addAdress" data-ng-click="openAddBoxDialog()"> <i class="glyphicon glyphicon-plus-sign"></i>
-									${i18n("mailbox_Label_AskForNewAddress")}
+							<td colspan="5">${i18n("mailbox_Label_NoEntries")} <span ng-show="(searchString == '')"><a href="javascript:;" class="btn btn-link btn-link-addAdress" data-ng-click="openAddBoxDialog()"> <i class="glyphicon glyphicon-plus-sign"></i>
+									${i18n("mailbox_Label_AskForNewAddress")}</span>
 							</a>
 							</td>
 						</tr>
