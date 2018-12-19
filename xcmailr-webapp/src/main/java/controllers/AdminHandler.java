@@ -40,6 +40,7 @@ import filters.SecureFilter;
 import filters.WhitelistFilter;
 import models.Domain;
 import models.MailStatistics;
+import models.MailStatisticsJson;
 import models.MailStatisticsKey;
 import models.MailTransaction;
 import models.PageList;
@@ -455,10 +456,10 @@ public class AdminHandler
             entriesPerPage = xcmConfiguration.APP_DEFAULT_ENTRYNO;
         }
 
-        List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0, sortDailyList);
+        List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0, sortDailyList, "asc");
         PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entriesPerPage);
 
-        List<MailStatistics> weeksDroppedMailSender = getMailSenderList(6, sortWeeklyList);
+        List<MailStatistics> weeksDroppedMailSender = getMailSenderList(6, sortWeeklyList, "asc");
         PageList<MailStatistics> pagedWeeksDroppedMailSender = new PageList<>(weeksDroppedMailSender, entriesPerPage);
 
         html.render("todaysDroppedSenderTable", pagedTodaysDroppedMailSender);
@@ -480,41 +481,46 @@ public class AdminHandler
     }
 
     public Result getEmailSenderTablePage(Context context, @Param("scope") String scope, @Param("page") int page,
-                                          @Param("orderBy") String orderBy)
+                                          @Param("offset") int offset, @Param("limit") int limit,
+                                          @Param("sort") String sort, @Param("order") String order)
     {
-        // get the default number of entries per page
-        int entriesPerPage;
-        try
-        {
-            entriesPerPage = Integer.parseInt(context.getSession().get("no"));
-        }
-        catch (NumberFormatException e)
-        {
-            entriesPerPage = xcmConfiguration.APP_DEFAULT_ENTRYNO;
-        }
-
         List<MailStatistics> data = null;
         switch (scope)
         {
             case "day":
-                data = getMailSenderList(0, orderBy);
+                data = getMailSenderList(0, sort, order);
                 break;
 
             case "week":
-                data = getMailSenderList(6, orderBy);
+                data = getMailSenderList(6, sort, order);
                 break;
 
             default:
                 return Results.badRequest();
         }
 
-        PageList<MailStatistics> pagedData = new PageList<>(data, entriesPerPage);
-        List<MailStatistics> dataPage = pagedData.getPage(page);
+        if (page < 0)
+            page = 0;
+
+        List<MailStatisticsJson> jsonData = new LinkedList<>();
+
+        for (int i = offset; i < offset + limit; i++)
+        {
+            if (i < data.size())
+            {
+                MailStatisticsJson newEntry = new MailStatisticsJson();
+                newEntry.id = i;
+                newEntry.droppedCount = data.get(i).getDropCount();
+                newEntry.forwardedCount = data.get(i).getForwardCount();
+                newEntry.fromDomain = data.get(i).getKey().getFromDomain();
+                jsonData.add(newEntry);
+            }
+        }
 
         Result result = Results.html();
         result = Results.json();
-        result.render("data", dataPage);
-        result.render("maxPages", pagedData.getPageCount());
+        result.render("rows", jsonData);
+        result.render("total", data.size());
 
         return result;
     }
@@ -526,31 +532,31 @@ public class AdminHandler
      *            A positive integer that specifies how many days should be aggregated
      * @return
      */
-    private List<MailStatistics> getMailSenderList(int lastNDays, String orderBy)
+    private List<MailStatistics> getMailSenderList(int lastNDays, String sort, String order)
     {
         if (lastNDays < 0)
             lastNDays = 0;
 
         // daily top for dropped mail sender
         StringBuilder sql = new StringBuilder();
-        sql.append("select ms.FROM_DOMAIN as \"domain\", sum(ms.DROP_COUNT) as \"dropped\", sum(ms.FORWARD_COUNT) as \"forwarded\"");
+        sql.append("select ms.FROM_DOMAIN as \"fromDomain\", sum(ms.DROP_COUNT) as \"droppedCount\", sum(ms.FORWARD_COUNT) as \"forwardedCount\"");
         sql.append("  from MAIL_STATISTICS ms");
         sql.append(" where ms.DATE >= CURRENT_DATE() - " + lastNDays);
         sql.append(" group by ms.FROM_DOMAIN");
 
-        String orderColumn = getOrderColumn(orderBy);
-        String order = getOrderDirection(orderBy);
+        String orderColumn = getOrderColumn(sort);
+        String orderBy = getOrderDirection(order);
 
-        sql.append(" order by \"" + orderColumn + "\" " + order);
+        sql.append(" order by \"" + orderColumn + "\" " + orderBy);
 
         List<SqlRow> droppedMail = Ebean.createSqlQuery(sql.toString()).findList();
         List<MailStatistics> droppedMailSender = new LinkedList<>();
         droppedMail.forEach((SqlRow row) -> {
             MailStatistics ms = new MailStatistics();
-            MailStatisticsKey key = new MailStatisticsKey(null, 0, row.getString("domain"), null);
+            MailStatisticsKey key = new MailStatisticsKey(null, 0, row.getString("fromDomain"), null);
             ms.setKey(key);
-            ms.setDropCount(row.getInteger("dropped"));
-            ms.setForwardCount(row.getInteger("forwarded"));
+            ms.setDropCount(row.getInteger("droppedCount"));
+            ms.setForwardCount(row.getInteger("forwardedCount"));
 
             droppedMailSender.add(ms);
         });
@@ -560,23 +566,15 @@ public class AdminHandler
 
     private String getOrderColumn(String orderBy)
     {
-        String orderColumn = "dropped"; // the column that is used to order data; dropped = default
+        String orderColumn = "droppedCount"; // the column that is used to order data; droppedCount = default
 
         List<String> validColumns = new ArrayList<>();
-        validColumns.add("domain");
-        validColumns.add("dropped");
-        validColumns.add("forwarded");
+        validColumns.add("fromDomain");
+        validColumns.add("droppedCount");
+        validColumns.add("forwardedCount");
 
-        String[] parts = null;
-        if (orderBy != null)
-        {
-            parts = orderBy.split("_");
-        }
-        if (parts != null && parts.length == 2)
-        {
-            if (validColumns.contains(parts[0]))
-                orderColumn = parts[0];
-        }
+        if (validColumns.contains(orderBy))
+            orderColumn = orderBy;
 
         return orderColumn;
     }
@@ -589,16 +587,8 @@ public class AdminHandler
         validOrder.add("asc");
         validOrder.add("desc");
 
-        String[] parts = null;
-        if (orderBy != null)
-        {
-            parts = orderBy.split("_");
-        }
-        if (parts != null && parts.length == 2)
-        {
-            if (validOrder.contains(parts[1]))
-                order = parts[1];
-        }
+        if (validOrder.contains(orderBy))
+            order = orderBy;
 
         return order;
     }
