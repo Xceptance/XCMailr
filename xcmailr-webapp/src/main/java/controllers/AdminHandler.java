@@ -506,12 +506,15 @@ public class AdminHandler
 
         for (int i = offset; i < offset + limit; i++)
         {
-            MailStatisticsJson newEntry = new MailStatisticsJson();
-            newEntry.id = i;
-            newEntry.droppedCount = data.get(i).getDropCount();
-            newEntry.forwardedCount = data.get(i).getForwardCount();
-            newEntry.fromDomain = data.get(i).getKey().getFromDomain();
-            jsonData.add(newEntry);
+            if (i < data.size())
+            {
+                MailStatisticsJson newEntry = new MailStatisticsJson();
+                newEntry.id = i;
+                newEntry.droppedCount = data.get(i).getDropCount();
+                newEntry.forwardedCount = data.get(i).getForwardCount();
+                newEntry.fromDomain = data.get(i).getKey().getFromDomain();
+                jsonData.add(newEntry);
+            }
         }
 
         Result result = Results.html();
