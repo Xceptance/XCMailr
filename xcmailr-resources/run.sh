@@ -3,7 +3,7 @@ set -e
 
 KEYSTORE_FILE=${KEYSTORE_FILE:-"conf/keystore.jks"}
 KEYSTORE_PW=${KEYSTORE_PW:-"topsecret"}
-XCM_INSTALL_DIR=${XCM_INSTALL_DIR:-`realpath -m $(dirname $0)/..`}
+XCM_INSTALL_DIR=${XCM_INSTALL_DIR:-`realpath -m $(dirname $0)`}
 
 #setup paths and options
 JVM_OPTS="-Dsun.lang.ClassLoader.allowArraySyntax=true"
