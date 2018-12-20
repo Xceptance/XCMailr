@@ -21,21 +21,21 @@
 		<!-- begin user table -->
 		<div class="tab-content" id="dailyList">
 			<table 
-       data-pagination="true"
-       data-id-field="id"
-       data-page-list="[10, 25, 50, 100, ALL]"
-       data-side-pagination="server"
-       data-sort-name="droppedCount"
-       data-sort-order="desc"
-       data-toggle="table" data-url="/admin/emailSenderPage?scope=day">
-	    <thead>
-	        <tr>
-	        	<th class="domain" data-field="fromDomain" data-sortable="true">${i18n("adminStatisticsSenderDomain")}</th>
-	            <th class="dropped" data-field="droppedCount" data-sortable="true" data-formatter="cellFormatter" data-align="right">${i18n("adminStatisticsDroppedMails")}</th>
-	            <th class="forwarded" data-field="forwardedCount" data-sortable="true" data-formatter="cellFormatter" data-align="right">${i18n("adminStatisticsForwardedMails")}</th>
-	        </tr>
-	    </thead>
-	</table>
+		       data-pagination="true"
+		       data-id-field="id"
+		       data-page-list="[10, 25, 50, 100, ALL]"
+		       data-side-pagination="server"
+		       data-sort-name="droppedCount"
+		       data-sort-order="desc"
+		       data-toggle="table" data-url="/admin/emailSenderPage?scope=day">
+			    <thead>
+			        <tr>
+			        	<th class="domain" data-field="fromDomain" data-sortable="true">${i18n("adminStatisticsSenderDomain")}</th>
+			            <th class="dropped" data-field="droppedCount" data-sortable="true" data-formatter="cellFormatter" data-align="right">${i18n("adminStatisticsDroppedMails")}</th>
+			            <th class="forwarded" data-field="forwardedCount" data-sortable="true" data-formatter="cellFormatter" data-align="right">${i18n("adminStatisticsForwardedMails")}</th>
+			        </tr>
+			    </thead>
+			</table>
 		</div><!-- /tab-content -->
 	</div><!-- /row -->
 	<!-- end statistics table -->
