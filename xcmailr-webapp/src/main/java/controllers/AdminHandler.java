@@ -517,8 +517,7 @@ public class AdminHandler
             }
         }
 
-        Result result = Results.html();
-        result = Results.json();
+        Result result = Results.json();
         result.render("rows", jsonData);
         result.render("total", data.size());
 
