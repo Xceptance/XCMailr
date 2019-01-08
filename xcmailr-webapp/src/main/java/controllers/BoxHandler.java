@@ -937,9 +937,12 @@ public class BoxHandler
         }
 
         List<MailboxEntry> entries = new LinkedList<>();
-        for (Mail email : emails)
+
+        for (int i = 0; i < emails.size(); i++)
         {
-            MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email.getSender(), email.getSubject(),
+            Mail email = emails.get(i);
+
+            MailboxEntry mailboxEntry = new MailboxEntry(i, mailAddress, email.getSender(), email.getSubject(),
                                                          email.getReceiveTime(), email.getMessage());
             if (true //
                 && senderPattern.matcher(mailboxEntry.sender).find() //
@@ -1014,8 +1017,10 @@ public class BoxHandler
     }
 
     @FilterWith(SecureFilter.class)
-    public Result queryAllMailboxes(Context context) throws Exception
+    public Result queryAllMailboxes(Context context, @Param("order") String order) throws Exception
     {
+        // http://localhost:8080/mails?format=json&sort=droppedCount&order=desc&offset=0&limit=10
+        // ?format=json&order=asc&offset=0&limit=10
         User user = context.getAttribute("user", User.class);
         List<MBox> mailboxes = user.getBoxes();
 
@@ -1026,25 +1031,29 @@ public class BoxHandler
             List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId())
                                     .setMaxRows(xcmConfiguration.MAILBOX_MAX_MAIL_COUNT).order("receive_time")
                                     .findList();
-            for (Mail mail : mails)
+
+            for (int j = 0; j < mails.size(); j++)
             {
-                result.add(new MailboxEntry(mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
+                Mail mail = mails.get(j);
+
+                result.add(new MailboxEntry(j, mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
                                             mail.getReceiveTime(), mail.getMessage()));
             }
         }
 
         String formatParameter = context.getParameter("format", "html").toLowerCase();
 
-        Result html = Results.html();
         if ("html".equals(formatParameter))
         {
-            html.render("accountEmails", result).render("showMails", true);
-
-            return html;
+            return Results.html();
         }
         else if ("json".equals(formatParameter))
         {
-            return Results.json().status(Result.SC_200_OK).render(result);
+            Result jsonResult = Results.json();
+            jsonResult.render("rows", result);
+            jsonResult.render("total", result.size());
+
+            return jsonResult;
         }
         else
         {

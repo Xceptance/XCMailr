@@ -3,52 +3,51 @@
 	
 	<div style="margin-bottom: 20px;">${i18n("inbox.contentwarning")}<br /></div>
 	<div class="container">
-		<div id="mailbox">
-			<table class="table table-hover table-condensed tsort" id="table-mailbox-overview">
-				<thead>
-					<th>Received</th>
-					<th>My Mail Address</th>
-					<th>Sender</th>
-					<th>Subject</th>
-				</thead>
-				<tbody>
-					<#list accountEmails as entry>
-						<tr class="clickable" onClick="updateMailContent('${entry.subject}', '${entry.textContent}', '${entry.htmlContent}')">
-							<td class="time">${entry.getReceivedTimeAsString()}</td>
-							<td class="receiver">${entry.mailAddress}</td>
-							<td class="sender">${entry.sender}</td>
-							<td class="subject">${entry.subject}</td>
-						</tr>
-					</#list>				
-				</tbody>
-			</table>
-			<div id="mailContent" style="display: none;">
+		<table
+            id="mailbox"
+		    data-pagination="true"
+		    data-side-pagination="server" 
+	        data-id-field="id"
+	        data-toggle="table"
+	        data-locale="${i18n("locale")}"
+	        data-url="/mails?format=json">
+		    <thead>
+		        <tr>
+		        	<th data-field="receivedTimeAsString">Received at</th>
+		        	<th data-field="sender">Email sender</th>
+		        	<th data-field="mailAddress">My email</th>
+		        	<th data-field="subject">Subject</th>
+		        </tr>
+		    </thead>
+		</table>
+		
+		<div id="mailContent" style="display: none;">
 					<span><b>Attachments: </b>not implemented yet :(</span><div class="attachments"></div>
 					<br />
 					<span><b>Subject: </b></span><div class="subject"></div>
 					<br />
-					<span><b>Content (text): </b></span><div class="text-content"></div>
+					<span><b>Content (text): </b></span><pre class="text-content"></pre>
 					<br />
 					<span><b>Content (html): </b></span><div class="html-content">
 						<iframe id="iframe-html-content" class="iframe" width="100%" style="border:none;">
 						</iframe>
 					</div>
 			</div>
-		</div>
 	</div>
 	<script>
-		function updateMailContent(subject, textContent, htmlContent, attachments) {
-			console.log(subject);
-			$('#mailContent .subject').html(subject);
-			$('#mailContent .text-content').html(textContent);
-			$('#mailContent .iframe .html-content').html(htmlContent);
-			$('#mailContent .attachments').html(attachments);
+		$('#mailbox')
+		.on('click-row.bs.table', function(row, element) {
+			console.log(row, element);
+			
+			$('#mailContent .subject').html(element.subject);
+			$('#mailContent .text-content').html(atob(element.textContent));
+			$('#mailContent .attachments').html(element.attachments);
 			
 			$('#iframe-html-content').ready(function(){
-       			$('#iframe-html-content').contents().find('body').html(htmlContent	);
+       			$('#iframe-html-content').contents().find('body').html(atob(element.htmlContent));
     		});
     		
 			$('#mailContent').show();
-		};
+		});
 	</script>
 </@layout.xcLayout>
