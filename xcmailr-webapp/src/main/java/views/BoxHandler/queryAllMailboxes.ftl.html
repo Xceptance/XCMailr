@@ -13,25 +13,32 @@
 	        data-url="/mails?format=json">
 		    <thead>
 		        <tr>
-		        	<th data-field="receivedTimeAsString">Received at</th>
-		        	<th data-field="sender">Email sender</th>
-		        	<th data-field="mailAddress">My email</th>
-		        	<th data-field="subject">Subject</th>
+		        	<th data-field="receivedTimeAsString">${i18n("inbox.receivedate_label")}</th>
+		        	<th data-field="sender">${i18n("inbox.email_sender_label")}</th>
+		        	<th data-field="mailAddress">${i18n("inbox.receiving_address_label")}</th>
+		        	<th data-field="subject">${i18n("inbox.subject")}</th>
 		        </tr>
 		    </thead>
 		</table>
 		
 		<div id="mailContent" style="display: none;">
-					<span><b>Attachments: </b>not implemented yet :(</span><div class="attachments"></div>
+					<span><b>${i18n("inbox.attachments_label")}: </b>not implemented yet :(</span>
+					<div class="attachments"></div>
 					<br />
-					<span><b>Subject: </b></span><div class="subject"></div>
+					<span><b>${i18n("inbox.subject")}: </b><span class="subject"></span></span>
 					<br />
-					<span><b>Content (text): </b></span><pre class="text-content"></pre>
 					<br />
-					<span><b>Content (html): </b></span><div class="html-content">
-						<iframe id="iframe-html-content" class="iframe" width="100%" style="border:none;">
-						</iframe>
-					</div>
+					<span><b>${i18n("inbox.text_content_label")}</b></span>
+					<pre class="text-content"></pre>
+					<br />
+					<span><b>${i18n("inbox.html_content_label")}</b></span>
+					<pre class="html-content" style="position: relative; width: 100%; height: 0; padding-bottom: 100%;">
+						<#-- <div class="html-content" style="position: relative; width: 100%; height: 0; padding-bottom: 100%;">
+							
+						</div> -->
+						 <iframe id="iframe-html-content" class="iframe" style="border:none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+					 	 </iframe>
+					 </pre>
 			</div>
 	</div>
 	<script>
