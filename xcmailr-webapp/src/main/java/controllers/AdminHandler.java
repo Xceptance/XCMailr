@@ -445,38 +445,6 @@ public class AdminHandler
         html.render("lastWeekDroppedData", weeklyDroppedMails);
         html.render("lastWeekForwardedData", weeklyForwardedMails);
 
-        // get the default number of entries per page
-        int entriesPerPage;
-        try
-        {
-            entriesPerPage = Integer.parseInt(context.getParameter("no"));
-        }
-        catch (NumberFormatException e)
-        {
-            entriesPerPage = xcmConfiguration.APP_DEFAULT_ENTRYNO;
-        }
-
-        List<MailStatistics> todaysDroppedMailSender = getMailSenderList(0, sortDailyList, "asc");
-        PageList<MailStatistics> pagedTodaysDroppedMailSender = new PageList<>(todaysDroppedMailSender, entriesPerPage);
-
-        List<MailStatistics> weeksDroppedMailSender = getMailSenderList(6, sortWeeklyList, "asc");
-        PageList<MailStatistics> pagedWeeksDroppedMailSender = new PageList<>(weeksDroppedMailSender, entriesPerPage);
-
-        html.render("todaysDroppedSenderTable", pagedTodaysDroppedMailSender);
-        html.render("weeksDroppedSenderTable", pagedWeeksDroppedMailSender);
-
-        html.render("dailyListOrderColumn", getOrderColumn(sortDailyList));
-        html.render("dailyListOrderDirection", getOrderDirection(sortDailyList));
-
-        html.render("weeklyListOrderColumn", getOrderColumn(sortWeeklyList));
-        html.render("weeklyListOrderDirection", getOrderDirection(sortWeeklyList));
-
-        // set a default value if there's no one given
-        dayPage = (dayPage == 0) ? 1 : dayPage;
-        weekPage = (weekPage == 0) ? 1 : weekPage;
-        html.render("dayPage", dayPage);
-        html.render("weekPage", weekPage);
-
         return html;
     }
 

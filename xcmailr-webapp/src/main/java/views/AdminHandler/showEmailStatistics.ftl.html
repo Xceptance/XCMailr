@@ -81,9 +81,6 @@
 		let lastWeekDroppedData =  [<#list lastWeekDroppedData as value>${value},</#list>]
 		let lastWeekForwardedData =  [<#list lastWeekForwardedData as value>${value},</#list>]
 		
-		window['dayPage'] = ${dayPage};
-		window['weekPage'] = ${weekPage};
-		
 		let formatter = new Intl.NumberFormat('${i18n("locale")}', { style: 'decimal'});
 	
 		let lastDayChart = new Chart(document.getElementById("lastDay").getContext('2d'), {
