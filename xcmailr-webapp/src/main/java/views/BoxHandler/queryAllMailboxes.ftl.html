@@ -21,9 +21,10 @@
 		    </thead>
 		</table>
 		
-		<div id="mailContent" style="display: none;">
-					<span><b>${i18n("inbox.attachments_label")}: </b>not implemented yet :(</span>
-					<div class="attachments"></div>
+		<div id="mail-content" style="display: none;">
+			<span><b>${i18n("inbox.attachments_label")}: </b></span>
+			<div class="attachments">
+			</div>
 					<br />
 					<span><b>${i18n("inbox.subject")}: </b><span class="subject"></span></span>
 					<br />
@@ -33,9 +34,6 @@
 					<br />
 					<span><b>${i18n("inbox.html_content_label")}</b></span>
 					<pre class="html-content" style="position: relative; width: 100%; height: 0; padding-bottom: 100%;">
-						<#-- <div class="html-content" style="position: relative; width: 100%; height: 0; padding-bottom: 100%;">
-							
-						</div> -->
 						 <iframe id="iframe-html-content" class="iframe" style="border:none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
 					 	 </iframe>
 					 </pre>
@@ -46,15 +44,34 @@
 		.on('click-row.bs.table', function(row, element) {
 			console.log(row, element);
 			
-			$('#mailContent .subject').html(element.subject);
-			$('#mailContent .text-content').html(atob(element.textContent));
-			$('#mailContent .attachments').html(element.attachments);
+			$('#mail-content .subject').html(element.subject);
+			$('#mail-content .text-content').html(atob(element.textContent));
 			
 			$('#iframe-html-content').ready(function(){
        			$('#iframe-html-content').contents().find('body').html(atob(element.htmlContent));
     		});
     		
-			$('#mailContent').show();
+    		if (element.attachments.length > 0) {
+    			$('#mail-content .attachments ul').remove();
+    			$('<ul></ul>').appendTo('#mail-content .attachments');
+    			for (let i = 0; i < element.attachments.length; i++) {
+    				let attachment = element.attachments[i];
+    				$('<li>' + attachment.name + ' (' + humanreadableBytes(attachment.size) + ')</li>').appendTo('#mail-content .attachments ul');
+    			}	
+    		}
+    		
+			$('#mail-content').show();
 		});
+		
+		$('#mailbox').on('click-row.bs.table', function(e, row, $element) {
+			$element.addClass('active').siblings().removeClass('active');
+		});
+		
+		// modified version of https://stackoverflow.com/questions/4498866/actual-numbers-to-the-human-readable-values
+		function humanreadableBytes(bytes) {
+ 			var s = ['Bytes', 'KiB', 'MiB', 'GiB'];
+    		var e = Math.floor(Math.log(bytes) / Math.log(1024));
+    		return (bytes / Math.pow(1024, e)).toFixed(2) + " " + s[e];
+		}
 	</script>
 </@layout.xcLayout>
