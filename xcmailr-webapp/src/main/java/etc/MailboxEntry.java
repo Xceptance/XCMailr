@@ -18,6 +18,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.apache.commons.mail.util.MimeMessageUtils;
 
+import models.Mail;
+
 public class MailboxEntry
 {
     public int id;
@@ -38,15 +40,16 @@ public class MailboxEntry
 
     public String rawContent;
 
-    public MailboxEntry(int id, String mailAddress, String sender, String subject, long receivedTime, String rawContent)
-        throws Exception
+    public String downloadToken;
+
+    public MailboxEntry(String mailAddress, Mail mail) throws Exception
     {
-        this.id = id;
         this.mailAddress = mailAddress;
-        this.sender = sender;
-        this.rawContent = rawContent;
-        this.subject = subject == null ? "" : subject;
-        this.receivedTime = receivedTime;
+        this.sender = mail.getSender();
+        this.rawContent = mail.getMessage();
+        this.subject = mail.getSubject() == null ? "" : mail.getSubject();
+        this.receivedTime = mail.getReceiveTime();
+        this.downloadToken = mail.getUuid();
 
         MimeMessage mimeMessage = MimeMessageUtils.createMimeMessage(null, rawContent);
         MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);

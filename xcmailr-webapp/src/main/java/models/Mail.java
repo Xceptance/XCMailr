@@ -42,6 +42,8 @@ public class Mail extends AbstractEntity implements Serializable
     @JoinColumn(name = "mailbox_id", nullable = false)
     private MBox mailbox;
 
+    private String uuid;
+
     public String getSender()
     {
         return sender;
@@ -90,5 +92,15 @@ public class Mail extends AbstractEntity implements Serializable
     public void setMailbox(MBox mailbox)
     {
         this.mailbox = mailbox;
+    }
+
+    public String getUuid()
+    {
+        return uuid;
+    }
+
+    public void setUuid(String uuid)
+    {
+        this.uuid = uuid;
     }
 }

@@ -942,8 +942,7 @@ public class BoxHandler
         {
             Mail email = emails.get(i);
 
-            MailboxEntry mailboxEntry = new MailboxEntry(i, mailAddress, email.getSender(), email.getSubject(),
-                                                         email.getReceiveTime(), email.getMessage());
+            MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email);
             if (true //
                 && senderPattern.matcher(mailboxEntry.sender).find() //
                 && subjectPattern.matcher(mailboxEntry.subject).find() //
@@ -1036,8 +1035,7 @@ public class BoxHandler
             {
                 Mail mail = mails.get(j);
 
-                result.add(new MailboxEntry(j, mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
-                                            mail.getReceiveTime(), mail.getMessage()));
+                result.add(new MailboxEntry(mailbox.getFullAddress(), mail));
             }
         }
 
