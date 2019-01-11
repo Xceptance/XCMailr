@@ -25,7 +25,8 @@ create table mail (
   receive_time              bigint not null,
   message                   clob,
   mailbox_id                bigint,
-  constraint pk_mail primary key (id))
+  constraint pk_mail primary key (id)),
+  uuid                      varchar(36)
 ;
 
 create table MAIL_STATISTICS (
