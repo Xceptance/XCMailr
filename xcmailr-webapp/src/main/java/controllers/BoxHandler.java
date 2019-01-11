@@ -1040,7 +1040,6 @@ public class BoxHandler
             for (int j = 0; j < mails.size(); j++)
             {
                 Mail mail = mails.get(j);
-
                 result.add(new MailboxEntry(mailbox.getFullAddress(), mail));
             }
         }
@@ -1054,6 +1053,13 @@ public class BoxHandler
         else if ("json".equals(formatParameter))
         {
             Result jsonResult = Results.json();
+
+            // this is necessarry to exclude file contents from beeing transmitted
+            for (MailboxEntry temp : result)
+            {
+                temp.rawContent = "";
+            }
+
             jsonResult.render("rows", result);
             jsonResult.render("total", result.size());
 
