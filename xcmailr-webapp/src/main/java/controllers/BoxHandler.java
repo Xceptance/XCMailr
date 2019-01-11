@@ -17,6 +17,7 @@
 package controllers;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -31,7 +32,12 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.activation.DataSource;
+import javax.mail.internet.MimeMessage;
+
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.mail.util.MimeMessageParser;
+import org.apache.commons.mail.util.MimeMessageUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
@@ -1057,5 +1063,44 @@ public class BoxHandler
         {
             return Results.forbidden();
         }
+    }
+
+    @FilterWith(SecureFilter.class)
+    public Result downloadMailAttachment(Context context, @PathParam("downloadToken") String downloadToken,
+                                         @PathParam("filename") String filename)
+        throws Exception
+    {
+        List<Mail> foundMails = Ebean.find(Mail.class).where().eq("uuid", downloadToken).findList();
+
+        if (foundMails.isEmpty())
+        {
+            return Results.badRequest();
+        }
+        Mail mail = foundMails.get(0);
+
+        MimeMessage mimeMessage = MimeMessageUtils.createMimeMessage(null, mail.getMessage());
+        MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
+        mimeMessageParser.parse();
+
+        DataSource foundAttachment = null;
+        for (DataSource attachment : mimeMessageParser.getAttachmentList())
+        {
+            if (attachment.getName().equals(filename))
+            {
+                foundAttachment = attachment;
+                break;
+            }
+        }
+
+        if (foundAttachment == null)
+        {
+            return Results.badRequest();
+        }
+
+        InputStream inputStream = foundAttachment.getInputStream();
+        byte[] file = new byte[inputStream.available()];
+        inputStream.read(file);
+
+        return new Result(200).contentType(foundAttachment.getContentType()).renderRaw(file);
     }
 }

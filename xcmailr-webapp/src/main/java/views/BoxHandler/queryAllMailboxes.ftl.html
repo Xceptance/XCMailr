@@ -25,19 +25,19 @@
 			<span><b>${i18n("inbox.attachments_label")}: </b></span>
 			<div class="attachments">
 			</div>
-					<br />
-					<span><b>${i18n("inbox.subject")}: </b><span class="subject"></span></span>
-					<br />
-					<br />
-					<span><b>${i18n("inbox.text_content_label")}</b></span>
-					<pre class="text-content"></pre>
-					<br />
-					<span><b>${i18n("inbox.html_content_label")}</b></span>
-					<pre class="html-content" style="position: relative; width: 100%; height: 0; padding-bottom: 100%;">
-						 <iframe id="iframe-html-content" class="iframe" style="border:none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-					 	 </iframe>
-					 </pre>
-			</div>
+			<br />
+			<span><b>${i18n("inbox.subject")}: </b><span class="subject"></span></span>
+			<br />
+			<br />
+			<span><b>${i18n("inbox.text_content_label")}</b></span>
+			<pre class="text-content"></pre>
+			<br />
+			<span><b>${i18n("inbox.html_content_label")}</b></span>
+			<pre class="html-content" style="position: relative; width: 100%; height: 0; padding-bottom: 100%;">
+			  <iframe id="iframe-html-content" class="iframe" style="border:none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+			  </iframe>
+			</pre>
+		</div>
 	</div>
 	<script>
 		$('#mailbox')
@@ -56,7 +56,7 @@
     			$('<ul></ul>').appendTo('#mail-content .attachments');
     			for (let i = 0; i < element.attachments.length; i++) {
     				let attachment = element.attachments[i];
-    				$('<li>' + attachment.name + ' (' + humanreadableBytes(attachment.size) + ')</li>').appendTo('#mail-content .attachments ul');
+    				$('<li><a href=download/' + element.downloadToken + '/' + attachment.name + '>' + attachment.name + ' (' + humanreadableBytes(attachment.size) + ')</a></li>').appendTo('#mail-content .attachments ul');
     			}	
     		}
     		
