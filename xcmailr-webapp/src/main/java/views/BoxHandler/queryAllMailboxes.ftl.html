@@ -46,8 +46,6 @@
 	<script>
 		$('#mailbox')
 		.on('click-row.bs.table', function(row, element) {
-			console.log(row, element);
-			
 			$('#mail-content .subject').html(element.subject);
 			$('#mail-content .text-content').html(atob(element.textContent));
 			
