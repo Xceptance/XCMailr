@@ -201,6 +201,12 @@ public class XCMailrConf
      */
     public final int APITOKEN_EXPIRATION;
 
+    /**
+     * The amount of minutes an email should be preserved before being deleted. NOTE: this only accounts for emails that
+     * were sent to an user defined email address that also has to be active
+     */
+    public final int MAIL_RETENTION_PERIOD;
+
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
     {
@@ -253,6 +259,7 @@ public class XCMailrConf
                                        + "Otherwise this app will not work");
         }
         MAX_MAIL_SIZE = ninjaProp.getIntegerOrDie("mbox.mail.maxsize");
+        MAIL_RETENTION_PERIOD = ninjaProp.getIntegerOrDie("mbox.mail.retentionperiod");
         TEMPORARY_MAIL_MAX_VALID_TIME = ninjaProp.getIntegerOrDie("application.temporarymail.maximumvalidtime");
 
         APITOKEN_EXPIRATION = ninjaProp.getIntegerOrDie("application.api.tokenexpirationtime");
