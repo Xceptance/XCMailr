@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.Base64.Decoder;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -1023,7 +1025,8 @@ public class BoxHandler
 
     @FilterWith(SecureFilter.class)
     public Result queryAllMailboxes(Context context, @Param("offset") int offset, @Param("limit") int limit,
-                                    @Param("sort") String sort, @Param("order") String order)
+                                    @Param("sort") String sort, @Param("order") String order,
+                                    @Param("search") String search)
         throws Exception
     {
         String formatParameter = context.getParameter("format", "html").toLowerCase();
@@ -1050,13 +1053,43 @@ public class BoxHandler
 
             List<Mail> mails = Ebean.find(Mail.class).where().in("mailbox_id", mailboxIds).orderBy(sort + " " + order)
                                     .findList();
-            List<MailboxEntry> result = new LinkedList<>();
 
-            for (int i = offset; i < offset + limit; i++)
+            List<MailboxEntry> result = new LinkedList<>();
+            if (search != null && search.length() > 0)
             {
-                if (i < mails.size())
+                // there is a searchphrase. prefilter the results
+                // apparent we can't do this in the db since messages are stored encoded
+
+                // since contain search doesn't support case insensitive natively we go ahead with a lower case compare
+                search = search.toLowerCase();
+
+                Decoder decoder = Base64.getDecoder();
+
+                for (Mail mail : mails)
                 {
-                    result.add(new MailboxEntry(mails.get(i).getMailbox().getFullAddress(), mails.get(i)));
+                    MailboxEntry mailboxEntry = new MailboxEntry(mail.getMailbox().getFullAddress(), mail);
+
+                    String decodedTextContent = new String(decoder.decode(mailboxEntry.textContent));
+                    String decodedHtmlContent = new String(decoder.decode(mailboxEntry.htmlContent));
+
+                    if (decodedTextContent.toLowerCase().contains(search) //
+                        || decodedHtmlContent.toLowerCase().contains(search) //
+                        || mailboxEntry.subject.toLowerCase().contains(search) //
+                        || mailboxEntry.sender.toLowerCase().contains(search) //
+                        || mailboxEntry.mailAddress.toLowerCase().contains(search))
+                    {
+                        result.add(mailboxEntry);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = offset; i < offset + limit; i++)
+                {
+                    if (i < mails.size())
+                    {
+                        result.add(new MailboxEntry(mails.get(i).getMailbox().getFullAddress(), mails.get(i)));
+                    }
                 }
             }
 
