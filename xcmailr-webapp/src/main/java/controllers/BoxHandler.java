@@ -1022,28 +1022,10 @@ public class BoxHandler
     }
 
     @FilterWith(SecureFilter.class)
-    public Result queryAllMailboxes(Context context, @Param("order") String order) throws Exception
+    public Result queryAllMailboxes(Context context, @Param("offset") int offset, @Param("limit") int limit,
+                                    @Param("sort") String sort, @Param("order") String order)
+        throws Exception
     {
-        // http://localhost:8080/mails?format=json&sort=droppedCount&order=desc&offset=0&limit=10
-        // ?format=json&order=asc&offset=0&limit=10
-        User user = context.getAttribute("user", User.class);
-        List<MBox> mailboxes = user.getBoxes();
-
-        List<MailboxEntry> result = new LinkedList<>();
-        for (int i = 0; i < mailboxes.size(); i++)
-        {
-            MBox mailbox = mailboxes.get(i);
-            List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId())
-                                    .setMaxRows(xcmConfiguration.MAILBOX_MAX_MAIL_COUNT).order("receive_time")
-                                    .findList();
-
-            for (int j = 0; j < mails.size(); j++)
-            {
-                Mail mail = mails.get(j);
-                result.add(new MailboxEntry(mailbox.getFullAddress(), mail));
-            }
-        }
-
         String formatParameter = context.getParameter("format", "html").toLowerCase();
 
         if ("html".equals(formatParameter))
@@ -1054,14 +1036,32 @@ public class BoxHandler
         {
             Result jsonResult = Results.json();
 
-            // this is necessarry to exclude file contents from beeing transmitted
-            for (MailboxEntry temp : result)
+            sort = getOrderColumn(sort);
+            order = getOrderDirection(order);
+
+            User user = context.getAttribute("user", User.class);
+            List<MBox> mailboxes = user.getBoxes();
+            List<Long> mailboxIds = new LinkedList<>();
+
+            for (MBox mailbox : mailboxes)
             {
-                temp.rawContent = "";
+                mailboxIds.add(mailbox.getId());
+            }
+
+            List<Mail> mails = Ebean.find(Mail.class).where().in("mailbox_id", mailboxIds).orderBy(sort + " " + order)
+                                    .findList();
+            List<MailboxEntry> result = new LinkedList<>();
+
+            for (int i = offset; i < offset + limit; i++)
+            {
+                if (i < mails.size())
+                {
+                    result.add(new MailboxEntry(mails.get(i).getMailbox().getFullAddress(), mails.get(i)));
+                }
             }
 
             jsonResult.render("rows", result);
-            jsonResult.render("total", result.size());
+            jsonResult.render("total", mails.size());
 
             return jsonResult;
         }
@@ -1069,6 +1069,35 @@ public class BoxHandler
         {
             return Results.forbidden();
         }
+    }
+
+    private String getOrderColumn(String orderBy)
+    {
+        String orderColumn = "receive_time"; // the column that is used to order data; receive_time = default
+
+        List<String> validColumns = new ArrayList<>();
+        validColumns.add("receive_time");
+        validColumns.add("subject");
+        validColumns.add("sender");
+
+        if (validColumns.contains(orderBy))
+            orderColumn = orderBy;
+
+        return orderColumn;
+    }
+
+    private String getOrderDirection(String orderBy)
+    {
+        String order = "desc"; // the direction of order (asc or desc); desc = default
+
+        List<String> validOrder = new ArrayList<>();
+        validOrder.add("asc");
+        validOrder.add("desc");
+
+        if (validOrder.contains(orderBy))
+            order = orderBy;
+
+        return order;
     }
 
     @FilterWith(SecureFilter.class)

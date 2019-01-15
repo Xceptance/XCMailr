@@ -9,14 +9,17 @@
 		    data-side-pagination="server" 
 	        data-id-field="id"
 	        data-toggle="table"
+	        data-sort-name="receive_time"
+     	    data-sort-order="desc"
 	        data-locale="${i18n("locale")}"
+	        data-response-handler="responseHandler"
 	        data-url="/mails?format=json">
 		    <thead>
 		        <tr>
-		        	<th data-field="receivedTimeAsString">${i18n("inbox.receivedate_label")}</th>
-		        	<th data-field="sender">${i18n("inbox.email_sender_label")}</th>
+		        	<th data-field="receivedTime" data-sortable="true">${i18n("inbox.receivedate_label")}</th>
+		        	<th data-field="sender" data-sortable="true">${i18n("inbox.email_sender_label")}</th>
 		        	<th data-field="mailAddress">${i18n("inbox.receiving_address_label")}</th>
-		        	<th data-field="subject">${i18n("inbox.subject")}</th>
+		        	<th data-field="subject" data-sortable="true">${i18n("inbox.subject")}</th>
 		        </tr>
 		    </thead>
 		</table>
@@ -39,6 +42,7 @@
 			</pre>
 		</div>
 	</div>
+	<script type="text/javascript" src="${contextPath}/assets/js/moment-with-locales.js"></script>
 	<script>
 		$('#mailbox')
 		.on('click-row.bs.table', function(row, element) {
@@ -72,6 +76,16 @@
  			var s = ['Bytes', 'KiB', 'MiB', 'GiB'];
     		var e = Math.floor(Math.log(bytes) / Math.log(1024));
     		return (bytes / Math.pow(1024, e)).toFixed(2) + " " + s[e];
+		}
+		
+		function responseHandler(response) {
+			let rows = response.rows;
+			moment.locale('${i18n("locale")}');
+			for (let i = 0; i < rows.length; i++) {
+				rows[i].receivedTime = moment(rows[i].receivedTime).format('L') + ' ' + moment(rows[i].receivedTime).format('LT');
+			}
+			
+			return response;
 		}
 	</script>
 </@layout.xcLayout>

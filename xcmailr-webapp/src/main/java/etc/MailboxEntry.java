@@ -3,10 +3,8 @@ package etc;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Base64.Encoder;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -73,13 +71,4 @@ public class MailboxEntry
             attachments.add(new AttachmentEntry(attachment));
         }
     }
-
-    /**
-     * @return the Timestamp as String in the Format "dd.MM.yyyy hh:mm"
-     */
-    public String getReceivedTimeAsString()
-    {
-        return new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(this.receivedTime)).toString();
-    }
-
 }
