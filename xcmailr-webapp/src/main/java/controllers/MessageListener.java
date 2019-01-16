@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import javax.mail.Address;
 import javax.mail.Message;
@@ -372,6 +373,7 @@ public class MessageListener implements SimpleMessageListener
         newMail.setSubject(mail.getSubject());
         newMail.setMessage(rawMessage);
         newMail.setReceiveTime(System.currentTimeMillis());
+        newMail.setUuid(UUID.randomUUID().toString());
 
         Ebean.save(newMail);
     }
