@@ -26,8 +26,9 @@
 		</table>
 		
 		<div id="mail-content" style="display: none;">
-			<span><b>${i18n("inbox.attachments_label")}: </b></span>
-			<div class="attachments">
+			<div class="attachment-content-area">
+				<span><b>${i18n("inbox.attachments_label")}: </b></span>
+				<div class="attachments"></div>
 			</div>
 			<br />
 			<span><b>${i18n("inbox.subject")}: </b><span class="subject"></span></span>
@@ -76,6 +77,9 @@
     				let attachment = element.attachments[i];
     				$('<li><a href=download/' + element.downloadToken + '/' + attachment.name + '>' + attachment.name + '</a> (' + humanreadableBytes(attachment.size) + ')</li>').appendTo('#mail-content .attachments ul');
     			}
+    			$('.attachment-content-area').show();
+    		} else {
+    			$('.attachment-content-area').hide();
     		}
     		
 			$('#mail-content').show();
