@@ -60,10 +60,14 @@
     			for (let i = 0; i < element.attachments.length; i++) {
     				let attachment = element.attachments[i];
     				$('<li><a href=download/' + element.downloadToken + '/' + attachment.name + '>' + attachment.name + '</a> (' + humanreadableBytes(attachment.size) + ')</li>').appendTo('#mail-content .attachments ul');
-    			}	
+    			}
     		}
     		
 			$('#mail-content').show();
+		});
+		
+		$(document).on('keyup', '.bootstrap-table .search input[type=text]', function() {
+			$('#mail-content').hide();
 		});
 		
 		$('#mailbox').on('click-row.bs.table', function(e, row, $element) {
