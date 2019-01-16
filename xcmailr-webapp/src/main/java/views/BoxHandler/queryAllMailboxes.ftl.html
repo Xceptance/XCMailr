@@ -45,15 +45,20 @@
 	</div>
 	<script type="text/javascript" src="${contextPath}/assets/js/moment-with-locales.js"></script>
 	<script>
+		// on row select
 		$('#mailbox')
 		.on('click-row.bs.table', function(row, element) {
 			$('#mail-content .subject').html(element.subject);
+			
+			// decode text content
 			$('#mail-content .text-content').html(atob(element.textContent));
 			
+			// decode html content
 			$('#iframe-html-content').ready(function(){
        			$('#iframe-html-content').contents().find('body').html(atob(element.htmlContent));
     		});
     		
+    		// create the list of attachments
     		if (element.attachments.length > 0) {
     			$('#mail-content .attachments ul').remove();
     			$('<ul></ul>').appendTo('#mail-content .attachments');
@@ -66,10 +71,12 @@
 			$('#mail-content').show();
 		});
 		
+		// hide mail content view on search filter change
 		$(document).on('keyup', '.bootstrap-table .search input[type=text]', function() {
 			$('#mail-content').hide();
 		});
 		
+		// mark the selected row
 		$('#mailbox').on('click-row.bs.table', function(e, row, $element) {
 			$element.addClass('active').siblings().removeClass('active');
 		});
@@ -83,6 +90,8 @@
 		
 		function responseHandler(response) {
 			let rows = response.rows;
+			
+			// convert timestamps to readable date strings for the given locale
 			moment.locale('${i18n("locale")}');
 			for (let i = 0; i < rows.length; i++) {
 				rows[i].receivedTime = moment(rows[i].receivedTime).format('L') + ' ' + moment(rows[i].receivedTime).format('LT');
