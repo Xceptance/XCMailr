@@ -55,8 +55,10 @@
 			$('#mail-content .text-content').html(atob(element.textContent));
 			
 			// decode html content
-			$('#iframe-html-content').ready(function(){
-       			$('#iframe-html-content').contents().find('body').html(atob(element.htmlContent));
+			$('#iframe-html-content').ready(function() {
+				$('#load-content').click(function() {
+					$('#iframe-html-content').contents().find('body').html(atob(element.htmlContent));	
+				});
     		});
     		
     		// create the list of attachments
@@ -80,6 +82,7 @@
 		// mark the selected row
 		$('#mailbox').on('click-row.bs.table', function(e, row, $element) {
 			$element.addClass('active').siblings().removeClass('active');
+			$('#iframe-html-content').contents().find('body').html('');
 		});
 		
 		// modified version of https://stackoverflow.com/questions/4498866/actual-numbers-to-the-human-readable-values
