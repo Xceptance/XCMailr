@@ -413,7 +413,7 @@ public class MessageListener implements SimpleMessageListener
         Mail newMail = new Mail();
         newMail.setMailbox(mailBox);
         newMail.setSender(from);
-        newMail.setSubject(mail.getSubject());
+        newMail.setSubject(mail.getSubject() != null ? mail.getSubject() : "");
         newMail.setMessage(rawMessage);
         newMail.setReceiveTime(System.currentTimeMillis());
         newMail.setUuid(UUID.randomUUID().toString());
