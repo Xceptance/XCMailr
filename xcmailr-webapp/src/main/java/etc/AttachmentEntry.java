@@ -10,15 +10,12 @@ public class AttachmentEntry
     {
         this.name = attachment.getName();
         this.contentType = attachment.getContentType();
-        // this.content = IOUtils.toString(attachment.getInputStream(), Charset.defaultCharset());
         this.size = attachment.getInputStream().available();
     }
 
     public String name;
 
     public String contentType;
-
-    public String content;
 
     public int size;
 }
