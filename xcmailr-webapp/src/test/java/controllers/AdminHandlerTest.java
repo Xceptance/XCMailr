@@ -8,13 +8,6 @@ import static org.mockito.Mockito.spy;
 
 import java.util.Map;
 
-import models.MailTransaction;
-import models.User;
-import ninja.NinjaTest;
-import ninja.utils.NinjaMode;
-import ninja.utils.NinjaProperties;
-import ninja.utils.NinjaPropertiesImpl;
-
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
 import org.junit.Before;
@@ -23,6 +16,14 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.Maps;
+
+import models.Domain;
+import models.MailTransaction;
+import models.User;
+import ninja.NinjaTest;
+import ninja.utils.NinjaMode;
+import ninja.utils.NinjaProperties;
+import ninja.utils.NinjaPropertiesImpl;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AdminHandlerTest extends NinjaTest
@@ -235,4 +236,24 @@ public class AdminHandlerTest extends NinjaTest
         assertFalse(result.contains("<title>404 - not found</title>"));
     }
 
+    @Test
+    public void testDomainWhitelist()
+    {
+        formParams.clear();
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "admin/whitelist");
+        // the domain whitelist is empty
+        assertTrue(result.contains("No domains defined in this whitelist. The registration is open to all domains."));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        // add a domain to the whitlist and test for it
+        new Domain("foobar.test").save();
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "admin/whitelist");
+
+        assertFalse(result.contains("No domains defined in this whitelist. The registration is open to all domains."));
+        assertTrue(result.contains("foobar.test"));
+
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+    }
 }
