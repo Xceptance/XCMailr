@@ -424,16 +424,21 @@ public class UserHandlerTest extends NinjaTest
     public void testApiToken() throws Exception
     {
         /*
-         * TEST: user doesn't have an API key
+         * TEST: user doesn't have an API key by default
          */
 
         assertNull(user.getApiToken());
         assertTrue(user.getApiTokenCreationTimestamp() == 0);
-        ninjaTestBrowser.makeJsonRequest(getServerAddress() + "user/newApiToken");
 
+        /*
+         * TEST: create API key
+         */
+        result = ninjaTestBrowser.makeJsonRequest(getServerAddress() + "user/newApiToken");
+        assertTrue(result.contains("token"));
         User updatedUser = User.getUsrByMail(user.getMail());
+        String token = updatedUser.getApiToken();
 
-        assertTrue(updatedUser.getApiToken() != null);
+        assertTrue(token != null && token.length() > 0);
         assertTrue(updatedUser.getApiTokenCreationTimestamp() > 0);
 
         /*
