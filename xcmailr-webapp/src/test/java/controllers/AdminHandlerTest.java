@@ -239,20 +239,91 @@ public class AdminHandlerTest extends NinjaTest
     @Test
     public void testDomainWhitelist()
     {
-        formParams.clear();
+        /*
+         * TEST: the domain whitelist is empty
+         */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "admin/whitelist");
-        // the domain whitelist is empty
         assertTrue(result.contains("No domains defined in this whitelist. The registration is open to all domains."));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
-        // add a domain to the whitlist and test for it
+        /*
+         * TEST: add a domain via backend to the whitlist and test for it
+         */
         new Domain("foobar.test").save();
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "admin/whitelist");
 
         assertFalse(result.contains("No domains defined in this whitelist. The registration is open to all domains."));
         assertTrue(result.contains("foobar.test"));
 
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+    }
+
+    @Test
+    public void testAddWhitelistDomain() throws Exception
+    {
+        /*
+         * TEST: add an empty domain
+         */
+        formParams.clear();
+        formParams.put("domainName", "");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
+                                                                    + "admin/whitelist/add", headers, formParams);
+
+        assertTrue(result.contains("No domains defined in this whitelist. The registration is open to all domains."));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: add "abc.de" as domain
+         */
+        formParams.put("domainName", "abc.de");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
+                                                                    + "admin/whitelist/add", headers, formParams);
+
+        assertTrue(result.contains("abc.de"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: add again "abc.de" as domain
+         */
+        formParams.put("domainName", "abc.de");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
+                                                                    + "admin/whitelist/add", headers, formParams);
+
+        assertTrue(result.contains("abc.de"));
+        assertTrue(result.lastIndexOf("abc.de") == result.indexOf("abc.de"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: add "123.45" as domain
+         */
+        formParams.put("domainName", "123.45");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
+                                                                    + "admin/whitelist/add", headers, formParams);
+
+        assertFalse(result.contains("123.45"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+    }
+
+    @Test
+    public void testRemoveWhitelistDomain() throws Exception
+    {
+        /*
+         * TEST: add a domain via backend and remove it via frontend
+         */
+        Domain domain = new Domain("foobar.test");
+        domain.save();
+
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "admin/whitelist/remove?action=deleteDomain&domainId="
+                                              + String.valueOf(domain.getId()));
+
+        assertTrue(result.contains("No domains defined in this whitelist."));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
     }
