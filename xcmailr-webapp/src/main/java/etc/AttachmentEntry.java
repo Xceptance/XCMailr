@@ -1,11 +1,8 @@
 package etc;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 import javax.activation.DataSource;
-
-import org.apache.commons.io.IOUtils;
 
 public class AttachmentEntry
 {
@@ -13,12 +10,12 @@ public class AttachmentEntry
     {
         this.name = attachment.getName();
         this.contentType = attachment.getContentType();
-        this.content = IOUtils.toString(attachment.getInputStream(), Charset.defaultCharset());
+        this.size = attachment.getInputStream().available();
     }
 
     public String name;
 
     public String contentType;
 
-    public String content;
+    public int size;
 }

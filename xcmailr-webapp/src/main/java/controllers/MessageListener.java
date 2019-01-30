@@ -19,9 +19,11 @@ package controllers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import javax.mail.Address;
 import javax.mail.Message;
@@ -33,6 +35,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 
@@ -272,15 +275,18 @@ public class MessageListener implements SimpleMessageListener
             final Session session = mailrSenderFactory.getSession();
             session.setDebug(xcmConfiguration.OUT_SMTP_DEBUG);
 
-            // drop email if the size exceeds defined limit
-            if (data.available() > xcmConfiguration.MAX_MAIL_SIZE)
+            String rawContent = null;
+            try
             {
-                log.error("Cancel mail processing due to restriction of mail size. Dropped mail: " + from + " => "
-                          + recipient + ", size: " + data.available() + " bytes");
+                rawContent = readLimitedAmount(data, Charset.defaultCharset(), xcmConfiguration.MAX_MAIL_SIZE);
+            }
+            catch (RuntimeException e)
+            {
+                log.error("Cancel mail processing due to restriction of mail size (" + xcmConfiguration.MAX_MAIL_SIZE
+                          + " bytes). Dropped mail: " + from + " => " + recipient);
                 return;
             }
 
-            String rawContent = IOUtils.toString(data, Charset.defaultCharset());
             MimeMessage mail = new MimeMessage(session, new ByteArrayInputStream(rawContent.getBytes()));
 
             // write to mail table
@@ -363,15 +369,54 @@ public class MessageListener implements SimpleMessageListener
         }
     }
 
+    /**
+     * Reads up to maxSize characters from data input stream. If the limit is exceeded an {@link RuntimeException} is
+     * thrown.
+     * 
+     * @param data
+     *            an {@link InputStream}
+     * @param defaultCharset
+     *            the charset that is used to decode
+     * @param maxSize
+     *            determines the maximum amount of characters to be read from data
+     * @return The streams data
+     * @throws RuntimeException
+     *             if maxSize read limit is exceeded
+     * @throws IOException
+     */
+    private String readLimitedAmount(InputStream data, Charset defaultCharset, int maxSize) throws IOException
+    {
+        // StringBuilderWriter doesn't need to be closed since the close method is no-op
+        @SuppressWarnings("resource")
+        final StringBuilderWriter sw = new StringBuilderWriter();
+
+        int n;
+        long count = 0;
+        char[] buffer = new char[4096];
+        final InputStreamReader in = new InputStreamReader(data, defaultCharset);
+        while (IOUtils.EOF != (n = in.read(buffer)))
+        {
+            sw.write(buffer, 0, n);
+            count += n;
+            if (count > maxSize)
+            {
+                throw new RuntimeException("Data stream exceeds size restriction of " + maxSize + " bytes");
+            }
+        }
+
+        return sw.toString();
+    }
+
     private void persistMail(MBox mailBox, String from, MimeMessage mail, String rawMessage)
         throws MessagingException, IOException
     {
         Mail newMail = new Mail();
         newMail.setMailbox(mailBox);
         newMail.setSender(from);
-        newMail.setSubject(mail.getSubject());
+        newMail.setSubject(mail.getSubject() != null ? mail.getSubject() : "");
         newMail.setMessage(rawMessage);
         newMail.setReceiveTime(System.currentTimeMillis());
+        newMail.setUuid(UUID.randomUUID().toString());
 
         Ebean.save(newMail);
     }

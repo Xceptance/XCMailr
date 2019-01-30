@@ -6,15 +6,15 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
-import models.User;
-import ninja.NinjaTest;
-
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
+
+import models.User;
+import ninja.NinjaTest;
 
 public class UserHandlerTest extends NinjaTest
 {
@@ -420,4 +420,35 @@ public class UserHandlerTest extends NinjaTest
 
     }
 
+    @Test
+    public void testApiToken() throws Exception
+    {
+        /*
+         * TEST: user doesn't have an API key by default
+         */
+
+        assertNull(user.getApiToken());
+        assertTrue(user.getApiTokenCreationTimestamp() == 0);
+
+        /*
+         * TEST: create API key
+         */
+        result = ninjaTestBrowser.makeJsonRequest(getServerAddress() + "user/newApiToken");
+        assertTrue(result.contains("token"));
+        User updatedUser = User.getUsrByMail(user.getMail());
+        String token = updatedUser.getApiToken();
+
+        assertTrue(token != null && token.length() > 0);
+        assertTrue(updatedUser.getApiTokenCreationTimestamp() > 0);
+
+        /*
+         * TEST: revoke API key
+         */
+
+        ninjaTestBrowser.makeJsonRequest(getServerAddress() + "user/revokeApiToken");
+
+        updatedUser = User.getUsrByMail(user.getMail());
+        assertNull(updatedUser.getApiToken());
+        assertTrue(updatedUser.getApiTokenCreationTimestamp() > 0);
+    }
 }

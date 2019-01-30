@@ -117,12 +117,11 @@ var engine = new Bloodhound({
 	  remote: {url: '${contextPath}/admin/usersearch?s=%QUERY',
 		  filter:function(response) {
 	            var data = new Array;
-	            console.log(response);
+	            
 	            for(var i in response) {
 	            	var str = response[i]['mail'];
 	                data.push( str );
 	            }
-	            console.log(data);
 	            return data;
 			} 	  
 	  },

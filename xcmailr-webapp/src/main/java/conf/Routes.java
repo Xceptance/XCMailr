@@ -105,6 +105,7 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/mailbox/{mailAddress}/{token}").with(BoxHandler.class, "queryMailbox");
         router.GET().route("/mailbox").with(BoxHandler.class, "queryMailbox");
         router.GET().route("/mails").with(BoxHandler.class, "queryAllMailboxes");
+        router.GET().route("/download/{downloadToken}/{filename}").with(BoxHandler.class, "downloadMailAttachment");
 
         /*
          * Routes in the admin-section (Controller: AdminHandler)

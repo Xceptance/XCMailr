@@ -3,52 +3,116 @@
 	
 	<div style="margin-bottom: 20px;">${i18n("inbox.contentwarning")}<br /></div>
 	<div class="container">
-		<div id="mailbox">
-			<table class="table table-hover table-condensed tsort" id="table-mailbox-overview">
-				<thead>
-					<th>Received</th>
-					<th>My Mail Address</th>
-					<th>Sender</th>
-					<th>Subject</th>
-				</thead>
-				<tbody>
-					<#list accountEmails as entry>
-						<tr class="clickable" onClick="updateMailContent('${entry.subject}', '${entry.textContent}', '${entry.htmlContent}')">
-							<td class="time">${entry.getReceivedTimeAsString()}</td>
-							<td class="receiver">${entry.mailAddress}</td>
-							<td class="sender">${entry.sender}</td>
-							<td class="subject">${entry.subject}</td>
-						</tr>
-					</#list>				
-				</tbody>
-			</table>
-			<div id="mailContent" style="display: none;">
-					<span><b>Attachments: </b>not implemented yet :(</span><div class="attachments"></div>
-					<br />
-					<span><b>Subject: </b></span><div class="subject"></div>
-					<br />
-					<span><b>Content (text): </b></span><div class="text-content"></div>
-					<br />
-					<span><b>Content (html): </b></span><div class="html-content">
-						<iframe id="iframe-html-content" class="iframe" width="100%" style="border:none;">
-						</iframe>
-					</div>
+		<table
+            id="mailbox"
+		    data-pagination="true"
+		    data-side-pagination="server" 
+	        data-id-field="id"
+	        data-toggle="table"
+	        data-sort-name="receivedTime"
+     	    data-sort-order="desc"
+     	    data-search="true"
+	        data-locale="${i18n("locale")}"
+	        data-response-handler="responseHandler"
+	        data-url="/mails?format=json">
+		    <thead>
+		        <tr>
+		        	<th data-field="receivedTime" data-sortable="true">${i18n("inbox.receivedate_label")}</th>
+		        	<th data-field="sender" data-sortable="true">${i18n("inbox.email_sender_label")}</th>
+		        	<th data-field="mailAddress">${i18n("inbox.receiving_address_label")}</th>
+		        	<th data-field="subject" data-sortable="true">${i18n("inbox.subject")}</th>
+		        </tr>
+		    </thead>
+		</table>
+		
+		<div id="mail-content" style="display: none;">
+			<div class="attachment-content-area">
+				<span><b>${i18n("inbox.attachments_label")}: </b></span>
+				<div class="attachments"></div>
+			</div>
+			<br />
+			<span><b>${i18n("inbox.subject")}: </b><span class="subject"></span></span>
+			<br />
+			<br />
+			<span><b>${i18n("inbox.text_content_label")}</b></span>
+			<pre class="text-content"></pre>
+			<div class="html-content-area">
+				<br />
+				<span><b>${i18n("inbox.html_content_label")}</b></span>
+				<button id="load-content" type="button">${i18n("inbox.load_html_content")}</button>
+				<pre class="html-content" style="position: relative; width: 100%; height: 0; padding-bottom: 100%;">
+				  <iframe id="iframe-html-content" class="iframe" style="border:none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+				  </iframe>
+				</pre>
 			</div>
 		</div>
 	</div>
+	<script type="text/javascript" src="${contextPath}/assets/js/moment-with-locales.js"></script>
 	<script>
-		function updateMailContent(subject, textContent, htmlContent, attachments) {
-			console.log(subject);
-			$('#mailContent .subject').html(subject);
-			$('#mailContent .text-content').html(textContent);
-			$('#mailContent .iframe .html-content').html(htmlContent);
-			$('#mailContent .attachments').html(attachments);
+		// on row select
+		$('#mailbox')
+		.on('click-row.bs.table', function(row, element) {
+			$('#mail-content .subject').html(element.subject);
 			
-			$('#iframe-html-content').ready(function(){
-       			$('#iframe-html-content').contents().find('body').html(htmlContent	);
+			// decode text content
+			$('#mail-content .text-content').html(atob(element.textContent));
+			
+			// decode html content
+			$('#iframe-html-content').ready(function() {
+				if (element.htmlContent.length > 0) {
+					$('.html-content-area').show();
+				} else {
+					$('.html-content-area').hide();
+				}
+				$('#load-content').click(function() {
+					$('#iframe-html-content').contents().find('body').html(atob(element.htmlContent));	
+				});
     		});
     		
-			$('#mailContent').show();
-		};
+    		// create the list of attachments
+    		if (element.attachments.length > 0) {
+    			$('#mail-content .attachments ul').remove();
+    			$('<ul></ul>').appendTo('#mail-content .attachments');
+    			for (let i = 0; i < element.attachments.length; i++) {
+    				let attachment = element.attachments[i];
+    				$('<li><a href=download/' + element.downloadToken + '/' + attachment.name + '>' + attachment.name + '</a> (' + humanreadableBytes(attachment.size) + ')</li>').appendTo('#mail-content .attachments ul');
+    			}
+    			$('.attachment-content-area').show();
+    		} else {
+    			$('.attachment-content-area').hide();
+    		}
+    		
+			$('#mail-content').show();
+		});
+		
+		// hide mail content view on search filter change
+		$(document).on('keyup', '.bootstrap-table .search input[type=text]', function() {
+			$('#mail-content').hide();
+		});
+		
+		// mark the selected row
+		$('#mailbox').on('click-row.bs.table', function(e, row, $element) {
+			$element.addClass('active').siblings().removeClass('active');
+			$('#iframe-html-content').contents().find('body').html('');
+		});
+		
+		// modified version of https://stackoverflow.com/questions/4498866/actual-numbers-to-the-human-readable-values
+		function humanreadableBytes(bytes) {
+ 			var s = ['Bytes', 'KiB', 'MiB', 'GiB'];
+    		var e = Math.floor(Math.log(bytes) / Math.log(1024));
+    		return (bytes / Math.pow(1024, e)).toFixed(2) + " " + s[e];
+		}
+		
+		function responseHandler(response) {
+			let rows = response.rows;
+			
+			// convert timestamps to readable date strings for the given locale
+			moment.locale('${i18n("locale")}');
+			for (let i = 0; i < rows.length; i++) {
+				rows[i].receivedTime = moment(rows[i].receivedTime).format('L') + ' ' + moment(rows[i].receivedTime).format('LT');
+			}
+			
+			return response;
+		}
 	</script>
 </@layout.xcLayout>

@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.joda.time.DateTime;
@@ -21,6 +22,7 @@ import com.google.common.collect.Maps;
 
 import etc.HelperUtils;
 import models.MBox;
+import models.Mail;
 import models.User;
 import ninja.NinjaTest;
 
@@ -787,6 +789,154 @@ public class BoxHandlerTest extends NinjaTest
         assertNull(mailbox1new);
         assertNull(mailbox2new);
         assertNull(mailbox3new);
+    }
+
+    @Test
+    public void testTemporayMailCreation() throws Exception
+    {
+        /*
+         * TEST: invalid API key
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "create/temporaryMail/invalidkey/apicreationtest@xcmailr.test/1");
+
+        // check for invalid request
+        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+
+        /*
+         * TEST: invalid domain
+         */
+        user.setApiToken("validKey");
+        user.save();
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "create/temporaryMail/validKey/apicreationtest@google.com/1");
+        // check for invalid request
+        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+
+        /*
+         * TEST: invalid duration (above limit)
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/99");
+        // check for invalid request
+        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+
+        /*
+         * TEST: invalid duration (below limit)
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/0");
+        // check for invalid request
+        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+
+        /*
+         * TEST: invalid duration (negative)
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/-1");
+        // check for invalid request
+        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+
+        /*
+         * TEST: invalid duration (not a number)
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/y");
+        // check for invalid request
+        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+
+        /*
+         * TEST: already claimed
+         */
+        // first claim the address with another user
+        User otherUser = new User("no", "body", "nobody@xcmailr.test", "1234", "en");
+        otherUser.setApiToken("otherUsersToken");
+        otherUser.setActive(true);
+        otherUser.save();
+
+        ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                     + "create/temporaryMail/otherUsersToken/claimed@xcmailr.test/10");
+
+        // try claim again
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "create/temporaryMail/validKey/claimed@xcmailr.test/10");
+        // check for invalid request
+        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+
+        /*
+         * TEST: create temporary email via API key (happy path)
+         */
+        // first create API token for the account
+        ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "user/newApiToken");
+        user = User.getUsrByMail(user.getMail());
+
+        // create temporary mail address "apicreationtest@xcmailr.test"
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/"
+                                              + user.getApiToken() + "/apicreationtest@xcmailr.test/1");
+        List<MBox> findBoxLike = MBox.findBoxLike("apicreationtest@xcmailr.test", user.getId());
+        assertTrue(findBoxLike.size() == 1);
+
+        /*
+         * TEST: create temporary email via API key with json response
+         */
+        // create temporary mail address "apicreationtest@xcmailr.test"
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/"
+                                              + user.getApiToken() + "/apicreationjsontest@xcmailr.test/1?format=json");
+        findBoxLike = MBox.findBoxLike("apicreationtest@xcmailr.test", user.getId());
+        assertTrue(findBoxLike.size() == 1);
+        assertTrue(result.contains("emailAddress"));
+        assertTrue(result.contains("emailValidity"));
+        assertTrue(result.contains("emailValidUntil"));
+        assertTrue(result.contains("emailValidUntilDate"));
+    }
+
+    @Test
+    public void testQueryMailboxes() throws Exception
+    {
+        // create mailbox for the tests
+        user.setApiToken("validToken");
+        user.save();
+        ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/" + user.getApiToken()
+                                     + "/mailboxquery@xcmailr.test/1");
+        user = User.getById(user.getId());
+        assertTrue(user.getBoxes().size() == 1);
+        createMail(user.getBoxes().get(0));
+
+        /*
+         * TEST: query html
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=html");
+        assertTrue(result.contains("WARNING: Emails will be available for only 10 minutes upon receipt and deleted afterwards."));
+
+        /*
+         * TEST: query json
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=json");
+        assertTrue(result.contains("{\"total\":1,\"rows\":[]}"));
+
+        /*
+         * TEST: query csv
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=csv");
+        assertTrue(result.contains("WARNING: Emails will be available for only 10 minutes upon receipt and deleted afterwards."));
+
+        /*
+         * TEST: search the mailbox
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "mails?format=json&search=something");
+        assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
+    }
+
+    private void createMail(MBox mailbox)
+    {
+        Mail mail = new Mail();
+        mail.setMailbox(mailbox);
+        mail.setMessage("empty");
+        mail.setSubject("some subject");
+        mail.setReceiveTime(System.currentTimeMillis());
+        mail.setSender("someone@notyou.net");
+        mail.save();
     }
 
     private MBox setValues(MBox testMbox, String local, String domain, long ts, boolean expired, User usr)

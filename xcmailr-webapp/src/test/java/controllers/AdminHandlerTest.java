@@ -6,14 +6,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 
+import java.sql.Date;
 import java.util.Map;
-
-import models.MailTransaction;
-import models.User;
-import ninja.NinjaTest;
-import ninja.utils.NinjaMode;
-import ninja.utils.NinjaProperties;
-import ninja.utils.NinjaPropertiesImpl;
 
 import org.apache.http.cookie.Cookie;
 import org.junit.After;
@@ -22,7 +16,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.avaje.ebean.Ebean;
 import com.google.common.collect.Maps;
+
+import models.Domain;
+import models.MailStatistics;
+import models.MailStatisticsKey;
+import models.MailTransaction;
+import models.User;
+import ninja.NinjaTest;
+import ninja.utils.NinjaMode;
+import ninja.utils.NinjaProperties;
+import ninja.utils.NinjaPropertiesImpl;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AdminHandlerTest extends NinjaTest
@@ -182,7 +187,6 @@ public class AdminHandlerTest extends NinjaTest
     public void testShowAdmin()
     {
         result = ninjaTestBrowser.makeRequest(getServerAddress() + "admin");
-        System.out.println(result);
         assertTrue(!result.contains("<li class=\"active\">"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
@@ -235,4 +239,180 @@ public class AdminHandlerTest extends NinjaTest
         assertFalse(result.contains("<title>404 - not found</title>"));
     }
 
+    @Test
+    public void testDomainWhitelist()
+    {
+        /*
+         * TEST: the domain whitelist is empty
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "admin/whitelist");
+        assertTrue(result.contains("No domains defined in this whitelist. The registration is open to all domains."));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: add a domain via backend to the whitlist and test for it
+         */
+        new Domain("foobar.test").save();
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "admin/whitelist");
+
+        assertFalse(result.contains("No domains defined in this whitelist. The registration is open to all domains."));
+        assertTrue(result.contains("foobar.test"));
+
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+    }
+
+    @Test
+    public void testAddWhitelistDomain() throws Exception
+    {
+        /*
+         * TEST: add an empty domain
+         */
+        formParams.clear();
+        formParams.put("domainName", "");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
+                                                                    + "admin/whitelist/add", headers, formParams);
+
+        assertTrue(result.contains("No domains defined in this whitelist. The registration is open to all domains."));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: add "abc.de" as domain
+         */
+        formParams.put("domainName", "abc.de");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
+                                                                    + "admin/whitelist/add", headers, formParams);
+
+        assertTrue(result.contains("abc.de"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: add again "abc.de" as domain
+         */
+        formParams.put("domainName", "abc.de");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
+                                                                    + "admin/whitelist/add", headers, formParams);
+
+        assertTrue(result.contains("abc.de"));
+        assertTrue(result.lastIndexOf("abc.de") == result.indexOf("abc.de"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: add "123.45" as domain
+         */
+        formParams.put("domainName", "123.45");
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
+                                                                    + "admin/whitelist/add", headers, formParams);
+
+        assertFalse(result.contains("123.45"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+    }
+
+    @Test
+    public void testRemoveWhitelistDomain() throws Exception
+    {
+        /*
+         * TEST: add a domain via backend and remove it via frontend
+         */
+        Domain domain = new Domain("foobar.test");
+        domain.save();
+
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "admin/whitelist/remove?action=deleteDomain&domainId="
+                                              + String.valueOf(domain.getId()));
+
+        assertTrue(result.contains("No domains defined in this whitelist."));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: add a domain via backend and remove it via frontend
+         */
+        domain = new Domain("foobar2.test");
+        domain.save();
+
+        formParams.put("removeDomainsSelection", String.valueOf(domain.getId()));
+
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(ninjaTestServer.getServerAddress()
+                                                                    + "admin/whitelist/remove", headers, formParams);
+
+        assertTrue(result.contains("Do you want to delete all users with email addresses containing the domain foobar2.test?"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+    }
+
+    @Test
+    public void testShowEmailStatistics() throws Exception
+    {
+        /*
+         * TEST: show email statistics
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "admin/emailStatistics");
+
+        assertTrue(result.contains("Todays (last 24 hours) sender domains"));
+        assertTrue(result.contains("Last 7 days sender domains"));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: get first page for the day
+         */
+        result = ninjaTestBrowser.makeJsonRequest(ninjaTestServer.getServerAddress()
+                                                  + "admin/emailSenderPage?scope=day&offset=0&limit=10");
+        assertTrue("{\"total\":0,\"rows\":[]}".equals(result));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: get first page for the week
+         */
+        result = ninjaTestBrowser.makeJsonRequest(ninjaTestServer.getServerAddress()
+                                                  + "admin/emailSenderPage?scope=week&offset=0&limit=10");
+
+        assertTrue("{\"total\":0,\"rows\":[]}".equals(result));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: get second page for the week
+         */
+        result = ninjaTestBrowser.makeJsonRequest(ninjaTestServer.getServerAddress()
+                                                  + "admin/emailSenderPage?scope=week&offset=10&limit=10");
+
+        assertTrue("{\"total\":0,\"rows\":[]}".equals(result));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+        /*
+         * TEST: check invalid scope
+         */
+        result = ninjaTestBrowser.makeJsonRequest(ninjaTestServer.getServerAddress()
+                                                  + "admin/emailSenderPage?scope=month&offset=0&limit=10");
+
+        assertTrue("null".equals(result));
+
+        /*
+         * TEST: get first page for the day
+         */
+        MailStatistics mailStatistics = new MailStatistics();
+        MailStatisticsKey mailStatisticsKey = new MailStatisticsKey(new Date(System.currentTimeMillis()), 0,
+                                                                    "fromDomain.com", "targetDomain.com");
+        mailStatistics.setKey(mailStatisticsKey);
+        mailStatistics.setDropCount(13);
+        mailStatistics.setForwardCount(5);
+        Ebean.save(mailStatistics);
+
+        result = ninjaTestBrowser.makeJsonRequest(ninjaTestServer.getServerAddress()
+                                                  + "admin/emailSenderPage?scope=day&offset=0&limit=10");
+
+        assertTrue("{\"total\":1,\"rows\":[{\"id\":0,\"fromDomain\":\"fromDomain.com\",\"droppedCount\":13,\"forwardedCount\":5}]}".equals(result));
+        assertFalse(result.contains("FreeMarker template error"));
+        assertFalse(result.contains("<title>404 - not found</title>"));
+
+    }
 }

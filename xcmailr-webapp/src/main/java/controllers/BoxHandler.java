@@ -17,8 +17,11 @@
 package controllers;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.Base64.Decoder;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,7 +34,13 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.activation.DataSource;
+import javax.mail.internet.MimeMessage;
+
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.mail.util.MimeMessageParser;
+import org.apache.commons.mail.util.MimeMessageUtils;
+import org.hibernate.validator.internal.constraintvalidators.EmailValidator;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
@@ -761,13 +770,11 @@ public class BoxHandler
         if (apiToken == null || desiredMailAddress == null || validTime == null)
             return Results.badRequest();
 
-        log.trace("passed null check");
-
-        if (desiredMailAddress.length() < 5) // "a@b.c" == 5
+        if (!new EmailValidator().isValid(desiredMailAddress, null))
             return Results.badRequest();
 
         // check token
-        User user = HelperUtils.checkApiToken(apiToken);
+        User user = HelperUtils.findUserByToken(apiToken);
         if (user == null)
         {
             // there is no user assigned with that api token
@@ -870,7 +877,7 @@ public class BoxHandler
             return Results.badRequest();
 
         log.trace("passed null check");
-        User user = HelperUtils.checkApiToken(apiToken);
+        User user = HelperUtils.findUserByToken(apiToken);
 
         if (user == null)
         {
@@ -937,10 +944,12 @@ public class BoxHandler
         }
 
         List<MailboxEntry> entries = new LinkedList<>();
-        for (Mail email : emails)
+
+        for (int i = 0; i < emails.size(); i++)
         {
-            MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email.getSender(), email.getSubject(),
-                                                         email.getReceiveTime(), email.getMessage());
+            Mail email = emails.get(i);
+
+            MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email);
             if (true //
                 && senderPattern.matcher(mailboxEntry.sender).find() //
                 && subjectPattern.matcher(mailboxEntry.subject).find() //
@@ -1014,41 +1023,151 @@ public class BoxHandler
     }
 
     @FilterWith(SecureFilter.class)
-    public Result queryAllMailboxes(Context context) throws Exception
+    public Result queryAllMailboxes(Context context, @Param("offset") int offset, @Param("limit") int limit,
+                                    @Param("sort") String sort, @Param("order") String order,
+                                    @Param("search") String search)
+        throws Exception
     {
-        User user = context.getAttribute("user", User.class);
-        List<MBox> mailboxes = user.getBoxes();
-
-        List<MailboxEntry> result = new LinkedList<>();
-        for (int i = 0; i < mailboxes.size(); i++)
-        {
-            MBox mailbox = mailboxes.get(i);
-            List<Mail> mails = Ebean.find(Mail.class).where().eq("mailbox_id", mailbox.getId())
-                                    .setMaxRows(xcmConfiguration.MAILBOX_MAX_MAIL_COUNT).order("receive_time")
-                                    .findList();
-            for (Mail mail : mails)
-            {
-                result.add(new MailboxEntry(mailbox.getFullAddress(), mail.getSender(), mail.getSubject(),
-                                            mail.getReceiveTime(), mail.getMessage()));
-            }
-        }
-
         String formatParameter = context.getParameter("format", "html").toLowerCase();
 
-        Result html = Results.html();
         if ("html".equals(formatParameter))
         {
-            html.render("accountEmails", result).render("showMails", true);
-
-            return html;
+            return Results.html();
         }
         else if ("json".equals(formatParameter))
         {
-            return Results.json().status(Result.SC_200_OK).render(result);
+            Result jsonResult = Results.json();
+
+            sort = getOrderColumn(sort);
+            order = getOrderDirection(order);
+
+            User user = context.getAttribute("user", User.class);
+            List<MBox> mailboxes = user.getBoxes();
+            List<Long> mailboxIds = new LinkedList<>();
+
+            for (MBox mailbox : mailboxes)
+            {
+                mailboxIds.add(mailbox.getId());
+            }
+
+            List<Mail> mails = Ebean.find(Mail.class).where().in("mailbox_id", mailboxIds).orderBy(sort + " " + order)
+                                    .findList();
+
+            List<MailboxEntry> result = new LinkedList<>();
+            if (search != null && search.length() > 0)
+            {
+                // there is a searchphrase. prefilter the results
+                // apparent we can't do this in the db since messages are stored encoded
+
+                // since contain search doesn't support case insensitive natively we go ahead with a lower case compare
+                search = search.toLowerCase();
+
+                Decoder decoder = Base64.getDecoder();
+
+                for (Mail mail : mails)
+                {
+                    MailboxEntry mailboxEntry = new MailboxEntry(mail.getMailbox().getFullAddress(), mail);
+
+                    String decodedTextContent = new String(decoder.decode(mailboxEntry.textContent));
+                    String decodedHtmlContent = new String(decoder.decode(mailboxEntry.htmlContent));
+
+                    if (decodedTextContent.toLowerCase().contains(search) //
+                        || decodedHtmlContent.toLowerCase().contains(search) //
+                        || mailboxEntry.subject.toLowerCase().contains(search) //
+                        || mailboxEntry.sender.toLowerCase().contains(search) //
+                        || mailboxEntry.mailAddress.toLowerCase().contains(search))
+                    {
+                        result.add(mailboxEntry);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = offset; i < offset + limit; i++)
+                {
+                    if (i < mails.size())
+                    {
+                        result.add(new MailboxEntry(mails.get(i).getMailbox().getFullAddress(), mails.get(i)));
+                    }
+                }
+            }
+
+            jsonResult.render("rows", result);
+            jsonResult.render("total", mails.size());
+
+            return jsonResult;
         }
         else
         {
             return Results.forbidden();
         }
+    }
+
+    private String getOrderColumn(String orderBy)
+    {
+        String orderColumn = "receive_time"; // the column that is used to order data; receive_time = default
+
+        List<String> validColumns = new ArrayList<>();
+        validColumns.add("receive_time");
+        validColumns.add("subject");
+        validColumns.add("sender");
+
+        if (validColumns.contains(orderBy))
+            orderColumn = orderBy;
+
+        return orderColumn;
+    }
+
+    private String getOrderDirection(String orderBy)
+    {
+        String order = "desc"; // the direction of order (asc or desc); desc = default
+
+        List<String> validOrder = new ArrayList<>();
+        validOrder.add("asc");
+        validOrder.add("desc");
+
+        if (validOrder.contains(orderBy))
+            order = orderBy;
+
+        return order;
+    }
+
+    @FilterWith(SecureFilter.class)
+    public Result downloadMailAttachment(Context context, @PathParam("downloadToken") String downloadToken,
+                                         @PathParam("filename") String filename)
+        throws Exception
+    {
+        List<Mail> foundMails = Ebean.find(Mail.class).where().eq("uuid", downloadToken).findList();
+
+        if (foundMails.isEmpty())
+        {
+            return Results.badRequest();
+        }
+        Mail mail = foundMails.get(0);
+
+        MimeMessage mimeMessage = MimeMessageUtils.createMimeMessage(null, mail.getMessage());
+        MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
+        mimeMessageParser.parse();
+
+        DataSource foundAttachment = null;
+        for (DataSource attachment : mimeMessageParser.getAttachmentList())
+        {
+            if (attachment.getName().equals(filename))
+            {
+                foundAttachment = attachment;
+                break;
+            }
+        }
+
+        if (foundAttachment == null)
+        {
+            return Results.badRequest();
+        }
+
+        InputStream inputStream = foundAttachment.getInputStream();
+        byte[] file = new byte[inputStream.available()];
+        inputStream.read(file);
+
+        return new Result(200).contentType(foundAttachment.getContentType()).renderRaw(file);
     }
 }

@@ -197,14 +197,15 @@ public class XCMailrConf
     public final int TEMPORARY_MAIL_MAX_VALID_TIME;
 
     /**
-     * The maximum amount of mails that should be displayed in the mailbox.
-     */
-    public final int MAILBOX_MAX_MAIL_COUNT;
-
-    /**
      * The amount of days an API token should be valid
      */
     public final int APITOKEN_EXPIRATION;
+
+    /**
+     * The amount of minutes an email should be preserved before being deleted. NOTE: this only accounts for emails that
+     * were sent to an user defined email address that also has to be active
+     */
+    public final int MAIL_RETENTION_PERIOD;
 
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
@@ -258,9 +259,9 @@ public class XCMailrConf
                                        + "Otherwise this app will not work");
         }
         MAX_MAIL_SIZE = ninjaProp.getIntegerOrDie("mbox.mail.maxsize");
+        MAIL_RETENTION_PERIOD = ninjaProp.getIntegerOrDie("mbox.mail.retentionperiod");
         TEMPORARY_MAIL_MAX_VALID_TIME = ninjaProp.getIntegerOrDie("application.temporarymail.maximumvalidtime");
 
-        MAILBOX_MAX_MAIL_COUNT = ninjaProp.getIntegerOrDie("application.mailbox.maxdisplaycount");
         APITOKEN_EXPIRATION = ninjaProp.getIntegerOrDie("application.api.tokenexpirationtime");
     }
 }
