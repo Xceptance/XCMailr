@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 
 import etc.HelperUtils;
 import models.MBox;
+import models.Mail;
 import models.User;
 import ninja.NinjaTest;
 
@@ -887,6 +888,55 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.contains("emailValidity"));
         assertTrue(result.contains("emailValidUntil"));
         assertTrue(result.contains("emailValidUntilDate"));
+    }
+
+    @Test
+    public void testQueryMailboxes() throws Exception
+    {
+        // create mailbox for the tests
+        user.setApiToken("validToken");
+        user.save();
+        ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/" + user.getApiToken()
+                                     + "/mailboxquery@xcmailr.test/1");
+        user = User.getById(user.getId());
+        assertTrue(user.getBoxes().size() == 1);
+        createMail(user.getBoxes().get(0));
+
+        /*
+         * TEST: query html
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=html");
+        assertTrue(result.contains("WARNING: Emails will be available for only 10 minutes upon receipt and deleted afterwards."));
+
+        /*
+         * TEST: query json
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=json");
+        assertTrue(result.contains("{\"total\":1,\"rows\":[]}"));
+
+        /*
+         * TEST: query csv
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=csv");
+        assertTrue(result.contains("WARNING: Emails will be available for only 10 minutes upon receipt and deleted afterwards."));
+
+        /*
+         * TEST: search the mailbox
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "mails?format=json&search=something");
+        assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
+    }
+
+    private void createMail(MBox mailbox)
+    {
+        Mail mail = new Mail();
+        mail.setMailbox(mailbox);
+        mail.setMessage("empty");
+        mail.setSubject("some subject");
+        mail.setReceiveTime(System.currentTimeMillis());
+        mail.setSender("someone@notyou.net");
+        mail.save();
     }
 
     private MBox setValues(MBox testMbox, String local, String domain, long ts, boolean expired, User usr)
