@@ -205,7 +205,7 @@ public class HelperUtils
      * @param apiToken
      * @return
      */
-    public static User checkApiToken(String apiToken)
+    public static User findUserByToken(String apiToken)
     {
         try
         {

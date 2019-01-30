@@ -40,6 +40,7 @@ import javax.mail.internet.MimeMessage;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.apache.commons.mail.util.MimeMessageUtils;
+import org.hibernate.validator.internal.constraintvalidators.EmailValidator;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
@@ -769,13 +770,11 @@ public class BoxHandler
         if (apiToken == null || desiredMailAddress == null || validTime == null)
             return Results.badRequest();
 
-        log.trace("passed null check");
-
-        if (desiredMailAddress.length() < 5) // "a@b.c" == 5
+        if (!new EmailValidator().isValid(desiredMailAddress, null))
             return Results.badRequest();
 
         // check token
-        User user = HelperUtils.checkApiToken(apiToken);
+        User user = HelperUtils.findUserByToken(apiToken);
         if (user == null)
         {
             // there is no user assigned with that api token
@@ -878,7 +877,7 @@ public class BoxHandler
             return Results.badRequest();
 
         log.trace("passed null check");
-        User user = HelperUtils.checkApiToken(apiToken);
+        User user = HelperUtils.findUserByToken(apiToken);
 
         if (user == null)
         {
