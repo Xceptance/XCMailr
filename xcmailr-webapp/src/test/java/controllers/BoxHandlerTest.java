@@ -900,6 +900,8 @@ public class BoxHandlerTest extends NinjaTest
                                      + "/mailboxquery@xcmailr.test/1");
         user = User.getById(user.getId());
         assertTrue(user.getBoxes().size() == 1);
+
+        // create a new mail in the new created mailbox
         createMail(user.getBoxes().get(0));
 
         /*
@@ -909,10 +911,18 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.contains("WARNING: Emails will be available for only 10 minutes upon receipt and deleted afterwards."));
 
         /*
-         * TEST: query json
+         * TEST: query json. it is more or less intentional to retrieve no row data but the total count. in that way one
+         * can query the amount of mails without actually loading them since they could be huge
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=json");
-        assertTrue(result.contains("{\"total\":1,\"rows\":[]}"));
+        assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
+
+        /*
+         * TEST: query json with offset=0 and limit=1 parameter to get also actual mail content of the first mail
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "mails?format=json&offset=0&limit=1");
+        assertTrue(result.equals("{\"total\":1,\"rows\":[{\"id\":0,\"mailAddress\":\"mailboxquery@xcmailr.test\",\"sender\":\"someone@notyou.net\",\"subject\":\"some subject\",\"receivedTime\":1546300800,\"textContent\":\"\",\"htmlContent\":\"\",\"attachments\":[],\"rawContent\":\"empty\",\"downloadToken\":null}]}"));
 
         /*
          * TEST: query csv
@@ -928,15 +938,17 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
     }
 
-    private void createMail(MBox mailbox)
+    private Mail createMail(MBox mailbox)
     {
         Mail mail = new Mail();
         mail.setMailbox(mailbox);
         mail.setMessage("empty");
         mail.setSubject("some subject");
-        mail.setReceiveTime(System.currentTimeMillis());
+        mail.setReceiveTime(1546300800); // use static value 2019-01-01 00:00:00
         mail.setSender("someone@notyou.net");
         mail.save();
+
+        return mail;
     }
 
     private MBox setValues(MBox testMbox, String local, String domain, long ts, boolean expired, User usr)
