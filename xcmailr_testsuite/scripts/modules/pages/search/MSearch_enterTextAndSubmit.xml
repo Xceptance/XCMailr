@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Enter search string.</description>
-  <parameter name="searchText"/>
-  <command name="type" target="id=search-field" value="@{searchText}"/>
-  <command name="waitForElementPresent" target="css=.info"/>
-</scriptmodule>

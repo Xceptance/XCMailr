@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Click the play element at the selected table row.</description>
-  <action name="clickPlaySelectedEMail"/>
-  <command name="click" target="css=.show-itemsPerPage-5"/>
-</scriptmodule>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Navigates to the "My EmailAdresses" page</description>
-  <codecomment>Navigate to the "Sign Out" page</codecomment>
-  <action name="GoToMailOverview"/>
-  <command name="clickAndWait" target="css=.mailOverview">
-    <comment>li:nth-of-type(8) a</comment>
-  </command>
-</scriptmodule>

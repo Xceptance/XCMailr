@@ -1,10 +1,20 @@
-/*
- * NOTE: This file is generated. Do not edit! Your changes will be lost.
- */
 package tests.account;
-import com.xceptance.xlt.api.engine.scripting.AbstractScriptTestCase;
-import com.xceptance.xlt.api.engine.scripting.ScriptName;
+import org.junit.Test;
+import com.xceptance.xlt.api.engine.scripting.AbstractWebDriverScriptTestCase;
 
+import modules.global.headernav.MGlobal_Header_clickEditProfile;
+import modules.global.headernav.MGlobal_Header_clickSignIn;
+import modules.global.headernav.MGlobal_Header_clickSignOut;
+import modules.global.headernav.VGlobal_validatePageTitle;
+import modules.helper.MHelper_Random_addRandomness;
+import modules.helper.MHelper_Random_createPassword;
+import modules.helper.external.FHelper_getEmailAddressFromExternal;
+import modules.helper.global.FHelper_Register_createAccount;
+import modules.helper.global.FHelper_Session_flowToStartSession;
+import modules.pages.account.MAccount_clickSaveAccount;
+import modules.pages.account.MAccount_enterData;
+import modules.pages.account.login.MAccount_Login_enterClickUserLoginData;
+import modules.pages.account.login.VAccount_Login_validateLogOutPage;
 
 /**
  * <p>Test edit profile</p>
@@ -22,8 +32,74 @@ import com.xceptance.xlt.api.engine.scripting.ScriptName;
  * <li>Logout using the global link in the header</li>
  * </ul>
  */
-@ScriptName
-("tests.account.TAccount_editAccount")
-public class TAccount_editAccount extends AbstractScriptTestCase
+public class TAccount_editAccount extends AbstractWebDriverScriptTestCase
 {
+
+    /**
+     * Executes the test.
+     *
+     * @throws Throwable if anything went wrong
+     */
+    @Test
+    public void test() throws Throwable
+    {
+        // -----------------------------------------------
+        // # Setup
+        // 
+        // - Generate email
+        // - Generate password
+        // - Start session
+        // -----------------------------------------------
+        // e-mail (extern)
+        FHelper_getEmailAddressFromExternal.execute("email_varDynamic");
+
+        // first name, new first name
+        MHelper_Random_addRandomness.execute("${defaultRegisterFirstName}", "newFirstName_varDynamic");
+
+        // last name, new last name
+        MHelper_Random_addRandomness.execute("${defaultRegisterLastName}", "newLastName_varDynamic");
+
+        // password, new password
+        MHelper_Random_createPassword.execute("oldPassword_varDynamic");
+
+        // # Setup
+        // 
+        // - Start session
+        FHelper_Session_flowToStartSession.execute();
+
+        // create test account
+        FHelper_Register_createAccount.execute("${email_varDynamic}", "password_varDynamic");
+
+        // -----------------------------------------------
+        // # Scope
+        // -----------------------------------------------
+        // Account
+        // 
+        // - Register account via header link
+        // - Enter profile data
+        // - Submit profile data
+        // - Validate account page and nav
+        // - Validate customer name
+        // - Logout
+        FHelper_Session_flowToStartSession.execute();
+
+        MGlobal_Header_clickSignIn.execute();
+
+        MAccount_Login_enterClickUserLoginData.execute("${email_varDynamic}", "${password_varDynamic}");
+
+        MGlobal_Header_clickEditProfile.execute();
+
+        MAccount_enterData.execute("${newFirstName_varDynamic}", "${newLastName_varDynamic}", "de", "${oldPassword_varDynamic}");
+
+        MAccount_clickSaveAccount.execute();
+
+        MGlobal_Header_clickSignOut.execute();
+
+        VAccount_Login_validateLogOutPage.execute();
+
+        VGlobal_validatePageTitle.execute("${title_home}");
+
+
+    }
+
 }

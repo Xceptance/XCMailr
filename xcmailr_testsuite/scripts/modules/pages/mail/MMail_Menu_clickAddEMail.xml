@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Click the "add email" element at the menubar.</description>
-  <command name="click" target="id=add-email"/>
-  <command name="waitForElementPresent" target="css=.modal-dialog"/>
-</scriptmodule>

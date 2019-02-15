@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Create random number from "runtime_min" to "runtime_max".</description>
-  <parameter name="runtime_min"/>
-  <parameter name="runtime_max"/>
-  <parameter name="runtime_varName"/>
-  <command name="store" target="${RANDOM.Number(@{runtime_min},@{runtime_max})}" value="@{runtime_varName}"/>
-</scriptmodule>
