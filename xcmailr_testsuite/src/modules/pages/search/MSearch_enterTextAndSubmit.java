@@ -18,7 +18,5 @@ public class MSearch_enterTextAndSubmit
         searchText = resolve(searchText);
         type("id=search-field", searchText);
         waitForText("id=search-field", searchText);
-        waitForVisible("css=.info");
-
     }
 }
