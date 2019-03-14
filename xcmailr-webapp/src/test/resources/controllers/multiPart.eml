@@ -1,0 +1,1093 @@
+Delivered-To: horst.schlemmer@world.net
+Received: by 2002:ab0:5986:0:0:0:0:0 with SMTP id g6csp12081478uad;
+        Mon, 11 Mar 2019 07:46:58 -0700 (PDT)
+X-Google-Smtp-Source: APXvYqy3sYJjKJ7HxS6obMp0lP9WGOlNrziWdAbwIqL4OxEoK6DMdWD9dB1+7CO9vSh1mIE1fekE
+X-Received: by 2002:a05:6000:124d:: with SMTP id j13mr19394077wrx.102.1552315618771;
+        Mon, 11 Mar 2019 07:46:58 -0700 (PDT)
+Return-Path: <foobar@mailsink.xceptance.de>
+Received: from wp360.webpack.hosteurope.de (wp360.webpack.hosteurope.de. [2a01:488:42:1000:50ed:8581::])
+        by mx.google.com with ESMTPS id j67si3984982wrj.289.2019.03.11.07.46.58
+        for <horst.schlemmer@world.net>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 11 Mar 2019 07:46:58 -0700 (PDT)
+Received: from lab.xceptance.de ([5.9.173.50] helo=6c8c10dd1906); authenticated
+    by wp360.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_CBC_SHA1:256)
+    id 1h3MCg-0005la-5X; Mon, 11 Mar 2019 15:46:58 +0100
+Received: from msgsrv3.atosorigin.de (msgsrv3.atosorigin.de [194.8.120.225])
+        by 6c8c10dd1906
+        with SMTP (SubEthaSMTP 3.1.7) id JT4GN082;
+        Mon, 11 Mar 2019 14:46:57 +0000 (UTC)
+Date: Mon, 11 Mar 2019 15:46:56 +0100
+From: foobar@mailsink.xceptance.de
+To: horst.schlemmer@world.net
+Message-ID: <669177220.1122.1552315617789@6c8c10dd1906>
+Subject: Warenkorbempfehlung
+MIME-Version: 1.0
+Content-Type: multipart/related;
+    boundary="----=_Part_70_1975393692.1552315616187"
+X-NAI-Spam-Flag: NO
+X-NAI-Spam-Level: 
+X-NAI-Spam-Threshold: 8
+X-NAI-Spam-Score: 0.8
+X-NAI-Spam-Version: 2.3.0.9418 : core <6500> : inlines <7030> : streams
+ <1815403> : uri <2810809>
+Sender: foobar@mailsink.xceptance.de
+Reply-To: foobar@mailsink.xceptance.de
+X-FORWARDED-FROM: foobar2@mailsink.xceptance.de
+X-Loop: loopbreakerfoobar@mailsink.xceptance.de
+Auto-Submitted: auto-forwarded
+X-bounce-key: webpack.hosteurope.de;foobar@mailsink.xceptance.de;1552315618;b8039067;
+X-HE-SMSGID: 1h3MCg-0005la-5X
+
+------=_Part_70_1975393692.1552315616187
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org=
+/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns=3D"http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8" />
+<meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D1.=
+0"/>
+<style type=3D"text/css">
+=09body {margin: 0; padding: 0; min-width: 100%!important; font-family: Ari=
+al; font-size: 16px; }
+=09
+=09
+=09table {border-collapse:separate; mso-table-lspace:0pt; mso-table-rspace:=
+0pt;}
+=09a, a:link, a:visited {text-decoration: none; color: #1db5b5; }
+=09a, a:focus, a:hover, a:active {outline: 0 !important; }
+=09a:hover {text-decoration: underline;}
+
+=09h2,h2 a,h2 a:visited,h3,h3 a,h3 a:visited,h4,h5,h6,.t_cht {color:#000 !i=
+mportant}
+=09.ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalCla=
+ss td {line-height: 100%}
+
+=09
+=09.ExternalClass {width: 100%;}
+
+=09
+=09.ExternalClass .ecxhm { display:none; }
+=09.ExternalClass .ecxhm2 {display: inline !important; font-size: 11px !imp=
+ortant; color:#000000 !important;}
+
+=09
+=09#outlook a {padding:0;} /* Force Outlook to provide a "view in browser" =
+menu link. */
+
+=09
+=09img {display: block; outline: none; text-decoration: none; -ms-interpola=
+tion-mode: bicubic;}
+=09a img {border: none;}
+=09a, a:focus, a:hover, a:active {outline: 0 !important;}
+
+
+=09
+=09a {color: #1db5b5; text-decoration: none !important;}
+=09
+=09p {font-size: 14px;}
+=09p.header {font-size: 24px; padding-bottom: 15px; font-weight: bold;}
+=09p.header span.name{color: #999999;}
+
+=09.button {text-align: center; font-size: 18px; font-family: Arial; paddin=
+g: 0 10px;}
+=09.button a {color: #ffffff; text-decoration: none; text-transform: upperc=
+ase;}
+
+=09
+=09.emailContent {width: 100%; max-width: 600px;}
+=09
+=09
+=09.emailHeader {font-family: Arial;}
+=09.emailHeader .logo {padding: 10px 0;}
+=09.emailHeader .headerNav {padding: 10px; font-size: 14px; background-colo=
+r: #eeeeee; width: 100%;}
+=09
+=09
+=09.emailBody{font-family: Arial; line-height: 22px; font-size: 14px; paddi=
+ng: 40px 0px 10px 0px;}
+=09.emailBodyElement {padding-bottom: 10px;}
+=09
+=09
+=09.emailFooter {color: #222222; font-size: 14px; font-family: Arial; }
+=09.emailFooter a {font-size: 13px;} =20
+=09
+=09.footerDisclaimer {background: #dddddd; font-family: Arial; font-size: 1=
+2px; color: #222222; padding: 10px;}
+=09.footerAddress=09{background: #eeeeee; padding: 10px;}
+=09.footerAddressItem=09{font-family: Arial; font-size: 14px; color: #22222=
+2;}
+=09.footerImprint=09{background: #666666; font-family: Arial; font-size: 12=
+px; color: #ffffff; padding: 10px;}
+=09.footerImprint a {color: #ffffff;}
+=09.footerNewAddress {line-height: 22px}
+=09.separate {line-height: 22px; padding-bottom: 10px;}
+
+=09.productTitle {margin-bottom: 10px;}
+
+=09
+=09table[class=3Dpattern] .mobileTable td td {width: 50%;}=09
+=09
+=09
+=09table[class=3DmobileButtonPattern] {background-color: #1db5b5;}
+=09
+=09
+=09table.emailCostSummary td td {vertical-align: top;}=09
+=09table.emailCartPrice th {background-color: #f9f9f9; padding: 5px; vertic=
+al-align: top; font-weight: bold;}
+=09table.emailCartPrice td {background-color: #f9f9f9; padding: 5px; vertic=
+al-align: top;}
+=09table.emailCartProductDetails td {padding: 10px; vertical-align: top; te=
+xt-align: left;}
+=09h2.emailOrderSummary {background-color: #cccccc; padding: 10px;}
+=09
+=09td.orderConfirmationShippingInfo {background-color: #e3e3e3;}
+=09td.orderConfirmationBucketInfo {background-color: #fff;}
+=09
+=09.orderConfirmationShippingInfoAddress {font-weight: bold;}
+=09address {font-style: normal;}
+=09
+=09.details-link {display: none;}
+=09.old-price {color: #8b8b8b; text-decoration: line-through;}
+=09.total-price {font-weight: bold;}
+=09.emailPriceColumn {text-align: right;}
+=09.showemailaddress {margin: 20px 0 0;}
+
+=09@media only screen and (max-width: 550px), screen and (max-device-width:=
+ 550px) {
+=09=09.emailHeader .logo img {padding-left: 10px;}
+=09=09.emailBody {padding: 10px;}
+=09=09
+=09=09
+=09=09table[class=3Dpattern] .mobileTable {
+=09=09=09display: table-footer-group;
+=09=09}
+=09=09
+=09=09table[class=3Dpattern] .mobileTable td td {
+=09=09=09display: inline-block;
+=09=09=09width: 100%;
+=09=09=09-moz-box-sizing: border-box;
+=09=09=09-webkit-box-sizing: border-box;
+=09=09=09box-sizing: border-box;
+=09=09}
+=09=09
+=09=09
+=09=09table[class=3DmobileButtonPattern] {width: 100%;}
+=09
+=09=09
+=09=09table[class=3Dpattern] .mobileTable td table.dataList td:last-child {=
+padding-bottom: 10px;}
+=09
+=09=09
+=09=09body[yahoo] .hide {display: none!important;}
+=09=09body[yahoo] .buttonwrapper {background-color: transparent!important;}
+=09=09body[yahoo] .button {padding: 0px!important; text-transform:uppercase=
+;}
+=09=09body[yahoo] .button a {background-color: #1db5b5; padding: 10px 15px =
+!important;}
+=09=09
+=09=09
+=09=09.emailPriceColumn {text-align: center;}
+=09=09p.copyLink a {font-size: 6px;}
+=09}
+
+=09@media only screen and (min-device-width: 601px) {
+=09=09.emailContent {width: 600px !important;}
+
+=09=09.col380 {width: 380px!important;}
+=09=09.col425 {width: 425px!important;}
+=09}=09
+=09
+=09
+=09html, body {
+=09=09margin:0;
+=09=09padding:0;
+=09=09width:100% !important;
+=09}=09
+=09
+=09* {
+=09=09-ms-text-size-adjust:100%;
+=09=09-webkit-text-size-adjust:100%;
+=09=09font-family:Arial,Helvetica,sans-serif;
+=09}
+=09
+=09/* added to prevent standard blue links that are added via RTE */=09
+=09.mktoContainer a, .mktoContainer a:hover, .mktoContainer a:visited {
+=09=09color:#0088d0;
+=09}=09=09=09
+=09
+=09.ExternalClass {
+=09=09width:100%;
+=09}=20
+=09
+=09table, td {
+=09=09mso-table-lspace:0pt;
+=09=09mso-table-rspace:0pt;
+=09}
+=09
+=09table {
+=09=09border-spacing:0 !important;
+=09}=09
+=09
+=09.ExternalClass, .ExternalClass * {
+=09=09line-height:100%;
+=09}=09
+=09
+=09table {
+=09=09border-collapse:collapse;
+=09=09margin:0 auto;
+=09}
+=09
+=09img {
+=09=09-ms-interpolation-mode:bicubic;
+=09}
+=09.yshortcuts a {
+=09=09border-bottom:none !important;
+=09}
+=09.mobile-link--footer a {
+=09=09color:#666666 !important;
+=09}
+=09img {
+=09=09border:0 !important;
+=09=09outline:none !important;
+=09=09text-decoration:none !important;
+=09}
+=09img.fluid {
+=09=09width:100% !important;
+=09=09height:auto !important;
+=09=09min-width:100% !important;
+=09}=09
+=09=09
+=09.unorderedlist {
+=09=09width:100%!important;
+=09}
+=09.tophead td {
+=09=09color:#9A9B9C;
+=09=09font-size:10px;
+=09}
+=09.tophead td a {
+=09=09color:#9A9B9C;
+=09}
+=09.tophead td a span, .footer td a span {
+=09=09color:#9A9B9C;
+=09=09text-decoration:underline;
+=09}
+=09
+=09.head> td {
+=09=09padding:40px;
+=09=09font-size:16px;
+=09}
+=09.head> td.noleft {
+=09=09padding:40px;
+=09=09padding-left:0px;
+=09}
+=09.head> td.header1 {
+=09=09padding-top:28px;
+=09}
+=09.head> td.header2 {}
+=09.head> td.claim {
+=09=09padding-top:28px;
+=09=09padding-bottom:28px;
+=09}
+=09.head img {
+=09=09display:block;
+=09}
+=09
+=09.stil .slashes {
+=09=09width:40px;
+=09=09font-size:15px;
+=09=09font-weight:normal;
+=09=09letter-spacing:1px;
+=09}
+=09.stil .firstline {
+=09=09font-size:14px;
+=09=09font-weight:700;
+=09=09letter-spacing:1px;
+=09}
+=09.stil .secondline {
+=09=09font-size:8px;
+=09=09font-weight:700;
+=09=09letter-spacing:1px;
+=09}=09
+=09
+=09.img-content .stack-column-center br, .img-content .stack-column br, .th=
+ree-img .stack-column br, .two-img .stack-column br {
+=09=09line-height:14px;
+=09}
+=09.img-content .headline {
+=09=09font-size:16px;
+=09=09color:#000000;
+=09=09display:inline;
+=09=09line-height:21px;
+=09=09font-weight:bold;
+=09}=09
+=09=09
+=09.lightgray * {
+=09=09font-size:12px;
+=09=09color:#b1b1b1;
+=09=09line-height:21px;=09=09=09
+=09}
+=09.maincontent a, .img-content a, .head a.link {
+=09=09color:#0088d0;
+=09=09font-weight:bold;
+=09=09font-size:14px;
+=09}
+    .link:before{
+        content: "";
+=09=09display: inline-block;
+=09=09width: 10px;
+=09=09height: 9px;
+=09=09background-image: url(http://pages.awesomeshop.com/rs/896-XMS-794/images/li=
+nklist_internal_link_cyan_x4.gif);
+        background-repeat: repeat-y no-repeat;
+=09=09background-size: 10px 9px;
+      }=09=09
+     =20
+
+=09.head a.link img {
+=09=09display:inline;=20
+=09}
+=09.maincontent a.link img, .img-content a.link img, .mainfooter a.link img=
+{
+=09=09vertical-align:baseline;
+=09}
+=09.mainfooter .text {
+=09=09color:#747678;
+=09=09font-family:Arial, Helvetica, sans-serif;
+=09=09font-size:14px;
+=09=09line-height:21px;
+=09}
+=09.mainfooter .text a {
+=09=09color:#000;=09
+=09=09font-weight:normal;=20
+=09=09text-decoration:none;
+=09}
+=09.mainfooter .socialcontainer span {
+=09=09color:#b1b1b1;
+=09=09font-family:Arial,Helvetica,sans-serif;
+=09=09font-size:11px;
+=09=09text-align:middle;
+=09}
+=09.mainfooter .socialcontainer a {
+=09=09text-align:middle;
+=09}
+=09.mainfooter .socialcontainer a img {
+=09=09display:inline-block;
+=09}
+=09.mainfooter .socialcontainer .inlineblockspacer {
+=09=09display:inline-block;
+=09=09width:16px;
+=09=09height:16px;
+=09=09color:#ffffff;
+=09}     =20
+=09=09
+=09.socialholder td p {
+=09=09line-height:16px;
+=09}
+=09.footer .stack-column {
+=09=09color:#9A9B9C;
+=09=09font-size:10px;
+=09}
+=09.footer .stack-column a {
+=09=09color:#9A9B9C;
+=09}
+=09.nounderline {
+=09=09text-decoration:none;
+=09}
+=09.spacer {
+=09=09font-size:0 !important;
+=09=09line-height:0 !important;
+=09}
+=09.spacer.hasborder {
+=09=09margin-left:40px;
+=09=09margin-right:40px;
+=09}
+=09.txtleft, .ali-left {
+=09=09text-align:left;
+=09}
+=09.txtright, .ali-right {
+=09=09text-align:right;
+=09}
+=09.hasborder {
+=09=09border-top:1px solid #E0E1DD;
+=09}
+=09.hasborderbottom {
+=09=09border-bottom:1px solid #E0E1DD;
+=09}
+=09.moment> td {
+=09=09padding-top:0;
+=09=09padding-left:40px;
+=09=09padding-right:40px;
+=09=09padding-bottom:49px;
+=09=09font-size:16px;
+=09}
+=09.htmlbutton {
+=09=09font-family:Arial, Helvetica, sans-serif;=20
+=09=09background-color:#3b7fdd;=20
+=09=09background-image:linear-gradient(#6ea0e9, #0a61d3);
+=09=09border:1px solid #70a1e9;
+=09=09border-radius:3px;=20
+=09=09display:inline-block;
+=09}
+=09.htmlbutton table {
+=09=09background-color:#3b7fdd;=20
+=09=09background-image:linear-gradient(#6ea0e9, #0a61d3);
+=09=09border-radius:3px;=20
+=09=09-ms-text-size-adjust:100%;
+=09=09-webkit-text-size-adjust:100%;
+=09=09font-family:Arial,Helvetica,sans-serif;
+=09=09mso-table-lspace:0pt;
+=09=09mso-table-rspace:0pt;
+=09=09border-spacing:0 !important;
+=09=09border-collapse:collapse;
+=09=09margin-top:0;
+=09=09margin-bottom:0;
+=09=09margin-right:auto;
+=09=09margin-left:auto;
+=09}
+=09.htmlbutton .button {
+=09=09color:#ffffff;
+=09=09display:inline-block;
+=09=09font-family:sans-serif;
+=09=09font-size:14px;
+=09=09line-height:28px;
+=09=09text-align:center;
+=09=09text-decoration:none;
+=09=09width:auto;
+=09=09-webkit-text-size-adjust:none;
+=09=09font-weight:normal;
+=09}
+=09.htmlbutton td {
+=09=09font-size:14px !important;
+=09=09line-height:14px !important;
+=09}
+=09.htmlbuttongray {
+=09=09font-family:Arial, Helvetica, sans-serif;=20
+=09=09background-color:#313131;=20
+=09=09background-image:linear-gradient(#5e5e5e, #060606);
+=09=09border:1px solid #626262;
+=09=09border-radius:3px;=20
+=09=09display:inline-block;
+=09=09line-height:28px !important;
+=09}
+=09.htmlbuttongray table {
+=09=09background-color:#313131;=20
+=09=09background-image:linear-gradient(#5e5e5e, #060606);
+=09=09border-radius:3px;=20
+=09=09-ms-text-size-adjust:100%;
+=09=09-webkit-text-size-adjust:100%;
+=09=09font-family:Arial,Helvetica,sans-serif;
+=09=09mso-table-lspace:0pt;
+=09=09mso-table-rspace:0pt;
+=09=09border-spacing:0 !important;
+=09=09border-collapse:collapse;
+=09=09margin-top:0;
+=09=09margin-bottom:0;
+=09=09margin-right:auto;
+=09=09margin-left:auto;
+=09=09line-height:28px !important;
+=09}
+=09.htmlbuttongray .button {
+=09=09color:#ffffff;
+=09=09display:inline-block;
+=09=09font-family:sans-serif;
+=09=09font-size:14px;
+=09=09line-height:28px !important;
+=09=09text-align:center;
+=09=09text-decoration:none;
+=09=09width:auto;
+=09=09-webkit-text-size-adjust:none;
+=09=09font-weight:normal;
+=09}
+=09=09=09=09
+=09=09=09
+=09.table .table-row table td {
+=09=09padding-left:7px !important;
+=09}
+=09.table a {
+=09=09color:#0088d0;
+=09=09text-decoration:none;
+=09=09font-size:12px;
+=09=09font-weight:normal;
+=09}
+=09.nostyle {
+=09=09color:#747678;
+=09=09text-decoration:none;
+=09=09font-size:12px;
+=09=09font-weight:normal;
+=09}
+=09.htmlbuttongray td=09{
+=09=09font-size:14px !important;
+=09=09line-height:14px !important;
+=09}
+=09.socialhead {
+=09=09padding-right:2px;
+=09}
+=09td.txtleft {
+=09=09padding-left:40px !important;
+=09=09padding-right:40px !important;
+=09}
+=09td.txtright {
+=09=09padding-left:40px !important;
+=09=09padding-right:40px !important;
+=09}
+=09
+=09
+=09.footer .wrap {
+=09=09padding-left:40px !important;
+=09=09padding-right:40px !important;
+=09}
+=09.tophead .wrap {
+=09=09padding-left:40px !important;
+=09=09padding-right:40px !important;
+=09}
+=09.headings> td> .h1 {
+=09=09font-size:20px;
+=09=09line-height:24px;
+=09=09margin:0;
+=09=09padding:0;
+=09}
+=09.headings> td> .h2 {
+=09=09font-size:20px;
+=09=09line-height:24px;
+=09=09font-weight:bold;
+=09=09margin:0;
+=09=09padding:0;
+=09}
+=09.largeheadings> td> .h1 {
+=09=09font-size:24px;
+=09=09line-height:28px;
+=09=09margin:0;
+=09=09padding:0;
+=09}
+=09.largeheadings> td> .h2 {
+=09=09font-size:24px;
+=09=09line-height:28px;
+=09=09font-weight:bold;
+=09=09margin:0;
+=09=09padding:0;
+=09}
+=09.footer {
+=09=09background-color:#f8f8f8;
+=09}
+=09
+=09=09
+=09.imagefullWidth img {
+=09=09height:auto;
+=09=09max-width:100% !important;
+=09=09border-width:0 !important;
+=09=09outline-style:none !important;
+=09=09text-decoration:none !important;=09=09
+=09}
+=09.link-blue * {
+=09=09color:#0088d0 !important;
+=09}
+=09=09=09=09=09=09=09=09
+=09/* this class is for the CTAButton-Module */
+=09.cta-button {
+=09=09background:#008bd0;
+=09=09border-top:8px solid #008bd0;
+=09=09border-right:16px solid #008bd0;
+=09=09border-bottom:8px solid #008bd0;
+=09=09border-left:16px solid #008bd0;
+=09=09color:#fff !important;
+=09=09display:inline-block;
+=09=09font-family:arial,sans-serif;
+=09=09font-size:16px !important;
+=09=09height:auto;
+=09=09text-decoration:none;
+=09=09width:auto;
+=09}
+=09.cta-button:hover {
+=09=09background-color:#069;
+=09=09border-top:8px solid #069; =09=09
+=09=09border-right:16px solid #069;
+=09=09border-bottom:8px solid #069;
+=09=09border-left:16px solid #069;
+=09=09cursor:pointer;
+=09}=09
+=09.cta-button a {
+=09=09color:#fff !important;
+=09=09display:inline-block;
+=09=09font-family:arial,sans-serif;
+=09=09font-size:16px !important;
+=09=09text-align:center;
+=09=09text-decoration:none;
+=09=09text-indent:0;
+=09=09width:auto;
+=09=09-webkit-text-size-adjust:none;
+=09}=09=09=09
+=09.cta {
+=09=09background:#008bd0;
+=09=09border-top:8px solid #008bd0;
+=09=09border-right:16px solid #008bd0;
+=09=09border-bottom:8px solid #008bd0;
+=09=09border-left:16px solid #008bd0;
+=09=09color:#fff !important;
+=09=09display:inline-block;
+=09=09font-family:arial,sans-serif;
+=09=09font-size:16px !important;
+=09=09text-align:center;
+=09=09text-decoration:none;
+=09}=09
+=09
+=09.cta:hover {
+=09=09background-color:#069;
+=09=09border-top:8px solid;
+=09=09border-right:16px solid;
+=09=09border-bottom:8px solid;
+=09=09border-left:16px solid;
+=09=09cursor:pointer;
+=09}
+=09
+=09
+=09@media screen and (max-device-width:640px), screen and (max-width:640px)=
+ {
+=09=09.email-container {
+=09=09=09width:100% !important;
+=09=09}
+=09=09img[class=3D"fluid"], img[class=3D"fluid-centered"] {
+=09=09=09width:100% !important;
+=09=09=09max-width:100% !important;
+=09=09=09height:auto !important;
+=09=09=09margin:auto !important;
+=09=09}
+=09=09img[class=3D"fluid-centered"] {
+=09=09=09margin:auto !important;
+=09=09}
+=09=09td[class=3D"stack-column"], td[class=3D"stack-column-center"], td[cla=
+ss=3D"spacer"], td[class=3D"stack-column hidden"] {
+=09=09=09display:block !important;
+=09=09=09width:100% !important;
+=09=09=09direction:ltr !important;
+=09=09}
+=09=09td[class=3D"stack-column hidden"] {
+=09=09=09display:none !important;
+=09=09}
+=09=09td[class=3D"txtleft"], td[class=3D"txtright"]{
+=09=09=09display:block !important;
+=09=09=09direction:ltr !important;
+=09=09=09text-align:left !important;
+=09=09=09padding-left:40px !important;
+=09=09=09padding-right:40px !important;
+=09=09}
+=09=09td[class=3D"stack-column-center"] {
+=09=09=09text-align:left !important;
+=09=09}
+=09=09td[class=3D"sociallink"] p{
+=09=09=09text-align:center;
+=09=09}
+=09=09td[class=3D"data-table-th"] {
+=09=09=09display:none !important;
+=09=09}
+=09=09td[class=3D"data-table-th"] {
+=09=09=09display:none !important;
+=09=09}
+=09=09td[class=3D"data-table-td"], td[class=3D"data-table-td-title"] {
+=09=09=09display:block !important;
+=09=09=09width:100% !important;
+=09=09=09border:0 !important;
+=09=09}
+=09=09td[class=3D"data-table-td-title"] {
+=09=09=09font-weight:bold;
+=09=09=09color:#333333;
+=09=09=09padding:10px 0 0 0 !important;
+=09=09=09border-top:2px solid #eeeeee !important;=20
+=09=09}
+=09=09td[class=3D"data-table-td"] {
+=09=09=09padding:5px 0 0 0 !important
+=09=09}
+=09=09td[class=3D"data-table-mobile-divider"] {
+=09=09=09display:block !important;
+=09=09=09height:20px;
+=09=09}
+=09=09table[class=3D"socialholder"]{
+=09=09=09width:100% !important;
+=09=09}
+=09=09td[class=3D"socialhead"] {
+=09=09=09display:block !important;
+=09=09=09text-align:center !important;
+=09=09}
+=09=09td[class=3D"sociallink"] {
+=09=09=09display:inline-block !important;
+=09=09=09width:32% !important;
+=09=09}
+=09=09td[class=3D"sociallink"] {
+=09=09=09display:inline-block !important;
+=09=09=09width:32% !important;
+=09=09}
+=09}
+=09
+   =20
+    .quoteEmailCartProductDetails th,
+    .quoteEmailCartProductDetails td {
+        padding: 10px; vertical-align: top; text-align: left;
+    }
+   =20
+   =20
+   =20
+    .product-stock {
+=09    vertical-align: middle;
+=09    display: inline-block;
+=09    height: 15px;
+=09    width: 15px;
+    }
+    .red {
+        background:#ff1a00;
+    }
+    .yellow {
+        background:#fecb00;
+    }
+    .green {
+        background:#3c8a2e;
+    }
+    .text-shipping-not-included {
+        font-size: 14px;
+    }
+   =20
+
+</style>
+
+<style type=3D"text/css">
+=09a, a:link, a:visited {color: #00abea;}=20
+=09
+=09
+=09table[class=3DmobileButtonPattern] {background-color: #00abea;}
+=09.button a {color: #ffffff;}
+=09
+=09@media only screen and (max-width: 550px), screen and (max-device-width:=
+ 550px) {
+=09=09body[yahoo] .button a {background-color: #00abea;}
+=09}
+</style>
+</head>
+<body leftmargin=3D"0" topmargin=3D"0" bgcolor=3D"#f8f8f8" marginheight=3D"=
+0" marginwidth=3D"0">
+<table class=3D"header-table1" bgcolor=3D"#f8f8f8" border=3D"0" cellpadding=
+=3D"0" cellspacing=3D"0" height=3D"100%" width=3D"100%">
+<tbody>=20
+<tr>=20
+<td style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-f=
+amily:Arial,Helvetica,sans-serif;mso-table-lspace:0pt;mso-table-rspace:0pt;=
+">=20
+<!-- Visually Hidden Preheader Text :BEGIN -->
+<div style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-=
+family:Arial,Helvetica,sans-serif;display:none;font-size:1px;color:#222222;=
+line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;mso-=
+hide:all;">
+<div class=3D"mktEditable" id=3D"preview" mktoname=3D"preview"></div>
+</div>
+<!-- Visually Hidden Preheader Text :END -->
+<!-- Email wrapper :BEGIN Set background to white -->=20
+<table class=3D"header-table2 email-container" bgcolor=3D"#ffffff" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"640" align=3D"center">
+<tbody>
+<tr>
+<td style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-f=
+amily:Arial,Helvetica,sans-serif;mso-table-lspace:0pt;mso-table-rspace:0pt;=
+">
+<!-- Logo + Links :BEGIN -->
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" styl=
+e=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-family:Ar=
+ial,Helvetica,sans-serif;mso-table-lspace:0pt;mso-table-rspace:0pt;border-s=
+pacing:0 !important;border-collapse:collapse;margin-top:0;margin-bottom:0;m=
+argin-right:auto;margin-left:auto;">
+<tbody>
+<tr class=3D"head mktoModule" id=3D"mktoModule_Header4b" mktoname=3D"Header=
+ 4b" style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-=
+family:Arial,Helvetica,sans-serif;">
+<td class=3D"header4b" style=3D"-ms-text-size-adjust:100%;-webkit-text-size=
+-adjust:100%;font-family:Arial,Helvetica,sans-serif;mso-table-lspace:0pt;ms=
+o-table-rspace:0pt;padding-top:40px;padding-bottom:40px;padding-right:40px;=
+padding-left:40px;font-size:16px;">
+<table bgcolor=3D"#ffffff" border=3D"0" cellpadding=3D"0" cellspacing=3D"0"=
+ width=3D"100%" style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust=
+:100%;font-family:Arial,Helvetica,sans-serif;mso-table-lspace:0pt;mso-table=
+-rspace:0pt;border-spacing:0 !important;border-collapse:collapse;margin-top=
+:0;margin-bottom:0;margin-right:auto;margin-left:auto;">
+<tbody>
+<tr>
+<td align=3D"left" valign=3D"bottom" width=3D"392" style=3D"-ms-text-size-a=
+djust:100%;-webkit-text-size-adjust:100%;font-family:Arial,Helvetica,sans-s=
+erif;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+<div style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-=
+family:Arial,Helvetica,sans-serif;font-weight:bold">
+<div class=3D"mktEditable header-title" id=3D"header-4b-bold" mktoname=3D"h=
+eader-4b-bold"></div>
+</div>
+<div class=3D"mktEditable subtitle" id=3D"header-4b-text" mktoname=3D"heade=
+r-4b-text"></div>
+</td>
+<!-- Spacer :BEGIN -->
+<td width=3D"28" height=3D"28" class=3D"spacer" style=3D"-ms-text-size-adju=
+st:100%;-webkit-text-size-adjust:100%;font-family:Arial,Helvetica,sans-seri=
+f;mso-table-lspace:0pt;mso-table-rspace:0pt;font-size:0 !important;line-hei=
+ght:0 !important;">&nbsp;</td>
+<!-- Spacer :END -->
+<td align=3D"right" valign=3D"top" width=3D"140" style=3D"-ms-text-size-adj=
+ust:100%;-webkit-text-size-adjust:100%;font-family:Arial,Helvetica,sans-ser=
+if;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+<a href=3D"http://k-live-imt-shop.awesomeshop.com/WFS/DE/de_DE/-/EUR/" target=3D"=
+_blank" title=3D"Logo"><img src=3D"http://k-live-imt-shop.awesomeshop.com/INTERSH=
+OP/static/WFS/IMT-DE-Site/-/IMT/de_DE/EMAIL/logoEmail.png" alt=3D"Logo" bor=
+der=3D"0" title=3D"Logo" /></a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<tr class=3D"mktoModule" id=3D"mktoModule_MomentImage" mktoname=3D"Moment i=
+mage">
+<td valign=3D"middle" align=3D"center" style=3D"-ms-text-size-adjust:100%;-=
+webkit-text-size-adjust:100%;font-family:Arial,Helvetica,sans-serif;padding=
+-bottom:49px;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+<div class=3D"imagefullWidth">
+<div class=3D"mktEditable" id=3D"Momentbild-Module-image" mktoname=3D"Momen=
+tbild-Module-image">
+<img src=3D"http://k-live-imt-shop.awesomeshop.com/INTERSHOP/static/WFS/IMT-DE-Si=
+te/-/IMT/de_DE/EMAIL/E-Mail_Header.jpg" alt=3D"header" border=3D"0" alt=3D"=
+" class=3D"fluid" border=3D"0" width=3D"640" align=3D"middle" style=3D"-ms-=
+text-size-adjust:100%;-webkit-text-size-adjust:100%;font-family:Arial,Helve=
+tica,sans-serif;width:100% !important;margin-top:auto;margin-bottom:auto;ma=
+rgin-right:auto;margin-left:auto;-ms-interpolation-mode:bicubic;border-widt=
+h:0 !important;outline-style:none !important;text-decoration:none !importan=
+t;height:auto !important;min-width:100% !important;"/>
+</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<table class=3D"header-table3 email-content">
+<tr>
+<td style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-f=
+amily:Arial,Helvetica,sans-serif;padding-left:40px;padding-right:40px;paddi=
+ng-bottom:20px;mso-table-lspace:0pt;mso-table-rspace:0pt;font-size:14px;lin=
+e-height:21px;color:#747678;"><base href=3D"http://k-live-imt-shop.awesomeshop.co=
+m/INTERSHOP/web/WFS/IMT-DE-Site/de_DE">
+<div></div>
+<p class=3D"header">awesomeshop Warenkorbempfehlung</p><p>Sehr geehrte&#47;r Frau=
+&#47;Herr Maris-Sechsde K&auml;uferdesechs,<br/><br/>Sie haben eine Nachric=
+ht von Zwei K&auml;uferdezwei (czimt-de-de-04@mailsink.xceptance.de) mit Wa=
+renkorbempfehlungen erhalten. Nachfolgend finden Sie eine pers&ouml;nliche =
+Bemerkung und alle weiteren Details zu den enthaltenen Produkten. Sie k&oum=
+l;nnen die empfohlenen Produkte in Ihren pers&ouml;nlichen Warenkorb legen =
+und &uuml;ber den Webshop bestellen:<br/><br/>Das ist eine Empfehlung zum T=
+est, gesendet durch QA automation Testfall T112. Bitte ignorieren Sie diese=
+ Nachricht.</p>=20
+=20
+
+=20
+=20
+=20
+<a href=3D"https://k-live-imt-shop.awesomeshop.com/INTERSHOP/web/WFS/IMT-DE-Site/=
+de_DE/-/EUR/ViewCart-AddProductsBySkuAndQuantity?SKU=3D602030-8107-000&Quan=
+tity_602030-8107-000=3D1&Price_602030-8107-000=3D85.14">Produkte in den War=
+enkorb legen</a><br />=20
+<table class=3D"emailCartProductDetails" cellpadding=3D"0" cellspacing=3D"0=
+" border=3D"0" width=3D"100%">
+<tr>
+<td width=3D"33%">
+<a href=3D"http://k-live-imt-shop.awesomeshop.com/WFS/DE/de_DE/-/EUR/300000/31000=
+0/313000/kugelzylindertaster-mit-gewinde-m3-zid602030-8107-000">
+<img alt=3D"Kugelzylindertaster mit Gewinde, M3" src=3D"http:&#47;&#47;k-li=
+ve-imt-shop.awesomeshop.com&#47;INTERSHOP&#47;static&#47;WFS&#47;IMT-DE-Site&#47;=
+-&#47;IMT&#47;de_DE&#47;S&#47;pimage_5c0634751fe80c5c39eb70b9074814aa.jpg">
+</a>
+</td>
+<td width=3D"66%"><div class=3D"pli-description">
+<div><a class=3D"product-title" href=3D"http://k-live-imt-shop.awesomeshop.com/WF=
+S/DE/de_DE/-/EUR/300000/310000/313000/kugelzylindertaster-mit-gewinde-m3-zi=
+d602030-8107-000">Kugelzylindertaster mit Gewinde, M3</a></div><p class=3D"=
+product-id">Produkt-ID: 602030-8107-000</p>=20
+<div class=3D"product-availability clearfix" data-url=3D"http://k-live-imt-=
+shop.awesomeshop.com/INTERSHOP/web/WFS/IMT-DE-Site/de_DE/-/EUR/ViewAjax-Start?Tar=
+getPipeline=3DIncludeProductAvailability-StartPublic&ProductID=3D3nEKpwKwtf=
+oAAAFpQvYXySrA&Page=3DpliDescriptionEmail&RichSnippetsEnabled=3D&Tooltip=3D=
+short"><div class=3D"product-delivery-time "><span>Lieferzeit: 2 Tage</span=
+></div></div></div></td>
+</tr>
+</table>
+<table class=3D"emailCartPrice" cellpadding=3D"0" cellspacing=3D"0" border=
+=3D"0" width=3D"100%">
+<tr>
+<th align=3D"center" width=3D"33%">Anzahl</th>
+<th align=3D"center" width=3D"33%">Preis</th>
+<th class=3D"emailPriceColumn" width=3D"33%">Gesamt</th>
+</tr>
+<tr>
+<td align=3D"center">1</td>
+<td align=3D"center">85,14 &euro;</td>
+<td class=3D"emailPriceColumn">85,14 &euro;</td>
+</tr>
+</table>=20
+<br /><br />
+<div><div class=3D"cost-summary">=20
+=20
+<table class=3D"emailCostSummary" cellpadding=3D"0" cellspacing=3D"0" borde=
+r=3D"0" width=3D"100%">
+<tr>
+<td>
+<table cellpadding=3D"0" cellspacing=3D"0" border=3D"0" align=3D"right" wid=
+th=3D"100%">
+<tr>
+<td width=3D"50%">Zwischensumme</td>
+<td align=3D"right">85,14 &euro;</td>
+</tr><tr>=20
+<td>Versandkosten</td>
+<td align=3D"right">0,00 &euro;=20
+</td>
+</tr>
+<tr></tr><tr><tr>=20
+<td class=3D"total-price">Gesamtsumme=20
+</td>
+<td class=3D"total-price" align=3D"right">85,14 &euro;</td></tr>
+</table>
+</td>
+</tr>
+</table></div>
+</div><p>Direkt zum <a href=3D"http://k-live-imt-shop.awesomeshop.com/WFS/DE/de_D=
+E/-/EUR/">Webshop</a></p>
+</td>
+</tr>
+<tr class=3D"mainfooter mktoModule" id=3D"mktoModule_SocialIcons" mktoname=
+=3D"Social Icons" style=3D"-ms-text-size-adjust: 100%; -webkit-text-size-ad=
+just: 100%; font-family: Arial, Helvetica, sans-serif;">
+<td class=3D"one-column"
+style=3D"-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; font-f=
+amily: Arial, Helvetica, sans-serif; padding-left: 40px; padding-right: 40p=
+x; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+<div class=3D"mktoSnippet" id=3D"Social-Icons"mktoname=3D"Social Icons Snip=
+pet">
+<table width=3D"550" height=3D"57" style=3D"font-family: Arial, Helvetica, =
+sans-serif; border-collapse: collapse; margin: 0px auto; border-spacing: 0p=
+x !important; float: right;" border=3D"0" cellspacing=3D"0" cellpadding=3D"=
+0">
+<tbody>
+<tr style=3D"-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; fo=
+nt-family: Arial, Helvetica, sans-serif;">
+<td height=3D"56" class=3D"socialhead" style=3D"font-family: Arial, Helveti=
+ca, sans-serif; padding-right: 2px; text-align: right;"></td>
+<td width=3D"35" height=3D"56" align=3D"right" class=3D"sociallink"
+style=3D"font-family: Arial, Helvetica, sans-serif; text-align: right;"><a
+title=3D"Facebook" href=3D"https:&#47;&#47;www.facebook.com&#47;awesomeshopim.de"
+target=3D"_blank"><img width=3D"23" height=3D"23"
+alt=3D"Facebook"
+alt=3D"Facebook"
+src=3D"http:&#47;&#47;na-lon06.marketo.com&#47;rs&#47;896-XMS-794&#47;image=
+s&#47;icon.facebook_x4.gif" /></a></td><td width=3D"35" height=3D"56" align=
+=3D"right" class=3D"sociallink"
+style=3D"font-family: Arial, Helvetica, sans-serif; text-align: right;">
+<a
+title=3D"Twitter" href=3D"https:&#47;&#47;twitter.com&#47;awesomeshopIM"
+target=3D"_blank"><img width=3D"23" height=3D"23"
+style=3D"-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; font-f=
+amily: Arial, Helvetica, sans-serif; -ms-interpolation-mode: bicubic; borde=
+r-width: 0 !important; outline-style: none !important; text-decoration: non=
+e !important;"
+alt=3D"Twitter"
+src=3D"http:&#47;&#47;na-lon06.marketo.com&#47;rs&#47;896-XMS-794&#47;image=
+s&#47;icon.twitter_x4.gif"
+border=3D"0" /></a>
+</td><td width=3D"35" height=3D"56" align=3D"right" class=3D"sociallink"
+style=3D"font-family: Arial, Helvetica, sans-serif; text-align: right;">
+<p
+style=3D"-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; font-f=
+amily: Arial, Helvetica, sans-serif; vertical-align: middle;">
+<a title=3D"Youtube"
+style=3D"-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; font-f=
+amily: Arial, Helvetica, sans-serif;"
+href=3D"http:&#47;&#47;www.youtube.com&#47;awesomeshopIMT" target=3D"_blank">
+<img width=3D"23" height=3D"23"
+style=3D"-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; font-f=
+amily: Arial, Helvetica, sans-serif; -ms-interpolation-mode: bicubic; borde=
+r-width: 0 !important; outline-style: none !important; text-decoration: non=
+e !important;"
+alt=3D"Youtube"
+src=3D"http:&#47;&#47;na-lon06.marketo.com&#47;rs&#47;896-XMS-794&#47;image=
+s&#47;icon.youtube_x4.gif"
+border=3D"0" /></a>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</td>
+</tr></table>
+<!-- Footer :BEGIN -->
+<!-- 2 Columns -> Stacked Columns :BEGIN -->
+<tr class=3D"footer" style=3D"-ms-text-size-adjust:100%;-webkit-text-size-a=
+djust:100%;font-family:Arial,Helvetica,sans-serif;background-color:#f8f8f8;=
+">
+<td style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-f=
+amily:Arial,Helvetica,sans-serif;mso-table-lspace:0pt;mso-table-rspace:0pt;=
+">
+<table class=3D"footer-table1" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"640" align=3D"center">
+<tbody>
+<tr>
+<td class=3D"spacer" height=3D"28" style=3D"font-size:0 !important;line-hei=
+ght:0 !important;">&nbsp;</td>
+</tr>
+<tr>
+<td class=3D"wrap" style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adj=
+ust:100%;font-family:Arial,Helvetica,sans-serif;mso-table-lspace:0pt;mso-ta=
+ble-rspace:0pt;padding-left:40px !important;padding-right:40px !important;"=
+>
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" alig=
+n=3D"center" style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:10=
+0%;font-family:Arial,Helvetica,sans-serif;mso-table-lspace:0pt;mso-table-rs=
+pace:0pt;border-spacing:0 !important;border-collapse:collapse;margin-top:0;=
+margin-bottom:0;margin-right:auto;margin-left:auto;">
+<tbody>
+<tr>
+<td class=3D"stack-column" valign=3D"top" width=3D"266" style=3D"-ms-text-s=
+ize-adjust:100%;-webkit-text-size-adjust:100%;font-family:Arial,Helvetica,s=
+ans-serif;mso-table-lspace:0pt;mso-table-rspace:0pt;color:#9A9B9C;font-size=
+:10px;">
+<div class=3D"mktoSnippet" id=3D"Stacked-column-first" mktoname=3D"Imprint"=
+>
+<div>
+<b style=3D"-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; fon=
+t-family: Arial,Helvetica,sans-serif;"> Industrielle Messtechnik<br/></b><b=
+r/>
+</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<tr>
+<td class=3D"spacer" height=3D"40" style=3D"font-size:0 !important;line-hei=
+ght:0 !important;">&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<!-- 2 Columns -> Stacked Columns :END -->
+<!-- Footer :END -->
+</tbody>
+</table>
+<!-- Main Email Body :END -->
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Email wrapper :END -->
+</body>
+</html>
+------=_Part_70_1975393692.1552315616187--
+
