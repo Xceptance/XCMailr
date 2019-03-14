@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Validate selected email.</description>
-  <parameter name="email"/>
-  <command name="assertText" target="css=.email-adress" value="@{email}"/>
-</scriptmodule>

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Valdiate error message after login with false profile data.</description>
-  <command name="waitForElementPresent" target="css=p.alert-success"/>
-  <command name="assertText" target="css=p.alert-success" value=" Your account has been deleted."/>
-</scriptmodule>

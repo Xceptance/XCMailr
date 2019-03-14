@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Click the delete button</description>
-  <command name="click" target="css=button.btn-submit">
-    <comment>save</comment>
-  </command>
-  <command name="waitForNotElementPresent" target="id=deleteBoxModal"/>
-</scriptmodule>

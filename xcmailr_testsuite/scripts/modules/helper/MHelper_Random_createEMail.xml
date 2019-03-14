@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Create random email.</description>
-  <parameter name="email_varDynamic"/>
-  <command name="store" target="${RANDOM.String(16)}@varmail.net" value="@{email_varDynamic}"/>
-</scriptmodule>

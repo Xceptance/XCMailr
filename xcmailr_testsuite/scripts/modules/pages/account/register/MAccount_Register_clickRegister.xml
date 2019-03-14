@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scriptmodule xmlns="http://xlt.xceptance.com/xlt-script/2" version="6">
-  <description>Click create account button.</description>
-  <action name="confirmRegistration"/>
-  <command name="clickAndWait" target="css=.btn-submit"/>
-</scriptmodule>

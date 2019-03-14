@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -44,9 +45,6 @@ public class ExpirationService implements Runnable
         this.deleteTransactions = deleteTransactions;
     }
 
-    // stores statistic data about emails that have been received that won't be forwarded
-    HashMap<MailStatisticsKey, StatisticsEntry> mailStatisticsCache = new HashMap<>();
-
     @Override
     public void run()
     {
@@ -65,7 +63,7 @@ public class ExpirationService implements Runnable
             if (dt.isAfter(mailBox.getTs_Active()) && (mailBox.getTs_Active() != 0))
             { // this element is now expired
                 mailBox.disable();
-                log.debug("now expired: " + mailBox.getFullAddress());
+                log.debug("Mailbox '{}' expired",mailBox.getFullAddress());
             }
         }
 
@@ -79,7 +77,7 @@ public class ExpirationService implements Runnable
             findList.forEach((mail) -> {
                 mail.delete();
             });
-            log.info(MessageFormat.format("deleted {0} emails", findList.size()));
+            log.info("Removed {} expired mails", findList.size());
         }
 
         // set token expiration
@@ -96,51 +94,56 @@ public class ExpirationService implements Runnable
             user.setApiToken(null);
             user.setApiTokenCreationTimestamp(0);
             user.save();
-            log.info(MessageFormat.format("User API token expired for user {0}", user.getMail()));
+            log.info("User API token expired for '{}'", user.getMail());
         });
 
         // add the new Mailtransactions
-        List<MailTransaction> mtxToSave = new LinkedList<MailTransaction>();
+        final List<MailTransaction> mtxToSave = new LinkedList<MailTransaction>();
+
+        final Map<MailStatisticsKey, StatisticsEntry> statistics = new HashMap<>();
 
         // add all transactions from the queue to a list
         MailTransaction mt;
-        log.info("Start processing mail transaction queue, length: " + mtxQueue.size());
+        log.info("Start processing mail transaction queue [size: {}]", mtxQueue.size());
         while ((mt = mtxQueue.poll()) != null)
         {
+            final int status = mt.getStatus();
             // mails will be silently dropped if there is no forward address but target address domain is
             // configured to be valid / handled
-            if (mt.getStatus() == 100)
+            if (status == 100 || status == 300)
             {
-                MailStatisticsKey mailStatisticsKey = createMailStatisticsKey(mt);
-                if (!mailStatisticsCache.containsKey(mailStatisticsKey))
+                final MailStatisticsKey mailStatisticsKey = createMailStatisticsKey(mt);
+                if (mailStatisticsKey != null)
                 {
-                    mailStatisticsCache.put(mailStatisticsKey, new StatisticsEntry());
-                }
-                mailStatisticsCache.get(mailStatisticsKey).incrementDropCount();
-            }
-            else if (mt.getStatus() == 300)
-            {
-                // forwarded mail
-                MailStatisticsKey mailStatisticsKey = createMailStatisticsKey(mt);
+                    StatisticsEntry mailStats = statistics.get(mailStatisticsKey);
+                    if (mailStats == null)
+                    {
+                        mailStats = new StatisticsEntry();
+                        statistics.put(mailStatisticsKey, mailStats);
+                    }
 
-                if (!mailStatisticsCache.containsKey(mailStatisticsKey))
-                {
-                    mailStatisticsCache.put(mailStatisticsKey, new StatisticsEntry());
+                    if (status == 100)
+                    {
+                        mailStats.incrementDropCount();
+                    }
+                    else if (status == 300)
+                    {
+                        mailStats.incrementForwardCount();
+                    }
                 }
-                mailStatisticsCache.get(mailStatisticsKey).incrementForwardCount();
             }
             else
             {
                 mtxToSave.add(mt);
             }
         }
-        log.info("Finished processing mail transaction queue, length: " + mtxQueue.size());
+        log.info("Finished processing mail transaction queue [size: {}]", mtxQueue.size());
 
         try
         {
-            log.info("Write mail statistics to DB, length: " + mailStatisticsCache.size());
+            log.info("Write mail statistics to DB [size: {}]", statistics.size());
 
-            for (Entry<MailStatisticsKey, StatisticsEntry> statisticEntry : mailStatisticsCache.entrySet())
+            for (Entry<MailStatisticsKey, StatisticsEntry> statisticEntry : statistics.entrySet())
             {
                 MailStatisticsKey mailStatisticsKey = statisticEntry.getKey();
                 int additionalMailDropCount = statisticEntry.getValue().getDropCount();
@@ -155,7 +158,7 @@ public class ExpirationService implements Runnable
 
                 if (entry == null)
                 {
-                    // there is no entry, we need to create a new one
+                    // there is no entry, we need to create a new ones
                     MailStatistics mailStatisticEntry = new MailStatistics();
                     mailStatisticEntry.setKey(mailStatisticsKey);
                     mailStatisticEntry.setDropCount(additionalMailDropCount);
@@ -177,7 +180,6 @@ public class ExpirationService implements Runnable
                     Ebean.update(entry);
                 }
             }
-            mailStatisticsCache.clear();
             log.info("Finished writing mail statistics to DB");
         }
         catch (Exception e)
@@ -187,7 +189,7 @@ public class ExpirationService implements Runnable
 
         // and save all entries of this list in one transaction to the list
         MailTransaction.saveMultipleTx(mtxToSave);
-        log.info("stored " + mtxToSave.size() + " entries in the database");
+        log.info("Stored {} entries in the database", mtxToSave.size());
 
         // remove old MailTransactions
         if (deleteTransactions)
@@ -196,21 +198,25 @@ public class ExpirationService implements Runnable
             long removalTS = dt.minusHours(xcmConfiguration.MTX_MAX_AGE).getMillis();
 
             MailTransaction.deleteTxInPeriod(removalTS);
-            log.debug("finished Mailtransaction cleanup");
+            log.debug("Finished Mailtransaction cleanup");
         }
 
     }
 
     private MailStatisticsKey createMailStatisticsKey(MailTransaction mt)
     {
-        String sourceDomain = getDomainOfEmail(mt.getSourceaddr());
-        String targetDomain = getDomainOfEmail(mt.getRelayaddr());
-        Date mailDate = new Date(mt.getTs());
-        int quarterHourOfDay = getQuarterHour(mt.getTs());
+        final String targetDomain = getDomainOfEmail(mt.getRelayaddr());
+        if (targetDomain == null)
+        {
+            return null;
+        }
 
-        MailStatisticsKey mailStatisticsKey = new MailStatisticsKey(mailDate, quarterHourOfDay, sourceDomain,
-                                                                    targetDomain);
-        return mailStatisticsKey;
+        final String sourceDomain = getDomainOfEmail(mt.getSourceaddr());
+        final Date mailDate = new Date(mt.getTs());
+        final int quarterHourOfDay = getQuarterHour(mt.getTs());
+
+        return new MailStatisticsKey(mailDate, quarterHourOfDay, sourceDomain, targetDomain);
+
     }
 
     private String getDomainOfEmail(String email)
