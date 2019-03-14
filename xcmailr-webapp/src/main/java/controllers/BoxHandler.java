@@ -978,9 +978,6 @@ public class BoxHandler
         {
             // display content embedded in the site
 
-            // remove raw mail content
-            clearRawMailFromList(entries);
-
             Result html = Results.html();
             html.render("accountEmails", entries);
             html.render("mailaddress", mailAddress);
@@ -990,10 +987,6 @@ public class BoxHandler
         else if ("json".equals(formatParameter))
         {
             // return content as json structure
-
-            // remove raw mail content
-            clearRawMailFromList(entries);
-
             return Results.json().status(Result.SC_200_OK).render(entries);
         }
         else if ("plain".equals(formatParameter))
@@ -1011,14 +1004,6 @@ public class BoxHandler
         else
         {
             return Results.forbidden();
-        }
-    }
-
-    private void clearRawMailFromList(List<MailboxEntry> entries)
-    {
-        for (MailboxEntry mailboxEntry : entries)
-        {
-            mailboxEntry.rawContent = "";
         }
     }
 

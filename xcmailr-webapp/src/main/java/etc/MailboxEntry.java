@@ -1,51 +1,50 @@
 package etc;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeUtility;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.apache.commons.mail.util.MimeMessageUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import models.Mail;
 
 public class MailboxEntry
 {
-    public int id;
+    public final String mailAddress;
 
-    public String mailAddress;
+    public final String sender;
 
-    public String sender;
+    public final String subject;
 
-    public String subject;
+    public final long receivedTime;
 
-    public long receivedTime;
+    public final String textContent;
 
-    public String textContent;
+    public final String htmlContent;
 
-    public String htmlContent;
+    public final List<AttachmentEntry> attachments = new LinkedList<>();
 
-    public List<AttachmentEntry> attachments = new LinkedList<>();
+    @JsonIgnore
+    public final String rawContent;
 
-    public String rawContent;
-
-    public String downloadToken;
+    public final String downloadToken;
 
     public MailboxEntry(String mailAddress, Mail mail) throws Exception
     {
         this.mailAddress = mailAddress;
         this.sender = mail.getSender();
         this.rawContent = mail.getMessage();
-        this.subject = mail.getSubject() == null ? "" : mail.getSubject();
+        this.subject = StringUtils.defaultString(mail.getSubject());
         this.receivedTime = mail.getReceiveTime();
         this.downloadToken = mail.getUuid();
 
@@ -53,18 +52,13 @@ public class MailboxEntry
         MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
         mimeMessageParser.parse();
 
-        this.textContent = mimeMessageParser.getPlainContent() == null ? "" : mimeMessageParser.getPlainContent();
-        this.htmlContent = mimeMessageParser.getHtmlContent() == null ? "" : mimeMessageParser.getHtmlContent();
+        final String plainText = StringUtils.defaultString(mimeMessageParser.getPlainContent());
+        final String htmlText = StringUtils.defaultString(mimeMessageParser.getHtmlContent());
 
         Encoder base64encoder = Base64.getEncoder();
 
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(MimeUtility.decode(new ByteArrayInputStream(this.htmlContent.getBytes(StandardCharsets.UTF_8)),
-                                                                                             "quoted-printable"));
-        String unqoutedPrintableHtmlText = IOUtils.toString(bufferedInputStream, StandardCharsets.UTF_8);
-        bufferedInputStream.close();
-
-        this.textContent = base64encoder.encodeToString(this.textContent.getBytes());
-        this.htmlContent = base64encoder.encodeToString(MimeUtility.decodeText(unqoutedPrintableHtmlText).getBytes());
+        this.textContent = base64encoder.encodeToString(plainText.getBytes(StandardCharsets.UTF_8));
+        this.htmlContent = base64encoder.encodeToString(htmlText.getBytes(StandardCharsets.UTF_8));
 
         for (DataSource attachment : mimeMessageParser.getAttachmentList())
         {

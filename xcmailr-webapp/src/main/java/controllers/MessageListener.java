@@ -20,7 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +36,7 @@ import javax.mail.internet.MimeMessage.RecipientType;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.StringBuilderWriter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 
@@ -278,13 +279,19 @@ public class MessageListener implements SimpleMessageListener
             String rawContent = null;
             try
             {
-                rawContent = readLimitedAmount(data, Charset.defaultCharset(), xcmConfiguration.MAX_MAIL_SIZE);
+                rawContent = readLimitedAmount(data, xcmConfiguration.MAX_MAIL_SIZE);
             }
-            catch (RuntimeException e)
+            catch (IOException e)
             {
-                log.error("Cancel mail processing due to restriction of mail size (" + xcmConfiguration.MAX_MAIL_SIZE
-                          + " bytes). Dropped mail: " + from + " => " + recipient);
-                return;
+                if (e instanceof SizeLimitExceededException)
+                {
+                    log.error("Dropped mail '{} => {}' since its size exceed configured limit of {} bytes", new Object[]
+                        {
+                          from, recipient, Integer.toString(xcmConfiguration.MAX_MAIL_SIZE)
+                        });
+                    return;
+                }
+                throw e;
             }
 
             MimeMessage mail = new MimeMessage(session, new ByteArrayInputStream(rawContent.getBytes()));
@@ -370,21 +377,19 @@ public class MessageListener implements SimpleMessageListener
     }
 
     /**
-     * Reads up to maxSize characters from data input stream. If the limit is exceeded an {@link RuntimeException} is
-     * thrown.
+     * Reads up to maxSize characters from data input stream using 7-bit ASCII encoding. If the limit is exceeded an
+     * {@link SizeLimitExceededException} is thrown.
      * 
      * @param data
      *            an {@link InputStream}
-     * @param defaultCharset
-     *            the charset that is used to decode
      * @param maxSize
      *            determines the maximum amount of characters to be read from data
-     * @return The streams data
-     * @throws RuntimeException
+     * @return the streams' data
+     * @throws SizeLimitExceededException
      *             if maxSize read limit is exceeded
-     * @throws IOException
+     * @throws IOException if an I/O error occurred
      */
-    private String readLimitedAmount(InputStream data, Charset defaultCharset, int maxSize) throws IOException
+    static String readLimitedAmount(InputStream data, int maxSize) throws IOException
     {
         // StringBuilderWriter doesn't need to be closed since the close method is no-op
         @SuppressWarnings("resource")
@@ -393,14 +398,14 @@ public class MessageListener implements SimpleMessageListener
         int n;
         long count = 0;
         char[] buffer = new char[4096];
-        final InputStreamReader in = new InputStreamReader(data, defaultCharset);
+        final InputStreamReader in = new InputStreamReader(data, StandardCharsets.US_ASCII);
         while (IOUtils.EOF != (n = in.read(buffer)))
         {
             sw.write(buffer, 0, n);
             count += n;
             if (count > maxSize)
             {
-                throw new RuntimeException("Data stream exceeds size restriction of " + maxSize + " bytes");
+                throw new SizeLimitExceededException("Data stream exceeds size limit of " + maxSize + " bytes");
             }
         }
 
@@ -413,7 +418,7 @@ public class MessageListener implements SimpleMessageListener
         Mail newMail = new Mail();
         newMail.setMailbox(mailBox);
         newMail.setSender(from);
-        newMail.setSubject(mail.getSubject() != null ? mail.getSubject() : "");
+        newMail.setSubject(StringUtils.defaultString(mail.getSubject()));
         newMail.setMessage(rawMessage);
         newMail.setReceiveTime(System.currentTimeMillis());
         newMail.setUuid(UUID.randomUUID().toString());
@@ -429,5 +434,30 @@ public class MessageListener implements SimpleMessageListener
             final MailTransaction mtx = new MailTransaction(status, from, recipient, forwardTarget);
             jobController.mtxQueue.add(mtx);
         }
+    }
+
+    public static class SizeLimitExceededException extends IOException
+    {
+
+        public SizeLimitExceededException()
+        {
+            super();
+        }
+
+        public SizeLimitExceededException(String arg0, Throwable arg1)
+        {
+            super(arg0, arg1);
+        }
+
+        public SizeLimitExceededException(String arg0)
+        {
+            super(arg0);
+        }
+
+        public SizeLimitExceededException(Throwable arg0)
+        {
+            super(arg0);
+        }
+
     }
 }
