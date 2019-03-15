@@ -1,21 +1,22 @@
-<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout title=i18n("app_Title")>
-		<h1 class="legendary">${i18n("app_Welcome")}</h1>
-		<p align="justify">
-			<i class="glyphicon glyphicon-thumbs-up"> </i>
-			${i18n("app_Description")}
-		</p>
-		<br/>
-		<p>
-		<#if (available_langs)??>
-		<b> ${i18n("app_Label_AvailableLang")} </b>
-			<ul>
-			<#list available_langs as lng>
-				<li><a href="?lang=${lng[0]}">${lng[1]}</a></li>
-			</#list>
-			</ul>
-		</#if>
-		</p>
+<#import "../layout/defaultLayout.ftl.html" as layout>
+
+<@layout.xcLayout>
+
+<h1 class="legendary">${i18n("app_Welcome")}</h1>
+<p align="justify">
+  <i class="glyphicon glyphicon-thumbs-up"></i>
+  ${i18n("app_Description")}
+</p>
+<br />
+<p>
+  <#if available_langs??>
+  <b> ${i18n("app_Label_AvailableLang")}</b>
+  <ul>
+  <#list available_langs as lng>
+    <li><a href="?lang=${lng[0]}">${lng[1]}</a></li>
+  </#list>
+  </ul>
+  </#if>
+</p>
+
 </@layout.xcLayout>
-
-
-

@@ -1,19 +1,19 @@
-<#macro xcLayout title="" header="0">
+<#macro xcLayout title="app_Title" header="0">
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
-	<title>XCMailr - ${i18n("mailbox_Title")}</title>
+    <title>XCMailr - ${i18n(title)}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
     <!-- Le styles -->
     <link href="${contextPath}/assets/css/bootstrap.min.css" rel="stylesheet">
     <style type="text/css">
-	body {
-		padding-top: 60px;
-		padding-bottom: 40px;
-	}
+    body {
+      padding-top: 60px;
+      padding-bottom: 40px;
+    }
     </style>
     <link href="${contextPath}/assets/css/bootstrap-theme.min.css" rel="stylesheet">
     <link href="${contextPath}/assets/css/bootstrap-datetimepicker.css" rel="stylesheet">
@@ -36,27 +36,31 @@
     <script src="${contextPath}/assets/js/bootstrap-table-en-US.min.js"></script>
   </head>
   <body>
-  <#include "header.ftl.html"/>
-    <div class="container">
-        <div class="container-fluid">
-	    	<div class="row">
 
-				<#if flash.error??>
-				        <p class="alert alert-danger"><strong> ${flash.error}</strong></p>
-				</#if>
-				<#if flash.success??>
-				        <p class="alert alert-success"><strong> ${flash.success}</strong></p>
-				</#if>
-				<#if flash.info??>
-				        <p class="alert alert-info"><strong> ${flash.info}</strong></p>
-				</#if>
-			</div>
-			<div class="row">
-	        	<#nested/>
-	        </div>
-		</div>
-        <#include "footer.ftl.html"/>
-    </div> <!-- /container -->
+    <#include "header.ftl.html"/>
+
+    <div class="container">
+      <div class="container-fluid">
+        <div class="row">
+        <#if flash.error??>
+          <p class="alert alert-danger"><strong> ${flash.error}</strong></p>
+        </#if>
+        <#if flash.success??>
+          <p class="alert alert-success"><strong> ${flash.success}</strong></p>
+        </#if>
+        <#if flash.info??>
+          <p class="alert alert-info"><strong> ${flash.info}</strong></p>
+        </#if>
+        </div>
+
+        <div class="row">
+          <#nested />
+        </div>
+      </div>
+
+      <#include "footer.ftl.html"/>
+
+    </div><!-- /container -->
 
 </body>
 </html>
