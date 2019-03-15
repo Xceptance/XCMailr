@@ -1,7 +1,6 @@
 package controllers;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -29,12 +28,12 @@ public class MessageListenerLoopCheckTest
      * Test if a loop is detected if the Return-Path header is empty, and if no loop is detected if it contains a
      * message id.
      * 
+     * @throws IOException
      * @throws MessagingException
-     * @throws FileNotFoundException
      */
     @Test
-    @Ignore // TODO: disabled due to broken loop detection
-    public void testReturnPath() throws MessagingException, FileNotFoundException
+    @Ignore("disabled due to broken loop detection")
+    public void testReturnPath() throws MessagingException, IOException
     {
         MimeMessage mail = loadMailFromFile("ReturnPath.eml");
         String expectedMessage = "Return-Path is empty";
@@ -63,11 +62,11 @@ public class MessageListenerLoopCheckTest
      * ... if the correct custom header and the correct content are somewhere in the content part of the mail (expected:
      * No) <br>
      * 
-     * @throws FileNotFoundException
+     * @throws IOException
      * @throws MessagingException
      */
     @Test
-    public void testCustomHeader() throws FileNotFoundException, MessagingException
+    public void testCustomHeader() throws IOException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("Custom-Header.eml");
         String expectedMessage = "X-Loop header with this email adress present";
@@ -125,11 +124,11 @@ public class MessageListenerLoopCheckTest
      * method detects a loop if the References header isn't present (no), if it contains some other message ID (no) and
      * if there are multiple Reference headers and only one of them contains the same domain part (yes).
      * 
-     * @throws FileNotFoundException
+     * @throws IOException
      * @throws MessagingException
      */
     @Test
-    public void testReferencesHeader() throws FileNotFoundException, MessagingException
+    public void testReferencesHeader() throws IOException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("Reference.eml");
 
@@ -180,11 +179,11 @@ public class MessageListenerLoopCheckTest
      * Tests if a loop is detected if there is no In-Reply-To Header (no), if there is one and it contains an unrelated
      * message id (no) and if there is one and it contains the same @domain part (yes).
      * 
-     * @throws FileNotFoundException
+     * @throws IOException
      * @throws MessagingException
      */
     @Test
-    public void testInReplyToHeader() throws FileNotFoundException, MessagingException
+    public void testInReplyToHeader() throws IOException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("In-Reply-To.eml");
 
@@ -219,12 +218,12 @@ public class MessageListenerLoopCheckTest
     /**
      * Tests if a loop is detected with an example out-of-office email.
      * 
-     * @throws FileNotFoundException
+     * @throws IOException
      * @throws MessagingException
      */
     @Test
-    @Ignore // TODO: disabled due to broken loop detection
-    public void testOutOfOffice() throws FileNotFoundException, MessagingException
+    @Ignore("disabled due to broken loop detection")
+    public void testOutOfOffice() throws IOException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("outofoffice.eml");
 
@@ -235,27 +234,27 @@ public class MessageListenerLoopCheckTest
     /**
      * Tests if a loop is detected with an example bounce mail.
      * 
-     * @throws FileNotFoundException
+     * @throws IOException
      * @throws MessagingException
      */
     @Test
-    @Ignore // TODO: disabled due to broken loop detection
-    public void testBounceMail() throws FileNotFoundException, MessagingException
+    @Ignore("disabled due to broken loop detection")
+    public void testBounceMail() throws IOException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("bouncemail.eml");
 
         String result = messageListener.checkForLoop(mail);
-        Assert.assertNotEquals("A possible loop went undetected", null, result);
+        Assert.assertNotNull("A possible loop went undetected", result);
     }
 
     /**
      * Tests if the program crashes should an incoming mail happen to lack a message id.
      * 
-     * @throws FileNotFoundException
+     * @throws IOException
      * @throws MessagingException
      */
     @Test
-    public void testNoHeaders() throws FileNotFoundException, MessagingException
+    public void testNoHeaders() throws IOException, MessagingException
     {
         MimeMessage mail = loadMailFromFile("noHeaders.eml");
 
@@ -269,15 +268,15 @@ public class MessageListenerLoopCheckTest
      * @param mailFile
      *            the file
      * @return the mail message
-     * @throws FileNotFoundException
+     * @throws IOException
      * @throws MessagingException
      */
-    private MimeMessage loadMailFromFile(String mailFile) throws FileNotFoundException, MessagingException
+    private MimeMessage loadMailFromFile(String mailFile) throws IOException, MessagingException
     {
-        InputStream inputStream = new FileInputStream("./src/test/java/controllers/exampleMails/" + mailFile);
-        Properties properties = new Properties();
-        Session session = Session.getInstance(properties);
-        MimeMessage mail = new MimeMessage(session, inputStream);
+        final InputStream inputStream = getClass().getResourceAsStream(mailFile);
+        Assert.assertNotNull("Failed to load mail '" + mailFile + "'", inputStream);
+        final Session session = Session.getInstance(new Properties());
+        final MimeMessage mail = new MimeMessage(session, inputStream);
         return mail;
     }
 }
