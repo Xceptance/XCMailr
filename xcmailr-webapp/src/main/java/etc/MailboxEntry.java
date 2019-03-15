@@ -65,4 +65,18 @@ public class MailboxEntry
             attachments.add(new AttachmentEntry(attachment));
         }
     }
+
+    public boolean matchesSearchPhrase(String phrase)
+    {
+        phrase = phrase.toLowerCase();
+        return mailAddress.toLowerCase().contains(phrase) || sender.toLowerCase().contains(phrase)
+               || subject.toLowerCase().contains(phrase) || contentContainsIgnoreCase(phrase);
+    }
+
+    private boolean contentContainsIgnoreCase(final String phrase)
+    {
+        final Decoder dec = Base64.getDecoder();
+        return (new String(dec.decode(textContent), StandardCharsets.UTF_8).toLowerCase().contains(phrase))
+               || (new String(dec.decode(htmlContent), StandardCharsets.UTF_8).toLowerCase().contains(phrase));
+    }
 }

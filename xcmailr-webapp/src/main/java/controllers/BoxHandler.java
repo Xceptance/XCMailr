@@ -18,25 +18,30 @@ package controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
-import java.util.Base64.Decoder;
-import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.apache.commons.mail.util.MimeMessageUtils;
@@ -78,6 +83,8 @@ import ninja.validation.Validation;
 @Singleton
 public class BoxHandler
 {
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy");
+
     @Inject
     XCMailrConf xcmConfiguration;
 
@@ -774,7 +781,7 @@ public class BoxHandler
             return Results.badRequest();
 
         // check token
-        User user = HelperUtils.findUserByToken(apiToken);
+        final User user = User.findUserByToken(apiToken);
         if (user == null)
         {
             // there is no user assigned with that api token
@@ -808,11 +815,12 @@ public class BoxHandler
         }
 
         // check if that email address is already claimed by someone
-        MBox mailbox = Ebean.find(MBox.class).where()//
-                            .eq("address", mailAddressParts[0]) //
-                            .eq("domain", mailAddressParts[1]).findUnique();
+        final MBox mailbox = Ebean.find(MBox.class).where()//
+                                  .eq("address", mailAddressParts[0]) //
+                                  .eq("domain", mailAddressParts[1]).findUnique();
 
-        long validUntil = System.currentTimeMillis() + (Integer.valueOf(validTime) * 60 * 1000);
+        final Instant validUntil = Instant.now().plus(parsedValidTimeMinutes, ChronoUnit.MINUTES);
+        final long validUntil_ts = validUntil.toEpochMilli();
         if (mailbox != null)
         {
             // mailbox exists, check if the user releated to it is the same as the token bearer
@@ -821,7 +829,7 @@ public class BoxHandler
                 log.info("Reactivate mailbox: " + desiredMailAddress);
                 // reactivate address
                 mailbox.enable();
-                mailbox.setTs_Active(validUntil);
+                mailbox.setTs_Active(validUntil_ts);
                 mailbox.save();
             }
             else
@@ -835,33 +843,23 @@ public class BoxHandler
         {
             log.info("Create mailbox " + desiredMailAddress);
             // create the address for the current user
-            new MBox(mailAddressParts[0], mailAddressParts[1], validUntil, false, user).save();
+            new MBox(mailAddressParts[0], mailAddressParts[1], validUntil_ts, false, user).save();
         }
 
-        Result html = Results.html();
-        Calendar calendar = Calendar.getInstance(Locale.ROOT);
-        calendar.add(Calendar.MINUTE, parsedValidTimeMinutes);
+        final Map<String, Object> data = new HashMap<>();
+        data.put("emailAddress", desiredMailAddress);
+        data.put("emailValidity", Integer.toString(parsedValidTimeMinutes));
+        data.put("emailValidUntil", Long.toString(validUntil_ts));
+        data.put("emailValidUntilDate", validUntil.atZone(ZoneId.of("UTC")).format(DATE_FORMAT));
 
-        String formatParameter = context.getParameter("format", "html").toLowerCase();
+        final String formatParameter = context.getParameter("format", "html").toLowerCase();
         if ("html".equals(formatParameter))
         {
-            html.render("emailAddress", desiredMailAddress);
-            html.render("emailValidity", parsedValidTimeMinutes);
-            html.render("emailValidUntil", calendar.getTime().getTime());
-            html.render("emailValidUntilDate", calendar.getTime().toString());
-
-            return html;
+            return Results.html().render(data);
         }
         else if ("json".equals(formatParameter))
         {
-            Result json = Results.json();
-            json.status(Result.SC_200_OK);
-            json.render("emailAddress", desiredMailAddress);
-            json.render("emailValidity", parsedValidTimeMinutes);
-            json.render("emailValidUntil", calendar.getTime().getTime());
-            json.render("emailValidUntilDate", calendar.getTime().toString());
-
-            return json;
+            return Results.json().render(data);
         }
         else
         {
@@ -877,7 +875,7 @@ public class BoxHandler
             return Results.badRequest();
 
         log.trace("passed null check");
-        User user = HelperUtils.findUserByToken(apiToken);
+        User user = User.findUserByToken(apiToken);
 
         if (user == null)
         {
@@ -923,7 +921,7 @@ public class BoxHandler
         String plainTextRegex = context.getParameter("textContent", ".*");
         String htmlTextRegex = context.getParameter("htmlContent", ".*");
         String rawMailRegex = context.getParameter("plainMail", ".*");
-        boolean lastMatch = context.getParameter("lastMatch") == null ? false : true;
+        boolean lastMatch = context.getParameter("lastMatch") != null;
 
         Pattern senderPattern = null;
         Pattern subjectPattern = null;
@@ -943,8 +941,7 @@ public class BoxHandler
             return Results.badRequest();
         }
 
-        List<MailboxEntry> entries = new LinkedList<>();
-
+        final List<MailboxEntry> entries = new LinkedList<>();
         for (int i = 0; i < emails.size(); i++)
         {
             Mail email = emails.get(i);
@@ -960,8 +957,8 @@ public class BoxHandler
                 entries.add(mailboxEntry);
             }
         }
-        String formatParameter = context.getParameter("format", "html").toLowerCase();
 
+        final String formatParameter = context.getParameter("format", "html").toLowerCase();
         if ((entries.size() > 1 && lastMatch) || "plain".equals(formatParameter))
         {
             // only retrieve the last match, also for plain format since we can not distinct multiple entries in the
@@ -977,17 +974,13 @@ public class BoxHandler
         if ("html".equals(formatParameter))
         {
             // display content embedded in the site
-
-            Result html = Results.html();
-            html.render("accountEmails", entries);
-            html.render("mailaddress", mailAddress);
-
-            return html;
+            return Results.html().render("accountEmails", entries).render("mailaddress", mailAddress);
         }
         else if ("json".equals(formatParameter))
         {
             // return content as json structure
-            return Results.json().status(Result.SC_200_OK).render(entries);
+
+            return Results.json().render(entries);
         }
         else if ("plain".equals(formatParameter))
         {
@@ -1008,12 +1001,12 @@ public class BoxHandler
     }
 
     @FilterWith(SecureFilter.class)
-    public Result queryAllMailboxes(Context context, @Param("offset") int offset, @Param("limit") int limit,
-                                    @Param("sort") String sort, @Param("order") String order,
-                                    @Param("search") String search)
+    public Result queryAllMailboxes(Context context, @Param("offset") final Integer offset,
+                                    @Param("limit") final Integer limit, @Param("sort") String sort,
+                                    @Param("order") String order, @Param("search") String search)
         throws Exception
     {
-        String formatParameter = context.getParameter("format", "html").toLowerCase();
+        final String formatParameter = context.getParameter("format", "html").toLowerCase();
 
         if ("html".equals(formatParameter))
         {
@@ -1021,66 +1014,48 @@ public class BoxHandler
         }
         else if ("json".equals(formatParameter))
         {
-            Result jsonResult = Results.json();
+
+            final int iOffset = offset == null ? 0 : Math.max(0, offset);
+            final int iLimit = limit == null ? 0 : Math.max(limit, 1);
 
             sort = getOrderColumn(sort);
             order = getOrderDirection(order);
 
             User user = context.getAttribute("user", User.class);
             List<MBox> mailboxes = user.getBoxes();
-            List<Long> mailboxIds = new LinkedList<>();
+            List<Long> mailboxIds = mailboxes.stream().map(mbox -> mbox.getId()).collect(Collectors.toList());
 
-            for (MBox mailbox : mailboxes)
+            final List<Mail> mails = Ebean.find(Mail.class).where().in("mailbox_id", mailboxIds)
+                                          .orderBy(sort + " " + order).findList();
+
+            final List<MailboxEntry> matches = new ArrayList<>();
+
+            // there is a searchphrase. prefilter the results
+            // apparent we can't do this in the db since messages are stored encoded
+
+            for (Mail mail : mails)
             {
-                mailboxIds.add(mailbox.getId());
+                MailboxEntry mailboxEntry = new MailboxEntry(mail.getMailbox().getFullAddress(), mail);
+
+                if (StringUtils.isBlank(search) || mailboxEntry.matchesSearchPhrase(search))
+                {
+                    matches.add(mailboxEntry);
+                }
             }
 
-            List<Mail> mails = Ebean.find(Mail.class).where().in("mailbox_id", mailboxIds).orderBy(sort + " " + order)
-                                    .findList();
-
-            List<MailboxEntry> result = new LinkedList<>();
-            if (search != null && search.length() > 0)
+            final int nbMatches = matches.size();
+            final List<MailboxEntry> result;
+            if (iOffset >= nbMatches || iLimit == 0)
             {
-                // there is a searchphrase. prefilter the results
-                // apparent we can't do this in the db since messages are stored encoded
-
-                // since contain search doesn't support case insensitive natively we go ahead with a lower case compare
-                search = search.toLowerCase();
-
-                Decoder decoder = Base64.getDecoder();
-
-                for (Mail mail : mails)
-                {
-                    MailboxEntry mailboxEntry = new MailboxEntry(mail.getMailbox().getFullAddress(), mail);
-
-                    String decodedTextContent = new String(decoder.decode(mailboxEntry.textContent));
-                    String decodedHtmlContent = new String(decoder.decode(mailboxEntry.htmlContent));
-
-                    if (decodedTextContent.toLowerCase().contains(search) //
-                        || decodedHtmlContent.toLowerCase().contains(search) //
-                        || mailboxEntry.subject.toLowerCase().contains(search) //
-                        || mailboxEntry.sender.toLowerCase().contains(search) //
-                        || mailboxEntry.mailAddress.toLowerCase().contains(search))
-                    {
-                        result.add(mailboxEntry);
-                    }
-                }
+                result = Collections.emptyList();
             }
             else
             {
-                for (int i = offset; i < offset + limit; i++)
-                {
-                    if (i < mails.size())
-                    {
-                        result.add(new MailboxEntry(mails.get(i).getMailbox().getFullAddress(), mails.get(i)));
-                    }
-                }
+                result = matches.subList(iOffset, Math.min(iOffset + iLimit, nbMatches));
             }
 
-            jsonResult.render("rows", result);
-            jsonResult.render("total", mails.size());
-
-            return jsonResult;
+            System.err.println("result: " + result);
+            return Results.json().render("rows", result).render("total", mails.size());
         }
         else
         {
@@ -1090,31 +1065,12 @@ public class BoxHandler
 
     private String getOrderColumn(String orderBy)
     {
-        String orderColumn = "receive_time"; // the column that is used to order data; receive_time = default
-
-        List<String> validColumns = new ArrayList<>();
-        validColumns.add("receive_time");
-        validColumns.add("subject");
-        validColumns.add("sender");
-
-        if (validColumns.contains(orderBy))
-            orderColumn = orderBy;
-
-        return orderColumn;
+        return ("subject".equals(orderBy) || "sender".equals(orderBy)) ? orderBy : "receive_time";
     }
 
     private String getOrderDirection(String orderBy)
     {
-        String order = "desc"; // the direction of order (asc or desc); desc = default
-
-        List<String> validOrder = new ArrayList<>();
-        validOrder.add("asc");
-        validOrder.add("desc");
-
-        if (validOrder.contains(orderBy))
-            order = orderBy;
-
-        return order;
+        return ("asc".equals(orderBy)) ? orderBy : "desc";
     }
 
     @FilterWith(SecureFilter.class)
@@ -1149,10 +1105,12 @@ public class BoxHandler
             return Results.badRequest();
         }
 
-        InputStream inputStream = foundAttachment.getInputStream();
-        byte[] file = new byte[inputStream.available()];
-        inputStream.read(file);
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
+        try (final InputStream is = foundAttachment.getInputStream())
+        {
+            IOUtils.copy(is, baos);
+        }
 
-        return new Result(200).contentType(foundAttachment.getContentType()).renderRaw(file);
+        return Results.ok().contentType(foundAttachment.getContentType()).renderRaw(baos.toByteArray());
     }
 }
