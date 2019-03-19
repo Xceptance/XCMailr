@@ -1,35 +1,31 @@
 <!-- admin menu start-->
 <div id="containerAdminMenu">
-	<div class="list-group">
-		<#if (users)??>
-			<a class="list-group-item active view-user" href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a>
-		<#else>
-			<a class="list-group-item view-user" href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a>
-		</#if>
-		
-		<#if (stats)??>
-			<a class="list-group-item active show-summedStatistics" href="${contextPath}/admin/summedtx">${i18n("admin_Link_SummedStatistics")}</a>
-		<#else>
-			<a class="list-group-item show-summedStatistics" href="${contextPath}/admin/summedtx">${i18n("admin_Link_SummedStatistics")}</a>
-		</#if>
-		
-		<#if (plist)??>
-			<a class="list-group-item active show-transactions" href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a>
-		<#else>
-			<a class="list-group-item show-transactions" href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a>
-		</#if>
-		
-		<#if (domains)??>
-			<a class="list-group-item active show-whitelist" href="${contextPath}/admin/whitelist">Domain Whitelist</a>
-		<#else>
-			<a class="list-group-item show-whitelist" href="${contextPath}/admin/whitelist">Domain Whitelist</a>
-		</#if>
-		
-		<#if (emailStatistics)??>
-			<a class="list-group-item active show-emailStatistics" href="${contextPath}/admin/emailStatistics">${i18n("adminStatisticsTitle")}</a>
-		<#else>
-			<a class="list-group-item show-emailStatistics" href="${contextPath}/admin/emailStatistics">${i18n("adminStatisticsTitle")}</a>
-		</#if>
-	</div>
+  <div class="list-group">
+    <#if users??>
+      <a class="list-group-item active view-user" href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a>
+    <#else>
+      <a class="list-group-item view-user" href="${contextPath}/admin/users">${i18n("admin_Link_UserView")}</a>
+    </#if>
+    <#if stats??>
+      <a class="list-group-item active show-summedStatistics" href="${contextPath}/admin/summedtx">${i18n("admin_Link_SummedStatistics")}</a>
+    <#else>
+      <a class="list-group-item show-summedStatistics" href="${contextPath}/admin/summedtx">${i18n("admin_Link_SummedStatistics")}</a>
+    </#if>
+    <#if plist??>
+      <a class="list-group-item active show-transactions" href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a>
+    <#else>
+      <a class="list-group-item show-transactions" href="${contextPath}/admin/mtxs">${i18n("admin_Link_Transactions")}</a>
+    </#if>
+    <#if domains??>
+      <a class="list-group-item active show-whitelist" href="${contextPath}/admin/whitelist">Domain Whitelist</a>
+    <#else>
+      <a class="list-group-item show-whitelist" href="${contextPath}/admin/whitelist">Domain Whitelist</a>
+    </#if>
+    <#if emailStatistics??>
+      <a class="list-group-item active show-emailStatistics" href="${contextPath}/admin/emailStatistics">${i18n("adminStatisticsTitle")}</a>
+    <#else>
+      <a class="list-group-item show-emailStatistics" href="${contextPath}/admin/emailStatistics">${i18n("adminStatisticsTitle")}</a>
+    </#if>
+  </div>
 </div>
 <!-- admin menu end-->

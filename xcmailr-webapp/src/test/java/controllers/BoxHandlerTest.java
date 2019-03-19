@@ -7,17 +7,18 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 
 import etc.HelperUtils;
@@ -38,17 +39,9 @@ public class BoxHandlerTest extends NinjaTest
 
     MBox testMb;
 
-    static ObjectMapper objectMapper;
-
     String result;
 
     User user;
-
-    @BeforeClass
-    public static void setUpClass()
-    {
-        objectMapper = new ObjectMapper();
-    }
 
     @Before
     public void setUp()
@@ -891,16 +884,20 @@ public class BoxHandlerTest extends NinjaTest
     }
 
     @Test
-    public void testQueryMailboxes() throws Exception
+    public void testQueryAllMailboxes() throws Exception
     {
         // create mailbox for the tests
         user.setApiToken("validToken");
         user.save();
-        ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/" + user.getApiToken()
-                                     + "/mailboxquery@xcmailr.test/1");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/"
+                                              + user.getApiToken() + "/queryallmails@xcmailr.test/11");
+        assertTrue(result.contains("<div id=\"createdMail\">"));
+
         user = User.getById(user.getId());
-        assertTrue(user.getBoxes().size() == 1);
-        createMail(user.getBoxes().get(0));
+        List<MBox> mailBoxes = user.getBoxes();
+        assertTrue(mailBoxes.size() == 1);
+        final MBox tempMBox = mailBoxes.get(0);
+        createMail(tempMBox);
 
         /*
          * TEST: query html
@@ -909,10 +906,18 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.contains("WARNING: Emails will be available for only 10 minutes upon receipt and deleted afterwards."));
 
         /*
-         * TEST: query json
+         * TEST: query json. it is more or less intentional to retrieve no row data but the total count. in that way one
+         * can query the amount of mails without actually loading them since they could be huge
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=json");
-        assertTrue(result.contains("{\"total\":1,\"rows\":[]}"));
+        assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
+
+        /*
+         * TEST: query json with offset=0 and limit=1 parameter to get also actual mail content of the first mail
+         */
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
+                                              + "mails?format=json&offset=0&limit=1");
+        assertEquals("{\"total\":1,\"rows\":[{\"mailAddress\":\"queryallmails@xcmailr.test\",\"sender\":\"someone@notyou.net\",\"subject\":\"No Subject\",\"receivedTime\":1546300800,\"textContent\":\"\",\"htmlContent\":\"\",\"attachments\":[],\"downloadToken\":null}]}", result);
 
         /*
          * TEST: query csv
@@ -928,15 +933,63 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
     }
 
-    private void createMail(MBox mailbox)
+    @Test
+    public void testQueryMailbox() throws Exception
+    {
+        // create mailbox for the tests
+        user.setApiToken("validToken");
+        user.save();
+        ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/" + user.getApiToken()
+                                     + "/mailboxquery@xcmailr.test/10");
+        user = User.getById(user.getId());
+        List<MBox> mailBoxes = user.getBoxes();
+        assertTrue(mailBoxes.size() == 1);
+        final MBox tempMBox = mailBoxes.get(0);
+        final InputStream is = getClass().getResourceAsStream("multiPart.eml");
+        Assert.assertNotNull("Failed to load 'multiPart.eml'", is);
+
+        final Mail mail = createMail(tempMBox, "spamme@org.com", "Multipart HTML",
+                                     MessageListener.readLimitedAmount(is, 500_000));
+
+        final String uri = ninjaTestServer.getBaseUrl() + "/mailbox/mailboxquery@xcmailr.test/validToken";
+
+        /*
+         * TEST: query html
+         */
+        result = ninjaTestBrowser.makeRequest(uri + "?format=html");
+        assertTrue(result.contains("<td class=\"subject\">Multipart HTML</td>"));
+        assertFalse(result.contains("=3D"));
+        /*
+         * TEST: query json
+         */
+        result = ninjaTestBrowser.makeRequest(uri + "?format=json");
+        assertTrue(result.contains("\"subject\":\"Multipart HTML\""));
+
+        /*
+         * TEST: query plain
+         */
+        result = ninjaTestBrowser.makeRequest(uri + "?format=plain");
+        // NinjaTestBrowser#makeRequest() removes all line terminators from received response
+        assertEquals(mail.getMessage().replaceAll("[\r\n]+", ""), result);
+
+    }
+
+    private Mail createMail(MBox mailbox)
+    {
+        return createMail(mailbox, null, null, null);
+    }
+
+    private Mail createMail(final MBox mailbox, final String from, final String subject, final String message)
     {
         Mail mail = new Mail();
         mail.setMailbox(mailbox);
-        mail.setMessage("empty");
-        mail.setSubject("some subject");
-        mail.setReceiveTime(System.currentTimeMillis());
-        mail.setSender("someone@notyou.net");
+        mail.setMessage(StringUtils.defaultString(message));
+        mail.setSubject(StringUtils.defaultString(subject, "No Subject"));
+        mail.setReceiveTime(1546300800);
+        mail.setSender(StringUtils.defaultString(from, "someone@notyou.net"));
         mail.save();
+
+        return mail;
     }
 
     private MBox setValues(MBox testMbox, String local, String domain, long ts, boolean expired, User usr)

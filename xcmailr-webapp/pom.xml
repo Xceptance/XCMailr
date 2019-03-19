@@ -1,12 +1,13 @@
 <!-- Copyright (C) 2013 the original author or authors. Licensed under the 
-	Apache License, Version 2.0 (the "License"); you may not use this file except 
-	in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
-	Unless required by applicable law or agreed to in writing, software distributed 
-	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
-	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
-	the specific language governing permissions and limitations under the License. -->
+    Apache License, Version 2.0 (the "License"); you may not use this file except 
+    in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+    Unless required by applicable law or agreed to in writing, software distributed 
+    under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+    OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+    the specific language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,7 +18,7 @@
     <parent>
         <groupId>org.xcmailr</groupId>
         <artifactId>xcmailr</artifactId>
-        <version>2.0.5</version>
+        <version>2.0.6</version>
     </parent>
 
     <properties>
@@ -158,8 +159,8 @@
 
         <pluginManagement>
             <plugins>
-                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build 
-                    itself. -->
+                <!--This plugin's configuration is used to store Eclipse 
+                    m2e settings only. It has no influence on the Maven build itself. -->
                 <plugin>
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
@@ -256,5 +257,34 @@
             <version>1.5</version>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.ninjaframework</groupId>
+                        <artifactId>ninja-maven-plugin</artifactId>
+                        <version>${ninja.version}</version>
+                        <configuration>
+                            <mode>dev</mode>
+                            <jvmArgs>
+                                -Dlogback.configurationFile=logback_dev.xml
+                                -Dninja.external.configuration=application_dev.conf
+                                -Djavax.net.ssl.keyStore=../xcmailr-resources/conf/keystore.jks
+                                -Djavax.net.ssl.keyStorePassword=topsecret
+                                -agentlib:jdwp=transport=dt_socket,server=y,address=8000
+                            </jvmArgs>
+                            <useDefaultExcludes>true</useDefaultExcludes>
+                            <excludes>
+                                <exclude>(.*)ftl.html$</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

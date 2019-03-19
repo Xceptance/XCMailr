@@ -199,31 +199,10 @@ public class HelperUtils
     }
 
     /**
-     * Searchs the user the given API token. If it doesn't exist or if token's value isn't unique then null will be
-     * returned+
-     * 
-     * @param apiToken
-     * @return
-     */
-    public static User findUserByToken(String apiToken)
-    {
-        try
-        {
-            return Ebean.find(User.class).where().eq("APITOKEN", apiToken).eq("active", true).findUnique();
-        }
-        catch (PersistenceException e)
-        {
-            // in case there is more than one user with the exact same token
-            // this should never ever happen except someone is extreme lucky
-            return null;
-        }
-    }
-
-    /**
      * Check the given mail address to match format "localpart@domain". Also checks if domain is configured in XCMailr
      * 
-     * @param dOMAIN_LIST
      * @param mailAddress
+     * @param domainList
      * @return false if any of the checks fails
      */
     public static boolean checkEmailAddressValidness(String[] mailAddressParts, String[] domainList)

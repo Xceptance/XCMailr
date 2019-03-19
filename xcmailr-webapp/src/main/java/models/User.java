@@ -24,6 +24,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import javax.persistence.PersistenceException;
 import javax.persistence.Table;
 
 import org.hibernate.validator.constraints.Email;
@@ -262,7 +263,7 @@ public class User extends AbstractEntity implements Serializable
      * @param passwd
      *            the Password to set (after hashing with BCrypt)
      */
-    public void setPasswd(String passwd)
+    void setPasswd(String passwd)
     {
         this.passwd = passwd;
     }
@@ -546,7 +547,7 @@ public class User extends AbstractEntity implements Serializable
     @Override
     public String toString()
     {
-        return getId() + " " + forename + " " + " " + surname + " " + mail + " " + passwd;
+        return getId() + " " + forename + " " + " " + surname + " " + mail + " ";
     }
 
     /**
@@ -563,5 +564,26 @@ public class User extends AbstractEntity implements Serializable
             return all();
         }
         return Ebean.find(User.class).where().like("mail", "%" + input + "%").findList();
+    }
+
+    /**
+     * Searches the user the given API token. If it doesn't exist or if token's value isn't unique then null will be
+     * returned.
+     * 
+     * @param apiToken the apiToken
+     * @return active user owning the given token or {@code null} otherwise
+     */
+    public static User findUserByToken(String apiToken)
+    {
+        try
+        {
+            return Ebean.find(User.class).where().eq("APITOKEN", apiToken).eq("active", true).findUnique();
+        }
+        catch (PersistenceException e)
+        {
+            // in case there is more than one user with the exact same token
+            // this should never ever happen except someone is extreme lucky
+            return null;
+        }
     }
 }
