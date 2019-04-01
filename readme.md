@@ -79,7 +79,7 @@ So you host XCMailr yourself, you control security, you control availability, yo
 ## 
 
 ## API Token
-XCMailr supports API token to access some XCMailr functionality without using e-mail and password to authenticate. An API token can be genererated in the edit profile menu.
+XCMailr supports API token to access some XCMailr functionality without using e-mail and password to authenticate. An API token can be generated in the edit profile menu.
 [token](images/API_Token.png)
 
 You can create a new token or revoke an earlier generated token.
@@ -115,7 +115,7 @@ Url parameter
 * htmlContent: a regular expression to find in the emails html content
 * plainMail: a regular expression to find in the plain mails
 * lastMatch: a parameter without value that limits the result set to one entry. This is the last filter that will be applied to result set.
-* format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "json" and "plain". With format json the results will be returned as json formatted string. The format plain is used to retrieve the mail in the format the mail server received it. This contains also all email header and encoding fields. Also the plain format will automatically limit the results to one entry since multiple results could hardly distinguished in the repsonse.
+* format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "json" and "plain". With format json the results will be returned as json formatted string. The format plain is used to retrieve the mail in the format the mail server received it. This contains also all email header and encoding fields. Also the plain format will automatically limit the results to one entry since multiple results could hardly distinguished in the response.
 
 Note: plain mail filter will be used on the mails raw byte stream that is stored on receive.
 
