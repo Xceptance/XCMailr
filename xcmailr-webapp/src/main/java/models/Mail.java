@@ -19,7 +19,7 @@ public class Mail extends AbstractEntity implements Serializable
     /**
      * 
      */
-    private static final long serialVersionUID = -381571832126165482L;
+    private static final long serialVersionUID = 7644423623786133196L;
 
     @NotEmpty
     @Length(max = 255)
@@ -36,7 +36,8 @@ public class Mail extends AbstractEntity implements Serializable
     private long receiveTime;
 
     @Lob
-    private String message;
+    @NotNull
+    private byte[] message;
 
     @ManyToOne
     @JoinColumn(name = "mailbox_id", nullable = false)
@@ -74,12 +75,12 @@ public class Mail extends AbstractEntity implements Serializable
         this.receiveTime = receiveTime;
     }
 
-    public String getMessage()
+    public byte[] getMessage()
     {
         return message;
     }
 
-    public void setMessage(String message)
+    public void setMessage(byte[] message)
     {
         this.message = message;
     }

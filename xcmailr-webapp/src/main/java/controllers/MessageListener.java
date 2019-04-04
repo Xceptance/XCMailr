@@ -16,11 +16,9 @@
  */
 package controllers;
 
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -35,8 +33,8 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.mail.util.MimeMessageUtils;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 
@@ -276,7 +274,7 @@ public class MessageListener implements SimpleMessageListener
             final Session session = mailrSenderFactory.getSession();
             session.setDebug(xcmConfiguration.OUT_SMTP_DEBUG);
 
-            String rawContent = null;
+            byte[] rawContent = null;
             try
             {
                 rawContent = readLimitedAmount(data, xcmConfiguration.MAX_MAIL_SIZE);
@@ -294,10 +292,10 @@ public class MessageListener implements SimpleMessageListener
                 throw e;
             }
 
-            MimeMessage mail = new MimeMessage(session, new ByteArrayInputStream(rawContent.getBytes()));
+            MimeMessage mail = MimeMessageUtils.createMimeMessage(session, rawContent);
 
             // write to mail table
-            persistMail(mailBox, from, mail, rawContent);
+            persistMail(mailBox, from, StringUtils.defaultString(mail.getSubject()), rawContent);
 
             // check if the mail address is configured to forward emails
             // the mail is still persisted (see above)
@@ -377,49 +375,39 @@ public class MessageListener implements SimpleMessageListener
     }
 
     /**
-     * Reads up to maxSize characters from data input stream using 7-bit ASCII encoding. If the limit is exceeded an
-     * {@link SizeLimitExceededException} is thrown.
+     * Reads up to maxSize bytes from data input stream. If the limit is exceeded an {@link SizeLimitExceededException}
+     * is thrown.
      * 
      * @param data
      *            an {@link InputStream}
      * @param maxSize
-     *            determines the maximum amount of characters to be read from data
+     *            determines the maximum amount of bytes to be read from data
      * @return the streams' data
      * @throws SizeLimitExceededException
      *             if maxSize read limit is exceeded
-     * @throws IOException if an I/O error occurred
+     * @throws IOException
+     *             if an I/O error occurred
      */
-    static String readLimitedAmount(InputStream data, int maxSize) throws IOException
+    static byte[] readLimitedAmount(InputStream data, int maxSize) throws IOException
     {
-        // StringBuilderWriter doesn't need to be closed since the close method is no-op
-        @SuppressWarnings("resource")
-        final StringBuilderWriter sw = new StringBuilderWriter();
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream(data.available());
+        final long count = IOUtils.copy(data, bos, 4096);
 
-        int n;
-        long count = 0;
-        char[] buffer = new char[4096];
-        final InputStreamReader in = new InputStreamReader(data, StandardCharsets.US_ASCII);
-        while (IOUtils.EOF != (n = in.read(buffer)))
+        if (count > maxSize)
         {
-            sw.write(buffer, 0, n);
-            count += n;
-            if (count > maxSize)
-            {
-                throw new SizeLimitExceededException("Data stream exceeds size limit of " + maxSize + " bytes");
-            }
+            throw new SizeLimitExceededException("Data stream exceeds size limit of " + maxSize + " bytes");
         }
 
-        return sw.toString();
+        return bos.toByteArray();
     }
 
-    private void persistMail(MBox mailBox, String from, MimeMessage mail, String rawMessage)
-        throws MessagingException, IOException
+    private void persistMail(MBox mailBox, String from, final String subject, byte[] rawData) throws MessagingException
     {
         Mail newMail = new Mail();
         newMail.setMailbox(mailBox);
         newMail.setSender(from);
-        newMail.setSubject(StringUtils.defaultString(mail.getSubject()));
-        newMail.setMessage(rawMessage);
+        newMail.setSubject(subject);
+        newMail.setMessage(rawData);
         newMail.setReceiveTime(System.currentTimeMillis());
         newMail.setUuid(UUID.randomUUID().toString());
 

@@ -2,6 +2,7 @@ package controllers;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.RandomUtils;
@@ -16,13 +17,15 @@ public class MessageListenerRawContentTest
         final InputStream is = getClass().getResourceAsStream("multiPart.eml");
         Assert.assertNotNull("Failed to load 'multiPart.eml'", is);
 
-        final String rawContent = MessageListener.readLimitedAmount(is, 25_000_000);
+        final byte[] rawContent = MessageListener.readLimitedAmount(is, 25_000_000);
         Assert.assertNotNull("RAW content is null", rawContent);
-        Assert.assertTrue("CRLF not found", rawContent.indexOf("\r\n") > -1);
+
+        final String raw = new String(rawContent, StandardCharsets.UTF_8);
+
+        Assert.assertTrue("CRLF not found", raw.indexOf("\r\n") > -1);
         Assert.assertTrue("'Content-Type' header not found",
-                          Pattern.compile("\r\nContent-Type:\\s*multipart/\\S+;").matcher(rawContent).find());
-        Assert.assertTrue("'Subject' header not found",
-                          Pattern.compile("\r\nSubject:\\s*\\S+").matcher(rawContent).find());
+                          Pattern.compile("\r\nContent-Type:\\s*multipart/\\S+;").matcher(raw).find());
+        Assert.assertTrue("'Subject' header not found", Pattern.compile("\r\nSubject:\\s*\\S+").matcher(raw).find());
     }
 
     @Test(expected = MessageListener.SizeLimitExceededException.class)

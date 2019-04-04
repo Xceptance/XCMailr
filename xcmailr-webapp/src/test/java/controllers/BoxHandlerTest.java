@@ -12,7 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.mail.internet.MimeMessage;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.mail.util.MimeMessageUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Assert;
@@ -917,7 +920,8 @@ public class BoxHandlerTest extends NinjaTest
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
                                               + "mails?format=json&offset=0&limit=1");
-        assertEquals("{\"total\":1,\"rows\":[{\"mailAddress\":\"queryallmails@xcmailr.test\",\"sender\":\"someone@notyou.net\",\"subject\":\"No Subject\",\"receivedTime\":1546300800,\"textContent\":\"\",\"htmlContent\":\"\",\"attachments\":[],\"downloadToken\":null}]}", result);
+        assertEquals("{\"total\":1,\"rows\":[{\"mailAddress\":\"queryallmails@xcmailr.test\",\"sender\":\"someone@notyou.net\",\"subject\":\"No Subject\",\"receivedTime\":1546300800,\"textContent\":\"\",\"htmlContent\":\"\",\"attachments\":[],\"downloadToken\":null}]}",
+                     result);
 
         /*
          * TEST: query csv
@@ -966,24 +970,24 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(result.contains("\"subject\":\"Multipart HTML\""));
 
         /*
-         * TEST: query plain
+         * TEST: query header
          */
-        result = ninjaTestBrowser.makeRequest(uri + "?format=plain");
+        result = ninjaTestBrowser.makeRequest(uri + "?format=header");
         // NinjaTestBrowser#makeRequest() removes all line terminators from received response
-        assertEquals(mail.getMessage().replaceAll("[\r\n]+", ""), result);
+        assertEquals(HelperUtils.getHeaderText(MimeMessageUtils.createMimeMessage(null, mail.getMessage())).replaceAll("[\r\n]+", ""), result);
 
     }
 
     private Mail createMail(MBox mailbox)
     {
-        return createMail(mailbox, null, null, null);
+        return createMail(mailbox, null, null, new byte[0]);
     }
 
-    private Mail createMail(final MBox mailbox, final String from, final String subject, final String message)
+    private Mail createMail(final MBox mailbox, final String from, final String subject, final byte[] message)
     {
         Mail mail = new Mail();
         mail.setMailbox(mailbox);
-        mail.setMessage(StringUtils.defaultString(message));
+        mail.setMessage(message);
         mail.setSubject(StringUtils.defaultString(subject, "No Subject"));
         mail.setReceiveTime(1546300800);
         mail.setSender(StringUtils.defaultString(from, "someone@notyou.net"));
