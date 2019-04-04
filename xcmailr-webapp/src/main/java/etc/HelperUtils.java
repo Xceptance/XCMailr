@@ -17,20 +17,20 @@
 package etc;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import javax.persistence.PersistenceException;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.avaje.ebean.Ebean;
 import com.google.inject.Singleton;
 
-import models.User;
 import ninja.Context;
 import ninja.Result;
 import ninja.i18n.Messages;
@@ -235,5 +235,25 @@ public class HelperUtils
     public static String[] splitMailAddress(String mailAddress)
     {
         return mailAddress.split("\\@");
+    }
+
+    public static String getHeaderText(final MimeMessage message) throws MessagingException
+    {
+        final StringBuilder sb = new StringBuilder();
+        @SuppressWarnings("unchecked")
+        final Enumeration<String> e = message.getAllHeaderLines();
+
+        boolean first = true;
+        while (e.hasMoreElements())
+        {
+            if (!first)
+            {
+                sb.append("\r\n");
+            }
+            first = false;
+            sb.append(e.nextElement());
+        }
+
+        return sb.toString();
     }
 }

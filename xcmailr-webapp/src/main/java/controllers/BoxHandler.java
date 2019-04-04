@@ -916,25 +916,31 @@ public class BoxHandler
                                  .order("receiveTime")//
                                  .findList();
 
-        String senderRegex = context.getParameter("from", ".*");
-        String subjectRegex = context.getParameter("subject", ".*");
-        String plainTextRegex = context.getParameter("textContent", ".*");
-        String htmlTextRegex = context.getParameter("htmlContent", ".*");
-        String rawMailRegex = context.getParameter("plainMail", ".*");
+        String senderRegex = context.getParameter("from");
+        String subjectRegex = context.getParameter("subject");
+        String plainTextRegex = context.getParameter("textContent");
+        String htmlTextRegex = context.getParameter("htmlContent");
+        String headerRegex = context.getParameter("mailHeader");
         boolean lastMatch = context.getParameter("lastMatch") != null;
 
-        Pattern senderPattern = null;
-        Pattern subjectPattern = null;
-        Pattern plainTextPattern = null;
-        Pattern htmlTextPattern = null;
-        Pattern rawMailPattern = null;
+        final Pattern senderPattern;
+        final Pattern subjectPattern;
+        final Pattern plainTextPattern;
+        final Pattern htmlTextPattern;
+        final Pattern headerPattern;
         try
         {
-            senderPattern = Pattern.compile(senderRegex, Pattern.MULTILINE | Pattern.DOTALL);
-            subjectPattern = Pattern.compile(subjectRegex, Pattern.MULTILINE | Pattern.DOTALL);
-            plainTextPattern = Pattern.compile(plainTextRegex, Pattern.MULTILINE | Pattern.DOTALL);
-            htmlTextPattern = Pattern.compile(htmlTextRegex, Pattern.MULTILINE | Pattern.DOTALL);
-            rawMailPattern = Pattern.compile(rawMailRegex, Pattern.MULTILINE | Pattern.DOTALL);
+            senderPattern = senderRegex != null ? Pattern.compile(senderRegex, Pattern.MULTILINE | Pattern.DOTALL)
+                                                : null;
+            subjectPattern = subjectRegex != null ? Pattern.compile(subjectRegex, Pattern.MULTILINE | Pattern.DOTALL)
+                                                  : null;
+            plainTextPattern = plainTextRegex != null ? Pattern.compile(plainTextRegex,
+                                                                        Pattern.MULTILINE | Pattern.DOTALL)
+                                                      : null;
+            htmlTextPattern = htmlTextRegex != null ? Pattern.compile(htmlTextRegex, Pattern.MULTILINE | Pattern.DOTALL)
+                                                    : null;
+            headerPattern = headerRegex != null ? Pattern.compile(headerRegex, Pattern.MULTILINE | Pattern.DOTALL)
+                                                : null;
         }
         catch (PatternSyntaxException e)
         {
@@ -947,19 +953,18 @@ public class BoxHandler
             Mail email = emails.get(i);
 
             MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email);
-            if (true //
-                && senderPattern.matcher(mailboxEntry.sender).find() //
-                && subjectPattern.matcher(mailboxEntry.subject).find() //
-                && plainTextPattern.matcher(mailboxEntry.textContent).find() //
-                && htmlTextPattern.matcher(mailboxEntry.htmlContent).find() //
-                && rawMailPattern.matcher(mailboxEntry.rawContent).find())
+            if ((senderPattern == null || senderPattern.matcher(mailboxEntry.sender).find()) //
+                && (subjectPattern == null || subjectPattern.matcher(mailboxEntry.subject).find()) //
+                && (plainTextPattern == null || plainTextPattern.matcher(mailboxEntry.textContent).find()) //
+                && (htmlTextPattern == null || htmlTextPattern.matcher(mailboxEntry.htmlContent).find()) //
+                && (headerPattern == null || headerPattern.matcher(mailboxEntry.mailHeader).find()))
             {
                 entries.add(mailboxEntry);
             }
         }
 
         final String formatParameter = context.getParameter("format", "html").toLowerCase();
-        if ((entries.size() > 1 && lastMatch) || "plain".equals(formatParameter))
+        if ((entries.size() > 1 && lastMatch) || "header".equals(formatParameter))
         {
             // only retrieve the last match, also for plain format since we can not distinct multiple entries in the
             // output
@@ -982,7 +987,7 @@ public class BoxHandler
 
             return Results.json().render(entries);
         }
-        else if ("plain".equals(formatParameter))
+        else if ("header".equals(formatParameter))
         {
             // output plain mail
 
@@ -992,7 +997,7 @@ public class BoxHandler
                 return Results.badRequest();
             }
 
-            return Results.text().render(entries.get(0).rawContent);
+            return Results.text().render(entries.get(0).mailHeader);
         }
         else
         {
@@ -1054,7 +1059,6 @@ public class BoxHandler
                 result = matches.subList(iOffset, Math.min(iOffset + iLimit, nbMatches));
             }
 
-            System.err.println("result: " + result);
             return Results.json().render("rows", result).render("total", mails.size());
         }
         else

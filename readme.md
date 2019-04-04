@@ -1,8 +1,8 @@
 # XCMailr
 ## Summary
 * Name: XCMailr
-* Version: 2.0.6
-* Release: January 2019
+* Version: 2.0.7
+* Release: April 2019
 * License: Apache V2.0
 * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
 * Tags: AntiSpam, Testutility
@@ -38,15 +38,17 @@ So you host XCMailr yourself, you control security, you control availability, yo
 ## Run the Application
 * Just rename the application.conf.template to application.conf and edit the application.conf (see Configuration). Then run the 'run.sh'-script.
 * If you set a value for "application.basedir", the server will use that value as contextpath for your application. That means when you specify the value "xcmailr" for the basedir and "http://localhost:8080" as "application.url", then your application can be locally reached at "http://localhost:8080/xcmailr". If you want to run the application behind a reverse proxy, have a look at the section below.
-* To drop and recreate all tables (which will remove all data contained in this tables!), run the script with the parameter "-Dxcmailr.xcmstart.droptables=true".
+* IMPORTANT: Make sure to use different values for all of the following settings, otherwise you might purge your production DB by accident:
+  * ebean.datasource.databaseUrl
+  * %test.ebean.datasource.databaseUrl
+  * %dev.ebean.datasource.databaseUrl
 
 ## Build from Source
 * If you want to build the project from the sources, you have two options to run the webapp.
 * First option (after you've changed something and want to check your changes), the development-mode:
  * cd into the 'xcmailr-webapp' folder
  * execute 'mvn clean jetty:run' to clean up the target-folder (if existent) and run the app in development-mode inside an embedded-jetty running on localhost:8080 (the "basedir" will be ignored here)
- * NOTE: The webapp does not check whether the database and the tables exist. On the first run, you must set "%dev.ebean.ddl.run" and "%dev.ebean.ddl.generate" in application.conf to "true" to execute the "create table"-scripts and run the app successfully (afterwards you should set these values to "false" again, otherwise the database will be dropped and recreated after each server-reload).
- * NOTE2 (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby, you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file. It will search for the configuration-file at first in this folder. In both cases you have to take care that the .conf-files at ./xcmailr-webapp/src/main/java/conf and ./xcmailr-resources/conf are up-to-date and contain all necessary keys.
+ * NOTE (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby, you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file. It will search for the configuration-file at first in this folder. In both cases you have to take care that the .conf-files at ./xcmailr-webapp/src/main/java/conf and ./xcmailr-resources/conf are up-to-date and contain all necessary keys.
 * Second option (to create the build-folder):
  * cd into the home-directory of XCMailr
  * run 'mvn clean package' to create the build-folder
@@ -107,19 +109,21 @@ There is also an API functionality which allows to also filter received emails f
 mailAddress is the full address that is claimed by the used account. The parameter token can be generated in the edit profile dialog 
 http://xcmailrhost/mailbox/{mailAddress}/{token} 
 
-Url parameter
+URL parameter
 
 * from: a regular expression to find in the address the mail was sent from
 * subject: a regular expression to find in the emails subject
 * textContent: a regular expression to find in the emails text content
 * htmlContent: a regular expression to find in the emails html content
-* plainMail: a regular expression to find in the plain mails
+* ~~plainMail: a regular expression to find in the plain mails~~
+
+  mailHeader: a regular expression to find in the mail's header text
 * lastMatch: a parameter without value that limits the result set to one entry. This is the last filter that will be applied to result set.
-* format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "json" and "plain". With format json the results will be returned as json formatted string. The format plain is used to retrieve the mail in the format the mail server received it. This contains also all email header and encoding fields. Also the plain format will automatically limit the results to one entry since multiple results could hardly distinguished in the response.
+* ~~format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "json" and "plain". With format json the results will be returned as json formatted string. The format plain is used to retrieve the mail in the format the mail server received it. This contains also all email header and encoding fields. Also the plain format will automatically limit the results to one entry since multiple results could hardly distinguished in the response.~~
 
-Note: plain mail filter will be used on the mails raw byte stream that is stored on receive.
+  format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "html", "json" and "header". With format json the results will be returned as json formatted string. The format header is used to retrieve the mail's header as XCMailr received it. This format will automatically limit the results to one entry since multiple results could hardly distinguished in the response.</ins>
 
-http://xcmailrhost/mailbox/foo@bar.com/MyAccessToken?subject=
+Example: `http://xcmailrhost/mailbox/foo@bar.com/MyAccessToken?subject=`
 
 
 ## Frameworks/Librarys/Code/etc. Provided by Others

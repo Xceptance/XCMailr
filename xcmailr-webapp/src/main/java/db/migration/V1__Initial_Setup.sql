@@ -1,10 +1,10 @@
-create table register_domains (
+create table IF NOT EXISTS register_domains (
   id                        bigint not null,
   domainname                varchar(255),
   constraint pk_register_domains primary key (id))
 ;
 
-create table mailboxes (
+create table IF NOT EXISTS mailboxes (
   id                        bigint not null,
   address                   varchar(255),
   ts_active                 bigint,
@@ -13,23 +13,23 @@ create table mailboxes (
   forwards                  integer,
   suppressions              integer,
   usr_id                    bigint,
+  forward_emails            boolean,
   version                   bigint not null,
-  forward_emails            boolean default true,
   constraint pk_mailboxes primary key (id))
 ;
 
-create table mail (
+create table IF NOT EXISTS mail (
   id                        bigint not null,
   sender                    varchar(255),
   subject                   varchar(255) not null,
   receive_time              bigint not null,
   message                   clob,
   mailbox_id                bigint,
-  uuid                      varchar(36),
+  uuid                      varchar(255),
   constraint pk_mail primary key (id))
 ;
 
-create table MAIL_STATISTICS (
+create table IF NOT EXISTS MAIL_STATISTICS (
   date                      date not null,
   QUARTER_HOUR              integer not null,
   FROM_DOMAIN               varchar(255) not null,
@@ -39,7 +39,7 @@ create table MAIL_STATISTICS (
   constraint pk_MAIL_STATISTICS primary key (date, QUARTER_HOUR, FROM_DOMAIN, TARGET_DOMAIN))
 ;
 
-create table mailtransactions (
+create table IF NOT EXISTS mailtransactions (
   id                        bigint not null,
   ts                        bigint,
   status                    integer,
@@ -49,7 +49,7 @@ create table mailtransactions (
   constraint pk_mailtransactions primary key (id))
 ;
 
-create table users (
+create table IF NOT EXISTS users (
   id                        bigint not null,
   forename                  varchar(255),
   surname                   varchar(255),
@@ -62,25 +62,25 @@ create table users (
   bad_pw_count              integer,
   language                  varchar(255),
   apitoken                  varchar(255),
-  API_TOKEN_CREATION_TIMESTAMP bigint default 0,
+  api_token_creation_timestamp bigint,
   constraint pk_users primary key (id))
 ;
 
-create sequence register_domains_seq;
+create sequence IF NOT EXISTS register_domains_seq;
 
-create sequence mailboxes_seq;
+create sequence IF NOT EXISTS mailboxes_seq;
 
-create sequence mail_seq;
+create sequence IF NOT EXISTS mail_seq;
 
-create sequence MAIL_STATISTICS_seq;
+create sequence IF NOT EXISTS MAIL_STATISTICS_seq;
 
-create sequence mailtransactions_seq;
+create sequence IF NOT EXISTS mailtransactions_seq;
 
-create sequence users_seq;
+create sequence IF NOT EXISTS users_seq;
 
-alter table mailboxes add constraint fk_mailboxes_usr_1 foreign key (usr_id) references users (id) on delete restrict on update restrict;
-create index ix_mailboxes_usr_1 on mailboxes (usr_id);
-alter table mail add constraint fk_mail_mailbox_2 foreign key (mailbox_id) references mailboxes (id) on delete restrict on update restrict;
-create index ix_mail_mailbox_2 on mail (mailbox_id);
+alter table mailboxes add constraint IF NOT EXISTS fk_mailboxes_usr_1 foreign key (usr_id) references users (id) on delete restrict on update restrict;
+create index IF NOT EXISTS ix_mailboxes_usr_1 on mailboxes (usr_id);
+alter table mail add constraint IF NOT EXISTS fk_mail_mailbox_2 foreign key (mailbox_id) references mailboxes (id) on delete restrict on update restrict;
+create index IF NOT EXISTS ix_mail_mailbox_2 on mail (mailbox_id);
 
 
