@@ -43,6 +43,10 @@
         <appender-ref ref="console"/>
         <appender-ref ref="file"/>
     </logger>
+    <!-- Flyway -->
+    <logger name="org.flywaydb" additivity="false" level="debug">
+        <appender-ref ref="console" />
+    </logger>
     <!-- all other code -->
     <root level="warn">
         <appender-ref ref="console"/>

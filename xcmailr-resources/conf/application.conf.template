@@ -149,11 +149,14 @@ ebean.ddl.run=false
 %test.ebean.ddl.generate=true
 %test.ebean.ddl.run=true
 
-#ebean.ddl.generate=true
-#ebean.ddl.run=true
-
 ebean.datasource.minConnections=1
 ebean.datasource.maxConnections=25
 ebean.datasource.isolationlevel=read_committed 
 ebean.datasource.heartbeatsql=select 1 
+
+# run migration scripts upon application start
+ninja.migration.run=true
+
+## Uncomment the following line when you want to baseline an existing DB before applying any migrations
+# ninja.migration.baselineOnMigrate=true
 
