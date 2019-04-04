@@ -2,7 +2,7 @@
 ## Summary
 * Name: XCMailr
 * Version: 2.0.7
-* Release: January 2019
+* Release: April 2019
 * License: Apache V2.0
 * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
 * Tags: AntiSpam, Testutility
@@ -107,19 +107,21 @@ There is also an API functionality which allows to also filter received emails f
 mailAddress is the full address that is claimed by the used account. The parameter token can be generated in the edit profile dialog 
 http://xcmailrhost/mailbox/{mailAddress}/{token} 
 
-Url parameter
+URL parameter
 
 * from: a regular expression to find in the address the mail was sent from
 * subject: a regular expression to find in the emails subject
 * textContent: a regular expression to find in the emails text content
 * htmlContent: a regular expression to find in the emails html content
-* plainMail: a regular expression to find in the plain mails
+* ~~plainMail: a regular expression to find in the plain mails~~
+
+  mailHeader: a regular expression to find in the mail's header text
 * lastMatch: a parameter without value that limits the result set to one entry. This is the last filter that will be applied to result set.
-* format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "json" and "plain". With format json the results will be returned as json formatted string. The format plain is used to retrieve the mail in the format the mail server received it. This contains also all email header and encoding fields. Also the plain format will automatically limit the results to one entry since multiple results could hardly distinguished in the response.
+* ~~format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "json" and "plain". With format json the results will be returned as json formatted string. The format plain is used to retrieve the mail in the format the mail server received it. This contains also all email header and encoding fields. Also the plain format will automatically limit the results to one entry since multiple results could hardly distinguished in the response.~~
 
-Note: plain mail filter will be used on the mails raw byte stream that is stored on receive.
+  format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "html", "json" and "header". With format json the results will be returned as json formatted string. The format header is used to retrieve the mail's header as XCMailr received it. This format will automatically limit the results to one entry since multiple results could hardly distinguished in the response.</ins>
 
-http://xcmailrhost/mailbox/foo@bar.com/MyAccessToken?subject=
+Example: `http://xcmailrhost/mailbox/foo@bar.com/MyAccessToken?subject=`
 
 
 ## Frameworks/Librarys/Code/etc. Provided by Others
