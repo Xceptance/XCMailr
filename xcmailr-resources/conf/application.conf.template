@@ -44,8 +44,14 @@ application.default.entriesperpage=15
 # the allowed domains can be configured at the admin-section
 application.whitelist = false
 
+# maximum time in minutes that a temporary mail could be valid
+application.temporarymail.maximumvalidtime = 30
+
+# the amount of days an API token should be valid 
+application.api.tokenexpirationtime = 30
+
 ######################################
-# 	Configure the Inbound SMTP   #
+#   Configure the Inbound SMTP       #
 ######################################
 
 # Port on which the SMTP-Server is listening
@@ -70,11 +76,17 @@ mbox.adminaddr=admin@${mbox.host}
 # the interval to check for new mails and send them, in minutes (default: 1 minute)
 mbox.mailinterval=1
 
+# the maximum size of an email that will be handled. Emails exceeding this limit will be dropped.
+mbox.mail.maxsize=25000000
+
+# the amount of minutes a saved email will we preserved before finally deleted
+mbox.mail.retentionperiod = 10
+
 # this will configure the minimum password-length
 pw.length=4
 
 # change the next value!
-admin.pass=1234 
+admin.pass=1234
 
 # set the time for the validity of the confirmation-token in hours (default : 1hour) 
 confirm.period=1
@@ -90,7 +102,7 @@ mailtransaction.displaylimit = 9000
 mailtransaction.maxage = 168
 
 ########################################
-#  	Configure the Outbound SMTP    #
+#   Configure the Outbound SMTP        #
 # (specifies where to send the mails)  #
 ########################################
 mail.smtp.host=
@@ -151,12 +163,18 @@ ebean.ddl.run=false
 
 ebean.datasource.minConnections=1
 ebean.datasource.maxConnections=25
-ebean.datasource.isolationlevel=read_committed 
-ebean.datasource.heartbeatsql=select 1 
+ebean.datasource.isolationlevel=read_committed
+ebean.datasource.heartbeatsql=select 1
 
+#####################################
+# Ninja DB migration (using Flyway) #
+#####################################
+migration.engine.implementation=etc.MigrationEngineFlyway
 # run migration scripts upon application start
 ninja.migration.run=true
+# don't run DB migration in test mode as Ebean builds one from scratch
+%test.ninja.migration.run=false
 
-## Uncomment the following line when you want to baseline an existing DB before applying any migrations
+# Uncomment the following line when you want to baseline an existing DB before applying any migrations
 # ninja.migration.baselineOnMigrate=true
 
