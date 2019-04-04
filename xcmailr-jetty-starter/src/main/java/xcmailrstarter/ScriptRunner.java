@@ -28,18 +28,10 @@ import org.h2.tools.RunScript;
 import org.mortbay.log.Log;
 
 /**
- * Prepares the Database and checks whether all necessary tables exist
- * 
- * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
+ * Executes an SQL script specified as system property.
  */
 public class ScriptRunner
 {
-    private static final String CREATE_DB_SQL_FILE = "default-create.sql";
-
-    private static final String DROP_DB_SQL_FILE = "default-drop.sql";
-
-    private static final String UPGRADE_DB_SQL_FILE = "upgrade_db.sql";
-
     public ScriptRunner(StarterConf config)
     {
         try
@@ -56,22 +48,6 @@ public class ScriptRunner
 
         try
         {
-            if (System.getProperty("xcmailr.xcmstart.droptables") != null)
-            {
-                Log.info("Initialize DB structure");
-                runScript(config, DROP_DB_SQL_FILE, CREATE_DB_SQL_FILE);
-                Log.info("Finished executing DB initialization scripts. Remove parameter \"xcmailr.xcmstart.droptables\" then start XCMailr again.");
-                System.exit(0);
-            }
-
-            if (System.getProperty("xcmailr.xcmstart.upgrade") != null)
-            {
-                Log.info("Start DB upgrade");
-                runScript(config, UPGRADE_DB_SQL_FILE);
-                Log.info("Finished executing upgrade DB script. Remove parameter \"xcmailr.xcmstart.upgrade\" then start XCMailr again.");
-                System.exit(0);
-            }
-
             String customSqlScript = System.getProperty("xcmailr.xcmstart.script");
             if (customSqlScript != null)
             {
@@ -93,6 +69,11 @@ public class ScriptRunner
         if (filenames == null)
         {
             throw new IllegalArgumentException("Parameter filenames mustn't be null");
+        }
+
+        if(filenames.length == 0)
+        {
+            return;
         }
 
         Log.info(MessageFormat.format("Open database: ''{0}'' as user  ''{1}''", config.XCM_DB_URL,
