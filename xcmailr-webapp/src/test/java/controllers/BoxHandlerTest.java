@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.mail.internet.MimeMessage;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.util.MimeMessageUtils;
 import org.joda.time.DateTime;
@@ -81,7 +79,7 @@ public class BoxHandlerTest extends NinjaTest
 
         /*
          * TEST: Try adding a box without having logged in
-         */
+         */ 
         // logout
         ninjaTestBrowser.makeRequest(getServerAddress() + "/logout");
         testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
@@ -920,7 +918,7 @@ public class BoxHandlerTest extends NinjaTest
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
                                               + "mails?format=json&offset=0&limit=1");
-        assertEquals("{\"total\":1,\"rows\":[{\"mailAddress\":\"queryallmails@xcmailr.test\",\"sender\":\"someone@notyou.net\",\"subject\":\"No Subject\",\"receivedTime\":1546300800,\"textContent\":\"\",\"htmlContent\":\"\",\"attachments\":[],\"downloadToken\":null}]}",
+        assertEquals("{\"total\":1,\"rows\":[{\"mailAddress\":\"queryallmails@xcmailr.test\",\"sender\":\"someone@notyou.net\",\"subject\":\"No Subject\",\"receivedTime\":1546300800,\"attachments\":[],\"downloadToken\":null,\"htmlContent\":\"\",\"textContent\":\"\"}]}",
                      result);
 
         /*
