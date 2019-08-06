@@ -950,13 +950,14 @@ public class BoxHandler
         final List<MailboxEntry> entries = new LinkedList<>();
         for (int i = 0; i < emails.size(); i++)
         {
-            Mail email = emails.get(i);
+            final Mail email = emails.get(i);
 
-            MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email);
+            final MailboxEntry mailboxEntry = new MailboxEntry(mailAddress, email);
+            final MailboxEntry.Content mailContent = mailboxEntry.mailContent;
             if ((senderPattern == null || senderPattern.matcher(mailboxEntry.sender).find()) //
                 && (subjectPattern == null || subjectPattern.matcher(mailboxEntry.subject).find()) //
-                && (plainTextPattern == null || plainTextPattern.matcher(mailboxEntry.textContent).find()) //
-                && (htmlTextPattern == null || htmlTextPattern.matcher(mailboxEntry.htmlContent).find()) //
+                && (plainTextPattern == null || (mailContent != null && plainTextPattern.matcher(mailContent.text).find())) //
+                && (htmlTextPattern == null || (mailContent != null && htmlTextPattern.matcher(mailContent.html).find())) //
                 && (headerPattern == null || headerPattern.matcher(mailboxEntry.mailHeader).find()))
             {
                 entries.add(mailboxEntry);
@@ -1040,7 +1041,7 @@ public class BoxHandler
 
             for (Mail mail : mails)
             {
-                MailboxEntry mailboxEntry = new MailboxEntry(mail.getMailbox().getFullAddress(), mail);
+                final MailboxEntry mailboxEntry = new MailboxEntry(mail.getMailbox().getFullAddress(), mail);
 
                 if (StringUtils.isBlank(search) || mailboxEntry.matchesSearchPhrase(search))
                 {

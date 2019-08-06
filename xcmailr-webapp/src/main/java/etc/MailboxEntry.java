@@ -3,8 +3,6 @@ package etc;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.apache.commons.mail.util.MimeMessageUtils;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import models.Mail;
@@ -29,9 +28,8 @@ public class MailboxEntry
 
     public final long receivedTime;
 
-    public final String textContent;
-
-    public final String htmlContent;
+    @JsonIgnore
+    public final Content mailContent;
 
     public final List<AttachmentEntry> attachments = new LinkedList<>();
 
@@ -61,26 +59,22 @@ public class MailboxEntry
 
             this.mailHeader = HelperUtils.getHeaderText(mimeMessage);
 
-            final String plainText = StringUtils.defaultString(mimeMessageParser.getPlainContent());
-            final String htmlText = StringUtils.defaultString(mimeMessageParser.getHtmlContent());
+            final String textContentDecoded = StringUtils.defaultString(mimeMessageParser.getPlainContent());
+            final String htmlContentDecoded = StringUtils.defaultString(mimeMessageParser.getHtmlContent());
 
-            Encoder base64encoder = Base64.getEncoder();
-
-            this.textContent = base64encoder.encodeToString(plainText.getBytes(StandardCharsets.UTF_8));
-            this.htmlContent = base64encoder.encodeToString(htmlText.getBytes(StandardCharsets.UTF_8));
+            this.mailContent = new Content(textContentDecoded, htmlContentDecoded);
 
             for (DataSource attachment : mimeMessageParser.getAttachmentList())
             {
                 attachments.add(new AttachmentEntry(attachment));
             }
-
         }
         else
         {
             this.mailHeader = "";
-            this.textContent = "";
-            this.htmlContent = "";
+            mailContent = null;
         }
+
     }
 
     public boolean matchesSearchPhrase(String phrase)
@@ -92,9 +86,11 @@ public class MailboxEntry
 
     private boolean contentContainsIgnoreCase(final String phrase)
     {
-        final Decoder dec = Base64.getDecoder();
-        return (new String(dec.decode(textContent), StandardCharsets.UTF_8).toLowerCase().contains(phrase))
-               || (new String(dec.decode(htmlContent), StandardCharsets.UTF_8).toLowerCase().contains(phrase));
+        if (mailContent != null)
+        {
+            return mailContent.text.toLowerCase().contains(phrase) || mailContent.html.toLowerCase().contains(phrase);
+        }
+        return false;
     }
 
     public String getRawContent()
@@ -107,4 +103,36 @@ public class MailboxEntry
         return new String(rawContent, cs);
     }
 
+    @JsonGetter
+    public String getHtmlContent()
+    {
+        if (mailContent == null)
+        {
+            return "";
+        }
+        return Base64.getEncoder().encodeToString(mailContent.html.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @JsonGetter
+    public String getTextContent()
+    {
+        if (mailContent == null)
+        {
+            return "";
+        }
+        return Base64.getEncoder().encodeToString(mailContent.text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static class Content
+    {
+        public final String text;
+
+        public final String html;
+
+        private Content(final String aText, final String aHtml)
+        {
+            text = aText;
+            html = aHtml;
+        }
+    }
 }

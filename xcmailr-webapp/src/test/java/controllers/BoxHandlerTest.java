@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.mail.internet.MimeMessage;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.util.MimeMessageUtils;
 import org.joda.time.DateTime;
@@ -23,6 +21,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import etc.HelperUtils;
 import models.MBox;
@@ -81,7 +83,7 @@ public class BoxHandlerTest extends NinjaTest
 
         /*
          * TEST: Try adding a box without having logged in
-         */
+         */ 
         // logout
         ninjaTestBrowser.makeRequest(getServerAddress() + "/logout");
         testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
@@ -920,8 +922,20 @@ public class BoxHandlerTest extends NinjaTest
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
                                               + "mails?format=json&offset=0&limit=1");
-        assertEquals("{\"total\":1,\"rows\":[{\"mailAddress\":\"queryallmails@xcmailr.test\",\"sender\":\"someone@notyou.net\",\"subject\":\"No Subject\",\"receivedTime\":1546300800,\"textContent\":\"\",\"htmlContent\":\"\",\"attachments\":[],\"downloadToken\":null}]}",
-                     result);
+        final JsonElement e = new JsonParser().parse(result);
+        assertTrue(e.isJsonObject());
+        assertEquals(1, e.getAsJsonObject().get("total").getAsInt());
+        final JsonArray rows = e.getAsJsonObject().get("rows").getAsJsonArray();
+        assertEquals(1, rows.size());
+        final JsonObject row0 = rows.get(0).getAsJsonObject();
+        assertEquals("queryallmails@xcmailr.test", row0.get("mailAddress").getAsString());
+        assertEquals("someone@notyou.net", row0.get("sender").getAsString());
+        assertEquals("No Subject", row0.get("subject").getAsString());
+        assertEquals(1546300800, row0.get("receivedTime").getAsLong());
+        assertEquals("", row0.get("textContent").getAsString());
+        assertEquals("", row0.get("htmlContent").getAsString());
+        assertEquals(0, row0.get("attachments").getAsJsonArray().size());
+        assertTrue(row0.get("downloadToken").isJsonNull());
 
         /*
          * TEST: query csv
