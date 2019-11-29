@@ -26,6 +26,7 @@ import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.validation.constraints.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
@@ -734,7 +735,7 @@ public class MBox extends AbstractEntity implements Serializable
     public static int removeListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("DELETE FROM MAILBOXES WHERE USR_ID=").append(userId).append(" AND (");
+        sqlSb.append("DELETE FROM MAILBOXES WHERE USR_ID=").append(userId);
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
@@ -752,8 +753,7 @@ public class MBox extends AbstractEntity implements Serializable
     public static int resetListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId)
-             .append(" AND (");
+        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId);
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
@@ -771,7 +771,7 @@ public class MBox extends AbstractEntity implements Serializable
     public static int disableListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET EXPIRED = TRUE WHERE USR_ID=").append(userId).append(" AND (");
+        sqlSb.append("UPDATE MAILBOXES SET EXPIRED = TRUE WHERE USR_ID=").append(userId);
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
@@ -791,7 +791,6 @@ public class MBox extends AbstractEntity implements Serializable
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE WHERE USR_ID=").append(userId);
         sqlSb.append(" AND (TS_ACTIVE > ").append(DateTime.now().getMillis()).append(" OR TS_ACTIVE = 0) ");
-        sqlSb.append(" AND (");
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
@@ -813,7 +812,6 @@ public class MBox extends AbstractEntity implements Serializable
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE, TS_ACTIVE =").append(ts_Active);
         sqlSb.append("WHERE USR_ID=").append(userId);
-        sqlSb.append(" AND (");
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
@@ -822,15 +820,28 @@ public class MBox extends AbstractEntity implements Serializable
         if (boxIds.isEmpty())
             return -1;
 
-        for (Long id : boxIds)
-        {
-            sqlSb.append(" ID=").append(id).append(" OR");
-        }
-        sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
-        sqlSb.append(");");
-        SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+        int chunkSize = 1000;
+        int totalCount = boxIds.size();
+        int processedCount = 0;
 
-        return down.execute();
+        // process the mailboxes in chunks of 1000
+        for (int i = 0; i < totalCount; i = i + chunkSize)
+        {
+            // get the next chunk of mailbox IDs
+            List<Long> subList = boxIds.subList(i, Math.min(i + chunkSize, totalCount));
+
+            // create a new SQL statement and complete it with our chunk of mailbox IDs
+            StringBuilder stmt = new StringBuilder(sqlSb);
+            stmt.append(" AND ID IN (");
+            stmt.append(StringUtils.join(subList, ", "));
+            stmt.append(");");
+
+            // execute the final SQL statement
+            SqlUpdate down = Ebean.createSqlUpdate(stmt.toString());
+            processedCount += down.execute();
+        }
+
+        return processedCount;
     }
 
     public String toString()
