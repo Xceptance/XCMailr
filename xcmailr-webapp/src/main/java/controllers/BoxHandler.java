@@ -34,7 +34,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
@@ -908,9 +907,6 @@ public class BoxHandler
             return Results.badRequest();
         }
 
-        List<MBox> userMailBoxes = new LinkedList<>();
-        userMailBoxes.add(mailbox);
-
         List<Mail> emails = Ebean.find(Mail.class).where() //
                                  .eq("mailbox_id", mailbox.getId()) //
                                  .order("receiveTime")//
@@ -1027,9 +1023,10 @@ public class BoxHandler
             sort = getOrderColumn(sort);
             order = getOrderDirection(order);
 
-            User user = context.getAttribute("user", User.class);
-            List<MBox> mailboxes = user.getBoxes();
-            List<Long> mailboxIds = mailboxes.stream().map(mbox -> mbox.getId()).collect(Collectors.toList());
+            final User user = context.getAttribute("user", User.class);
+
+            // #61: look up mail boxes freshly
+            final List<?> mailboxIds = Ebean.find(MBox.class).where().eq("usr_id", user.getId()).findIds();
 
             final List<Mail> mails = Ebean.find(Mail.class).where().in("mailbox_id", mailboxIds)
                                           .orderBy(sort + " " + order).findList();
