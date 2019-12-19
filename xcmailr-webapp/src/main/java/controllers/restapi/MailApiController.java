@@ -35,9 +35,9 @@ import org.slf4j.Logger;
 
 import com.google.inject.Inject;
 
-import controllers.restapi.unused.DbId;
 import controllers.restapi.util.AbstractApiController;
 import controllers.restapi.util.ApiResults;
+import controllers.restapi.util.DbId;
 import models.MBox;
 import models.Mail;
 import ninja.Context;

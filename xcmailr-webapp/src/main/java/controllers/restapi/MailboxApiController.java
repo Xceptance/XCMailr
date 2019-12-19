@@ -25,9 +25,9 @@ import org.slf4j.Logger;
 import com.google.inject.Inject;
 
 import conf.XCMailrConf;
-import controllers.restapi.unused.DbId;
 import controllers.restapi.util.AbstractApiController;
 import controllers.restapi.util.ApiResults;
+import controllers.restapi.util.DbId;
 import etc.HelperUtils;
 import filters.ApiTokenFilter;
 import models.MBox;
