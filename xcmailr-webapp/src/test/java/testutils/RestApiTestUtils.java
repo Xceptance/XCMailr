@@ -16,6 +16,8 @@
 
 package testutils;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
@@ -32,15 +34,6 @@ import models.MBox;
  */
 public class RestApiTestUtils
 {
-    /**
-     * Validates the status code of a response.
-     */
-    public static void validateStatusCode(final HttpResponse response, final int expectedStatusCode)
-    {
-        final int statusCode = response.getStatusLine().getStatusCode();
-        Assert.assertEquals(expectedStatusCode, statusCode);
-    }
-
     /**
      * Validates a {@link MBox} instance by comparing its properties with those given in the {@link MailboxData}
      * instance.
@@ -70,6 +63,33 @@ public class RestApiTestUtils
         Assert.assertEquals(email, mailbox.email);
         Assert.assertEquals(epirationDate, mailbox.expirationDate);
         Assert.assertEquals(forwardEnabled, mailbox.forwardEnabled);
+    }
+
+    /**
+     * Validates the status code of a response.
+     */
+    public static void validateStatusCode(final HttpResponse response, final int expectedStatusCode)
+    {
+        final int statusCode = response.getStatusLine().getStatusCode();
+        Assert.assertEquals(expectedStatusCode, statusCode);
+    }
+
+    /**
+     * Validates the response content to be of expected type and length.
+     */
+    public static void validateResponseContent(final HttpResponse response, final String expectedContentType,
+                                               int expectedContentLength)
+        throws Exception
+    {
+        final HttpEntity entity = response.getEntity();
+
+        // check response headers
+        Assert.assertTrue(entity.getContentType().getValue().startsWith(expectedContentType));
+        Assert.assertEquals(expectedContentLength, entity.getContentLength());
+
+        // check response content
+        int actualContentLength = IOUtils.copy(response.getEntity().getContent(), new ByteArrayOutputStream());
+        Assert.assertEquals(expectedContentLength, actualContentLength);
     }
 
     /**

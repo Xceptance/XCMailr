@@ -16,7 +16,6 @@
 
 package controllers.restapi;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -261,14 +260,13 @@ public class MailApiControllerTest extends StaticNinjaTest
         HttpResponse response = apiClient.getMailAttachment(mailId, "test.pdf");
 
         RestApiTestUtils.validateStatusCode(response, 200);
-        Assert.assertTrue(StringUtils.startsWith(response.getFirstHeader("Content-Type").getValue(),
-                                                 "application/pdf"));
+        RestApiTestUtils.validateResponseContent(response, "application/pdf", 89399);
 
         // 2nd attachment
         response = apiClient.getMailAttachment(mailId, "test.png");
 
         RestApiTestUtils.validateStatusCode(response, 200);
-        Assert.assertTrue(StringUtils.startsWith(response.getFirstHeader("Content-Type").getValue(), "image/png"));
+        RestApiTestUtils.validateResponseContent(response, "image/png", 5799);
     }
 
     /**
