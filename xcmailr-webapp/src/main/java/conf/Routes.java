@@ -20,6 +20,8 @@ import controllers.AdminHandler;
 import controllers.Application;
 import controllers.BoxHandler;
 import controllers.UserHandler;
+import controllers.restapi.MailApiController;
+import controllers.restapi.MailboxApiController;
 import ninja.AssetsController;
 import ninja.Router;
 import ninja.application.ApplicationRoutes;
@@ -138,10 +140,26 @@ public class Routes implements ApplicationRoutes
         router.GET().route("/admin/emailSenderPage").with(AdminHandler.class, "getEmailSenderTablePage");
 
         /*
+         * REST API
+         */
+
+        // mailboxes
+        router.GET().route("/api/v1/mailboxes").with(MailboxApiController::listMailboxes);
+        router.POST().route("/api/v1/mailboxes").with(MailboxApiController::createMailbox);
+        router.GET().route("/api/v1/mailboxes/{id}").with(MailboxApiController::getMailbox);
+        router.PUT().route("/api/v1/mailboxes/{id}").with(MailboxApiController::updateMailbox);
+        router.DELETE().route("/api/v1/mailboxes/{id}").with(MailboxApiController::deleteMailbox);
+
+        // mails
+        router.GET().route("/api/v1/mails").with(MailApiController::listMails);
+        router.GET().route("/api/v1/mails/{id}").with(MailApiController::getMail);
+        router.DELETE().route("/api/v1/mails/{id}").with(MailApiController::deleteMail);
+        router.GET().route("/api/v1/mails/{id}/attachments/{attachmentName}").with(MailApiController::getMailAttachment);
+
+        /*
          * Assets-Handling (Ninja's AssetsController)
          */
         router.GET().route("/assets/webjars/{fileName: .*}").with(AssetsController.class, "serveWebJars");
         router.GET().route("/assets/{fileName: .*}").with(AssetsController.class, "serveStatic");
     }
-
 }

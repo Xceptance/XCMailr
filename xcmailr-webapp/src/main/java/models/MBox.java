@@ -645,6 +645,21 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
+     * Finds a mailbox with the given address parts (local part and domain). The address part lookup is
+     * case-insensitive.
+     * 
+     * @param localPart
+     *            the local part of the address
+     * @param domain
+     *            the domain of the address
+     * @return the mailbox or <code>null</code> if not found
+     */
+    public static MBox find(String localPart, String domain)
+    {
+        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domain).findUnique();
+    }
+
+    /**
      * Returns a list of all email-addresses of the given user
      * 
      * @param userId
