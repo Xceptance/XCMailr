@@ -39,7 +39,7 @@ import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 
 /**
- * Handles all actions for the (virtual) Mailboxes like add, delete and edit box
+ * REST API endpoint for the management of mailboxes.
  */
 public class MailboxApiController extends AbstractApiController
 {
@@ -50,11 +50,13 @@ public class MailboxApiController extends AbstractApiController
     Logger log;
 
     /**
+     * Lists all mailboxes of a certain user.
+     * 
      * @param userId
-     *            the ID of the user that is derived from the passed API token (provided by {@link ApiTokenFilter})
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
      *            the current context
-     * @return the
+     * @return the user's mailboxes as an array of {@link MailboxData} objects in JSON format
      */
     // @Get("/api/v1/mailboxes")
     public Result listMailboxes(@Attribute("userId") @DbId Long userId, Context context)
@@ -65,6 +67,17 @@ public class MailboxApiController extends AbstractApiController
         return ApiResults.ok().render(mailboxDatas);
     }
 
+    /**
+     * Creates a new mailbox for a certain user.
+     * 
+     * @param mailboxData
+     *            the details of the new mailbox
+     * @param user
+     *            the user (derived from the passed API token in {@link ApiTokenFilter})
+     * @param context
+     *            the current context
+     * @return the details of the new mailbox as a {@link MailboxData} object in JSON format
+     */
     // @Post("/api/v1/mailboxes")
     public Result createMailbox(@JSR303Validation MailboxData mailboxData, @Attribute("user") User user,
                                 Context context)
@@ -78,10 +91,15 @@ public class MailboxApiController extends AbstractApiController
     }
 
     /**
-     * @param userId
+     * Returns the details of a mailbox.
+     * 
      * @param mailboxId
+     *            the ID of the mailbox
+     * @param userId
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
-     * @return
+     *            the current context
+     * @return the details of the mailbox as a {@link MailboxData} object in JSON format
      */
     // @Get("/api/v1/mailboxes/{id}")
     public Result getMailbox(@PathParam("id") @DbId Long mailboxId, @Attribute("userId") @DbId Long userId,
@@ -94,11 +112,17 @@ public class MailboxApiController extends AbstractApiController
     }
 
     /**
-     * @param userId
+     * Updates an existing mailbox.
+     * 
      * @param mailboxId
+     *            the ID of the mailbox
      * @param mailboxData
+     *            the new details of the mailbox
+     * @param userId
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
-     * @return
+     *            the current context
+     * @return the details of the updated mailbox as a {@link MailboxData} object in JSON format
      */
     // @Put("/api/v1/mailboxes/<id>")
     public Result updateMailbox(@PathParam("id") @DbId Long mailboxId, @JSR303Validation MailboxData mailboxData,
@@ -108,9 +132,14 @@ public class MailboxApiController extends AbstractApiController
     }
 
     /**
-     * @param userId
+     * Deletes a mailbox.
+     * 
      * @param mailboxId
+     *            the ID of the mailbox
+     * @param userId
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
+     *            the current context
      * @return
      */
     // @Delete("/api/v1/mailboxes/{id}")
@@ -124,15 +153,21 @@ public class MailboxApiController extends AbstractApiController
     }
 
     /**
+     * Performs the given action
+     * 
      * @param userId
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param mailboxId
+     *            the ID of the mailbox
      * @param context
+     *            the current context
      * @param action
-     * @return
+     *            the action to be performed with the mailbox
+     * @return the result
      */
     private Result performAction(Long userId, Long mailboxId, Context context, Function<MBox, Result> action)
     {
-        //
+        // check the context for violations
         if (context.getValidation().hasViolations())
         {
             return ApiResults.badRequest(context.getValidation().getViolations());
@@ -206,13 +241,6 @@ public class MailboxApiController extends AbstractApiController
         }
     }
 
-    /**
-     * Updates the mailbox with the values in the data object.
-     * 
-     * @param mailbox
-     * @param mailboxData
-     * @return
-     */
     private Result doUpdateMailbox(MBox mailbox, MailboxData mailboxData)
     {
         // check domain

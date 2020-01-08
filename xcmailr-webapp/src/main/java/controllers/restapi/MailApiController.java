@@ -50,7 +50,7 @@ import ninja.validation.ConstraintViolation;
 import ninja.validation.Validation;
 
 /**
- * Handles all actions for the (virtual) Mailboxes like add, delete and edit box
+ * REST API endpoint for the management of mails.
  */
 public class MailApiController extends AbstractApiController
 {
@@ -58,6 +58,8 @@ public class MailApiController extends AbstractApiController
     Logger log;
 
     /**
+     * Lists the details of all mails in a certain mailbox of a certain user.
+     * 
      * @param mailboxId
      * @param userId
      *            the ID of the user

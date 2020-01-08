@@ -9,16 +9,16 @@ import javax.activation.DataSource;
  */
 public class AttachmentData
 {
+    public final String name;
+
+    public final String contentType;
+
+    public final int size;
+
     public AttachmentData(DataSource attachment) throws IOException
     {
         this.name = attachment.getName();
         this.contentType = attachment.getContentType();
         this.size = attachment.getInputStream().available();
     }
-
-    public final String name;
-
-    public final String contentType;
-
-    public final int size;
 }
