@@ -65,6 +65,7 @@ import models.Mail;
 import models.User;
 import ninja.Context;
 import ninja.FilterWith;
+import ninja.Ninja;
 import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Messages;
@@ -98,6 +99,9 @@ public class BoxHandler
 
     @Inject
     CachingSessionHandler cachingSessionHandler;
+
+    @Inject
+    Ninja ninja;
 
     /**
      * Opens the empty delete-box-dialog (just rendering the template).
@@ -759,7 +763,7 @@ public class BoxHandler
 
         for (Entry<String, Boolean> entry : boxIdMap.entrySet())
         {
-            log.info("key:" + entry.getKey() + " value:" + entry.getValue());
+            log.debug("key:" + entry.getKey() + " value:" + entry.getValue());
             if (entry.getValue())
             {
                 long boxId = Long.valueOf(entry.getKey());
@@ -774,10 +778,10 @@ public class BoxHandler
                                              @PathParam("validTime") String validTime, Context context)
     {
         if (apiToken == null || desiredMailAddress == null || validTime == null)
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
 
         if (!new EmailValidator().isValid(desiredMailAddress, null))
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
 
         // check token
         final User user = User.findUserByToken(apiToken);
@@ -785,7 +789,7 @@ public class BoxHandler
         {
             // there is no user assigned with that api token
             log.error("Token invalid");
-            return Results.forbidden();
+            return ninja.getUnauthorizedResult(context);
         }
 
         // check desired mail address
@@ -793,7 +797,7 @@ public class BoxHandler
         if (!HelperUtils.checkEmailAddressValidness(mailAddressParts, xcmConfiguration.DOMAIN_LIST))
         { // mail is not in format "localpart@domain" or domain is not configured in XCMailr
             log.error("Email address invalid: " + desiredMailAddress);
-            return Results.forbidden();
+            return ninja.getForbiddenResult(context);
         }
 
         int parsedValidTimeMinutes;
@@ -803,14 +807,14 @@ public class BoxHandler
             parsedValidTimeMinutes = Integer.valueOf(validTime);
             if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > xcmConfiguration.TEMPORARY_MAIL_MAX_VALID_TIME)
             {
-                return Results.badRequest();
+                return ninja.getBadRequestResult(context, null);
             }
         }
         catch (NumberFormatException e)
         {
             // invalid format
             log.error("Email valid time invalid: " + validTime);
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
         }
 
         // check if that email address is already claimed by someone
@@ -822,7 +826,7 @@ public class BoxHandler
         final long validUntil_ts = validUntil.toEpochMilli();
         if (mailbox != null)
         {
-            // mailbox exists, check if the user releated to it is the same as the token bearer
+            // mailbox exists, check if the user related to it is the same as the token bearer
             if (mailbox.getUsr().getId() == user.getId())
             {
                 log.info("Reactivate mailbox: " + desiredMailAddress);
@@ -835,7 +839,7 @@ public class BoxHandler
             {
                 // another user owns that address
                 log.info("Email address is owned by user: " + mailbox.getUsr().getMail());
-                return Results.forbidden();
+                return ninja.getForbiddenResult(context);
             }
         }
         else
@@ -862,7 +866,7 @@ public class BoxHandler
         }
         else
         {
-            return Results.forbidden();
+            return ninja.getBadRequestResult(context, null);
         }
     }
 
@@ -871,7 +875,7 @@ public class BoxHandler
         throws Exception
     {
         if (apiToken == null || mailAddress == null)
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
 
         log.trace("passed null check");
         User user = User.findUserByToken(apiToken);
@@ -880,7 +884,7 @@ public class BoxHandler
         {
             // there is no user assigned with that api token
             log.error("Token invalid");
-            return Results.unauthorized();
+            return ninja.getUnauthorizedResult(context);
         }
 
         // we put the username into the cookie, but use the id of the cookie for authentication
@@ -898,13 +902,13 @@ public class BoxHandler
         if (mailbox == null)
         {
             log.info("Mailbox not found: " + mailAddress);
-            return Results.badRequest();
+            return ninja.getNotFoundResult(context);
         }
 
         if (!mailbox.belongsTo(user.getId()))
         {
             log.error("Mailbox belongs to another user");
-            return Results.badRequest();
+            return ninja.getForbiddenResult(context);
         }
 
         List<Mail> emails = Ebean.find(Mail.class).where() //
@@ -940,7 +944,7 @@ public class BoxHandler
         }
         catch (PatternSyntaxException e)
         {
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
         }
 
         final List<MailboxEntry> entries = new LinkedList<>();
@@ -991,14 +995,14 @@ public class BoxHandler
             // safety check
             if (entries.size() == 0 || entries.size() > 1)
             {
-                return Results.badRequest();
+                return ninja.getBadRequestResult(context, null);
             }
 
             return Results.text().render(entries.get(0).mailHeader);
         }
         else
         {
-            return Results.forbidden();
+            return ninja.getBadRequestResult(context, null);
         }
     }
 
@@ -1061,7 +1065,7 @@ public class BoxHandler
         }
         else
         {
-            return Results.forbidden();
+            return ninja.getBadRequestResult(context, null);
         }
     }
 
@@ -1084,7 +1088,7 @@ public class BoxHandler
 
         if (foundMails.isEmpty())
         {
-            return Results.badRequest();
+            return ninja.getNotFoundResult(context);
         }
         Mail mail = foundMails.get(0);
 
@@ -1104,7 +1108,7 @@ public class BoxHandler
 
         if (foundAttachment == null)
         {
-            return Results.badRequest();
+            return ninja.getNotFoundResult(context);
         }
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
