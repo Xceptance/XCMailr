@@ -31,6 +31,7 @@ import models.MBox;
 import models.Mail;
 import models.User;
 import ninja.NinjaTest;
+import ninja.utils.NinjaConstant;
 
 public class BoxHandlerTest extends NinjaTest
 {
@@ -792,6 +793,10 @@ public class BoxHandlerTest extends NinjaTest
     @Test
     public void testTemporayMailCreation() throws Exception
     {
+        // massage default error messages such that they look as returned from the server
+        final String forbiddenMessage = NinjaConstant.I18N_NINJA_SYSTEM_FORBIDDEN_REQUEST_TEXT_DEFAULT.replace("''", "&#39;");
+        final String badRequestMessage = NinjaConstant.I18N_NINJA_SYSTEM_BAD_REQUEST_TEXT_DEFAULT.replace("''", "&#39;");
+        
         /*
          * TEST: invalid API key
          */
@@ -799,7 +804,7 @@ public class BoxHandlerTest extends NinjaTest
                                               + "create/temporaryMail/invalidkey/apicreationtest@xcmailr.test/1");
 
         // check for invalid request
-        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+        assertTrue(result.contains(NinjaConstant.I18N_NINJA_SYSTEM_UNAUTHORIZED_REQUEST_TEXT_DEFAULT));
 
         /*
          * TEST: invalid domain
@@ -809,7 +814,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
                                               + "create/temporaryMail/validKey/apicreationtest@google.com/1");
         // check for invalid request
-        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+        assertTrue(result.contains(forbiddenMessage));
 
         /*
          * TEST: invalid duration (above limit)
@@ -817,7 +822,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
                                               + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/99");
         // check for invalid request
-        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+        assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: invalid duration (below limit)
@@ -825,7 +830,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
                                               + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/0");
         // check for invalid request
-        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+        assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: invalid duration (negative)
@@ -833,7 +838,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
                                               + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/-1");
         // check for invalid request
-        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+        assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: invalid duration (not a number)
@@ -841,7 +846,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
                                               + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/y");
         // check for invalid request
-        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+        assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: already claimed
@@ -859,7 +864,7 @@ public class BoxHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
                                               + "create/temporaryMail/validKey/claimed@xcmailr.test/10");
         // check for invalid request
-        assertTrue(result.contains("Oops. That&#39;s an internal server error and all we know"));
+        assertTrue(result.contains(forbiddenMessage));
 
         /*
          * TEST: create temporary email via API key (happy path)
@@ -941,7 +946,7 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: query csv
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=csv");
-        assertTrue(result.contains("WARNING: Emails will be available for only 10 minutes upon receipt and deleted afterwards."));
+        assertTrue(result.contains(NinjaConstant.I18N_NINJA_SYSTEM_BAD_REQUEST_TEXT_DEFAULT.replace("''", "&#39;")));
 
         /*
          * TEST: search the mailbox
