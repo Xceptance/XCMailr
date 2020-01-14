@@ -1,6 +1,7 @@
-<#import "../layout/defaultLayout.ftl.html" as layout> <@layout.xcLayout title=i18n("editUser_Title")>
+<#import "../layout/defaultLayout.ftl.html" as layout>
+<@layout.xcLayout title="editUser_Title">
+
 	<#include "../layout/header.ftl.html"/>
-	
 
 	<div id="createdMail">
 		<div class="email-address">${emailAddress}</div>
@@ -8,6 +9,5 @@
 		<div class="email-validity-until">${emailValidUntil}</div>
 		<div class="email-validity-until-date">${emailValidUntilDate}</div>
 	</div>
-
 
 </@layout.xcLayout>
