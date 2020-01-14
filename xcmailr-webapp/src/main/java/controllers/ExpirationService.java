@@ -205,12 +205,13 @@ public class ExpirationService implements Runnable
     private MailStatisticsKey createMailStatisticsKey(MailTransaction mt)
     {
         final String targetDomain = getDomainOfEmail(mt.getRelayaddr());
-        if (targetDomain == null)
+        final String sourceDomain = getDomainOfEmail(mt.getSourceaddr());
+        // neither 'targetDomain' nor 'sourceDomain' must be null
+        if (targetDomain == null || sourceDomain == null)
         {
             return null;
         }
 
-        final String sourceDomain = getDomainOfEmail(mt.getSourceaddr());
         final Date mailDate = new Date(mt.getTs());
         final int quarterHourOfDay = getQuarterHour(mt.getTs());
 
