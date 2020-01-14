@@ -17,7 +17,10 @@
 package models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -83,7 +86,6 @@ public class MBox extends AbstractEntity implements Serializable
     private int suppressions;
 
     /** the version of this box (used for optimisticLock) */
-
     @Version
     @JsonIgnore
     private Long version;
@@ -681,29 +683,31 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static String getSelectedMailsForTxt(Long userId, List<Long> boxIds)
     {
-
-        StringBuilder query = new StringBuilder();
         if (boxIds.size() <= 0)
             return "";
 
-        query.append("SELECT m.id, m.address, m.domain FROM MAILBOXES m WHERE ");
-        query.append("m.usr_id = ").append(userId);
-        query.append(" AND (");
-        for (Long bId : boxIds)
-        {
-            query.append(" id = ").append(bId);
-            query.append(" OR");
-        }
-        query.delete(query.length() - 2, query.length());
-        query.append(");");
+        final String baseStmt = "SELECT id, address, domain FROM MAILBOXES WHERE usr_id=" + userId;
 
-        RawSql rawSql = RawSqlBuilder.parse(query.toString()).columnMapping("m.id", "id")
-                                     .columnMapping("m.address", "address").columnMapping("m.domain", "domain")
-                                     .create();
-        Query<MBox> quer = Ebean.find(MBox.class).setRawSql(rawSql);
-        List<MBox> selectedBoxes = quer.findList();
+        final List<MBox> selectedBoxes = new ArrayList<>();
+
+        // process mailboxes in chunks
+        processMailboxesInChunks(baseStmt.toString(), boxIds,
+                                 // cannot use a lambda here as the EBean enhancer is unable to handle it :-(
+                                 new Consumer<String>()
+                                 {
+                                     public void accept(String finalStmt)
+                                     {
+                                         // execute the final statement
+                                         final RawSql rawSql = RawSqlBuilder.parse(finalStmt).create();
+                                         final Query<MBox> query = Ebean.find(MBox.class).setRawSql(rawSql);
+                                         final List<MBox> boxes = query.findList();
+
+                                         // aggregate the results
+                                         selectedBoxes.addAll(boxes);
+                                     }
+                                 });
+
         return getBoxListToText(selectedBoxes);
-
     }
 
     /**
@@ -815,14 +819,48 @@ public class MBox extends AbstractEntity implements Serializable
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
-    private static int appendIdsAndExecuteSql(StringBuilder sqlSb, List<Long> boxIds)
+    private static int appendIdsAndExecuteSql(StringBuilder baseStmt, List<Long> boxIds)
     {
         if (boxIds.isEmpty())
             return -1;
 
+        final AtomicInteger totalProcessedCount = new AtomicInteger(0);
+
+        // process mailboxes in chunks
+        processMailboxesInChunks(baseStmt.toString(), boxIds,
+                                 // cannot use a lambda here as the EBean enhancer is unable to handle it :-(
+                                 new Consumer<String>()
+                                 {
+                                     public void accept(String stmt)
+                                     {
+                                         // execute the SQL statement
+                                         final SqlUpdate down = Ebean.createSqlUpdate(stmt.toString());
+                                         final int processedCount = down.execute();
+
+                                         // aggregate result
+                                         totalProcessedCount.addAndGet(processedCount);
+                                     }
+                                 });
+
+        // return the aggregated result
+        return totalProcessedCount.get();
+    }
+
+    /**
+     * Processes the mailboxes for the given list of mailbox IDs in chunks of 1000. For each chunk, the base SQL
+     * statement will be extended with the IDs in that chunk and the action will be called with that extended statement.
+     * 
+     * @param baseStmt
+     *            the base SQL statement that will be extended by a chunk of mailbox IDs
+     * @param boxIds
+     *            the total list of mailbox IDs
+     * @param action
+     *            the action to be performed with each chunk
+     */
+    private static void processMailboxesInChunks(String baseStmt, List<Long> boxIds, Consumer<String> action)
+    {
         int chunkSize = 1000;
         int totalCount = boxIds.size();
-        int processedCount = 0;
 
         // process the mailboxes in chunks of 1000
         for (int i = 0; i < totalCount; i = i + chunkSize)
@@ -831,17 +869,14 @@ public class MBox extends AbstractEntity implements Serializable
             List<Long> subList = boxIds.subList(i, Math.min(i + chunkSize, totalCount));
 
             // create a new SQL statement and complete it with our chunk of mailbox IDs
-            StringBuilder stmt = new StringBuilder(sqlSb);
+            StringBuilder stmt = new StringBuilder(baseStmt);
             stmt.append(" AND ID IN (");
             stmt.append(StringUtils.join(subList, ", "));
             stmt.append(");");
 
-            // execute the final SQL statement
-            SqlUpdate down = Ebean.createSqlUpdate(stmt.toString());
-            processedCount += down.execute();
+            // execute the custom action with the final statement
+            action.accept(stmt.toString());
         }
-
-        return processedCount;
     }
 
     public String toString()
