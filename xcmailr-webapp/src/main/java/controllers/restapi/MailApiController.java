@@ -16,7 +16,6 @@
  */
 package controllers.restapi;
 
-import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
@@ -26,8 +25,6 @@ import java.util.regex.PatternSyntaxException;
 import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.apache.commons.mail.util.MimeMessageUtils;
 import org.hibernate.validator.constraints.NotBlank;
@@ -38,6 +35,8 @@ import com.google.inject.Inject;
 import controllers.restapi.util.AbstractApiController;
 import controllers.restapi.util.ApiResults;
 import controllers.restapi.util.DbId;
+import etc.StreamRenderable;
+import filters.ApiTokenFilter;
 import models.MBox;
 import models.Mail;
 import ninja.Context;
@@ -61,11 +60,12 @@ public class MailApiController extends AbstractApiController
      * Lists the details of all mails in a certain mailbox of a certain user.
      * 
      * @param mailboxId
+     *            the ID of the mailbox to list
      * @param userId
-     *            the ID of the user
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
-     *            the Ninja context
-     * @return
+     *            the current Ninja context
+     * @return the details of the mails as an array of {@link MailData} objects in JSON format
      * @throws Exception
      */
     // @Get("/api/v1/mails?mailboxId={mailboxId}")
@@ -107,10 +107,15 @@ public class MailApiController extends AbstractApiController
     }
 
     /**
+     * Returns the details of a certain mail.
+     * 
      * @param id
+     *            the mail ID
      * @param userId
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
-     * @return
+     *            the current Ninja context
+     * @return the details of the mail as a {@link MailData} object in JSON format
      */
     // @Get("/api/v1/mails/<id>")
     public Result getMail(@PathParam("id") @DbId Long id, @Attribute("userId") @DbId Long userId, Context context)
@@ -132,11 +137,17 @@ public class MailApiController extends AbstractApiController
     }
 
     /**
+     * Returns an attachment to a certain mail.
+     * 
      * @param id
+     *            the ID of the mail
      * @param attachmentName
+     *            the (file) name of the attachment
      * @param userId
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
-     * @return
+     *            the current Ninja context
+     * @return the attachment with the correct content type set
      */
     // @Get("/api/v1/mails/<id>/attachments/<attachmentName>")
     public Result getMailAttachment(@PathParam("id") @DbId Long id,
@@ -149,10 +160,15 @@ public class MailApiController extends AbstractApiController
     }
 
     /**
+     * Deletes a certain mail.
+     * 
      * @param id
+     *            the ID of the mail
      * @param userId
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
-     * @return
+     *            the current Ninja context
+     * @return an empty result
      */
     // @Delete("/api/v1/mails/<id>")
     public Result deleteMail(@PathParam("id") @DbId Long id, @Attribute("userId") @DbId Long userId, Context context)
@@ -164,15 +180,23 @@ public class MailApiController extends AbstractApiController
     }
 
     /**
+     * Performs the given action with a mail entity. Before the action is applied, the context is checked for validation
+     * violations, then the mail in question is looked up in the database, and finally some other basic access checks
+     * are made.
+     * 
      * @param mailId
+     *            the ID of the mail
      * @param userId
+     *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
+     *            the current Ninja context
      * @param action
-     * @return
+     *            the action that manipulates the mail entity and returns a corresponding result
+     * @return the result produced by the action, or an error result
      */
     private Result performAction(Long mailId, Long userId, Context context, Function<Mail, Result> action)
     {
-        //
+        // check the context for violations
         if (context.getValidation().hasViolations())
         {
             return ApiResults.badRequest(context.getValidation().getViolations());
@@ -196,10 +220,16 @@ public class MailApiController extends AbstractApiController
     }
 
     /**
+     * Returns all mails in a mailbox that match any of the given patterns. If only the last matching mail is desired
+     * 
      * @param mailbox
+     *            the mailbox
      * @param context
+     *            the current Ninja context
      * @param lastMatch
+     *            whether only the most recent matching mail is to be returned
      * @param senderPattern
+     *            a pattern to be applied for the sender address
      * @param subjectPattern
      * @param plainTextPattern
      * @param htmlTextPattern
@@ -212,10 +242,10 @@ public class MailApiController extends AbstractApiController
                                       Pattern headerPattern)
         throws Exception
     {
-        //
+        // get the mails sorted by receive time
         List<Mail> mails = Mail.findAndSort(mailbox.getId());
 
-        //
+        // filter mails
         List<MailData> entries = new LinkedList<>();
         for (Mail mail : mails)
         {
@@ -235,24 +265,30 @@ public class MailApiController extends AbstractApiController
             }
         }
 
-        //
-        if (!entries.isEmpty() && lastMatch)
+        // reduce list to one if so requested
+        int size = entries.size();
+        if (size > 1 && lastMatch)
         {
-            int size = entries.size();
             entries = entries.subList(size - 1, size);
         }
 
-        return Results.json().render(entries);
+        // finally return the list as json
+        return ApiResults.ok().render(entries);
     }
 
     /**
-     * @param fieldName
+     * Looks the parameter with the given name up in the context and compiles its value to a {@link Pattern} object. If
+     * the value could not be compiled successfully, a corresponding violation will be added to the context.
+     * 
+     * @param parameterName
+     *            the name of the parameter to check
      * @param context
-     * @return
+     *            the current context
+     * @return the compiled pattern, or <code>null</code> if the value could not be compiled to a pattern
      */
-    private Pattern createPatternFromParameter(String fieldName, Context context)
+    private Pattern createPatternFromParameter(String parameterName, Context context)
     {
-        String regex = context.getParameter(fieldName);
+        String regex = context.getParameter(parameterName);
         Pattern pattern = null;
 
         try
@@ -265,18 +301,20 @@ public class MailApiController extends AbstractApiController
         catch (PatternSyntaxException e)
         {
             context.getValidation()
-                   .addViolation(new ConstraintViolation(null, fieldName, "Invalid regular expression: " + regex));
+                   .addViolation(new ConstraintViolation(null, parameterName, "Invalid regular expression: " + regex));
         }
 
         return pattern;
     }
 
     /**
+     * Serves the attachment of a mail to the client.
+     * 
      * @param context
-     * @param downloadToken
+     *            the current Ninja context
      * @param attachmentName
+     *            the attachment name
      * @return
-     * @throws Exception
      */
     private Result serveMailAttachment(Context context, Mail mail, String attachmentName)
     {
@@ -286,28 +324,16 @@ public class MailApiController extends AbstractApiController
             MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
             mimeMessageParser.parse();
 
-            DataSource foundAttachment = null;
             for (DataSource attachment : mimeMessageParser.getAttachmentList())
             {
                 if (attachment.getName().equals(attachmentName))
                 {
-                    foundAttachment = attachment;
-                    break;
+                    return Results.ok().render(new StreamRenderable(attachment.getInputStream(),
+                                                                    attachment.getContentType()));
                 }
             }
 
-            if (foundAttachment == null)
-            {
-                return ApiResults.notFound();
-            }
-
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
-            try (final InputStream is = foundAttachment.getInputStream())
-            {
-                IOUtils.copy(is, baos);
-            }
-
-            return Results.ok().contentType(foundAttachment.getContentType()).renderRaw(baos.toByteArray());
+            return ApiResults.notFound();
         }
         catch (Exception e)
         {
