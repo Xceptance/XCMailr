@@ -426,6 +426,7 @@ public class MessageListener implements SimpleMessageListener
 
     public static class SizeLimitExceededException extends IOException
     {
+        static final long serialVersionUID = -2495864848105342730L;
 
         public SizeLimitExceededException()
         {

@@ -800,8 +800,8 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: invalid API key
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                              + "create/temporaryMail/invalidkey/apicreationtest@xcmailr.test/1");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                              + "/create/temporaryMail/invalidkey/apicreationtest@xcmailr.test/1");
 
         // check for invalid request
         assertTrue(result.contains(NinjaConstant.I18N_NINJA_SYSTEM_UNAUTHORIZED_REQUEST_TEXT_DEFAULT));
@@ -811,40 +811,40 @@ public class BoxHandlerTest extends NinjaTest
          */
         user.setApiToken("validKey");
         user.save();
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                              + "create/temporaryMail/validKey/apicreationtest@google.com/1");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                              + "/create/temporaryMail/validKey/apicreationtest@google.com/1");
         // check for invalid request
         assertTrue(result.contains(forbiddenMessage));
 
         /*
          * TEST: invalid duration (above limit)
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                              + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/99");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                              + "/create/temporaryMail/validKey/apicreationtest@xcmailr.test/99");
         // check for invalid request
         assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: invalid duration (below limit)
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                              + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/0");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                              + "/create/temporaryMail/validKey/apicreationtest@xcmailr.test/0");
         // check for invalid request
         assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: invalid duration (negative)
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                              + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/-1");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                              + "/create/temporaryMail/validKey/apicreationtest@xcmailr.test/-1");
         // check for invalid request
         assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: invalid duration (not a number)
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                              + "create/temporaryMail/validKey/apicreationtest@xcmailr.test/y");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                              + "/create/temporaryMail/validKey/apicreationtest@xcmailr.test/y");
         // check for invalid request
         assertTrue(result.contains(badRequestMessage));
 
@@ -857,12 +857,12 @@ public class BoxHandlerTest extends NinjaTest
         otherUser.setActive(true);
         otherUser.save();
 
-        ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                     + "create/temporaryMail/otherUsersToken/claimed@xcmailr.test/10");
+        ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                     + "/create/temporaryMail/otherUsersToken/claimed@xcmailr.test/10");
 
         // try claim again
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                              + "create/temporaryMail/validKey/claimed@xcmailr.test/10");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                              + "/create/temporaryMail/validKey/claimed@xcmailr.test/10");
         // check for invalid request
         assertTrue(result.contains(forbiddenMessage));
 
@@ -870,11 +870,11 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: create temporary email via API key (happy path)
          */
         // first create API token for the account
-        ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "user/newApiToken");
+        ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/user/newApiToken");
         user = User.getUsrByMail(user.getMail());
 
         // create temporary mail address "apicreationtest@xcmailr.test"
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/"
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/create/temporaryMail/"
                                               + user.getApiToken() + "/apicreationtest@xcmailr.test/1");
         List<MBox> findBoxLike = MBox.findBoxLike("apicreationtest@xcmailr.test", user.getId());
         assertTrue(findBoxLike.size() == 1);
@@ -883,7 +883,7 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: create temporary email via API key with json response
          */
         // create temporary mail address "apicreationtest@xcmailr.test"
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/"
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/create/temporaryMail/"
                                               + user.getApiToken() + "/apicreationjsontest@xcmailr.test/1?format=json");
         findBoxLike = MBox.findBoxLike("apicreationtest@xcmailr.test", user.getId());
         assertTrue(findBoxLike.size() == 1);
@@ -899,7 +899,7 @@ public class BoxHandlerTest extends NinjaTest
         // create mailbox for the tests
         user.setApiToken("validToken");
         user.save();
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/"
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/create/temporaryMail/"
                                               + user.getApiToken() + "/queryallmails@xcmailr.test/11");
         assertTrue(result.contains("<div id=\"createdMail\">"));
 
@@ -912,21 +912,21 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: query html
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=html");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/mails?format=html");
         assertTrue(result.contains("WARNING: Emails will be available for only 10 minutes upon receipt and deleted afterwards."));
 
         /*
          * TEST: query json. it is more or less intentional to retrieve no row data but the total count. in that way one
          * can query the amount of mails without actually loading them since they could be huge
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=json");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/mails?format=json");
         assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
 
         /*
          * TEST: query json with offset=0 and limit=1 parameter to get also actual mail content of the first mail
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                              + "mails?format=json&offset=0&limit=1");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                              + "/mails?format=json&offset=0&limit=1");
         final JsonElement e = new JsonParser().parse(result);
         assertTrue(e.isJsonObject());
         assertEquals(1, e.getAsJsonObject().get("total").getAsInt());
@@ -945,14 +945,14 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: query csv
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "mails?format=csv");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/mails?format=csv");
         assertTrue(result.contains(NinjaConstant.I18N_NINJA_SYSTEM_BAD_REQUEST_TEXT_DEFAULT.replace("''", "&#39;")));
 
         /*
          * TEST: search the mailbox
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress()
-                                              + "mails?format=json&search=something");
+        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
+                                              + "/mails?format=json&search=something");
         assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
     }
 
@@ -962,7 +962,7 @@ public class BoxHandlerTest extends NinjaTest
         // create mailbox for the tests
         user.setApiToken("validToken");
         user.save();
-        ninjaTestBrowser.makeRequest(ninjaTestServer.getServerAddress() + "create/temporaryMail/" + user.getApiToken()
+        ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/create/temporaryMail/" + user.getApiToken()
                                      + "/mailboxquery@xcmailr.test/10");
         user = User.getById(user.getId());
         List<MBox> mailBoxes = user.getBoxes();
