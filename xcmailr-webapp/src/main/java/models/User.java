@@ -32,6 +32,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.mindrot.jbcrypt.BCrypt;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.ExpressionList;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 /**
@@ -409,7 +410,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static boolean mailExists(String mail)
     {
-        return (!Ebean.find(User.class).where().eq("mail", mail.toLowerCase()).findList().isEmpty());
+        return queryByMail(mail).findRowCount() > 0;
     }
 
     /**
@@ -430,7 +431,16 @@ public class User extends AbstractEntity implements Serializable
      */
     public static User getUsrByMail(String mail)
     {
-        return Ebean.find(User.class).where().eq("mail", mail.toLowerCase()).findUnique();
+        return queryByMail(mail).findUnique();
+    }
+
+    /**
+     * @param mail
+     * @return
+     */
+    private static ExpressionList<User> queryByMail(String mail)
+    {
+        return Ebean.find(User.class).where().eq("mail", mail.toLowerCase());
     }
 
     /**
@@ -446,7 +456,7 @@ public class User extends AbstractEntity implements Serializable
     public static User auth(String mail, String pw)
     {
         // get the user by the mailadress
-        User usr = Ebean.find(User.class).where().eq("mail", mail.toLowerCase()).findUnique();
+        final User usr = getUsrByMail(mail);
         return (usr != null && BCrypt.checkpw(pw, usr.getPasswd())) ? usr : null;
     }
 
@@ -462,7 +472,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static User authById(Long id, String pw)
     {
-        User usr = Ebean.find(User.class, id);
+        final User usr = getById(id);
         return (usr != null && BCrypt.checkpw(pw, usr.getPasswd())) ? usr : null;
     }
 
@@ -497,7 +507,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static void promote(Long id)
     {
-        User usr = User.getById(id);
+        final User usr = getById(id);
         usr.setAdmin(!usr.admin);
         Ebean.update(usr);
     }
@@ -510,7 +520,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static boolean activate(Long id)
     {
-        User usr = User.getById(id);
+        final User usr = getById(id);
         usr.setActive(!usr.isActive());
         Ebean.update(usr);
         return usr.isActive();
@@ -526,7 +536,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static List<User> getUsersOfDomain(String domainName)
     {
-        return Ebean.find(User.class).where().like("mail", "%@" + domainName).findList();
+        return Ebean.find(User.class).where().like("mail", "%@" + domainName.toLowerCase()).findList();
     }
 
     /**
@@ -563,7 +573,7 @@ public class User extends AbstractEntity implements Serializable
         {
             return all();
         }
-        return Ebean.find(User.class).where().like("mail", "%" + input + "%").findList();
+        return Ebean.find(User.class).where().like("mail", "%" + input.toLowerCase() + "%").findList();
     }
 
     /**

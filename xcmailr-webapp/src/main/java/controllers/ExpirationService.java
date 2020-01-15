@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.avaje.ebean.Ebean;
 
 import conf.XCMailrConf;
+import etc.HelperUtils;
 import etc.StatisticsEntry;
 import models.MBox;
 import models.Mail;
@@ -221,18 +222,13 @@ public class ExpirationService implements Runnable
 
     private String getDomainOfEmail(String email)
     {
-        if (email == null || email.trim().length() == 0)
+        final String[] parts = HelperUtils.splitMailAddress(email);
+        if (parts != null && parts.length > 1)
         {
-            return null;
+            return parts[1];
         }
 
-        String[] split = email.split("\\@");
-        if (split.length != 2)
-        {
-            return null;
-        }
-
-        return split[1];
+        return null;
     }
 
     private int getQuarterHour(long timestamp)

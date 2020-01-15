@@ -83,11 +83,6 @@ public class XCMailrConf
     public final Integer CONFIRMATION_PERIOD;
 
     /**
-     * specified with mbox.dlist (simple string)
-     */
-    public final String D_LIST;
-
-    /**
      * specified with mbox.dlist (string-array)
      */
     public final String[] DOMAIN_LIST;
@@ -222,7 +217,6 @@ public class XCMailrConf
         COOKIE_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
         COOKIE_EXPIRETIME = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
 
-        D_LIST = ninjaProp.getOrDie("mbox.dlist");
         DOMAIN_LIST = ninjaProp.getStringArray("mbox.dlist");
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
@@ -257,6 +251,11 @@ public class XCMailrConf
         {
             throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "
                                        + "Otherwise this app will not work");
+        }
+        // domains are case-insensitive
+        for (int i = 0; i < DOMAIN_LIST.length; i++)
+        {
+            DOMAIN_LIST[i] = DOMAIN_LIST[i].toLowerCase();
         }
         MAX_MAIL_SIZE = ninjaProp.getIntegerOrDie("mbox.mail.maxsize");
         MAIL_RETENTION_PERIOD = ninjaProp.getIntegerOrDie("mbox.mail.retentionperiod");

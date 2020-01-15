@@ -793,7 +793,7 @@ public class BoxHandler
         }
 
         // check desired mail address
-        String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress.toLowerCase());
+        String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress);
         if (!HelperUtils.checkEmailAddressValidness(mailAddressParts, xcmConfiguration.DOMAIN_LIST))
         { // mail is not in format "localpart@domain" or domain is not configured in XCMailr
             log.error("Email address invalid: " + desiredMailAddress);
@@ -874,7 +874,7 @@ public class BoxHandler
                                Context context)
         throws Exception
     {
-        if (apiToken == null || mailAddress == null)
+        if (apiToken == null || StringUtils.isBlank(mailAddress))
             return ninja.getBadRequestResult(context, null);
 
         log.trace("passed null check");
@@ -896,7 +896,7 @@ public class BoxHandler
         cachingSessionHandler.setSessionUser(user, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
         context.getSession().put("username", user.getMail());
 
-        String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress.toLowerCase());
+        String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress);
         MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
 
         if (mailbox == null)

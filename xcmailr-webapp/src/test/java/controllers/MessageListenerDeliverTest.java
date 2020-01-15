@@ -40,7 +40,7 @@ public class MessageListenerDeliverTest extends NinjaTest
         final NinjaProperties ninjaProperties = spy(new NinjaPropertiesImpl(NinjaMode.test));
         final XCMailrConf xcmConf = new XCMailrConf(ninjaProperties);
 
-        final String local = RandomStringUtils.randomAlphabetic(10).toLowerCase();
+        final String local = RandomStringUtils.randomAlphabetic(10);
         final String domain = xcmConf.DOMAIN_LIST[0];
         final String testAddress = local + "@" + domain;
 
@@ -68,7 +68,7 @@ public class MessageListenerDeliverTest extends NinjaTest
         assertEquals(100, clq.poll().getStatus());
 
         // create an expired mbox
-        MBox mbx = new MBox(local, domain, 0, true, user);
+        MBox mbx = new MBox(local.toLowerCase(), domain, 0, true, user);
         mbx.save();
 
         // check expired mbox
@@ -95,6 +95,10 @@ public class MessageListenerDeliverTest extends NinjaTest
         user.setActive(true);
         user.update();
         result = ml.doMboxPreconditionChecks(local, testAddress);
-        assertEquals(result.getUsr(), user);
+        assertEquals(user, result.getUsr());
+
+        // check with upper-cased address
+        result = ml.doMboxPreconditionChecks(local, testAddress.toUpperCase());
+        assertEquals(user, result.getUsr());
     }
 }

@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -230,11 +231,18 @@ public class HelperUtils
      * Splits an email address at the '@' and returns an array containing the local and domain part.
      * 
      * @param mailAddress
-     * @return
+     *            the mail address
+     * @return two-dimensional array representing the local and domain part of the given mail address (lower-cased) in case it is
+     *         valid, and <code>null</code> otherwise
      */
     public static String[] splitMailAddress(String mailAddress)
     {
-        return mailAddress.split("\\@");
+        mailAddress = StringUtils.defaultString(mailAddress).trim();
+        if (mailAddress.length() > 0)
+        {
+            return mailAddress.toLowerCase().split("\\@");
+        }
+        return null;
     }
 
     public static String getHeaderText(final MimeMessage message) throws MessagingException

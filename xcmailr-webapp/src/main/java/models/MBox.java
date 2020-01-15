@@ -447,7 +447,22 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static MBox getByName(String mail, String domain)
     {
-        return Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findUnique();
+        return queryByName(mail, domain).findUnique();
+    }
+
+    /**
+     * Creates an EBean expression list for the given local and domain part.
+     * 
+     * @param localPart
+     *            the local part
+     * @param domainPart
+     *            the domain part
+     * @return expression list
+     */
+    private static ExpressionList<MBox> queryByName(String localPart, String domainPart)
+    {
+        return Ebean.find(MBox.class).where().eq("address", localPart.toLowerCase()).eq("domain",
+                                                                                        domainPart.toLowerCase());
     }
 
     /**
@@ -476,7 +491,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static String getFwdByName(String mail, String domain)
     {
-        MBox mb = Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findUnique();
+        final MBox mb = getByName(mail, domain);
         return (mb != null && mb.getUsr() != null) ? mb.getUsr().getMail() : "";
     }
 
@@ -511,8 +526,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static boolean mailExists(String mail, String domain)
     {
-        return (!Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findList()
-                      .isEmpty());
+        return queryByName(mail, domain).findRowCount() > 0;
     }
 
     /**
@@ -608,7 +622,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Searches for a given input-string over all boxes that belong to this userID
+     * Searches for a given input-string case-insensitively over all boxes that belong to this userID
      * 
      * @param input
      *            the search-string
@@ -618,10 +632,12 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static List<MBox> findBoxLike(String input, long userId)
     {
+        input = input.toLowerCase().trim();
         if (input.equals(""))
         {
             return allUser(userId);
         }
+
         ExpressionList<MBox> exList1 = Ebean.find(MBox.class).where().eq("usr_id", userId);
         if (input.contains("@"))
         { // check for a correct format of a box

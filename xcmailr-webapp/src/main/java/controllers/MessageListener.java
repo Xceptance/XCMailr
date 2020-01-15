@@ -43,6 +43,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
+import etc.HelperUtils;
 import etc.MessageComposer;
 import models.MBox;
 import models.Mail;
@@ -81,17 +82,14 @@ public class MessageListener implements SimpleMessageListener
 
         List<String> domainlist = Arrays.asList(xcmConfiguration.DOMAIN_LIST);
 
-        if ((splitaddress.length == 2) && (domainlist.contains(splitaddress[1])))
+        if ((splitaddress.length == 2) && (domainlist.contains(splitaddress[1].toLowerCase())))
             return true;
 
         // the mailaddress has a strange form or has an recipient with a domain-part that does not belong to our
         // domains
         // log status 500 (relay denied)
-        if (xcmConfiguration.MTX_MAX_AGE != 0)
-        { // if mailtransaction.maxage is set to 0 -> log nothing
-            MailTransaction mtx = new MailTransaction(500, from, null, recipient);
-            jobController.mtxQueue.add(mtx);
-        }
+        createMtxAndAddToQueue(500, from, null, recipient);
+
         return false;
     }
 
@@ -154,7 +152,7 @@ public class MessageListener implements SimpleMessageListener
         {
             String[] splitString = id.split("@");
 
-            if (id.length() >= 2)
+            if (splitString.length > 1)
             {
                 String domain = splitString[1];
                 domain = domain.toLowerCase();
@@ -217,12 +215,8 @@ public class MessageListener implements SimpleMessageListener
      */
     protected MBox doMboxPreconditionChecks(final String from, final String recipient)
     {
-        final String[] splitAddress;
-        final MBox mailBox;
-
-        splitAddress = recipient.split("@");
-
-        if (splitAddress.length != 2)
+        final String[] splitAddress = HelperUtils.splitMailAddress(recipient);
+        if (splitAddress == null || splitAddress.length != 2)
         { // the mail-address does not have the expected pattern -> do nothing, just log it
             createMtxAndAddToQueue(0, from, null, recipient);
             return null;
@@ -233,7 +227,7 @@ public class MessageListener implements SimpleMessageListener
             createMtxAndAddToQueue(100, from, recipient, null);
             return null;
         }
-        mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
+        final MBox mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
         final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
 
         if (mailBox.isActive() == false)
@@ -426,7 +420,11 @@ public class MessageListener implements SimpleMessageListener
 
     public static class SizeLimitExceededException extends IOException
     {
-        static final long serialVersionUID = -2495864848105342730L;
+
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -2495864848105342730L;
 
         public SizeLimitExceededException()
         {
