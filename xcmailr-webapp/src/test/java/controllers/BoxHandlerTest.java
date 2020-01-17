@@ -14,6 +14,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.util.MimeMessageUtils;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Assert;
@@ -21,10 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import etc.HelperUtils;
 import models.MBox;
@@ -927,20 +925,22 @@ public class BoxHandlerTest extends NinjaTest
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
                                               + "/mails?format=json&offset=0&limit=1");
-        final JsonElement e = new JsonParser().parse(result);
-        assertTrue(e.isJsonObject());
-        assertEquals(1, e.getAsJsonObject().get("total").getAsInt());
-        final JsonArray rows = e.getAsJsonObject().get("rows").getAsJsonArray();
+        final JsonNode node = new ObjectMapper().readTree(result);
+        assertTrue(node.isObject());
+        assertEquals(1, node.get("total").asInt());
+        final JsonNode rows = node.get("rows");
+        assertTrue(rows.isArray());
         assertEquals(1, rows.size());
-        final JsonObject row0 = rows.get(0).getAsJsonObject();
-        assertEquals("queryallmails@xcmailr.test", row0.get("mailAddress").getAsString());
-        assertEquals("someone@notyou.net", row0.get("sender").getAsString());
-        assertEquals("No Subject", row0.get("subject").getAsString());
-        assertEquals(1546300800, row0.get("receivedTime").getAsLong());
-        assertEquals("", row0.get("textContent").getAsString());
-        assertEquals("", row0.get("htmlContent").getAsString());
-        assertEquals(0, row0.get("attachments").getAsJsonArray().size());
-        assertTrue(row0.get("downloadToken").isJsonNull());
+        final JsonNode firstRow = rows.get(0);
+        assertTrue(firstRow.isObject());
+        assertEquals("queryallmails@xcmailr.test", firstRow.get("mailAddress").asText());
+        assertEquals("someone@notyou.net", firstRow.get("sender").asText());
+        assertEquals("No Subject", firstRow.get("subject").asText());
+        assertEquals(1546300800, firstRow.get("receivedTime").asLong());
+        assertEquals("", firstRow.get("textContent").asText());
+        assertEquals("", firstRow.get("htmlContent").asText());
+        assertEquals(0, firstRow.get("attachments").size());
+        assertTrue(firstRow.get("downloadToken").isNull());
 
         /*
          * TEST: query csv
