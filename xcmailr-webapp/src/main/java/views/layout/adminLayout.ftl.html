@@ -43,28 +43,18 @@
   <body>  
     <#include "header.ftl.html"/>
     <div class="container">
-		<div class="container-fluid">
-		  <div class="row">
-			<div class="col-md-2">
-				<#include "adminMenu.ftl.html"/>
-			</div> <!-- /span2 -->
-			<div class="col-md-10">	  
-	    	<div class="row">
-				<#if flash_error??>
-				        <p class="alert alert-danger"><strong> ${flash_error}</strong></p>
-				</#if>
-				<#if flash_success??>
-				        <p class="alert alert-success"><strong> ${flash_success}</strong></p>
-				</#if>
-				<#if flash_info??>
-				        <p class="alert alert-info"><strong> ${flash_info}</strong></p>
-				</#if>
-			</div>
-				<#nested/>
-			</div> <!-- /span9 -->
-		</div><!-- row -->
-		</div> <!-- /container fluid -->
-	  <#include "footer.ftl.html"/>
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-2">
+              <#include "adminMenu.ftl.html"/>
+            </div> <!-- /span2 -->
+            <div class="col-md-10">	  
+                <#include "flash-message.ftl.html" />
+                <#nested/>
+            </div> <!-- /span9 -->
+          </div><!-- row -->
+      </div> <!-- /container fluid -->
+      <#include "footer.ftl.html"/>
    </div><!-- /container -->
 </body>
 </html>
