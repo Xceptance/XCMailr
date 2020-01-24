@@ -49,7 +49,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
 import com.avaje.ebean.Ebean;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -220,7 +219,7 @@ public class BoxHandler
         }
 
         // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
-        String completeAddress = addBoxDialogData.getAddress() + "@" + addBoxDialogData.getDomain();
+        String completeAddress = addBoxDialogData.getFullAddress();
         if (addBoxDialogData.getAddress().length() > 64 || completeAddress.length() > 254)
         {
             errorMessage = messages.get("createEmail_Flash_MailTooLong", context, Optional.of(result)).get();
@@ -501,7 +500,7 @@ public class BoxHandler
 
         // the form was filled correctly
         // check for rfc 5322 compliant length of email (64 chars for local and 254 in total)
-        String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
+        String completeAddress = mailboxFormData.getFullAddress();
         if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() >= 255)
         {
             errorMessage = messages.get("editEmail_Flash_MailTooLong", context, Optional.of(result)).get();
@@ -519,10 +518,11 @@ public class BoxHandler
         }
         // the box with the given id exists and the current user is the owner of the mailbox
         boolean changes = false;
-        String newLocalPartName = mailboxFormData.getAddress().toLowerCase();
-        String newDomainPartName = mailboxFormData.getDomain().toLowerCase();
+        String newLocalPartName = mailboxFormData.getAddress();
+        String newDomainPartName = mailboxFormData.getDomain();
 
-        if (!mailBox.getAddress().equals(newLocalPartName) || !mailBox.getDomain().equals(newDomainPartName))
+        if (!mailBox.getAddress().equalsIgnoreCase(newLocalPartName)
+            || !mailBox.getDomain().equalsIgnoreCase(newDomainPartName))
         { // email-address changed
             if (MBox.mailExists(newLocalPartName, newDomainPartName))
             {// the email-address already exists -> error
@@ -693,7 +693,7 @@ public class BoxHandler
     public Result showMailsAsTextList(Context context)
     {
         User user = context.getAttribute("user", User.class);
-        return Results.contentType("text/plain").render(MBox.getMailsForTxt(user.getId()));
+        return Results.text().render(MBox.getMailsForTxt(user.getId()));
     }
 
     /**
@@ -707,7 +707,7 @@ public class BoxHandler
     public Result showActiveMailsAsTextList(Context context)
     {
         User user = context.getAttribute("user", User.class);
-        return Results.contentType("text/plain").render(MBox.getActiveMailsForTxt(user.getId()));
+        return Results.text().render(MBox.getActiveMailsForTxt(user.getId()));
     }
 
     /**
@@ -740,9 +740,7 @@ public class BoxHandler
         Map<String, Boolean> boxIdMap = null;
         try
         {
-            boxIdMap = objectMapper.readValue(input, new TypeReference<HashMap<String, Boolean>>()
-            {
-            });
+            boxIdMap = objectMapper.readValue(input, TypeRef.MAP_STRING_BOOLEAN);
         }
         catch (IOException e)
         {
@@ -818,9 +816,7 @@ public class BoxHandler
         }
 
         // check if that email address is already claimed by someone
-        final MBox mailbox = Ebean.find(MBox.class).where()//
-                                  .eq("address", mailAddressParts[0]) //
-                                  .eq("domain", mailAddressParts[1]).findUnique();
+        final MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
 
         final Instant validUntil = Instant.now().plus(parsedValidTimeMinutes, ChronoUnit.MINUTES);
         final long validUntil_ts = validUntil.toEpochMilli();
@@ -874,7 +870,7 @@ public class BoxHandler
                                Context context)
         throws Exception
     {
-        if (apiToken == null || StringUtils.isBlank(mailAddress))
+        if (apiToken == null || mailAddress == null)
             return ninja.getBadRequestResult(context, null);
 
         log.trace("passed null check");
@@ -896,8 +892,9 @@ public class BoxHandler
         cachingSessionHandler.setSessionUser(user, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
         context.getSession().put("username", user.getMail());
 
-        String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress);
-        MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
+        final String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress);
+        final MBox mailbox = HelperUtils.checkEmailAddressValidness(mailAddressParts,
+                                                                    xcmConfiguration.DOMAIN_LIST) ? MBox.getByName(mailAddressParts[0], mailAddressParts[1]) : null;
 
         if (mailbox == null)
         {
@@ -956,8 +953,10 @@ public class BoxHandler
             final MailboxEntry.Content mailContent = mailboxEntry.mailContent;
             if ((senderPattern == null || senderPattern.matcher(mailboxEntry.sender).find()) //
                 && (subjectPattern == null || subjectPattern.matcher(mailboxEntry.subject).find()) //
-                && (plainTextPattern == null || (mailContent != null && plainTextPattern.matcher(mailContent.text).find())) //
-                && (htmlTextPattern == null || (mailContent != null && htmlTextPattern.matcher(mailContent.html).find())) //
+                && (plainTextPattern == null
+                    || (mailContent != null && plainTextPattern.matcher(mailContent.text).find())) //
+                && (htmlTextPattern == null
+                    || (mailContent != null && htmlTextPattern.matcher(mailContent.html).find())) //
                 && (headerPattern == null || headerPattern.matcher(mailboxEntry.mailHeader).find()))
             {
                 entries.add(mailboxEntry);

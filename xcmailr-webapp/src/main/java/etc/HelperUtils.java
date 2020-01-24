@@ -30,8 +30,6 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.google.inject.Singleton;
-
 import ninja.Context;
 import ninja.Result;
 import ninja.i18n.Messages;
@@ -39,9 +37,9 @@ import ninja.i18n.Messages;
 /**
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-@Singleton
-public class HelperUtils
+public final class HelperUtils
 {
+    private HelperUtils() { }
 
     private static final Pattern PATTERN_DATEFORMAT = Pattern.compile("(\\d+){4}[\\-](\\d+){1,2}[\\-](\\d+){1,2}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}");
 
@@ -208,7 +206,7 @@ public class HelperUtils
      */
     public static boolean checkEmailAddressValidness(String[] mailAddressParts, String[] domainList)
     {
-        if (mailAddressParts.length != 2)
+        if (mailAddressParts == null || domainList == null|| mailAddressParts.length != 2)
         {
             return false;
         }
@@ -232,7 +230,7 @@ public class HelperUtils
      * 
      * @param mailAddress
      *            the mail address
-     * @return two-dimensional array representing the local and domain part of the given mail address (lower-cased) in case it is
+     * @return two-dimensional array representing the local and domain part of the given mail address in case it is
      *         valid, and <code>null</code> otherwise
      */
     public static String[] splitMailAddress(String mailAddress)
@@ -240,7 +238,7 @@ public class HelperUtils
         mailAddress = StringUtils.defaultString(mailAddress).trim();
         if (mailAddress.length() > 0)
         {
-            return mailAddress.toLowerCase().split("\\@");
+            return mailAddress.split("\\@");
         }
         return null;
     }

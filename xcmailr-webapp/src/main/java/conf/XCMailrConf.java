@@ -16,6 +16,8 @@
  */
 package conf;
 
+import java.util.ArrayList;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -217,7 +219,7 @@ public class XCMailrConf
         COOKIE_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
         COOKIE_EXPIRETIME = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
 
-        DOMAIN_LIST = ninjaProp.getStringArray("mbox.dlist");
+        DOMAIN_LIST = filterDuplicates(ninjaProp.getStringArray("mbox.dlist"));
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
         MB_ENABLE_TLS = ninjaProp.getBooleanWithDefault("mbox.enableTls", true);
@@ -252,15 +254,31 @@ public class XCMailrConf
             throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "
                                        + "Otherwise this app will not work");
         }
-        // domains are case-insensitive
-        for (int i = 0; i < DOMAIN_LIST.length; i++)
-        {
-            DOMAIN_LIST[i] = DOMAIN_LIST[i].toLowerCase();
-        }
         MAX_MAIL_SIZE = ninjaProp.getIntegerOrDie("mbox.mail.maxsize");
         MAIL_RETENTION_PERIOD = ninjaProp.getIntegerOrDie("mbox.mail.retentionperiod");
         TEMPORARY_MAIL_MAX_VALID_TIME = ninjaProp.getIntegerOrDie("application.temporarymail.maximumvalidtime");
 
         APITOKEN_EXPIRATION = ninjaProp.getIntegerOrDie("application.api.tokenexpirationtime");
+    }
+
+    private String[] filterDuplicates(final String[] args)
+    {
+        if (args == null)
+        {
+            return null;
+        }
+
+        final ArrayList<String> list = new ArrayList<>();
+        for (final String arg : args)
+        {
+            if (arg == null || list.stream().anyMatch(e -> e.equalsIgnoreCase(arg)))
+            {
+                continue;
+            }
+
+            list.add(arg);
+        }
+
+        return list.toArray(new String[list.size()]);
     }
 }

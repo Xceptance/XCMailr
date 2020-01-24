@@ -7,6 +7,7 @@ import static org.mockito.Mockito.spy;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import conf.XCMailrConf;
@@ -40,7 +41,7 @@ public class MessageListenerDeliverTest extends NinjaTest
         final NinjaProperties ninjaProperties = spy(new NinjaPropertiesImpl(NinjaMode.test));
         final XCMailrConf xcmConf = new XCMailrConf(ninjaProperties);
 
-        final String local = RandomStringUtils.randomAlphabetic(10);
+        final String local = RandomStringUtils.randomAlphabetic(10).toLowerCase();
         final String domain = xcmConf.DOMAIN_LIST[0];
         final String testAddress = local + "@" + domain;
 
@@ -68,7 +69,7 @@ public class MessageListenerDeliverTest extends NinjaTest
         assertEquals(100, clq.poll().getStatus());
 
         // create an expired mbox
-        MBox mbx = new MBox(local.toLowerCase(), domain, 0, true, user);
+        MBox mbx = new MBox(local, domain, 0, true, user);
         mbx.save();
 
         // check expired mbox
@@ -97,8 +98,9 @@ public class MessageListenerDeliverTest extends NinjaTest
         result = ml.doMboxPreconditionChecks(local, testAddress);
         assertEquals(user, result.getUsr());
 
-        // check with upper-cased address
-        result = ml.doMboxPreconditionChecks(local, testAddress.toUpperCase());
+        // finally, test case-insensitive handling of mail addresses
+        result = ml.doMboxPreconditionChecks(local, StringUtils.capitalize(local) + "@" + domain.toUpperCase());
+        assertEquals(mbx.getId(), result.getId());
         assertEquals(user, result.getUsr());
     }
 }

@@ -60,7 +60,7 @@ public class MBox extends AbstractEntity implements Serializable
 
     /** Mailaddress of the Box */
     @NotEmpty
-    @Pattern(regexp = "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*")
+    @Pattern(regexp = "(?i)^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*")
     private String address;
 
     /** Timestamp for the end of the validity period */
@@ -73,7 +73,7 @@ public class MBox extends AbstractEntity implements Serializable
 
     /** the domain-part of an address */
     @NotEmpty
-    @Pattern(regexp = "[A-Za-z-]+(\\.[\\w-]+)+")
+    @Pattern(regexp = "(?i)[a-z-]+(\\.[\\w-]+)+")
     @Length(min = 1, max = 255)
     private String domain;
 
@@ -461,8 +461,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     private static ExpressionList<MBox> queryByName(String localPart, String domainPart)
     {
-        return Ebean.find(MBox.class).where().eq("address", localPart.toLowerCase()).eq("domain",
-                                                                                        domainPart.toLowerCase());
+        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domainPart);
     }
 
     /**
@@ -622,7 +621,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Searches for a given input-string case-insensitively over all boxes that belong to this userID
+     * Searches for a given input-string over all boxes that belong to this userID
      * 
      * @param input
      *            the search-string
@@ -632,12 +631,10 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static List<MBox> findBoxLike(String input, long userId)
     {
-        input = input.toLowerCase().trim();
         if (input.equals(""))
         {
             return allUser(userId);
         }
-
         ExpressionList<MBox> exList1 = Ebean.find(MBox.class).where().eq("usr_id", userId);
         if (input.contains("@"))
         { // check for a correct format of a box
@@ -646,20 +643,20 @@ public class MBox extends AbstractEntity implements Serializable
             switch (split.length)
             {
                 case (1): // the entry may be something like "@domain" or "address@"
-                    return exList1.or(Expr.like("address", "%" + split[0] + "%"),
-                                      Expr.like("domain", "%" + split[0] + "%"))
+                    return exList1.or(Expr.ilike("address", "%" + split[0] + "%"),
+                                      Expr.ilike("domain", "%" + split[0] + "%"))
                                   .findList();
 
                 case (2): // the entry was something like "address@domain"
-                    return exList1.eq("address", split[0]).like("domain", "%" + split[1] + "%").findList();
+                    return exList1.ieq("address", split[0]).ilike("domain", "%" + split[1] + "%").findList();
                 default: // the entry was something else
-                    return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%"))
+                    return exList1.or(Expr.ilike("address", "%" + input + "%"), Expr.ilike("domain", "%" + input + "%"))
                                   .findList();
             }
 
         }
-        // the entry may be something like "addr" or "doma" (just a part of the address)
-        return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%")).findList();
+        // the entry may be something like "address" or "domain" (just a part of the address)
+        return exList1.or(Expr.ilike("address", "%" + input + "%"), Expr.ilike("domain", "%" + input + "%")).findList();
     }
 
     /**
@@ -831,7 +828,7 @@ public class MBox extends AbstractEntity implements Serializable
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE, TS_ACTIVE =").append(ts_Active);
-        sqlSb.append("WHERE USR_ID=").append(userId);
+        sqlSb.append(" WHERE USR_ID=").append(userId);
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 

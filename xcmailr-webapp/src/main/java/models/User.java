@@ -224,7 +224,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public void setMail(String mail)
     {
-        this.mail = mail.toLowerCase();
+        this.mail = mail;
     }
 
     /**
@@ -402,11 +402,11 @@ public class User extends AbstractEntity implements Serializable
     }
 
     /**
-     * Checks, if a Mail-Address exists in the Database
+     * Returns whether the Database contains an user with the given mail address (case-insensitive lookup).
      * 
      * @param mail
-     *            Mail-Address of a User
-     * @return true if the given Address exists
+     *            the given mail address
+     * @return true if there is an user with the given address
      */
     public static boolean mailExists(String mail)
     {
@@ -419,7 +419,7 @@ public class User extends AbstractEntity implements Serializable
     public boolean isLastAdmin()
     {
         // this user is admin and there's only one admin in the database, so he's the last one
-        return isAdmin() && (Ebean.find(User.class).where().eq("admin", true).findList().size() == 1);
+        return isAdmin() && (Ebean.find(User.class).where().eq("admin", true).findRowCount() == 1);
     }
 
     /**
@@ -435,12 +435,15 @@ public class User extends AbstractEntity implements Serializable
     }
 
     /**
+     * Creates and returns a query for an user with the given mail address.
+     * 
      * @param mail
-     * @return
+     *            the user's mail address
+     * @return query for an user with the given mail address
      */
     private static ExpressionList<User> queryByMail(String mail)
     {
-        return Ebean.find(User.class).where().eq("mail", mail.toLowerCase());
+        return Ebean.find(User.class).where().ieq("mail", mail);
     }
 
     /**
@@ -536,7 +539,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static List<User> getUsersOfDomain(String domainName)
     {
-        return Ebean.find(User.class).where().like("mail", "%@" + domainName.toLowerCase()).findList();
+        return Ebean.find(User.class).where().ilike("mail", "%@" + domainName).findList();
     }
 
     /**
@@ -573,14 +576,15 @@ public class User extends AbstractEntity implements Serializable
         {
             return all();
         }
-        return Ebean.find(User.class).where().like("mail", "%" + input.toLowerCase() + "%").findList();
+        return Ebean.find(User.class).where().ilike("mail", "%" + input + "%").findList();
     }
 
     /**
      * Searches the user the given API token. If it doesn't exist or if token's value isn't unique then null will be
      * returned.
      * 
-     * @param apiToken the apiToken
+     * @param apiToken
+     *            the apiToken
      * @return active user owning the given token or {@code null} otherwise
      */
     public static User findUserByToken(String apiToken)

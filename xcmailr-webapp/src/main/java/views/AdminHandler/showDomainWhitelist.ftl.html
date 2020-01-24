@@ -1,48 +1,59 @@
-<#import "../layout/adminLayout.ftl.html" as layout> <@layout.adminLayout title=i18n("adminDomainWhitelist_Title")> <#if (whitelist!true)>
-<form>
-	<fieldset>
-		<legend>${i18n("adminDomainWhitelist_Title")}</legend>
-	</fieldset>
-</form>
-<div>
-	<#if ((domains?size)> 0) >
-	<div class="col-sm-5 pull-left">
-		<form action="${contextPath}/admin/whitelist/remove" method="post" id="removeDomains" name="removeDomain">
-			<div class="form-group">
-				<label class="col-sm-4 control-label" for="removeDomainsSelection">${i18n("adminDomainWhitelist_Label_RemoveDomain")}</label>
-				<div class="col-sm-8">
-					<div class="input-group">
-						<select class="form-control" id="removeDomainsSelection" name="removeDomainsSelection"> <#list domains as singleDomain>
-							<option value="${singleDomain.id}">${singleDomain.domainname}</option> </#list>
-						</select> <span class="input-group-btn"> <input type="submit" class="btn btn-default" id="removeDomainsSubmit"
-								value='${i18n("adminDomainWhitelist_Button_RemoveDomain")}' />
-						</span>
-					</div>
-				</div>
-			</div>
-		</form>
-	</div>
-	<#else>
-	<div>
-		<p>${i18n("adminDomainWhitelist_Label_NoDomains")}</p>
-	</div>
-	</#if>
-	<div class="col-sm-5 pull-left">
-		<form action="${contextPath}/admin/whitelist/add" method="post" id="addDomain" name="addDomain">
-			<div class="form-group">
-				<label class="col-sm-4 control-label" for="inputAddDomain">${i18n("adminDomainWhitelist_Label_AddDomain")}</label>
-				<div class="col-sm-8">
-					<div class="input-group">
-						<input class="form-control" type="text" id="inputAddDomain" name="domainName" required="required" />
-						<span class="input-group-btn"> <input type="submit" class="btn btn-default" id="addDomainSubmit" value='${i18n("adminDomainWhitelist_Button_AddDomain")}' />
-						</span>
-					</div>
-				</div>
-			</div>
-		</form>
-	</div>
-</div>
-<#else>
-<h1 class="legendary">${i18n("adminDomainWhitelist_Title_WhitelistDisabled")}</h1>
-<div>${i18n("adminDomainWhitelist_Label_WhitelistDisabledDescription")}</div>
-</#if> </@layout.adminLayout>
+<#import "../layout/adminLayout.ftl.html" as layout>
+<@layout.adminLayout title=i18n("adminDomainWhitelist_Title")>
+  <#if (whitelist!true)>
+
+    <form>
+      <fieldset>
+        <legend>${i18n("adminDomainWhitelist_Title")}</legend>
+      </fieldset>
+    </form>
+
+    <div>
+    <#if ((domains?size)> 0) >
+      <div class="col-sm-5 pull-left">
+        <form action="${contextPath}/admin/whitelist/remove" method="post" id="removeDomains" name="removeDomain">
+          <div class="form-group">
+            <label class="col-sm-4 control-label" for="removeDomainsSelection">${i18n("adminDomainWhitelist_Label_RemoveDomain")}</label>
+            <div class="col-sm-8">
+              <div class="input-group">
+                <select class="form-control" id="removeDomainsSelection" name="removeDomainsSelection">
+                <#list domains as singleDomain>
+                  <option value="${singleDomain.id}">${singleDomain.domainname}</option>
+                </#list>
+                </select> 
+                <span class="input-group-btn">
+                  <input type="submit" class="btn btn-default" id="removeDomainsSubmit" value='${i18n("adminDomainWhitelist_Button_RemoveDomain")}' />
+                </span>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    <#else>
+      <div><p>${i18n("adminDomainWhitelist_Label_NoDomains")}</p></div>
+    </#if>
+
+    <div class="col-sm-5 pull-left">
+      <form action="${contextPath}/admin/whitelist/add" method="post" id="addDomain" name="addDomain">
+        <div class="form-group">
+          <label class="col-sm-4 control-label" for="inputAddDomain">${i18n("adminDomainWhitelist_Label_AddDomain")}</label>
+          <div class="col-sm-8">
+            <div class="input-group">
+              <input class="form-control" type="text" id="inputAddDomain" name="domainName" required="required" />
+              <span class="input-group-btn">
+                <input type="submit" class="btn btn-default" id="addDomainSubmit" value='${i18n("adminDomainWhitelist_Button_AddDomain")}' />
+              </span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <#else>
+
+    <h1 class="legendary">${i18n("adminDomainWhitelist_Title_WhitelistDisabled")}</h1>
+    <div>${i18n("adminDomainWhitelist_Label_WhitelistDisabledDescription")}</div>
+  </#if>
+
+</@layout.adminLayout>
