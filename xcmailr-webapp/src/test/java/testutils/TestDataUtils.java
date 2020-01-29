@@ -45,8 +45,8 @@ public class TestDataUtils
      */
     public static User createUser()
     {
-        final String firstName = RandomStringUtils.randomAlphabetic(8);
-        final String lastName = RandomStringUtils.randomAlphabetic(16);
+        final String firstName = RandomStringUtils.randomAlphabetic(8).toLowerCase();
+        final String lastName = RandomStringUtils.randomAlphabetic(16).toLowerCase();
         final String email = firstName + "." + lastName + "@ccmailr.test";
 
         final String apiToken = RandomStringUtils.randomAlphanumeric(32);
@@ -65,7 +65,7 @@ public class TestDataUtils
      */
     public static MBox createMailbox(final User user)
     {
-        final String localPart = RandomStringUtils.randomAlphabetic(16);
+        final String localPart = RandomStringUtils.randomAlphabetic(16).toLowerCase();
         final long expirationDate = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1);
 
         final MBox mailbox = new MBox(localPart, "xcmailr.test", expirationDate, false, user);

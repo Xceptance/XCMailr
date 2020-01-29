@@ -41,25 +41,31 @@ public class MailApiControllerTest extends StaticNinjaTest
 {
     // --- test data -----------------------------------
 
+    private static final String unknownAddress = "foo@example.org";
+
+    private static final String invalidAddress = "foo(at)example.org";
+
     private static final String unknownId = "12345678";
 
     private static final String invalidId = "totallyInvalidId";
 
     private static User user;
 
-    private static String emptyMailboxId;
+    private static String emptyMailboxAddress;
 
     private static MBox mailbox;
 
-    private static String mailboxId;
+    private static String mailboxAddress;
 
     private static String mailId;
 
-    private static String otherUsersMailboxId;
+    private static String otherUsersMailboxAddress;
 
     private static String otherUsersMailId;
 
     private static RestApiClient apiClient;
+
+    private static Mail mailWithAttachments;
 
     @BeforeClass
     public static void beforeClass() throws Exception
@@ -69,19 +75,19 @@ public class MailApiControllerTest extends StaticNinjaTest
         final String apiToken = user.getApiToken();
 
         final MBox emptyMailbox = TestDataUtils.createMailbox(user);
-        emptyMailboxId = String.valueOf(emptyMailbox.getId());
+        emptyMailboxAddress = emptyMailbox.getFullAddress();
 
         mailbox = TestDataUtils.createMailbox(user);
-        mailboxId = String.valueOf(mailbox.getId());
+        mailboxAddress = mailbox.getFullAddress();
 
         TestDataUtils.createMultiPartMail(mailbox);
-        final Mail mailWithAttachments = TestDataUtils.createMailWithAttachments(mailbox);
+        mailWithAttachments = TestDataUtils.createMailWithAttachments(mailbox);
         mailId = String.valueOf(mailWithAttachments.getId());
 
         // create another user, mailbox, and mail
         final User otherUser = TestDataUtils.createUser();
         final MBox otherUsersMailbox = TestDataUtils.createMailbox(otherUser);
-        otherUsersMailboxId = String.valueOf(otherUsersMailbox.getId());
+        otherUsersMailboxAddress = otherUsersMailbox.getFullAddress();
 
         final Mail otherUsersMail = TestDataUtils.createMultiPartMail(otherUsersMailbox);
         otherUsersMailId = String.valueOf(otherUsersMail.getId());
@@ -98,7 +104,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     @Test
     public void listMails_emptyMailbox() throws Exception
     {
-        final HttpResponse response = apiClient.listMails(emptyMailboxId, "");
+        final HttpResponse response = apiClient.listMails(emptyMailboxAddress);
 
         RestApiTestUtils.validateStatusCode(response, 200);
 
@@ -112,12 +118,28 @@ public class MailApiControllerTest extends StaticNinjaTest
     @Test
     public void listMails_nonEmptyMailbox() throws Exception
     {
-        final HttpResponse response = apiClient.listMails(mailboxId, "");
+        final HttpResponse response = apiClient.listMails(mailboxAddress);
 
         RestApiTestUtils.validateStatusCode(response, 200);
 
         final MailData[] mailDatas = RestApiTestUtils.getResponseBodyAs(response, MailData[].class);
         Assert.assertEquals(2, mailDatas.length);
+    }
+
+    /**
+     * Checks that listing the mails of a non-empty mailbox of mine with last match set returns a list with a single
+     * mail.
+     */
+    @Test
+    public void listMails_withLastMatchOnly() throws Exception
+    {
+        HttpResponse response = apiClient.listMails(mailboxAddress, true);
+
+        RestApiTestUtils.validateStatusCode(response, 200);
+
+        MailData[] mailDatas = RestApiTestUtils.getResponseBodyAs(response, MailData[].class);
+        Assert.assertEquals(1, mailDatas.length);
+        Assert.assertEquals(mailWithAttachments.getSubject(), mailDatas[0].subject);
     }
 
     /**
@@ -128,7 +150,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     public void listMails_withSubjectFilter() throws Exception
     {
         // select mail with attachments
-        HttpResponse response = apiClient.listMails(mailboxId, "attachments");
+        HttpResponse response = apiClient.listMails(mailboxAddress, "attachments");
 
         RestApiTestUtils.validateStatusCode(response, 200);
 
@@ -136,7 +158,7 @@ public class MailApiControllerTest extends StaticNinjaTest
         Assert.assertEquals(1, mailDatas.length);
 
         // select multi-part mail
-        response = apiClient.listMails(mailboxId, "Warenkorb");
+        response = apiClient.listMails(mailboxAddress, "Warenkorb");
 
         RestApiTestUtils.validateStatusCode(response, 200);
 
@@ -144,7 +166,7 @@ public class MailApiControllerTest extends StaticNinjaTest
         Assert.assertEquals(1, mailDatas.length);
 
         // filter does not match any mail
-        response = apiClient.listMails(mailboxId, "nonsense");
+        response = apiClient.listMails(mailboxAddress, "nonsense");
 
         RestApiTestUtils.validateStatusCode(response, 200);
 
@@ -158,10 +180,10 @@ public class MailApiControllerTest extends StaticNinjaTest
     @Test
     public void listMails_someoneElsesMailbox() throws Exception
     {
-        final HttpResponse response = apiClient.listMails(otherUsersMailboxId, "");
+        final HttpResponse response = apiClient.listMails(otherUsersMailboxAddress);
 
         RestApiTestUtils.validateStatusCode(response, 403);
-        RestApiTestUtils.validateErrors(response, "mailboxId");
+        RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
 
     /**
@@ -170,7 +192,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     @Test
     public void listMails_invalidSubjectPattern() throws Exception
     {
-        final HttpResponse response = apiClient.listMails(mailboxId, "[xyz");
+        final HttpResponse response = apiClient.listMails(mailboxAddress, "[xyz");
 
         RestApiTestUtils.validateStatusCode(response, 400);
         RestApiTestUtils.validateErrors(response, "subject");
@@ -182,10 +204,10 @@ public class MailApiControllerTest extends StaticNinjaTest
     @Test
     public void listMails_invalidId() throws Exception
     {
-        final HttpResponse response = apiClient.listMails(invalidId, "");
+        final HttpResponse response = apiClient.listMails(invalidAddress);
 
         RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "mailboxId");
+        RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
 
     /**
@@ -194,7 +216,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     @Test
     public void listMails_unknownMailbox() throws Exception
     {
-        final HttpResponse response = apiClient.listMails(unknownId, "");
+        final HttpResponse response = apiClient.listMails(unknownAddress);
 
         // TODO: 404 or empty list?
         RestApiTestUtils.validateStatusCode(response, 404);
@@ -222,7 +244,7 @@ public class MailApiControllerTest extends StaticNinjaTest
         final HttpResponse response = apiClient.getMail(otherUsersMailId);
 
         RestApiTestUtils.validateStatusCode(response, 403);
-        RestApiTestUtils.validateErrors(response, "id");
+        RestApiTestUtils.validateErrors(response, "mailId");
     }
 
     /**
@@ -234,7 +256,7 @@ public class MailApiControllerTest extends StaticNinjaTest
         final HttpResponse response = apiClient.getMail(invalidId);
 
         RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "id");
+        RestApiTestUtils.validateErrors(response, "mailId");
     }
 
     /**
@@ -313,27 +335,27 @@ public class MailApiControllerTest extends StaticNinjaTest
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 403);
-        RestApiTestUtils.validateErrors(response, "id");
+        RestApiTestUtils.validateErrors(response, "mailId");
     }
 
     /**
      * Checks that deleting a mail with an invalid ID fails with an error.
      */
     @Test
-    public void deleteMail_invalidId() throws Exception
+    public void deleteMail_invalidMailId() throws Exception
     {
         final HttpResponse response = apiClient.deleteMail(invalidId);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "id");
+        RestApiTestUtils.validateErrors(response, "mailId");
     }
 
     /**
      * Checks that deleting a mail with an unknown ID fails with an error.
      */
     @Test
-    public void deleteMail_unknownMail() throws Exception
+    public void deleteMail_unknownMailId() throws Exception
     {
         final HttpResponse response = apiClient.deleteMail(unknownId);
 

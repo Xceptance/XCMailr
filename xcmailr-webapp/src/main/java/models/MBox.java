@@ -449,6 +449,24 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
+     * Returns the mailbox with the given mail address.
+     * 
+     * @param mailAddress
+     *            the complete mail address
+     * @return the MBox object that belongs to this address, or <code>null</code> if not found
+     */
+    public static MBox getByAddress(final String mailAddress)
+    {
+        final String[] parts = StringUtils.split(mailAddress, "@");
+        if (parts == null || parts.length != 2)
+        {
+            return null;
+        }
+
+        return getByName(parts[0], parts[1]);
+    }
+
+    /**
      * Checks the relation between a {@link User} and a Box
      * 
      * @param bId

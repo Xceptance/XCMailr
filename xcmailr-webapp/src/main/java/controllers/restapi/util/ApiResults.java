@@ -1,7 +1,9 @@
 package controllers.restapi.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -53,11 +55,12 @@ public class ApiResults
      */
     public static Result badRequest(List<ConstraintViolation> constraintViolations)
     {
+        // convert constraint violations to API errors
         List<ApiError> errors = constraintViolations.stream()
                                                     .map(cv -> new ApiError(cv.getFieldKey(), cv.getDefaultMessage()))
                                                     .collect(Collectors.toList());
 
-        return Results.badRequest().json().render(errors);
+        return Results.badRequest().json().render(new ApiErrors(errors));
     }
 
     /**
@@ -81,7 +84,7 @@ public class ApiResults
         List<ApiError> errors = new ArrayList<ApiError>();
         errors.add(new ApiError(fieldName, message));
 
-        return Results.forbidden().json().render(errors);
+        return Results.forbidden().json().render(new ApiErrors(errors));
     }
 
     /**

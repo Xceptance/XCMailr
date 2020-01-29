@@ -146,15 +146,16 @@ public class Routes implements ApplicationRoutes
         // mailboxes
         router.GET().route("/api/v1/mailboxes").with(MailboxApiController::listMailboxes);
         router.POST().route("/api/v1/mailboxes").with(MailboxApiController::createMailbox);
-        router.GET().route("/api/v1/mailboxes/{id}").with(MailboxApiController::getMailbox);
-        router.PUT().route("/api/v1/mailboxes/{id}").with(MailboxApiController::updateMailbox);
-        router.DELETE().route("/api/v1/mailboxes/{id}").with(MailboxApiController::deleteMailbox);
+        router.GET().route("/api/v1/mailboxes/{mailboxAddress}").with(MailboxApiController::getMailbox);
+        router.PUT().route("/api/v1/mailboxes/{mailboxAddress}").with(MailboxApiController::updateMailbox);
+        router.DELETE().route("/api/v1/mailboxes/{mailboxAddress}").with(MailboxApiController::deleteMailbox);
 
         // mails
         router.GET().route("/api/v1/mails").with(MailApiController::listMails);
-        router.GET().route("/api/v1/mails/{id}").with(MailApiController::getMail);
-        router.DELETE().route("/api/v1/mails/{id}").with(MailApiController::deleteMail);
-        router.GET().route("/api/v1/mails/{id}/attachments/{attachmentName}").with(MailApiController::getMailAttachment);
+        router.GET().route("/api/v1/mails/{mailId}").with(MailApiController::getMail);
+        router.DELETE().route("/api/v1/mails/{mailId}").with(MailApiController::deleteMail);
+        router.GET().route("/api/v1/mails/{mailId}/attachments/{attachmentName}")
+              .with(MailApiController::getMailAttachment);
 
         /*
          * Assets-Handling (Ninja's AssetsController)

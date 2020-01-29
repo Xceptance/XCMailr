@@ -9,12 +9,10 @@ import models.MBox;
  */
 public class MailboxData
 {
-    public long id;
-
     @Email
-    public String email;
+    public String address;
 
-    public long expirationDate;
+    public long deactivationTime;
 
     public boolean forwardEnabled;
 
@@ -24,9 +22,8 @@ public class MailboxData
 
     public MailboxData(MBox mailbox)
     {
-        id = mailbox.getId();
-        email = mailbox.getFullAddress();
-        expirationDate = mailbox.getTs_Active();
+        address = mailbox.getFullAddress();
+        deactivationTime = mailbox.getTs_Active();
         forwardEnabled = mailbox.isForwardEmails();
     }
 }

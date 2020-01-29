@@ -38,7 +38,9 @@ public class MailboxApiControllerTest extends StaticNinjaTest
 {
     // --- test data -----------------------------------
 
-    private static final String invalidId = "totallyInvalidId";
+    private static final String invalidAddress = "totallyInvalidAddress";
+
+    private static final String unknownAddress = "foo@example.org";
 
     private User user;
 
@@ -107,7 +109,7 @@ public class MailboxApiControllerTest extends StaticNinjaTest
         RestApiTestUtils.validateMailboxData(mailboxData, mailboxAddress, expirationDate, forwardEnabled);
 
         // validate database
-        MBox mailbox = MBox.getById(mailboxData.id);
+        MBox mailbox = MBox.getByAddress(mailboxData.address);
         RestApiTestUtils.validateMailbox(mailbox, mailboxData);
     }
 
@@ -172,7 +174,7 @@ public class MailboxApiControllerTest extends StaticNinjaTest
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "email");
+        RestApiTestUtils.validateErrors(response, "address");
     }
 
     /**
@@ -198,10 +200,9 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     {
         // prepare data
         final MBox mailbox = TestDataUtils.createMailbox(user);
-        final String mailboxId = String.valueOf(mailbox.getId());
 
         // execute request
-        final HttpResponse response = apiClient.getMailbox(mailboxId);
+        final HttpResponse response = apiClient.getMailbox(mailbox.getFullAddress());
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 200);
@@ -219,28 +220,41 @@ public class MailboxApiControllerTest extends StaticNinjaTest
         // prepare data
         final User otherUser = TestDataUtils.createUser();
         final MBox otherUsersMailbox = TestDataUtils.createMailbox(otherUser);
-        final String otherUsersMailboxId = String.valueOf(otherUsersMailbox.getId());
 
         // execute request
-        final HttpResponse response = apiClient.getMailbox(otherUsersMailboxId);
+        final HttpResponse response = apiClient.getMailbox(otherUsersMailbox.getFullAddress());
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 403);
-        RestApiTestUtils.validateErrors(response, "id");
+        RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
 
     /**
      * Checks that retrieving the details of a mailbox with an invalid ID fails with an error.
      */
+    // @Test
+    // public void getMailbox_invalidId() throws Exception
+    // {
+    // // execute request
+    // final HttpResponse response = apiClient.getMailbox(invalidId);
+    //
+    // // validate response
+    // RestApiTestUtils.validateStatusCode(response, 400);
+    // RestApiTestUtils.validateErrors(response, "id");
+    // }
+
+    /**
+     * Checks that retrieving the details of a mailbox with an invalid address fails with an error.
+     */
     @Test
-    public void getMailbox_invalidId() throws Exception
+    public void getMailbox_invalidAddress() throws Exception
     {
         // execute request
-        final HttpResponse response = apiClient.getMailbox(invalidId);
+        final HttpResponse response = apiClient.getMailbox(invalidAddress);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "id");
+        RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
 
     /**
@@ -250,7 +264,7 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     public void getMailbox_unknownMailbox() throws Exception
     {
         // execute request
-        final HttpResponse response = apiClient.getMailbox("12345678");
+        final HttpResponse response = apiClient.getMailbox(unknownAddress);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 404);
@@ -266,13 +280,12 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     {
         // prepare data
         MBox mailbox = TestDataUtils.createMailbox(user);
-        final String mailboxId = String.valueOf(mailbox.getId());
         final String mailboxAddress = "updated@xcmailr.test";
         final long expirationDate = System.currentTimeMillis();
         final boolean forwardEnabled = true;
 
         // execute request
-        final HttpResponse response = apiClient.updateMailbox(mailboxId, mailboxAddress, expirationDate,
+        final HttpResponse response = apiClient.updateMailbox(mailbox.getFullAddress(), mailboxAddress, expirationDate,
                                                               forwardEnabled);
 
         // validate response
@@ -294,13 +307,12 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     {
         // prepare data
         MBox mailbox = TestDataUtils.createMailbox(user);
-        final String mailboxId = String.valueOf(mailbox.getId());
         final String mailboxAddress = mailbox.getFullAddress();
         final long expirationDate = System.currentTimeMillis();
         final boolean forwardEnabled = true;
 
         // execute request
-        final HttpResponse response = apiClient.updateMailbox(mailboxId, mailboxAddress, expirationDate,
+        final HttpResponse response = apiClient.updateMailbox(mailboxAddress, mailboxAddress, expirationDate,
                                                               forwardEnabled);
 
         // validate response
@@ -323,16 +335,15 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     {
         // prepare data
         MBox mailbox = TestDataUtils.createMailbox(user);
-        final String mailboxId = String.valueOf(mailbox.getId());
         MBox otherMailbox = TestDataUtils.createMailbox(user);
 
         // execute request
-        final HttpResponse response = apiClient.updateMailbox(mailboxId, otherMailbox.getFullAddress(),
+        final HttpResponse response = apiClient.updateMailbox(mailbox.getFullAddress(), otherMailbox.getFullAddress(),
                                                               System.currentTimeMillis(), false);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 403);
-        RestApiTestUtils.validateErrors(response, "email");
+        RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
 
     /**
@@ -344,18 +355,18 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     {
         // prepare data
         final MBox mailbox = TestDataUtils.createMailbox(user);
-        final String mailboxId = String.valueOf(mailbox.getId());
 
         final User otherUser = TestDataUtils.createUser();
         final MBox otherUsersMailbox = TestDataUtils.createMailbox(otherUser);
 
         // execute request
-        final HttpResponse response = apiClient.updateMailbox(mailboxId, otherUsersMailbox.getFullAddress(),
+        final HttpResponse response = apiClient.updateMailbox(mailbox.getFullAddress(),
+                                                              otherUsersMailbox.getFullAddress(),
                                                               System.currentTimeMillis(), false);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 403);
-        RestApiTestUtils.validateErrors(response, "email");
+        RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
 
     /**
@@ -367,31 +378,30 @@ public class MailboxApiControllerTest extends StaticNinjaTest
         // prepare data
         final User otherUser = TestDataUtils.createUser();
         final MBox otherUsersMailbox = TestDataUtils.createMailbox(otherUser);
-        final String otherUsersMailboxId = String.valueOf(otherUsersMailbox.getId());
 
         // execute request
-        final HttpResponse response = apiClient.updateMailbox(otherUsersMailboxId, "foo@bar.com",
+        final HttpResponse response = apiClient.updateMailbox(otherUsersMailbox.getFullAddress(), "foo@bar.com",
                                                               System.currentTimeMillis(), false);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 403);
-        RestApiTestUtils.validateErrors(response, "id");
+        RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
 
     /**
      * Checks that updating a mailbox with an invalid ID fails with an error.
      */
-    @Test
-    public void updateMailbox_invalidId() throws Exception
-    {
-        // execute request
-        final HttpResponse response = apiClient.updateMailbox(invalidId, "foo@bar.com", System.currentTimeMillis(),
-                                                              false);
-
-        // validate response
-        RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "id");
-    }
+    // @Test
+    // public void updateMailbox_invalidId() throws Exception
+    // {
+    // // execute request
+    // final HttpResponse response = apiClient.updateMailbox(invalidId, "foo@bar.com", System.currentTimeMillis(),
+    // false);
+    //
+    // // validate response
+    // RestApiTestUtils.validateStatusCode(response, 400);
+    // RestApiTestUtils.validateErrors(response, "id");
+    // }
 
     /**
      * Checks that updating a mailbox with invalid email address fails with an error.
@@ -401,15 +411,14 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     {
         // prepare data
         final MBox mailbox = TestDataUtils.createMailbox(user);
-        final String mailboxId = String.valueOf(mailbox.getId());
 
         // execute request
-        final HttpResponse response = apiClient.updateMailbox(mailboxId, "foo(at)bar.com", System.currentTimeMillis(),
-                                                              false);
+        final HttpResponse response = apiClient.updateMailbox(mailbox.getFullAddress(), "foo(at)bar.com",
+                                                              System.currentTimeMillis(), false);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "email");
+        RestApiTestUtils.validateErrors(response, "address");
     }
 
     /**
@@ -420,15 +429,14 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     {
         // prepare data
         final MBox mailbox = TestDataUtils.createMailbox(user);
-        final String mailboxId = String.valueOf(mailbox.getId());
 
         // execute request
-        final HttpResponse response = apiClient.updateMailbox(mailboxId, "foo@bar.com", System.currentTimeMillis(),
-                                                              false);
+        final HttpResponse response = apiClient.updateMailbox(mailbox.getFullAddress(), "foo@bar.com",
+                                                              System.currentTimeMillis(), false);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 403);
-        RestApiTestUtils.validateErrors(response, "email");
+        RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
 
     // -----------------------------------------------------------
@@ -441,13 +449,12 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     {
         // prepare data
         final MBox mailbox = TestDataUtils.createMailbox(user);
-        final String mailboxId = String.valueOf(mailbox.getId());
 
         // validate database
         Assert.assertNotNull(MBox.getById(mailbox.getId()));
 
         // execute request
-        final HttpResponse response = apiClient.deleteMailbox(mailboxId);
+        final HttpResponse response = apiClient.deleteMailbox(mailbox.getFullAddress());
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 204);
@@ -465,27 +472,26 @@ public class MailboxApiControllerTest extends StaticNinjaTest
         // prepare data
         final User otherUser = TestDataUtils.createUser();
         final MBox otherUsersMailbox = TestDataUtils.createMailbox(otherUser);
-        final String otherUsersMailboxId = String.valueOf(otherUsersMailbox.getId());
 
         // execute request
-        final HttpResponse response = apiClient.deleteMailbox(otherUsersMailboxId);
+        final HttpResponse response = apiClient.deleteMailbox(otherUsersMailbox.getFullAddress());
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 403);
     }
 
     /**
-     * Checks that deleting a mailbox by an invalid ID fails with an error.
+     * Checks that deleting a mailbox by an invalid address fails with an error.
      */
     @Test
-    public void deleteMailbox_invalidId() throws Exception
+    public void deleteMailbox_invalidMailboxAddress() throws Exception
     {
         // execute request
-        final HttpResponse response = apiClient.deleteMailbox(invalidId);
+        final HttpResponse response = apiClient.deleteMailbox(invalidAddress);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "id");
+        RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
 
     /**
@@ -495,7 +501,7 @@ public class MailboxApiControllerTest extends StaticNinjaTest
     public void deleteMailbox_unknownMailbox() throws Exception
     {
         // execute request
-        final HttpResponse response = apiClient.deleteMailbox("12345678");
+        final HttpResponse response = apiClient.deleteMailbox(unknownAddress);
 
         // validate response
         RestApiTestUtils.validateStatusCode(response, 404);

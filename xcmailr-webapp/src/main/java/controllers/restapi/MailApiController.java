@@ -1,5 +1,5 @@
 /**  
- *  Copyright 2013 the original author or authors.
+ *  Copyright 2020 by the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.google.inject.Inject;
 import controllers.restapi.util.AbstractApiController;
 import controllers.restapi.util.ApiResults;
 import controllers.restapi.util.DbId;
+import controllers.restapi.util.Email;
 import etc.StreamRenderable;
 import filters.ApiTokenFilter;
 import models.MBox;
@@ -57,10 +58,10 @@ public class MailApiController extends AbstractApiController
     Logger log;
 
     /**
-     * Lists the details of all mails in a certain mailbox of a certain user.
+     * Lists the details of all mails in a certain mailbox.
      * 
-     * @param mailboxId
-     *            the ID of the mailbox to list
+     * @param mailboxAddress
+     *            the address of the mailbox to list
      * @param userId
      *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
@@ -68,12 +69,12 @@ public class MailApiController extends AbstractApiController
      * @return the details of the mails as an array of {@link MailData} objects in JSON format
      * @throws Exception
      */
-    // @Get("/api/v1/mails?mailboxId={mailboxId}")
-    public Result listMails(@Param("mailboxId") @DbId Long mailboxId, @Attribute("userId") @DbId Long userId,
-                            Context context)
+    // @Get("/api/v1/mails?mailboxAddress={mailboxAddress}")
+    public Result listMails(@Param("mailboxAddress") @Email String mailboxAddress,
+                            @Attribute("userId") @DbId Long userId, Context context)
         throws Exception
     {
-        boolean lastMatch = context.getParameter("lastMatch") != null;
+        final boolean lastMatch = context.getParameterAs("lastMatch", boolean.class, false);
 
         final Pattern senderPattern = createPatternFromParameter("from", context);
         final Pattern subjectPattern = createPatternFromParameter("subject", context);
@@ -82,14 +83,14 @@ public class MailApiController extends AbstractApiController
         final Pattern headerPattern = createPatternFromParameter("mailHeader", context);
 
         // report validation errors if any
-        Validation validation = context.getValidation();
+        final Validation validation = context.getValidation();
         if (validation.hasViolations())
         {
             return ApiResults.badRequest(validation.getViolations());
         }
 
         // check that the mailbox exists
-        MBox mailbox = MBox.getById(mailboxId);
+        final MBox mailbox = MBox.getByAddress(mailboxAddress);
         if (mailbox == null)
         {
             return ApiResults.notFound();
@@ -98,7 +99,7 @@ public class MailApiController extends AbstractApiController
         // check that the mailbox belongs to our user
         if (mailbox.getUsr().getId() != userId)
         {
-            return ApiResults.forbidden("mailboxId", "Mailbox belongs to another user.");
+            return ApiResults.forbidden("mailboxAddress", "Mailbox belongs to another user.");
         }
 
         // return the mails
@@ -109,7 +110,7 @@ public class MailApiController extends AbstractApiController
     /**
      * Returns the details of a certain mail.
      * 
-     * @param id
+     * @param mailId
      *            the mail ID
      * @param userId
      *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
@@ -117,10 +118,11 @@ public class MailApiController extends AbstractApiController
      *            the current Ninja context
      * @return the details of the mail as a {@link MailData} object in JSON format
      */
-    // @Get("/api/v1/mails/<id>")
-    public Result getMail(@PathParam("id") @DbId Long id, @Attribute("userId") @DbId Long userId, Context context)
+    // @Get("/api/v1/mails/<mailId>")
+    public Result getMail(@PathParam("mailId") @DbId Long mailId, @Attribute("userId") @DbId Long userId,
+                          Context context)
     {
-        return performAction(id, userId, context, mail -> {
+        return performAction(mailId, userId, context, mail -> {
 
             MailData mailData;
             try
@@ -139,7 +141,7 @@ public class MailApiController extends AbstractApiController
     /**
      * Returns an attachment to a certain mail.
      * 
-     * @param id
+     * @param mailId
      *            the ID of the mail
      * @param attachmentName
      *            the (file) name of the attachment
@@ -149,12 +151,12 @@ public class MailApiController extends AbstractApiController
      *            the current Ninja context
      * @return the attachment with the correct content type set
      */
-    // @Get("/api/v1/mails/<id>/attachments/<attachmentName>")
-    public Result getMailAttachment(@PathParam("id") @DbId Long id,
+    // @Get("/api/v1/mails/<mailId>/attachments/<attachmentName>")
+    public Result getMailAttachment(@PathParam("mailId") @DbId Long mailId,
                                     @PathParam("attachmentName") @NotBlank String attachmentName,
                                     @Attribute("userId") @DbId Long userId, Context context)
     {
-        return performAction(id, userId, context, mail -> {
+        return performAction(mailId, userId, context, mail -> {
             return serveMailAttachment(context, mail, attachmentName);
         });
     }
@@ -162,7 +164,7 @@ public class MailApiController extends AbstractApiController
     /**
      * Deletes a certain mail.
      * 
-     * @param id
+     * @param mailId
      *            the ID of the mail
      * @param userId
      *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
@@ -170,10 +172,11 @@ public class MailApiController extends AbstractApiController
      *            the current Ninja context
      * @return an empty result
      */
-    // @Delete("/api/v1/mails/<id>")
-    public Result deleteMail(@PathParam("id") @DbId Long id, @Attribute("userId") @DbId Long userId, Context context)
+    // @Delete("/api/v1/mails/<mailId>")
+    public Result deleteMail(@PathParam("mailId") @DbId Long mailId, @Attribute("userId") @DbId Long userId,
+                             Context context)
     {
-        return performAction(id, userId, context, mail -> {
+        return performAction(mailId, userId, context, mail -> {
             mail.delete();
             return ApiResults.noContent();
         });
@@ -185,7 +188,7 @@ public class MailApiController extends AbstractApiController
      * are made.
      * 
      * @param mailId
-     *            the ID of the mail
+     *            the ID of the mail with which to perform the action
      * @param userId
      *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
@@ -212,7 +215,7 @@ public class MailApiController extends AbstractApiController
         // check if the current user is the owner of the mail
         if (mail.getMailbox().getUsr().getId() != userId)
         {
-            return ApiResults.forbidden("id", "Mail belongs to another user.");
+            return ApiResults.forbidden("mailId", "Mail belongs to another user.");
         }
 
         // perform the action with the mail
@@ -246,7 +249,7 @@ public class MailApiController extends AbstractApiController
         List<Mail> mails = Mail.findAndSort(mailbox.getId());
 
         // filter mails
-        List<MailData> entries = new LinkedList<>();
+        List<MailData> filteredMails = new LinkedList<>();
         for (Mail mail : mails)
         {
             final MailData mailData = new MailData(mail);
@@ -261,19 +264,19 @@ public class MailApiController extends AbstractApiController
                     || (mailContent != null && htmlTextPattern.matcher(mailContent.html).find())) //
                 && (headerPattern == null || headerPattern.matcher(mailData.mailHeader).find()))
             {
-                entries.add(mailData);
+                filteredMails.add(mailData);
             }
         }
 
         // reduce list to one if so requested
-        int size = entries.size();
+        int size = filteredMails.size();
         if (size > 1 && lastMatch)
         {
-            entries = entries.subList(size - 1, size);
+            filteredMails = filteredMails.subList(size - 1, size);
         }
 
         // finally return the list as json
-        return ApiResults.ok().render(entries);
+        return ApiResults.ok().render(filteredMails);
     }
 
     /**

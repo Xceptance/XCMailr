@@ -123,60 +123,78 @@ public class RestApiClient
 
     // --- mailboxes ---------------------------------------------
 
-    private static final String jsonBodyTemplate = "{ 'email': '%s', 'expirationDate': %d, 'forwardEnabled': %b }".replace('\'',
-                                                                                                                           '"');
+    private static final String jsonBodyTemplate = "{ 'address': '%s', 'deactivationTime': %d, 'forwardEnabled': %b }".replace('\'',
+                                                                                                                               '"');
 
     public HttpResponse listMailboxes() throws Exception
     {
         return executeRequest(HttpGet.METHOD_NAME, "mailboxes", null);
     }
 
-    public HttpResponse createMailbox(final String email, final long expirationDate, final boolean forwardEnabled)
+    public HttpResponse createMailbox(final String address, final long expirationDate, final boolean forwardEnabled)
         throws Exception
     {
-        final String body = String.format(jsonBodyTemplate, email, expirationDate, forwardEnabled);
+        final String body = String.format(jsonBodyTemplate, address, expirationDate, forwardEnabled);
 
         return executeRequest(HttpPost.METHOD_NAME, "mailboxes", body);
     }
 
-    public HttpResponse getMailbox(final String id) throws Exception
+    public HttpResponse getMailbox(final String address) throws Exception
     {
-        return executeRequest(HttpGet.METHOD_NAME, "mailboxes/" + id, null);
+        return executeRequest(HttpGet.METHOD_NAME, "mailboxes/" + address, null);
     }
 
-    public HttpResponse updateMailbox(final String id, final String email, final long expirationDate,
+    public HttpResponse updateMailbox(final String address, final String newAddress, final long deactivationTime,
                                       final boolean forwardEnabled)
         throws Exception
     {
-        final String body = String.format(jsonBodyTemplate, email, expirationDate, forwardEnabled);
+        final String body = String.format(jsonBodyTemplate, newAddress, deactivationTime, forwardEnabled);
 
-        return executeRequest(HttpPut.METHOD_NAME, "mailboxes/" + id, body);
+        return executeRequest(HttpPut.METHOD_NAME, "mailboxes/" + address, body);
     }
 
-    public HttpResponse deleteMailbox(final String id) throws Exception
+    public HttpResponse deleteMailbox(final String address) throws Exception
     {
-        return executeRequest(HttpDelete.METHOD_NAME, "mailboxes/" + id, null);
+        return executeRequest(HttpDelete.METHOD_NAME, "mailboxes/" + address, null);
     }
 
     // --- mails ---------------------------------------------
 
-    public HttpResponse listMails(final String mailboxId, final String subjectPattern) throws Exception
+    public HttpResponse listMails(final String mailboxAddress) throws Exception
     {
-        return executeRequest(HttpGet.METHOD_NAME, "mails?mailboxId=" + mailboxId + "&subject=" + subjectPattern, null);
+        return listMails(mailboxAddress, false, "");
     }
 
-    public HttpResponse getMail(final String id) throws Exception
+    public HttpResponse listMails(final String mailboxAddress, final String subjectPattern) throws Exception
     {
-        return executeRequest(HttpGet.METHOD_NAME, "mails/" + id, null);
+        return listMails(mailboxAddress, false, subjectPattern);
     }
 
-    public HttpResponse getMailAttachment(final String id, final String attachmentName) throws Exception
+    public HttpResponse listMails(final String mailboxAddress, final boolean lastMatchOnly) throws Exception
     {
-        return executeRequest(HttpGet.METHOD_NAME, "mails/" + id + "/attachments/" + attachmentName, null);
+        return listMails(mailboxAddress, lastMatchOnly, "");
     }
 
-    public HttpResponse deleteMail(final String id) throws Exception
+    public HttpResponse listMails(final String mailboxAddress, final boolean lastMatchOnly, final String subjectPattern)
+        throws Exception
     {
-        return executeRequest(HttpDelete.METHOD_NAME, "mails/" + id, null);
+        return executeRequest(HttpGet.METHOD_NAME, "mails?mailboxAddress=" + mailboxAddress + "&lastMatch="
+                                                   + lastMatchOnly + "&subject=" + subjectPattern,
+                              null);
+    }
+
+    public HttpResponse getMail(final String mailId) throws Exception
+    {
+        return executeRequest(HttpGet.METHOD_NAME, "mails/" + mailId, null);
+    }
+
+    public HttpResponse getMailAttachment(final String mailId, final String attachmentName) throws Exception
+    {
+        return executeRequest(HttpGet.METHOD_NAME, "mails/" + mailId + "/attachments/" + attachmentName, null);
+    }
+
+    public HttpResponse deleteMail(final String mailId) throws Exception
+    {
+        return executeRequest(HttpDelete.METHOD_NAME, "mails/" + mailId, null);
     }
 }

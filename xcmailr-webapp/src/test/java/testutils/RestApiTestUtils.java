@@ -27,6 +27,7 @@ import com.google.gson.Gson;
 
 import controllers.restapi.MailboxData;
 import controllers.restapi.util.ApiError;
+import controllers.restapi.util.ApiErrors;
 import models.MBox;
 
 /**
@@ -40,8 +41,8 @@ public class RestApiTestUtils
      */
     public static void validateMailbox(final MBox mailbox, final MailboxData mailboxData)
     {
-        Assert.assertEquals(mailboxData.email, mailbox.getFullAddress());
-        Assert.assertEquals(mailboxData.expirationDate, mailbox.getTs_Active());
+        Assert.assertEquals(mailboxData.address, mailbox.getFullAddress());
+        Assert.assertEquals(mailboxData.deactivationTime, mailbox.getTs_Active());
         Assert.assertEquals(mailboxData.forwardEnabled, mailbox.isForwardEmails());
     }
 
@@ -60,8 +61,8 @@ public class RestApiTestUtils
     public static void validateMailboxData(final MailboxData mailbox, final String email, final long epirationDate,
                                            final boolean forwardEnabled)
     {
-        Assert.assertEquals(email, mailbox.email);
-        Assert.assertEquals(epirationDate, mailbox.expirationDate);
+        Assert.assertEquals(email, mailbox.address);
+        Assert.assertEquals(epirationDate, mailbox.deactivationTime);
         Assert.assertEquals(forwardEnabled, mailbox.forwardEnabled);
     }
 
@@ -99,15 +100,13 @@ public class RestApiTestUtils
     public static void validateErrors(final HttpResponse response, final String... fieldNames) throws Exception
     {
         // extract errors from JSON response
-        final HttpEntity entity = response.getEntity();
-        final String text = EntityUtils.toString(entity);
-        final ApiError[] errors = new Gson().fromJson(text, ApiError[].class);
+        final ApiErrors errors = getResponseBodyAs(response, ApiErrors.class);
 
-        // validate
-        Assert.assertEquals(fieldNames.length, errors.length);
-        for (int i = 0; i < errors.length; i++)
+        // validate the name
+        Assert.assertEquals(fieldNames.length, errors.errors.size());
+        for (int i = 0; i < errors.errors.size(); i++)
         {
-            Assert.assertEquals(fieldNames[i], errors[i].field);
+            Assert.assertEquals(fieldNames[i], errors.errors.get(i).parameter);
         }
     }
 
