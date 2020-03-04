@@ -188,7 +188,7 @@ public final class HelperUtils
         List<String[]> availableLanguageList = new ArrayList<String[]>();
         for (String abbreviatedLanguageCode : availableLanguages)
         {
-            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult).get();
+            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult).orElse(abbreviatedLanguageCode);
             availableLanguageList.add(new String[]
                 {
                   abbreviatedLanguageCode, languageTranslation

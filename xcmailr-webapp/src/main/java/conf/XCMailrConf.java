@@ -18,6 +18,8 @@ package conf;
 
 import java.util.ArrayList;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -210,7 +212,7 @@ public class XCMailrConf
         APP_NAME = ninjaProp.getOrDie("application.name");
         APP_HOME = ninjaProp.getOrDie("application.url");
         APP_BASEPATH = ninjaProp.getOrDie("application.basedir");
-        APP_LANGS = ninjaProp.getStringArray("application.languages");
+        APP_LANGS = filterDuplicates(ninjaProp.getStringArray("application.languages"), false);
         APP_DEFAULT_ENTRYNO = ninjaProp.getIntegerWithDefault("application.default.entriesperpage", 15);
         APP_WHITELIST = ninjaProp.getBooleanOrDie("application.whitelist");
         ADMIN_ADDRESS = ninjaProp.getOrDie("mbox.adminaddr");
@@ -219,7 +221,7 @@ public class XCMailrConf
         COOKIE_PREFIX = ninjaProp.getOrDie("application.cookie.prefix");
         COOKIE_EXPIRETIME = ninjaProp.getIntegerOrDie("application.session.expire_time_in_seconds");
 
-        DOMAIN_LIST = filterDuplicates(ninjaProp.getStringArray("mbox.dlist"));
+        DOMAIN_LIST = filterDuplicates(ninjaProp.getStringArray("mbox.dlist"), true);
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
         MB_ENABLE_TLS = ninjaProp.getBooleanWithDefault("mbox.enableTls", true);
@@ -249,19 +251,35 @@ public class XCMailrConf
 
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");
         SESSION_EXPIRETIME = COOKIE_EXPIRETIME + "s";
-        if (DOMAIN_LIST == null)
-        {
-            throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "
-                                       + "Otherwise this app will not work");
-        }
         MAX_MAIL_SIZE = ninjaProp.getIntegerOrDie("mbox.mail.maxsize");
         MAIL_RETENTION_PERIOD = ninjaProp.getIntegerOrDie("mbox.mail.retentionperiod");
         TEMPORARY_MAIL_MAX_VALID_TIME = ninjaProp.getIntegerOrDie("application.temporarymail.maximumvalidtime");
 
         APITOKEN_EXPIRATION = ninjaProp.getIntegerOrDie("application.api.tokenexpirationtime");
+
+        /*
+         * Verify that required settings are valid.
+         */
+
+        if (DOMAIN_LIST == null)
+        {
+            throw new RuntimeException("Key mbox.dlist does not exist. Please include it in your application.conf. "
+                                       + "Otherwise this app will not work");
+        }
+
+        if (APP_LANGS == null)
+        {
+            throw new RuntimeException("Key 'application.languages' does not exist. Please include it in your application.conf. "
+                                       + "Otherwise this app will not work");
+        }
+        if (APP_LANGS.length == 0)
+        {
+            throw new RuntimeException("Key 'application.languages' is empty. Please check your application.conf. "
+                                       + "Otherwise this app will not work");
+        }
     }
 
-    private String[] filterDuplicates(final String[] args)
+    private String[] filterDuplicates(final String[] args, final boolean ignoreCase)
     {
         if (args == null)
         {
@@ -271,7 +289,7 @@ public class XCMailrConf
         final ArrayList<String> list = new ArrayList<>();
         for (final String arg : args)
         {
-            if (arg == null || list.stream().anyMatch(e -> e.equalsIgnoreCase(arg)))
+            if (arg == null || list.stream().anyMatch(e -> ignoreCase ? StringUtils.equalsIgnoreCase(e, arg) : StringUtils.equals(e, arg)))
             {
                 continue;
             }

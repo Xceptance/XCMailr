@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.inject.Inject;
@@ -137,10 +138,11 @@ public class UserHandler
             }
         }
         // set the language
-        if (Arrays.asList(xcmConfiguration.APP_LANGS).contains(userFormData.getLanguage()))
+        String formDataLang = userFormData.getLanguage();
+        if (StringUtils.isNotBlank(formDataLang) && ArrayUtils.contains(xcmConfiguration.APP_LANGS, formDataLang))
         { // set the selected language in the user-object and also in the application
-            user.setLanguage(userFormData.getLanguage());
-            lang.setLanguage(userFormData.getLanguage(), result);
+            user.setLanguage(formDataLang);
+            lang.setLanguage(formDataLang, result);
         }
 
         // update the fore- and surname
@@ -207,10 +209,9 @@ public class UserHandler
 
         // handle the possibility, that the user has no language set (compatibility from updates of old versions, when
         // there was no language-attribute)
-        if (user.getLanguage() == null || user.getLanguage() == "")
+        if (StringUtils.isEmpty(user.getLanguage()))
         {
-            Optional<Result> opt = Optional.of(result);
-            user.setLanguage(lang.getLanguage(context, opt).get());
+            user.setLanguage(lang.getLanguage(context, Optional.of(result)).orElse(xcmConfiguration.APP_LANGS[0]));
             user.update();
             cachingSessionHandler.replace(context.getSession().getId(), xcmConfiguration.COOKIE_EXPIRETIME, user);
         }

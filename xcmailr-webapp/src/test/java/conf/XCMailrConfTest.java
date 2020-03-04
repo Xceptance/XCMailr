@@ -19,6 +19,8 @@ public class XCMailrConfTest
 {
     private static final String MBOX_DOMAINS_PROP = "mbox.dlist";
 
+    private static final String APP_LANG_PROP = "application.languages";
+
     private NinjaPropertiesImpl ninjaProperties;
 
     @Before
@@ -51,8 +53,7 @@ public class XCMailrConfTest
         ninjaProperties.setProperty(MBOX_DOMAINS_PROP, "  xcmailr.test  ");
         final XCMailrConf conf = new XCMailrConf(ninjaProperties);
         Assert.assertNotNull(conf.DOMAIN_LIST);
-        Assert.assertEquals(1, conf.DOMAIN_LIST.length);
-        Assert.assertEquals("xcmailr.test", conf.DOMAIN_LIST[0]);
+        Assert.assertArrayEquals(new String[] {"xcmailr.test"}, conf.DOMAIN_LIST);
     }
 
     @Test
@@ -62,9 +63,7 @@ public class XCMailrConfTest
 
         final XCMailrConf conf = new XCMailrConf(ninjaProperties);
         Assert.assertNotNull(conf.DOMAIN_LIST);
-        Assert.assertEquals(2, conf.DOMAIN_LIST.length);
-        Assert.assertEquals("xcmailr.test", conf.DOMAIN_LIST[0]);
-        Assert.assertEquals("ccmailr.test", conf.DOMAIN_LIST[1]);
+        Assert.assertArrayEquals(new String[] {"xcmailr.test", "ccmailr.test"},conf.DOMAIN_LIST);
     }
 
     @Test
@@ -74,11 +73,87 @@ public class XCMailrConfTest
 
         final XCMailrConf conf = new XCMailrConf(ninjaProperties);
         Assert.assertNotNull(conf.DOMAIN_LIST);
-        Assert.assertEquals(2, conf.DOMAIN_LIST.length);
-        Assert.assertEquals("xcmailr.test", conf.DOMAIN_LIST[0]);
-        Assert.assertEquals("ccmailr.test", conf.DOMAIN_LIST[1]);
+        Assert.assertArrayEquals(new String[] {"xcmailr.test", "ccmailr.test"},conf.DOMAIN_LIST);
     }
-    
+
+    @Test(expected = RuntimeException.class)
+    public void testAppLangUndefined()
+    {
+        ninjaProperties.setProperty(APP_LANG_PROP, null);
+
+        new XCMailrConf(ninjaProperties);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testAppLangEmpty()
+    {
+        ninjaProperties.setProperty(APP_LANG_PROP, "");
+
+        new XCMailrConf(ninjaProperties);
+
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testAppLangBlank()
+    {
+        ninjaProperties.setProperty(APP_LANG_PROP, "    ");
+
+        new XCMailrConf(ninjaProperties);
+    }
+
+    @Test
+    public void testSingleAppLang()
+    {
+        ninjaProperties.setProperty(APP_LANG_PROP, "en");
+
+        final XCMailrConf conf = new XCMailrConf(ninjaProperties);
+        Assert.assertNotNull(conf);
+        Assert.assertArrayEquals(new String[]
+            {
+              "en"
+            }, conf.APP_LANGS);
+
+    }
+
+    @Test
+    public void testMultipleAppLangs()
+    {
+        ninjaProperties.setProperty(APP_LANG_PROP, "en, fr");
+
+        final XCMailrConf conf = new XCMailrConf(ninjaProperties);
+        Assert.assertNotNull(conf);
+        Assert.assertArrayEquals(new String[]
+            {
+              "en", "fr"
+            }, conf.APP_LANGS);
+    }
+
+    @Test
+    public void testMupltipleAppLangsWithDuplicates()
+    {
+        ninjaProperties.setProperty(APP_LANG_PROP, "en, fr, en, fr");
+
+        final XCMailrConf conf = new XCMailrConf(ninjaProperties);
+        Assert.assertNotNull(conf);
+        Assert.assertArrayEquals(new String[]
+            {
+              "en", "fr"
+            }, conf.APP_LANGS);
+    }
+
+    @Test
+    public void testMultipleAppLangsPreserveCasing()
+    {
+        ninjaProperties.setProperty(APP_LANG_PROP, "en, EN, eN, En");
+
+        final XCMailrConf conf = new XCMailrConf(ninjaProperties);
+        Assert.assertNotNull(conf);
+        Assert.assertArrayEquals(new String[]
+            {
+              "en", "EN", "eN", "En"
+            }, conf.APP_LANGS);
+    }
+
     private void disableDelimiterParsing() throws Throwable
     {
         final Field field = NinjaPropertiesImpl.class.getDeclaredField("compositeConfiguration");
