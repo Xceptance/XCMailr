@@ -394,7 +394,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public void increaseFwd()
     {
-        setForwards(getForwards() + 1);
+        increaseForwards();
         Ebean.createSqlUpdate("update mailboxes set forwards = ? where id = ?;") //
              .setParameter(1, getForwards()) //
              .setParameter(2, getId()) //
@@ -406,7 +406,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public void increaseSup()
     {
-        setSuppressions(getSuppressions() + 1);
+        increaseSuppressions();
         Ebean.createSqlUpdate("update mailboxes set suppressions = ? where id = ?;") //
              .setParameter(1, getSuppressions()) //
              .setParameter(2, getId()) //
