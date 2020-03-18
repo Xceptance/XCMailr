@@ -238,7 +238,7 @@ public final class HelperUtils
         mailAddress = StringUtils.defaultString(mailAddress).trim();
         if (mailAddress.length() > 0)
         {
-            return mailAddress.split("\\@");
+            return mailAddress.split("@");
         }
         return null;
     }

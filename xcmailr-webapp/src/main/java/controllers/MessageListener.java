@@ -149,9 +149,9 @@ public class MessageListener implements SimpleMessageListener
         String id = mail.getMessageID();
         if (id != null)
         {
-            String[] splitString = id.split("@");
+            String[] splitString = HelperUtils.splitMailAddress(id);
 
-            if (id.length() >= 2)
+            if (splitString != null && splitString.length > 1)
             {
                 String domain = splitString[1];
 
@@ -211,8 +211,8 @@ public class MessageListener implements SimpleMessageListener
      */
     protected MBox doMboxPreconditionChecks(final String from, final String recipient)
     {
-        final String[] splitAddress = recipient.split("@");
-        if (splitAddress.length != 2)
+        final String[] splitAddress = HelperUtils.splitMailAddress(recipient);
+        if (splitAddress == null || splitAddress.length != 2)
         { // the mail-address does not have the expected pattern -> do nothing, just log it
             createMtxAndAddToQueue(0, from, null, recipient);
             return null;
