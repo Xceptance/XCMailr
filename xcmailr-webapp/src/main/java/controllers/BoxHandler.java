@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -280,15 +279,12 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkDeleteBoxes(Object parameter, Context context)
     {
-        Map<String, Boolean> boxIdMap = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            boxIdMap = (Map<String, Boolean>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        Map<String, Boolean> boxIdMap = castToMapStringBoolean(parameter);
 
         Result result = Results.json();
         if (boxIdMap == null || boxIdMap.isEmpty())
@@ -313,15 +309,12 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkDisableBoxes(Object parameter, Context context)
     {
-        Map<String, Boolean> boxIdMap = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            boxIdMap = (Map<String, Boolean>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        Map<String, Boolean> boxIdMap = castToMapStringBoolean(parameter);
 
         Result result = Results.json();
 
@@ -347,15 +340,12 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkEnablePossibleBoxes(Object parameter, Context context)
     {
-        Map<String, Boolean> boxIdMap = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            boxIdMap = (Map<String, Boolean>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        Map<String, Boolean> boxIdMap = castToMapStringBoolean(parameter);
 
         Result result = Results.json();
 
@@ -381,15 +371,13 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkNewDate(Object parameter, Context context)
     {
-        Map<String, Object> input = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            input = (Map<String, Object>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> input = (Map<String, Object>) parameter;
 
         Result result = Results.json();
         User user = context.getAttribute("user", User.class);
@@ -422,15 +410,12 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkResetBoxes(Object parameter, Context context)
     {
-        Map<String, Boolean> boxIdMap = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            boxIdMap = (Map<String, Boolean>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        Map<String, Boolean> boxIdMap = castToMapStringBoolean(parameter);
 
         Result result = Results.json();
 
@@ -1117,5 +1102,11 @@ public class BoxHandler
         }
 
         return Results.ok().contentType(foundAttachment.getContentType()).renderRaw(baos.toByteArray());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Boolean> castToMapStringBoolean(Object o)
+    {
+        return (Map<String, Boolean>) o;
     }
 }
