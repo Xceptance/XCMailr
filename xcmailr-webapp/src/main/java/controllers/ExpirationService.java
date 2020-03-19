@@ -1,7 +1,6 @@
 package controllers;
 
 import java.sql.Date;
-import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -18,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.avaje.ebean.Ebean;
 
 import conf.XCMailrConf;
+import etc.HelperUtils;
 import etc.StatisticsEntry;
 import models.MBox;
 import models.Mail;
@@ -206,12 +206,13 @@ public class ExpirationService implements Runnable
     private MailStatisticsKey createMailStatisticsKey(MailTransaction mt)
     {
         final String targetDomain = getDomainOfEmail(mt.getRelayaddr());
-        if (targetDomain == null)
+        final String sourceDomain = getDomainOfEmail(mt.getSourceaddr());
+        // neither 'targetDomain' nor 'sourceDomain' must be null
+        if (targetDomain == null || sourceDomain == null)
         {
             return null;
         }
 
-        final String sourceDomain = getDomainOfEmail(mt.getSourceaddr());
         final Date mailDate = new Date(mt.getTs());
         final int quarterHourOfDay = getQuarterHour(mt.getTs());
 
@@ -221,18 +222,13 @@ public class ExpirationService implements Runnable
 
     private String getDomainOfEmail(String email)
     {
-        if (email == null || email.trim().length() == 0)
+        final String[] parts = HelperUtils.splitMailAddress(email);
+        if (parts != null && parts.length > 1)
         {
-            return null;
+            return parts[1];
         }
 
-        String[] split = email.split("\\@");
-        if (split.length != 2)
-        {
-            return null;
-        }
-
-        return split[1];
+        return null;
     }
 
     private int getQuarterHour(long timestamp)

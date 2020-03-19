@@ -1,24 +1,21 @@
 package models;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.spy;
 
 import java.util.List;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ninja.NinjaTest;
 import ninja.utils.NinjaMode;
 import ninja.utils.NinjaProperties;
 import ninja.utils.NinjaPropertiesImpl;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
-
-@RunWith(MockitoJUnitRunner.class)
 public class UserTest extends NinjaTest
 {
     NinjaProperties ninjaProperties;
@@ -38,15 +35,21 @@ public class UserTest extends NinjaTest
     @Test
     public void UsersTest()
     {
-        ninjaProperties = spy(new NinjaPropertiesImpl(NinjaMode.test));
+        ninjaProperties = new NinjaPropertiesImpl(NinjaMode.test);
         /*
          * TEST: create, persist and find a user-object
          */
         User user = new User("forename", "surname", "test@localhost.com", "1234", "en");
         user.save();
         User user2 = User.getById(user.getId());
-        assertNotNull(user);
         assertNotNull(user2);
+        assertEquals(user.getMail(), user2.getMail());
+
+        // test case-insensitive handling of email addresses
+        user2 = User.getUsrByMail("TEst@LOCALhoST.COM");
+        assertNotNull(user2);
+        assertEquals(user.getId(), user2.getId());
+        assertEquals(user.getMail(), user2.getMail());
 
         /*
          * TEST: isAdmin and isLastAdmin-functions

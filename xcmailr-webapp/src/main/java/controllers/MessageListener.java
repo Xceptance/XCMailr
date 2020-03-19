@@ -19,8 +19,6 @@ package controllers;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import javax.mail.Address;
@@ -43,6 +41,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import conf.XCMailrConf;
+import etc.HelperUtils;
 import etc.MessageComposer;
 import models.MBox;
 import models.Mail;
@@ -77,11 +76,9 @@ public class MessageListener implements SimpleMessageListener
     public boolean accept(String from, String recipient)
     {
         // accept the address if the domain is contained in the application.conf
-        String[] splitaddress = recipient.split("@");
+        final String[] splitaddress = HelperUtils.splitMailAddress(recipient);
 
-        List<String> domainlist = Arrays.asList(xcmConfiguration.DOMAIN_LIST);
-
-        if ((splitaddress.length == 2) && (domainlist.contains(splitaddress[1])))
+        if (HelperUtils.checkEmailAddressValidness(splitaddress, xcmConfiguration.DOMAIN_LIST))
             return true;
 
         // the mailaddress has a strange form or has an recipient with a domain-part that does not belong to our
@@ -152,19 +149,17 @@ public class MessageListener implements SimpleMessageListener
         String id = mail.getMessageID();
         if (id != null)
         {
-            String[] splitString = id.split("@");
+            String[] splitString = HelperUtils.splitMailAddress(id);
 
-            if (id.length() >= 2)
+            if (splitString != null && splitString.length > 1)
             {
                 String domain = splitString[1];
-                domain = domain.toLowerCase();
 
                 // check References header
                 String referenceHeaders = mail.getHeader("References", "###");
                 if (referenceHeaders != null)
                 {
-                    referenceHeaders = referenceHeaders.toLowerCase();
-                    if (referenceHeaders.contains("@" + domain))
+                    if (StringUtils.containsIgnoreCase(referenceHeaders, "@" + domain))
                     {
                         // loop detected;
                         errorMessage = "References header references the domain of this email adress: " + domain;
@@ -176,8 +171,7 @@ public class MessageListener implements SimpleMessageListener
                 String inReplyToHeader = mail.getHeader("In-Reply-To", "###");
                 if (inReplyToHeader != null)
                 {
-                    inReplyToHeader = inReplyToHeader.toLowerCase();
-                    if (inReplyToHeader.contains("@" + domain))
+                    if (StringUtils.containsIgnoreCase(inReplyToHeader, "@" + domain))
                     {
                         // loop detected;
                         errorMessage = "In-Reply-To header mentions the domain of this email adress: " + domain;
@@ -217,23 +211,19 @@ public class MessageListener implements SimpleMessageListener
      */
     protected MBox doMboxPreconditionChecks(final String from, final String recipient)
     {
-        final String[] splitAddress;
-        final MBox mailBox;
-
-        splitAddress = recipient.split("@");
-
-        if (splitAddress.length != 2)
+        final String[] splitAddress = HelperUtils.splitMailAddress(recipient);
+        if (splitAddress == null || splitAddress.length != 2)
         { // the mail-address does not have the expected pattern -> do nothing, just log it
             createMtxAndAddToQueue(0, from, null, recipient);
             return null;
         }
 
-        if (MBox.mailExists(splitAddress[0], splitAddress[1]) == false)
+        final MBox mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
+        if (mailBox == null)
         { // mailaddress/forward does not exist
             createMtxAndAddToQueue(100, from, recipient, null);
             return null;
         }
-        mailBox = MBox.getByName(splitAddress[0], splitAddress[1]);
         final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
 
         if (mailBox.isActive() == false)
@@ -269,7 +259,7 @@ public class MessageListener implements SimpleMessageListener
             }
 
             final Address forwardAddress;
-            final String forwardTarget = (mailBox.getUsr() != null) ? mailBox.getUsr().getMail() : "";
+            final String forwardTarget =  mailBox.getUsr().getMail();
 
             final Session session = mailrSenderFactory.getSession();
             session.setDebug(xcmConfiguration.OUT_SMTP_DEBUG);
@@ -426,6 +416,7 @@ public class MessageListener implements SimpleMessageListener
 
     public static class SizeLimitExceededException extends IOException
     {
+        static final long serialVersionUID = -2495864848105342730L;
 
         public SizeLimitExceededException()
         {

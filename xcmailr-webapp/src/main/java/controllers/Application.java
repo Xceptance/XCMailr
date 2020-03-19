@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -80,11 +81,7 @@ public class Application
     {
         Result result = Results.ok().html();
         // set the wanted language
-        if (!StringUtils.isBlank(languageParam))
-        {
-            lang.setLanguage(languageParam, result);
-        }
-
+        enforceUserLang(languageParam, result);
         // show the index-page
         List<String[]> languageList = HelperUtils.getLanguageList(xcmConfiguration.APP_LANGS, context, result,
                                                                   messages);
@@ -181,16 +178,19 @@ public class Application
             registerFormData.clearPasswordFields();
             return result.render("registerUserData", registerFormData);
         }
-        // create the user
-        User user = registerFormData.getAsUser();
 
         // handle the language
-        if (!Arrays.asList(xcmConfiguration.APP_LANGS).contains(user.getLanguage()))
-        { // the language stored in the user-object does not exist in the app
+        String formDataLang = registerFormData.getLanguage();
+        if (StringUtils.isBlank(formDataLang) || !ArrayUtils.contains(xcmConfiguration.APP_LANGS, formDataLang))
+        { // the language stored in the registration form does not exist in the app
             registerFormData.clearPasswordFields();
-            context.getFlashScope().error("flash_PasswordsUnequal");
+            context.getFlashScope().error("flash_FormError");
             return result.render("registerUserData", registerFormData);
+
         }
+
+        // create the user
+        User user = registerFormData.getAsUser();
 
         // generate the confirmation-token
         user.setConfirmation(RandomStringUtils.randomAlphanumeric(20));
@@ -202,7 +202,8 @@ public class Application
                                                   user.getConfirmation(), language);
         context.getFlashScope().success("registerUser_Flash_Successful");
 
-        lang.setLanguage(user.getLanguage(), result);
+        enforceUserLang(user, result);
+
         return Results.redirect(context.getContextPath() + "/");
     }
 
@@ -232,7 +233,7 @@ public class Application
         user.setActive(true);
         user.update();
         context.getFlashScope().success("user_Verify_Success");
-        lang.setLanguage(user.getLanguage(), result);
+        enforceUserLang(user, result);
         return result;
 
     }
@@ -326,8 +327,7 @@ public class Application
         context.getFlashScope().success("login_Flash_LogIn");
 
         // set the language the user wants to have
-        lang.setLanguage(loginUser.getLanguage(), result);
-
+        enforceUserLang(loginUser, result);
         return result.redirect(context.getContextPath() + "/");
 
     }
@@ -394,9 +394,8 @@ public class Application
         // set the new validity-time
         user.setTs_confirm(DateTime.now().plusHours(xcmConfiguration.CONFIRMATION_PERIOD).getMillis());
         user.update();
-        Optional<String> lang = Optional.of(user.getLanguage());
         mailrSenderFactory.sendPwForgotAddressMail(user.getMail(), user.getForename(), String.valueOf(user.getId()),
-                                                   user.getConfirmation(), lang);
+                                                   user.getConfirmation(), Optional.ofNullable(user.getLanguage()));
 
         return result;
     }
@@ -421,7 +420,7 @@ public class Application
 
         // the token is right and the request is in time
         Result result = Results.html();
-        lang.setLanguage(user.getLanguage(), result);
+        enforceUserLang(user, result);
         // show the form for the new password
         return result.render("id", id.toString()).render("token", token);
 
@@ -431,7 +430,7 @@ public class Application
      * Sets a new password for the {@link models.User user}.
      * 
      * @param id
-     *            the ID of th euser
+     *            the ID of the user
      * @param token
      *            the authentication token
      * @param context
@@ -509,5 +508,18 @@ public class Application
         Result result = Results.json();
         String errorMessage = messages.get(messageKey, context, Optional.of(result)).get();
         return result.render("message", errorMessage);
+    }
+
+    protected void enforceUserLang(final User user, final Result result)
+    {
+        enforceUserLang(user.getLanguage(), result);
+    }
+
+    protected void enforceUserLang(final String language, final Result result)
+    {
+        if (StringUtils.isNotBlank(language))
+        {
+            lang.setLanguage(language, result);
+        }
     }
 }

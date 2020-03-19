@@ -17,7 +17,10 @@
 package models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -26,6 +29,7 @@ import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.validation.constraints.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
@@ -56,7 +60,7 @@ public class MBox extends AbstractEntity implements Serializable
 
     /** Mailaddress of the Box */
     @NotEmpty
-    @Pattern(regexp = "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*")
+    @Pattern(regexp = "(?i)^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*")
     private String address;
 
     /** Timestamp for the end of the validity period */
@@ -69,7 +73,7 @@ public class MBox extends AbstractEntity implements Serializable
 
     /** the domain-part of an address */
     @NotEmpty
-    @Pattern(regexp = "[A-Za-z-]+(\\.[\\w-]+)+")
+    @Pattern(regexp = "(?i)[a-z-]+(\\.[\\w-]+)+")
     @Length(min = 1, max = 255)
     private String domain;
 
@@ -82,7 +86,6 @@ public class MBox extends AbstractEntity implements Serializable
     private int suppressions;
 
     /** the version of this box (used for optimisticLock) */
-
     @Version
     @JsonIgnore
     private Long version;
@@ -391,7 +394,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public void increaseFwd()
     {
-        setForwards(getForwards() + 1);
+        increaseForwards();
         Ebean.createSqlUpdate("update mailboxes set forwards = ? where id = ?;") //
              .setParameter(1, getForwards()) //
              .setParameter(2, getId()) //
@@ -403,7 +406,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public void increaseSup()
     {
-        setSuppressions(getSuppressions() + 1);
+        increaseSuppressions();
         Ebean.createSqlUpdate("update mailboxes set suppressions = ? where id = ?;") //
              .setParameter(1, getSuppressions()) //
              .setParameter(2, getId()) //
@@ -444,7 +447,21 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static MBox getByName(String mail, String domain)
     {
-        return Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findUnique();
+        return queryByName(mail, domain).findUnique();
+    }
+
+    /**
+     * Creates an EBean expression list for the given local and domain part.
+     * 
+     * @param localPart
+     *            the local part
+     * @param domainPart
+     *            the domain part
+     * @return expression list
+     */
+    private static ExpressionList<MBox> queryByName(String localPart, String domainPart)
+    {
+        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domainPart);
     }
 
     /**
@@ -473,7 +490,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static String getFwdByName(String mail, String domain)
     {
-        MBox mb = Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findUnique();
+        final MBox mb = getByName(mail, domain);
         return (mb != null && mb.getUsr() != null) ? mb.getUsr().getMail() : "";
     }
 
@@ -508,8 +525,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static boolean mailExists(String mail, String domain)
     {
-        return (!Ebean.find(MBox.class).where().eq("address", mail.toLowerCase()).eq("domain", domain).findList()
-                      .isEmpty());
+        return queryByName(mail, domain).findRowCount() > 0;
     }
 
     /**
@@ -627,20 +643,20 @@ public class MBox extends AbstractEntity implements Serializable
             switch (split.length)
             {
                 case (1): // the entry may be something like "@domain" or "address@"
-                    return exList1.or(Expr.like("address", "%" + split[0] + "%"),
-                                      Expr.like("domain", "%" + split[0] + "%"))
+                    return exList1.or(Expr.ilike("address", "%" + split[0] + "%"),
+                                      Expr.ilike("domain", "%" + split[0] + "%"))
                                   .findList();
 
                 case (2): // the entry was something like "address@domain"
-                    return exList1.eq("address", split[0]).like("domain", "%" + split[1] + "%").findList();
+                    return exList1.ieq("address", split[0]).ilike("domain", "%" + split[1] + "%").findList();
                 default: // the entry was something else
-                    return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%"))
+                    return exList1.or(Expr.ilike("address", "%" + input + "%"), Expr.ilike("domain", "%" + input + "%"))
                                   .findList();
             }
 
         }
-        // the entry may be something like "addr" or "doma" (just a part of the address)
-        return exList1.or(Expr.like("address", "%" + input + "%"), Expr.like("domain", "%" + input + "%")).findList();
+        // the entry may be something like "address" or "domain" (just a part of the address)
+        return exList1.or(Expr.ilike("address", "%" + input + "%"), Expr.ilike("domain", "%" + input + "%")).findList();
     }
 
     /**
@@ -680,29 +696,31 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static String getSelectedMailsForTxt(Long userId, List<Long> boxIds)
     {
-
-        StringBuilder query = new StringBuilder();
         if (boxIds.size() <= 0)
             return "";
 
-        query.append("SELECT m.id, m.address, m.domain FROM MAILBOXES m WHERE ");
-        query.append("m.usr_id = ").append(userId);
-        query.append(" AND (");
-        for (Long bId : boxIds)
-        {
-            query.append(" id = ").append(bId);
-            query.append(" OR");
-        }
-        query.delete(query.length() - 2, query.length());
-        query.append(");");
+        final String baseStmt = "SELECT id, address, domain FROM MAILBOXES WHERE usr_id=" + userId;
 
-        RawSql rawSql = RawSqlBuilder.parse(query.toString()).columnMapping("m.id", "id")
-                                     .columnMapping("m.address", "address").columnMapping("m.domain", "domain")
-                                     .create();
-        Query<MBox> quer = Ebean.find(MBox.class).setRawSql(rawSql);
-        List<MBox> selectedBoxes = quer.findList();
+        final List<MBox> selectedBoxes = new ArrayList<>();
+
+        // process mailboxes in chunks
+        processMailboxesInChunks(baseStmt.toString(), boxIds,
+                                 // cannot use a lambda here as the EBean enhancer is unable to handle it :-(
+                                 new Consumer<String>()
+                                 {
+                                     public void accept(String finalStmt)
+                                     {
+                                         // execute the final statement
+                                         final RawSql rawSql = RawSqlBuilder.parse(finalStmt).create();
+                                         final Query<MBox> query = Ebean.find(MBox.class).setRawSql(rawSql);
+                                         final List<MBox> boxes = query.findList();
+
+                                         // aggregate the results
+                                         selectedBoxes.addAll(boxes);
+                                     }
+                                 });
+
         return getBoxListToText(selectedBoxes);
-
     }
 
     /**
@@ -734,7 +752,7 @@ public class MBox extends AbstractEntity implements Serializable
     public static int removeListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("DELETE FROM MAILBOXES WHERE USR_ID=").append(userId).append(" AND (");
+        sqlSb.append("DELETE FROM MAILBOXES WHERE USR_ID=").append(userId);
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
@@ -752,8 +770,7 @@ public class MBox extends AbstractEntity implements Serializable
     public static int resetListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId)
-             .append(" AND (");
+        sqlSb.append("UPDATE MAILBOXES SET SUPPRESSIONS = 0, FORWARDS = 0 WHERE USR_ID=").append(userId);
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
@@ -771,7 +788,7 @@ public class MBox extends AbstractEntity implements Serializable
     public static int disableListOfBoxes(long userId, List<Long> boxIds)
     {
         StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("UPDATE MAILBOXES SET EXPIRED = TRUE WHERE USR_ID=").append(userId).append(" AND (");
+        sqlSb.append("UPDATE MAILBOXES SET EXPIRED = TRUE WHERE USR_ID=").append(userId);
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
@@ -791,7 +808,6 @@ public class MBox extends AbstractEntity implements Serializable
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE WHERE USR_ID=").append(userId);
         sqlSb.append(" AND (TS_ACTIVE > ").append(DateTime.now().getMillis()).append(" OR TS_ACTIVE = 0) ");
-        sqlSb.append(" AND (");
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
@@ -812,25 +828,68 @@ public class MBox extends AbstractEntity implements Serializable
     {
         StringBuilder sqlSb = new StringBuilder();
         sqlSb.append("UPDATE MAILBOXES SET EXPIRED = FALSE, TS_ACTIVE =").append(ts_Active);
-        sqlSb.append("WHERE USR_ID=").append(userId);
-        sqlSb.append(" AND (");
+        sqlSb.append(" WHERE USR_ID=").append(userId);
         return appendIdsAndExecuteSql(sqlSb, boxIds);
     }
 
-    private static int appendIdsAndExecuteSql(StringBuilder sqlSb, List<Long> boxIds)
+    private static int appendIdsAndExecuteSql(StringBuilder baseStmt, List<Long> boxIds)
     {
         if (boxIds.isEmpty())
             return -1;
 
-        for (Long id : boxIds)
-        {
-            sqlSb.append(" ID=").append(id).append(" OR");
-        }
-        sqlSb.delete(sqlSb.length() - 2, sqlSb.length());
-        sqlSb.append(");");
-        SqlUpdate down = Ebean.createSqlUpdate(sqlSb.toString());
+        final AtomicInteger totalProcessedCount = new AtomicInteger(0);
 
-        return down.execute();
+        // process mailboxes in chunks
+        processMailboxesInChunks(baseStmt.toString(), boxIds,
+                                 // cannot use a lambda here as the EBean enhancer is unable to handle it :-(
+                                 new Consumer<String>()
+                                 {
+                                     public void accept(String stmt)
+                                     {
+                                         // execute the SQL statement
+                                         final SqlUpdate down = Ebean.createSqlUpdate(stmt.toString());
+                                         final int processedCount = down.execute();
+
+                                         // aggregate result
+                                         totalProcessedCount.addAndGet(processedCount);
+                                     }
+                                 });
+
+        // return the aggregated result
+        return totalProcessedCount.get();
+    }
+
+    /**
+     * Processes the mailboxes for the given list of mailbox IDs in chunks of 1000. For each chunk, the base SQL
+     * statement will be extended with the IDs in that chunk and the action will be called with that extended statement.
+     * 
+     * @param baseStmt
+     *            the base SQL statement that will be extended by a chunk of mailbox IDs
+     * @param boxIds
+     *            the total list of mailbox IDs
+     * @param action
+     *            the action to be performed with each chunk
+     */
+    private static void processMailboxesInChunks(String baseStmt, List<Long> boxIds, Consumer<String> action)
+    {
+        int chunkSize = 1000;
+        int totalCount = boxIds.size();
+
+        // process the mailboxes in chunks of 1000
+        for (int i = 0; i < totalCount; i = i + chunkSize)
+        {
+            // get the next chunk of mailbox IDs
+            List<Long> subList = boxIds.subList(i, Math.min(i + chunkSize, totalCount));
+
+            // create a new SQL statement and complete it with our chunk of mailbox IDs
+            StringBuilder stmt = new StringBuilder(baseStmt);
+            stmt.append(" AND ID IN (");
+            stmt.append(StringUtils.join(subList, ", "));
+            stmt.append(");");
+
+            // execute the custom action with the final statement
+            action.accept(stmt.toString());
+        }
     }
 
     public String toString()

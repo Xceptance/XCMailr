@@ -105,7 +105,11 @@ public class JobController
     public void stopActions()
     {
         // stop the forwarding-service
-        smtpServer.stop();
+        if (smtpServer != null)
+        {
+            smtpServer.stop();
+            smtpServer = null;
+        }
 
         // stop the job to expire the mailboxes
         expirationService.shutdown();

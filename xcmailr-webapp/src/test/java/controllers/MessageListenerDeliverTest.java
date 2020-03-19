@@ -7,6 +7,7 @@ import static org.mockito.Mockito.spy;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import conf.XCMailrConf;
@@ -95,6 +96,11 @@ public class MessageListenerDeliverTest extends NinjaTest
         user.setActive(true);
         user.update();
         result = ml.doMboxPreconditionChecks(local, testAddress);
-        assertEquals(result.getUsr(), user);
+        assertEquals(user, result.getUsr());
+
+        // finally, test case-insensitive handling of mail addresses
+        result = ml.doMboxPreconditionChecks(local, StringUtils.capitalize(local) + "@" + domain.toUpperCase());
+        assertEquals(mbx.getId(), result.getId());
+        assertEquals(user, result.getUsr());
     }
 }

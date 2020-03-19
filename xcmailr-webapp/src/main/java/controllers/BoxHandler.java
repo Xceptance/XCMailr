@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
@@ -50,7 +48,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
 import com.avaje.ebean.Ebean;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -66,6 +63,7 @@ import models.Mail;
 import models.User;
 import ninja.Context;
 import ninja.FilterWith;
+import ninja.Ninja;
 import ninja.Result;
 import ninja.Results;
 import ninja.i18n.Messages;
@@ -99,6 +97,9 @@ public class BoxHandler
 
     @Inject
     CachingSessionHandler cachingSessionHandler;
+
+    @Inject
+    Ninja ninja;
 
     /**
      * Opens the empty delete-box-dialog (just rendering the template).
@@ -217,7 +218,7 @@ public class BoxHandler
         }
 
         // check for rfc 5321 compliant length of email (64 chars for local and 254 in total)
-        String completeAddress = addBoxDialogData.getAddress() + "@" + addBoxDialogData.getDomain();
+        String completeAddress = addBoxDialogData.getFullAddress();
         if (addBoxDialogData.getAddress().length() > 64 || completeAddress.length() > 254)
         {
             errorMessage = messages.get("createEmail_Flash_MailTooLong", context, Optional.of(result)).get();
@@ -278,15 +279,12 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkDeleteBoxes(Object parameter, Context context)
     {
-        Map<String, Boolean> boxIdMap = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            boxIdMap = (Map<String, Boolean>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        Map<String, Boolean> boxIdMap = castToMapStringBoolean(parameter);
 
         Result result = Results.json();
         if (boxIdMap == null || boxIdMap.isEmpty())
@@ -311,15 +309,12 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkDisableBoxes(Object parameter, Context context)
     {
-        Map<String, Boolean> boxIdMap = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            boxIdMap = (Map<String, Boolean>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        Map<String, Boolean> boxIdMap = castToMapStringBoolean(parameter);
 
         Result result = Results.json();
 
@@ -345,15 +340,12 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkEnablePossibleBoxes(Object parameter, Context context)
     {
-        Map<String, Boolean> boxIdMap = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            boxIdMap = (Map<String, Boolean>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        Map<String, Boolean> boxIdMap = castToMapStringBoolean(parameter);
 
         Result result = Results.json();
 
@@ -379,15 +371,13 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkNewDate(Object parameter, Context context)
     {
-        Map<String, Object> input = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            input = (Map<String, Object>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> input = (Map<String, Object>) parameter;
 
         Result result = Results.json();
         User user = context.getAttribute("user", User.class);
@@ -420,15 +410,12 @@ public class BoxHandler
     @FilterWith(JsonSecureFilter.class)
     public Result bulkResetBoxes(Object parameter, Context context)
     {
-        Map<String, Boolean> boxIdMap = null;
-        if (parameter instanceof LinkedHashMap<?, ?>)
-        {
-            boxIdMap = (Map<String, Boolean>) parameter;
-        }
-        else
+        if (!(parameter instanceof Map<?, ?>))
         {
             return Results.badRequest();
         }
+
+        Map<String, Boolean> boxIdMap = castToMapStringBoolean(parameter);
 
         Result result = Results.json();
 
@@ -498,7 +485,7 @@ public class BoxHandler
 
         // the form was filled correctly
         // check for rfc 5322 compliant length of email (64 chars for local and 254 in total)
-        String completeAddress = mailboxFormData.getAddress() + "@" + mailboxFormData.getDomain();
+        String completeAddress = mailboxFormData.getFullAddress();
         if (mailboxFormData.getAddress().length() > 64 || completeAddress.length() >= 255)
         {
             errorMessage = messages.get("editEmail_Flash_MailTooLong", context, Optional.of(result)).get();
@@ -516,10 +503,11 @@ public class BoxHandler
         }
         // the box with the given id exists and the current user is the owner of the mailbox
         boolean changes = false;
-        String newLocalPartName = mailboxFormData.getAddress().toLowerCase();
-        String newDomainPartName = mailboxFormData.getDomain().toLowerCase();
+        String newLocalPartName = mailboxFormData.getAddress();
+        String newDomainPartName = mailboxFormData.getDomain();
 
-        if (!mailBox.getAddress().equals(newLocalPartName) || !mailBox.getDomain().equals(newDomainPartName))
+        if (!mailBox.getAddress().equalsIgnoreCase(newLocalPartName)
+            || !mailBox.getDomain().equalsIgnoreCase(newDomainPartName))
         { // email-address changed
             if (MBox.mailExists(newLocalPartName, newDomainPartName))
             {// the email-address already exists -> error
@@ -690,7 +678,7 @@ public class BoxHandler
     public Result showMailsAsTextList(Context context)
     {
         User user = context.getAttribute("user", User.class);
-        return Results.contentType("text/plain").render(MBox.getMailsForTxt(user.getId()));
+        return Results.text().render(MBox.getMailsForTxt(user.getId()));
     }
 
     /**
@@ -704,7 +692,7 @@ public class BoxHandler
     public Result showActiveMailsAsTextList(Context context)
     {
         User user = context.getAttribute("user", User.class);
-        return Results.contentType("text/plain").render(MBox.getActiveMailsForTxt(user.getId()));
+        return Results.text().render(MBox.getActiveMailsForTxt(user.getId()));
     }
 
     /**
@@ -737,9 +725,7 @@ public class BoxHandler
         Map<String, Boolean> boxIdMap = null;
         try
         {
-            boxIdMap = objectMapper.readValue(input, new TypeReference<HashMap<String, Boolean>>()
-            {
-            });
+            boxIdMap = objectMapper.readValue(input, TypeRef.MAP_STRING_BOOLEAN);
         }
         catch (IOException e)
         {
@@ -760,7 +746,7 @@ public class BoxHandler
 
         for (Entry<String, Boolean> entry : boxIdMap.entrySet())
         {
-            log.info("key:" + entry.getKey() + " value:" + entry.getValue());
+            log.debug("key:" + entry.getKey() + " value:" + entry.getValue());
             if (entry.getValue())
             {
                 long boxId = Long.valueOf(entry.getKey());
@@ -775,10 +761,10 @@ public class BoxHandler
                                              @PathParam("validTime") String validTime, Context context)
     {
         if (apiToken == null || desiredMailAddress == null || validTime == null)
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
 
         if (!new EmailValidator().isValid(desiredMailAddress, null))
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
 
         // check token
         final User user = User.findUserByToken(apiToken);
@@ -786,15 +772,15 @@ public class BoxHandler
         {
             // there is no user assigned with that api token
             log.error("Token invalid");
-            return Results.forbidden();
+            return ninja.getUnauthorizedResult(context);
         }
 
         // check desired mail address
-        String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress.toLowerCase());
+        String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress);
         if (!HelperUtils.checkEmailAddressValidness(mailAddressParts, xcmConfiguration.DOMAIN_LIST))
         { // mail is not in format "localpart@domain" or domain is not configured in XCMailr
             log.error("Email address invalid: " + desiredMailAddress);
-            return Results.forbidden();
+            return ninja.getForbiddenResult(context);
         }
 
         int parsedValidTimeMinutes;
@@ -804,26 +790,24 @@ public class BoxHandler
             parsedValidTimeMinutes = Integer.valueOf(validTime);
             if (parsedValidTimeMinutes < 1 || parsedValidTimeMinutes > xcmConfiguration.TEMPORARY_MAIL_MAX_VALID_TIME)
             {
-                return Results.badRequest();
+                return ninja.getBadRequestResult(context, null);
             }
         }
         catch (NumberFormatException e)
         {
             // invalid format
             log.error("Email valid time invalid: " + validTime);
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
         }
 
         // check if that email address is already claimed by someone
-        final MBox mailbox = Ebean.find(MBox.class).where()//
-                                  .eq("address", mailAddressParts[0]) //
-                                  .eq("domain", mailAddressParts[1]).findUnique();
+        final MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
 
         final Instant validUntil = Instant.now().plus(parsedValidTimeMinutes, ChronoUnit.MINUTES);
         final long validUntil_ts = validUntil.toEpochMilli();
         if (mailbox != null)
         {
-            // mailbox exists, check if the user releated to it is the same as the token bearer
+            // mailbox exists, check if the user related to it is the same as the token bearer
             if (mailbox.getUsr().getId() == user.getId())
             {
                 log.info("Reactivate mailbox: " + desiredMailAddress);
@@ -836,7 +820,7 @@ public class BoxHandler
             {
                 // another user owns that address
                 log.info("Email address is owned by user: " + mailbox.getUsr().getMail());
-                return Results.forbidden();
+                return ninja.getForbiddenResult(context);
             }
         }
         else
@@ -863,7 +847,7 @@ public class BoxHandler
         }
         else
         {
-            return Results.forbidden();
+            return ninja.getBadRequestResult(context, null);
         }
     }
 
@@ -872,7 +856,7 @@ public class BoxHandler
         throws Exception
     {
         if (apiToken == null || mailAddress == null)
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
 
         log.trace("passed null check");
         User user = User.findUserByToken(apiToken);
@@ -881,7 +865,7 @@ public class BoxHandler
         {
             // there is no user assigned with that api token
             log.error("Token invalid");
-            return Results.unauthorized();
+            return ninja.getUnauthorizedResult(context);
         }
 
         // we put the username into the cookie, but use the id of the cookie for authentication
@@ -893,23 +877,21 @@ public class BoxHandler
         cachingSessionHandler.setSessionUser(user, sessionKey, xcmConfiguration.COOKIE_EXPIRETIME);
         context.getSession().put("username", user.getMail());
 
-        String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress.toLowerCase());
-        MBox mailbox = MBox.getByName(mailAddressParts[0], mailAddressParts[1]);
+        final String[] mailAddressParts = HelperUtils.splitMailAddress(mailAddress);
+        final MBox mailbox = HelperUtils.checkEmailAddressValidness(mailAddressParts,
+                                                                    xcmConfiguration.DOMAIN_LIST) ? MBox.getByName(mailAddressParts[0], mailAddressParts[1]) : null;
 
         if (mailbox == null)
         {
             log.info("Mailbox not found: " + mailAddress);
-            return Results.badRequest();
+            return ninja.getNotFoundResult(context);
         }
 
         if (!mailbox.belongsTo(user.getId()))
         {
             log.error("Mailbox belongs to another user");
-            return Results.badRequest();
+            return ninja.getForbiddenResult(context);
         }
-
-        List<MBox> userMailBoxes = new LinkedList<>();
-        userMailBoxes.add(mailbox);
 
         List<Mail> emails = Ebean.find(Mail.class).where() //
                                  .eq("mailbox_id", mailbox.getId()) //
@@ -944,7 +926,7 @@ public class BoxHandler
         }
         catch (PatternSyntaxException e)
         {
-            return Results.badRequest();
+            return ninja.getBadRequestResult(context, null);
         }
 
         final List<MailboxEntry> entries = new LinkedList<>();
@@ -956,8 +938,10 @@ public class BoxHandler
             final MailboxEntry.Content mailContent = mailboxEntry.mailContent;
             if ((senderPattern == null || senderPattern.matcher(mailboxEntry.sender).find()) //
                 && (subjectPattern == null || subjectPattern.matcher(mailboxEntry.subject).find()) //
-                && (plainTextPattern == null || (mailContent != null && plainTextPattern.matcher(mailContent.text).find())) //
-                && (htmlTextPattern == null || (mailContent != null && htmlTextPattern.matcher(mailContent.html).find())) //
+                && (plainTextPattern == null
+                    || (mailContent != null && plainTextPattern.matcher(mailContent.text).find())) //
+                && (htmlTextPattern == null
+                    || (mailContent != null && htmlTextPattern.matcher(mailContent.html).find())) //
                 && (headerPattern == null || headerPattern.matcher(mailboxEntry.mailHeader).find()))
             {
                 entries.add(mailboxEntry);
@@ -995,14 +979,14 @@ public class BoxHandler
             // safety check
             if (entries.size() == 0 || entries.size() > 1)
             {
-                return Results.badRequest();
+                return ninja.getBadRequestResult(context, null);
             }
 
             return Results.text().render(entries.get(0).mailHeader);
         }
         else
         {
-            return Results.forbidden();
+            return ninja.getBadRequestResult(context, null);
         }
     }
 
@@ -1027,9 +1011,10 @@ public class BoxHandler
             sort = getOrderColumn(sort);
             order = getOrderDirection(order);
 
-            User user = context.getAttribute("user", User.class);
-            List<MBox> mailboxes = user.getBoxes();
-            List<Long> mailboxIds = mailboxes.stream().map(mbox -> mbox.getId()).collect(Collectors.toList());
+            final User user = context.getAttribute("user", User.class);
+
+            // #61: look up mail boxes freshly
+            final List<?> mailboxIds = Ebean.find(MBox.class).where().eq("usr_id", user.getId()).findIds();
 
             final List<Mail> mails = Ebean.find(Mail.class).where().in("mailbox_id", mailboxIds)
                                           .orderBy(sort + " " + order).findList();
@@ -1064,7 +1049,7 @@ public class BoxHandler
         }
         else
         {
-            return Results.forbidden();
+            return ninja.getBadRequestResult(context, null);
         }
     }
 
@@ -1087,7 +1072,7 @@ public class BoxHandler
 
         if (foundMails.isEmpty())
         {
-            return Results.badRequest();
+            return ninja.getNotFoundResult(context);
         }
         Mail mail = foundMails.get(0);
 
@@ -1107,7 +1092,7 @@ public class BoxHandler
 
         if (foundAttachment == null)
         {
-            return Results.badRequest();
+            return ninja.getNotFoundResult(context);
         }
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
@@ -1117,5 +1102,11 @@ public class BoxHandler
         }
 
         return Results.ok().contentType(foundAttachment.getContentType()).renderRaw(baos.toByteArray());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Boolean> castToMapStringBoolean(Object o)
+    {
+        return (Map<String, Boolean>) o;
     }
 }

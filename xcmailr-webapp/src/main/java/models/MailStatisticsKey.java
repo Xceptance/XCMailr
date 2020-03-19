@@ -33,8 +33,8 @@ public class MailStatisticsKey implements Serializable
     {
         this.date = date;
         this.quarterHour = quarterHour;
-        this.fromDomain = fromDomain;
-        this.targetDomain = targetDomain;
+        this.fromDomain = fromDomain.toLowerCase();
+        this.targetDomain = targetDomain.toLowerCase();
     }
 
     public Date getDate()

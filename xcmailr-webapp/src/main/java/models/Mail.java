@@ -2,10 +2,9 @@ package models;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
@@ -39,9 +38,9 @@ public class Mail extends AbstractEntity implements Serializable
     @NotNull
     private byte[] message;
 
-    @ManyToOne
-    @JoinColumn(name = "mailbox_id", nullable = false)
-    private MBox mailbox;
+    @NotNull
+    @Column(name = "mailbox_id")
+    private long mailbox;
 
     private String uuid;
 
@@ -87,12 +86,15 @@ public class Mail extends AbstractEntity implements Serializable
 
     public MBox getMailbox()
     {
-        return mailbox;
+        return MBox.getById(mailbox);
     }
 
     public void setMailbox(MBox mailbox)
     {
-        this.mailbox = mailbox;
+        if (mailbox != null)
+        {
+            this.mailbox = mailbox.getId();
+        }
     }
 
     public String getUuid()
@@ -104,4 +106,5 @@ public class Mail extends AbstractEntity implements Serializable
     {
         this.uuid = uuid;
     }
+
 }

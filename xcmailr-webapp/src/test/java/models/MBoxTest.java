@@ -1,5 +1,6 @@
 package models;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -7,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -46,8 +48,14 @@ public class MBoxTest extends NinjaTest
         user2.save();
 
         MBox mailbox2 = MBox.getById(mailbox.getId());
-        assertNotNull(mailbox);
         assertNotNull(mailbox2);
+        assertEquals(mailbox.getFullAddress(), mailbox2.getFullAddress());
+
+        // test case-insensitive handling of mail-addresses
+        mailbox2 = MBox.getByName(StringUtils.capitalize(mailbox.getAddress()), mailbox.getDomain().toUpperCase());
+        assertNotNull(mailbox2);
+        assertEquals(mailbox.getFullAddress(), mailbox2.getFullAddress());
+        assertEquals(mailbox.getId(), mailbox2.getId());
 
         /*
          * TEST: Get the MBox-list of all Users and a specific User
@@ -119,7 +127,7 @@ public class MBoxTest extends NinjaTest
     }
 
     @Test
-    public void expiredByTimeStampTest()
+    public void expiredByTimestampTest()
     {
         // in this moment, the box should be active and unlimited
         assertFalse(mailbox.isExpiredByTimestamp());

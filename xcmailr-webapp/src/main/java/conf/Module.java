@@ -18,6 +18,8 @@ package conf;
 
 import ninja.ebean.NinjaEbeanModule;
 import com.google.inject.AbstractModule;
+
+import controllers.CheckDBForMailAddressDuplicates;
 import controllers.JobController;
 
 public class Module extends AbstractModule
@@ -37,6 +39,7 @@ public class Module extends AbstractModule
         bind(XCMailrConf.class);
         bind(JobController.class);
 
+        bind(CheckDBForMailAddressDuplicates.class);
     }
 
 }

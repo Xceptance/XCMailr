@@ -1,0 +1,11 @@
+<div class="row">
+  <#if flash.error??>
+    <p class="alert alert-danger"><strong> ${flash.error}</strong></p>
+  </#if>
+  <#if flash.success??>
+    <p class="alert alert-success"><strong> ${flash.success}</strong></p>
+  </#if>
+  <#if flash.info??>
+    <p class="alert alert-info"><strong> ${flash.info}</strong></p>
+  </#if>
+</div>
