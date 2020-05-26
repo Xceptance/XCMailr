@@ -19,6 +19,7 @@ package controllers;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -39,9 +40,7 @@ import filters.AdminFilter;
 import filters.SecureFilter;
 import filters.WhitelistFilter;
 import models.Domain;
-import models.MailStatistics;
 import models.MailStatisticsJson;
-import models.MailStatisticsKey;
 import models.MailTransaction;
 import models.PageList;
 import models.User;
@@ -79,7 +78,7 @@ public class AdminHandler
     @Inject
     CachingSessionHandler cachingSessionHandler;
 
-    private static final Pattern PATTERN_DOMAINS = Pattern.compile("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}");
+    private static final Pattern PATTERN_DOMAINS = Pattern.compile("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}", Pattern.CASE_INSENSITIVE);
 
     /**
      * Shows the Administration-Index-Page.
@@ -310,7 +309,6 @@ public class AdminHandler
     public Result showDomainWhitelist(Context context)
     {
         List<Domain> domainList = Domain.getAll();
-
         return Results.html().render("domains", domainList);
     }
 
@@ -452,7 +450,7 @@ public class AdminHandler
                                           @Param("offset") int offset, @Param("limit") int limit,
                                           @Param("sort") String sort, @Param("order") String order)
     {
-        List<MailStatistics> data = null;
+        List<MailStatisticsJson> data = null;
         switch (scope)
         {
             case "day":
@@ -467,29 +465,17 @@ public class AdminHandler
                 return Results.badRequest();
         }
 
-        if (page < 0)
-            page = 0;
-
-        List<MailStatisticsJson> jsonData = new LinkedList<>();
-
-        for (int i = offset; i < offset + limit; i++)
+        final int total = data.size();
+        final List<MailStatisticsJson> rows;
+        if (offset < 0 || limit <= 0 || total == 0)
         {
-            if (i < data.size())
-            {
-                MailStatisticsJson newEntry = new MailStatisticsJson();
-                newEntry.id = i;
-                newEntry.droppedCount = data.get(i).getDropCount();
-                newEntry.forwardedCount = data.get(i).getForwardCount();
-                newEntry.fromDomain = data.get(i).getKey().getFromDomain();
-                jsonData.add(newEntry);
-            }
+            rows = Collections.emptyList();
         }
-
-        Result result = Results.json();
-        result.render("rows", jsonData);
-        result.render("total", data.size());
-
-        return result;
+        else
+        {
+            rows = data.subList(Math.min(offset, total), Math.min(offset + limit, total));
+        }
+        return Results.json().render("rows", rows).render("total", total);
     }
 
     /**
@@ -499,7 +485,7 @@ public class AdminHandler
      *            A positive integer that specifies how many days should be aggregated
      * @return
      */
-    private List<MailStatistics> getMailSenderList(int lastNDays, String sort, String order)
+    private List<MailStatisticsJson> getMailSenderList(int lastNDays, String sort, String order)
     {
         if (lastNDays < 0)
             lastNDays = 0;
@@ -517,16 +503,19 @@ public class AdminHandler
         sql.append(" order by \"" + orderColumn + "\" " + orderBy);
 
         List<SqlRow> droppedMail = Ebean.createSqlQuery(sql.toString()).findList();
-        List<MailStatistics> droppedMailSender = new LinkedList<>();
-        droppedMail.forEach((SqlRow row) -> {
-            MailStatistics ms = new MailStatistics();
-            MailStatisticsKey key = new MailStatisticsKey(null, 0, row.getString("fromDomain"), null);
-            ms.setKey(key);
-            ms.setDropCount(row.getInteger("droppedCount"));
-            ms.setForwardCount(row.getInteger("forwardedCount"));
+        List<MailStatisticsJson> droppedMailSender = new LinkedList<>();
+        int rowIdx = 0;
+        for (final SqlRow row : droppedMail)
+        {
+            MailStatisticsJson ms = new MailStatisticsJson();
+            ms.id = rowIdx++;
+            ms.droppedCount = row.getInteger("droppedCount");
+            ms.forwardedCount = row.getInteger("forwardedCount");
+            ms.fromDomain = row.getString("fromDomain");
 
             droppedMailSender.add(ms);
-        });
+        }
+        ;
 
         return droppedMailSender;
     }

@@ -25,11 +25,10 @@ import java.util.regex.Pattern;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import com.google.inject.Singleton;
 
 import ninja.Context;
 import ninja.Result;
@@ -38,9 +37,9 @@ import ninja.i18n.Messages;
 /**
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-@Singleton
-public class HelperUtils
+public final class HelperUtils
 {
+    private HelperUtils() { }
 
     private static final Pattern PATTERN_DATEFORMAT = Pattern.compile("(\\d+){4}[\\-](\\d+){1,2}[\\-](\\d+){1,2}(\\s)(\\d+){1,2}[\\:](\\d+){1,2}");
 
@@ -189,7 +188,7 @@ public class HelperUtils
         List<String[]> availableLanguageList = new ArrayList<String[]>();
         for (String abbreviatedLanguageCode : availableLanguages)
         {
-            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult).get();
+            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult).orElse(abbreviatedLanguageCode);
             availableLanguageList.add(new String[]
                 {
                   abbreviatedLanguageCode, languageTranslation
@@ -207,7 +206,7 @@ public class HelperUtils
      */
     public static boolean checkEmailAddressValidness(String[] mailAddressParts, String[] domainList)
     {
-        if (mailAddressParts.length != 2)
+        if (mailAddressParts == null || domainList == null|| mailAddressParts.length != 2)
         {
             return false;
         }
@@ -230,11 +229,18 @@ public class HelperUtils
      * Splits an email address at the '@' and returns an array containing the local and domain part.
      * 
      * @param mailAddress
-     * @return
+     *            the mail address
+     * @return two-dimensional array representing the local and domain part of the given mail address in case it is
+     *         valid, and <code>null</code> otherwise
      */
     public static String[] splitMailAddress(String mailAddress)
     {
-        return mailAddress.split("\\@");
+        mailAddress = StringUtils.defaultString(mailAddress).trim();
+        if (mailAddress.length() > 0)
+        {
+            return mailAddress.split("@");
+        }
+        return null;
     }
 
     public static String getHeaderText(final MimeMessage message) throws MessagingException

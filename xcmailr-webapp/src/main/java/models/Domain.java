@@ -23,6 +23,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.ExpressionList;
 
 /**
  * Object to handle the allowed domains
@@ -101,7 +102,7 @@ public class Domain extends AbstractEntity implements Serializable
      */
     public static Domain getByName(String name)
     {
-        return Ebean.find(Domain.class).where().eq("domainname", name).findUnique();
+        return queryByName(name).findUnique();
     }
 
     /**
@@ -121,6 +122,11 @@ public class Domain extends AbstractEntity implements Serializable
      */
     public static boolean exists(String name)
     {
-        return !Ebean.find(Domain.class).where().eq("domainname", name).findList().isEmpty();
+        return queryByName(name).findRowCount() > 0;
+    }
+
+    private static ExpressionList<Domain> queryByName(final String name)
+    {
+        return Ebean.find(Domain.class).where().ieq("domainname", name);
     }
 }
