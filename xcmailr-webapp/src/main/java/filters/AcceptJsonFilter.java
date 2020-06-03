@@ -1,5 +1,5 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*  
+ *  Copyright 2020 by the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License. 
- *
  */
 package filters;
 
@@ -25,11 +24,7 @@ import ninja.FilterChain;
 import ninja.Result;
 
 /**
- * Checks that the client
- * <p>
- * sends JSON only
- * <p>
- * accepts JSON responses or all
+ * Checks that the client sends JSON bodies only and accepts either JSON or any responses.
  */
 public class AcceptJsonFilter implements Filter
 {
@@ -37,7 +32,7 @@ public class AcceptJsonFilter implements Filter
     public Result filter(FilterChain chain, Context context)
     {
         String contentType = context.getHeader("Content-Type");
-        if (contentType != null && !StringUtils.startsWithAny(contentType, "application/json"))
+        if (contentType != null && !StringUtils.startsWith(contentType, "application/json"))
         {
             return ApiResults.unsupportedMediaType();
         }

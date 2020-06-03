@@ -17,40 +17,119 @@ import java.net.http.HttpResponse.BodyHandlers;
  */
 public class RestApiClient
 {
-    private final String baseUri;
+    /**
+     * The URL of the XCMailr application, including any context part.
+     */
+    private final String baseUrl;
 
+    /**
+     * The API token that allows access to XCMailr.
+     */
     private final String apiToken;
 
+    /**
+     * The preconfigured {@link HttpClient} instance to use.
+     */
     private final HttpClient httpClient;
 
-    public RestApiClient(final String baseUrl, final String apiToken)
+    /**
+     * Creates a new {@link RestApiClient} instance.
+     * 
+     * @param baseUrl
+     *            the URL of the XCMailr application, including any context part
+     * @param apiToken
+     *            the API token that allows access to XCMailr
+     * @param httpClient
+     *            a preconfigured {@link HttpClient} instance
+     */
+    public RestApiClient(final String baseUrl, final String apiToken, final HttpClient httpClient)
     {
-        this.baseUri = baseUrl;
+        this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
         this.apiToken = apiToken;
-
-        httpClient = HttpClient.newHttpClient();
+        this.httpClient = httpClient;
     }
 
-    public HttpResponse<String> executeRequest(final String method, final String relativeUrl, final String jsonBody)
+    /**
+     * Executes an HTTP request with no request body and returns an HTTP response with the response body converted to a
+     * string.
+     * 
+     * @param method
+     *            the request method
+     * @param relativeUrl
+     *            the relative URL (to be appended to the base URL)
+     * @return the HTTP response
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws URISyntaxException
+     */
+    public HttpResponse<String> executeRequest(final HttpMethod method, final String relativeUrl)
+        throws IOException, InterruptedException, URISyntaxException
+    {
+        return executeRequest(method, relativeUrl, null);
+    }
+
+    /**
+     * Executes an HTTP request with a JSON body and returns an HTTP response with the response body converted to a
+     * string.
+     * 
+     * @param method
+     *            the request method
+     * @param relativeUrl
+     *            the relative URL (to be appended to the base URL)
+     * @param jsonBody
+     *            the request body in JSON format (may be <code>null</code>)
+     * @return the HTTP response
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws URISyntaxException
+     */
+    public HttpResponse<String> executeRequest(final HttpMethod method, final String relativeUrl, final String jsonBody)
         throws IOException, InterruptedException, URISyntaxException
     {
         return executeRequest(method, relativeUrl, jsonBody, BodyHandlers.ofString());
     }
 
-    public HttpResponse<InputStream> executeRequest2(final String method, final String relativeUrl, final String jsonBody)
+    /**
+     * Executes an HTTP request with no request body and returns a HTTP response with the response body ready to be
+     * consumed as stream.
+     * 
+     * @param method
+     *            the request method
+     * @param relativeUrl
+     *            the relative URL (to be appended to the base URL)
+     * @return the HTTP response
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws URISyntaxException
+     */
+    public HttpResponse<InputStream> executeRequest2(final HttpMethod method, final String relativeUrl)
         throws IOException, InterruptedException, URISyntaxException
     {
-        return executeRequest(method, relativeUrl, jsonBody, BodyHandlers.ofInputStream());
+        return executeRequest(method, relativeUrl, null, BodyHandlers.ofInputStream());
     }
 
-    private <T> HttpResponse<T> executeRequest(final String method, final String relativeUrl, final String jsonBody,
-                                               final BodyHandler<T> bodyHandler)
+    /**
+     * Executes an HTTP request and returns the HTTP response.
+     * 
+     * @param method
+     *            the request method
+     * @param relativeUrl
+     *            the relative URL (to be appended to the base URL)
+     * @param jsonBody
+     *            the request body in JSON format (may be <code>null</code>)
+     * @param responseBodyHandler
+     *            the handler to use for the response body
+     * @return the HTTP response
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws URISyntaxException
+     */
+    private <T> HttpResponse<T> executeRequest(final HttpMethod method, final String relativeUrl, final String jsonBody,
+                                               final BodyHandler<T> responseBodyHandler)
         throws IOException, InterruptedException, URISyntaxException
     {
         // build the final request URI
-        final URI uri = new URI(baseUri + "api/v1/" + relativeUrl);
-
-        System.err.printf("### %s\n", uri);
+        final URI uri = new URI(baseUrl + "api/v1/" + relativeUrl);
 
         // prepare Bearer authentication header value
         final String authHeaderValue = "Bearer " + apiToken;
@@ -62,17 +141,17 @@ public class RestApiClient
 
         if (jsonBody == null)
         {
-            requestBuilder.method(method, BodyPublishers.noBody());
+            requestBuilder.method(method.toString(), BodyPublishers.noBody());
         }
         else
         {
             requestBuilder.header("Content-Type", "application/json");
-            requestBuilder.method(method, BodyPublishers.ofString(jsonBody));
+            requestBuilder.method(method.toString(), BodyPublishers.ofString(jsonBody));
         }
 
         final HttpRequest request = requestBuilder.build();
 
-        // send the request
-        return httpClient.send(request, bodyHandler);
+        // execute the request
+        return httpClient.send(request, responseBodyHandler);
     }
 }

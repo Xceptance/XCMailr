@@ -18,6 +18,8 @@ import xcmailr.client.MailboxApi;
  */
 public class MailboxApiImpl extends AbstractApiImpl implements MailboxApi
 {
+    private static final String RELATIVE_PATH = "mailboxes";
+
     /**
      * The type of <code>List&lt;Mailbox&gt;</code>.
      */
@@ -43,8 +45,8 @@ public class MailboxApiImpl extends AbstractApiImpl implements MailboxApi
      */
     public List<Mailbox> listMailboxes() throws Exception
     {
-        final HttpResponse<String> response = client.executeRequest("GET", "mailboxes", null);
-        checkResponse(response, 200);
+        final HttpResponse<String> response = client.executeRequest(HttpMethod.GET, RELATIVE_PATH);
+        checkStatusCode(response, 200);
 
         return gson.fromJson(response.body(), mailboxListType);
     }
@@ -54,6 +56,8 @@ public class MailboxApiImpl extends AbstractApiImpl implements MailboxApi
      */
     public Mailbox createMailbox(final String address, final int minutesActive, final boolean forwardEnabled) throws Exception
     {
+        Utils.notBlank(address, "address");
+
         final long deactivationTime = now().plus(minutesActive, MINUTES).toEpochMilli();
 
         return createMailbox(new Mailbox(address, deactivationTime, forwardEnabled));
@@ -64,10 +68,13 @@ public class MailboxApiImpl extends AbstractApiImpl implements MailboxApi
      */
     public Mailbox createMailbox(final Mailbox mailbox) throws Exception
     {
+        Utils.notNull(mailbox, "mailbox");
+        Utils.notBlank(mailbox.address, "mailbox.address");
+
         final String json = gson.toJson(mailbox);
 
-        final HttpResponse<String> response = client.executeRequest("POST", "mailboxes", json);
-        checkResponse(response, 200, 201);
+        final HttpResponse<String> response = client.executeRequest(HttpMethod.POST, RELATIVE_PATH, json);
+        checkStatusCode(response, 200, 201);
 
         return gson.fromJson(response.body(), Mailbox.class);
     }
@@ -77,8 +84,10 @@ public class MailboxApiImpl extends AbstractApiImpl implements MailboxApi
      */
     public Mailbox getMailbox(final String address) throws Exception
     {
-        final HttpResponse<String> response = client.executeRequest("GET", "mailboxes/" + address, null);
-        checkResponse(response, 200);
+        Utils.notBlank(address, "address");
+
+        final HttpResponse<String> response = client.executeRequest(HttpMethod.GET, RELATIVE_PATH + "/" + Utils.encodePathSegment(address));
+        checkStatusCode(response, 200);
 
         return gson.fromJson(response.body(), Mailbox.class);
     }
@@ -100,10 +109,16 @@ public class MailboxApiImpl extends AbstractApiImpl implements MailboxApi
      */
     public Mailbox updateMailbox(final String address, final Mailbox mailbox) throws Exception
     {
+        Utils.notBlank(address, "address");
+        Utils.notNull(mailbox, "mailbox");
+        Utils.notBlank(mailbox.address, "mailbox.address");
+
         final String json = gson.toJson(mailbox);
 
-        final HttpResponse<String> response = client.executeRequest("PUT", "mailboxes/" + address, json);
-        checkResponse(response, 200);
+        final HttpResponse<String> response = client.executeRequest(HttpMethod.PUT,
+                                                                    RELATIVE_PATH + "/" + Utils.encodePathSegment(address),
+                                                                    json);
+        checkStatusCode(response, 200);
 
         return gson.fromJson(response.body(), Mailbox.class);
     }
@@ -113,7 +128,10 @@ public class MailboxApiImpl extends AbstractApiImpl implements MailboxApi
      */
     public void deleteMailbox(final String address) throws Exception
     {
-        final HttpResponse<String> response = client.executeRequest("DELETE", "mailboxes/" + address, null);
-        checkResponse(response, 204);
+        Utils.notBlank(address, "address");
+
+        final HttpResponse<String> response = client.executeRequest(HttpMethod.DELETE,
+                                                                    RELATIVE_PATH + "/" + Utils.encodePathSegment(address));
+        checkStatusCode(response, 204);
     }
 }

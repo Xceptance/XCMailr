@@ -4,6 +4,8 @@ import java.util.List;
 
 /**
  * Operations to manage mailboxes in a remote XCMailr instance.
+ * 
+ * @see XCMailrClient
  */
 public interface MailboxApi
 {
@@ -22,9 +24,10 @@ public interface MailboxApi
      * @param address
      *            the address of the mailbox
      * @param minutesActive
-     *            the time (in minutes) from now when the mailbox will automatically be deactivated
+     *            the time (in minutes) from now when the mailbox will automatically be deactivated (not deleted!)
      * @param forwardEnabled
-     * @return
+     *            whether XCMailr should automatically forward mails put into the new mailbox to the mailbox owner
+     * @return the mailbox details returned from the server
      * @throws Exception
      *             if anything went wrong
      */
@@ -35,30 +38,35 @@ public interface MailboxApi
      * 
      * @param mailbox
      *            the details of the new mailbox
-     * @return the mailbox as returned from the server
+     * @return the mailbox details as returned from the server
      * @throws Exception
      *             if anything went wrong
      */
     public Mailbox createMailbox(final Mailbox mailbox) throws Exception;
 
     /**
+     * Returns the details of the mailbox with the given address.
+     * 
      * @param address
-     *            the address of the mailbox
-     * @return
+     *            the address of the mailbox to look up
+     * @return the mailbox details as returned from the server
      * @throws Exception
      *             if anything went wrong
      */
     public Mailbox getMailbox(final String address) throws Exception;
 
     /**
+     * Updates the mailbox with the given address.
+     * 
      * @param address
-     *            the address of the mailbox
+     *            the address of the mailbox to update
      * @param newAddress
-     * @param address
-     *            the address of the mailbox
+     *            the new address of the mailbox
      * @param minutesActive
+     *            the new address of the mailbox
      * @param forwardEnabled
-     * @return
+     *            the new address of the mailbox
+     * @return the updated mailbox details as returned from the server
      * @throws Exception
      *             if anything went wrong
      */
@@ -66,18 +74,23 @@ public interface MailboxApi
         throws Exception;
 
     /**
+     * Updates the mailbox with the given address.
+     * 
      * @param address
-     *            the address of the mailbox
+     *            the address of the mailbox to update
      * @param mailbox
-     * @return
+     *            the details of the new mailbox
+     * @return the updated mailbox details as returned from the server
      * @throws Exception
      *             if anything went wrong
      */
     public Mailbox updateMailbox(final String address, final Mailbox mailbox) throws Exception;
 
     /**
+     * Deletes the mailbox with the given address.
+     * 
      * @param address
-     *            the address of the mailbox
+     *            the address of the mailbox to delete
      * @throws Exception
      *             if anything went wrong
      */

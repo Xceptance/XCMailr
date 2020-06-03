@@ -1,3 +1,18 @@
+/*
+ *  Copyright 2020 by the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package controllers.restapi;
 
 import java.util.LinkedList;
@@ -26,59 +41,47 @@ public class MailData
 
     public final String subject;
 
-    public final Content mailContent;
+    public final String textContent;
+
+    public final String htmlContent;
 
     public final List<AttachmentData> attachments = new LinkedList<>();
 
-    public final long receiveTime;
+    public final long receivedTime;
 
-    public final String mailHeader;
+    public final String headers;
 
-    public MailData(Mail mail) throws Exception
+    public MailData(final Mail mail) throws Exception
     {
-        this.id = mail.getId();
-        this.recipient = mail.getMailbox().getFullAddress();
-        this.sender = mail.getSender();
-        this.subject = StringUtils.defaultString(mail.getSubject());
-        this.receiveTime = mail.getReceiveTime();
+        id = mail.getId();
+        recipient = mail.getMailbox().getFullAddress();
+        sender = mail.getSender();
+        subject = StringUtils.defaultString(mail.getSubject());
+        receivedTime = mail.getReceiveTime();
 
-        byte[] rawContent = mail.getMessage();
+        final byte[] rawContent = mail.getMessage();
 
         if (rawContent != null && rawContent.length > 0)
         {
-            MimeMessage mimeMessage = MimeMessageUtils.createMimeMessage(null, rawContent);
-            MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
+            final MimeMessage mimeMessage = MimeMessageUtils.createMimeMessage(null, rawContent);
+            final MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
             mimeMessageParser.parse();
 
-            this.mailHeader = HelperUtils.getHeaderText(mimeMessage);
+            headers = HelperUtils.getHeaderText(mimeMessage);
 
-            final String textContentDecoded = StringUtils.defaultString(mimeMessageParser.getPlainContent());
-            final String htmlContentDecoded = StringUtils.defaultString(mimeMessageParser.getHtmlContent());
+            textContent = mimeMessageParser.getPlainContent();
+            htmlContent = mimeMessageParser.getHtmlContent();
 
-            this.mailContent = new Content(textContentDecoded, htmlContentDecoded);
-
-            for (DataSource attachment : mimeMessageParser.getAttachmentList())
+            for (final DataSource attachment : mimeMessageParser.getAttachmentList())
             {
                 attachments.add(new AttachmentData(attachment));
             }
         }
         else
         {
-            this.mailHeader = "";
-            mailContent = null;
-        }
-    }
-
-    public static class Content
-    {
-        public final String text;
-
-        public final String html;
-
-        private Content(final String aText, final String aHtml)
-        {
-            text = aText;
-            html = aHtml;
+            headers = null;
+            textContent = null;
+            htmlContent = null;
         }
     }
 }

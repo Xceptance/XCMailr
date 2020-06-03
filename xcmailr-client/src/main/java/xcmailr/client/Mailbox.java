@@ -4,11 +4,13 @@ import java.util.Date;
 
 /**
  * The data object that represents the details of a mailbox.
+ * 
+ * @see MailboxApi
  */
 public class Mailbox
 {
     /**
-     * The mailbox ID, actually its address, for example "john.doe@xcmailr.test".
+     * The mailbox address, for example "john.doe@xcmailr.test".
      */
     public String address;
 
@@ -34,8 +36,11 @@ public class Mailbox
      * Creates a new {@link Mailbox} instance and initializes it with the passed values.
      * 
      * @param address
+     *            the address of the mailbox
      * @param deactivationTime
+     *            the time (in milliseconds since epoch) when the mailbox will automatically be deactivated
      * @param forwardEnabled
+     *            whether or not XCMailr should forward mails arriving at this mailbox
      */
     public Mailbox(final String address, final long deactivationTime, final boolean forwardEnabled)
     {

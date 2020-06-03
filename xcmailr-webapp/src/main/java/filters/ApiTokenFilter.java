@@ -1,5 +1,5 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*  
+ *  Copyright 2020 by the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License. 
- *
  */
 package filters;
 
@@ -26,7 +25,7 @@ import ninja.FilterChain;
 import ninja.Result;
 
 /**
- * Ensures that a valid API token is provided and puts the corresponding user/user ID at the context.
+ * Ensures that a valid API token is provided and attaches the corresponding user/user ID to the context.
  */
 public class ApiTokenFilter implements Filter
 {
@@ -48,9 +47,6 @@ public class ApiTokenFilter implements Filter
         return ApiResults.unauthorized();
     }
 
-    /**
-     * @param context
-     */
     private String getBearerToken(Context context)
     {
         String s = context.getHeader("Authorization");

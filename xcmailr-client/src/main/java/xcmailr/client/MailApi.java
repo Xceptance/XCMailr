@@ -5,11 +5,13 @@ import java.util.List;
 
 /**
  * Operations to manage mails in a remote XCMailr instance.
+ * 
+ * @see XCMailrClient
  */
 public interface MailApi
 {
     /**
-     * Lists the details of all mails in the mailbox that is given by its address.
+     * Lists the details of all mails in a mailbox identified by the given address.
      * 
      * @param mailboxAddress
      *            the mailbox address, such as "john.doe@xcmailr.test"
@@ -25,12 +27,12 @@ public interface MailApi
      * Returns the details of the mail with the given ID.
      * 
      * @param mailId
-     *            the mailbox address, such as "john.doe@xcmailr.test"
+     *            the ID of the mail
      * @return the details of the mail
      * @throws Exception
      *             if anything went wrong
      */
-    public Mail getMail(String mailId) throws Exception;
+    public Mail getMail(long mailId) throws Exception;
 
     /**
      * Opens a stream to download the named attachment of a certain mail.
@@ -43,7 +45,7 @@ public interface MailApi
      * @throws Exception
      *             if anything went wrong
      */
-    public InputStream downloadAttachment(String mailId, String attachmentName) throws Exception;
+    public InputStream openAttachment(long mailId, String attachmentName) throws Exception;
 
     /**
      * Deletes a mail from XCMailr.
@@ -53,5 +55,5 @@ public interface MailApi
      * @throws Exception
      *             if anything went wrong
      */
-    public void deleteMail(String mailId) throws Exception;
+    public void deleteMail(long mailId) throws Exception;
 }

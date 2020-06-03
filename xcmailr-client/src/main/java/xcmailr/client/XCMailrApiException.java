@@ -1,7 +1,7 @@
 package xcmailr.client;
 
 /**
- * An exception thrown whenever XCMailr responded with an error.
+ * An exception thrown whenever XCMailr responded with a status code that indicates an error.
  */
 public class XCMailrApiException extends Exception
 {
@@ -38,11 +38,13 @@ public class XCMailrApiException extends Exception
      */
     private static String buildMessage(final String message, final int statusCode, final String responseBody)
     {
+        final String body = responseBody == null ? "<null>" : responseBody.isEmpty() ? "<empty>" : responseBody;
+
         final StringBuilder sb = new StringBuilder();
 
         sb.append(message).append('\n');
-        sb.append("- Status Code: ").append(statusCode).append('\n');
-        sb.append("- Response Body: ").append(responseBody);
+        sb.append("  Status Code  : ").append(statusCode).append('\n');
+        sb.append("  Response Body: ").append(body);
 
         return sb.toString();
     }

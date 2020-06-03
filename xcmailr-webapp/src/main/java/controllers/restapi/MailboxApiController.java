@@ -1,4 +1,4 @@
-/**  
+/*
  *  Copyright 2020 by the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,8 +11,7 @@
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
- *  limitations under the License. 
- *
+ *  limitations under the License.
  */
 package controllers.restapi;
 
@@ -52,7 +51,7 @@ public class MailboxApiController extends AbstractApiController
 
     /**
      * Lists all mailboxes of a certain user.
-     * 
+     *
      * @param userId
      *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param context
@@ -60,17 +59,18 @@ public class MailboxApiController extends AbstractApiController
      * @return the user's mailboxes as an array of {@link MailboxData} objects in JSON format
      */
     // @Get("/api/v1/mailboxes")
-    public Result listMailboxes(@Attribute("userId") @DbId Long userId, Context context)
+    public Result listMailboxes(@Attribute("userId") @DbId final Long userId, final Context context)
     {
-        List<MBox> mailboxes = MBox.allUser(userId);
-        List<MailboxData> mailboxDatas = mailboxes.stream().map(mb -> new MailboxData(mb)).collect(Collectors.toList());
+        final List<MBox> mailboxes = MBox.allUser(userId);
+        final List<MailboxData> mailboxDatas = mailboxes.stream().map(mb -> new MailboxData(mb))
+                                                        .collect(Collectors.toList());
 
         return ApiResults.ok().render(mailboxDatas);
     }
 
     /**
      * Creates a new mailbox for a certain user.
-     * 
+     *
      * @param mailboxData
      *            the details of the new mailbox
      * @param user
@@ -80,8 +80,8 @@ public class MailboxApiController extends AbstractApiController
      * @return the details of the new mailbox as a {@link MailboxData} object in JSON format
      */
     // @Post("/api/v1/mailboxes")
-    public Result createMailbox(@JSR303Validation MailboxData mailboxData, @Attribute("user") User user,
-                                Context context)
+    public Result createMailbox(@JSR303Validation final MailboxData mailboxData, @Attribute("user") final User user,
+                                final Context context)
     {
         if (context.getValidation().hasViolations())
         {
@@ -93,7 +93,7 @@ public class MailboxApiController extends AbstractApiController
 
     /**
      * Returns the details of a mailbox.
-     * 
+     *
      * @param mailboxAddress
      *            the ID of the mailbox
      * @param userId
@@ -103,18 +103,18 @@ public class MailboxApiController extends AbstractApiController
      * @return the details of the mailbox as a {@link MailboxData} object in JSON format
      */
     // @Get("/api/v1/mailboxes/{mailboxAddress}")
-    public Result getMailbox(@PathParam("mailboxAddress") @Email String mailboxAddress,
-                             @Attribute("userId") @DbId Long userId, Context context)
+    public Result getMailbox(@PathParam("mailboxAddress") @Email final String mailboxAddress,
+                             @Attribute("userId") @DbId final Long userId, final Context context)
     {
         return performAction(userId, mailboxAddress, context, mailbox -> {
-            MailboxData mailboxData = new MailboxData(mailbox);
+            final MailboxData mailboxData = new MailboxData(mailbox);
             return ApiResults.ok().render(mailboxData);
         });
     }
 
     /**
      * Updates an existing mailbox.
-     * 
+     *
      * @param mailboxAddress
      *            the ID of the mailbox
      * @param mailboxData
@@ -126,16 +126,16 @@ public class MailboxApiController extends AbstractApiController
      * @return the details of the updated mailbox as a {@link MailboxData} object in JSON format
      */
     // @Put("/api/v1/mailboxes/<mailboxAddress>")
-    public Result updateMailbox(@PathParam("mailboxAddress") @Email String mailboxAddress,
-                                @JSR303Validation MailboxData mailboxData, @Attribute("userId") @DbId Long userId,
-                                Context context)
+    public Result updateMailbox(@PathParam("mailboxAddress") @Email final String mailboxAddress,
+                                @JSR303Validation final MailboxData mailboxData,
+                                @Attribute("userId") @DbId final Long userId, final Context context)
     {
         return performAction(userId, mailboxAddress, context, mailbox -> doUpdateMailbox(mailbox, mailboxData));
     }
 
     /**
      * Deletes a mailbox.
-     * 
+     *
      * @param mailboxAddress
      *            the ID of the mailbox
      * @param userId
@@ -145,8 +145,8 @@ public class MailboxApiController extends AbstractApiController
      * @return an empty result
      */
     // @Delete("/api/v1/mailboxes/{mailboxAddress}")
-    public Result deleteMailbox(@PathParam("mailboxAddress") @Email String mailboxAddress,
-                                @Attribute("userId") @DbId Long userId, Context context)
+    public Result deleteMailbox(@PathParam("mailboxAddress") @Email final String mailboxAddress,
+                                @Attribute("userId") @DbId final Long userId, final Context context)
     {
         return performAction(userId, mailboxAddress, context, mailbox -> {
             mailbox.delete();
@@ -158,7 +158,7 @@ public class MailboxApiController extends AbstractApiController
      * Performs the given action with a mailbox entity. Before the action is applied, the context is checked for
      * validation violations, then the mailbox in question is looked up in the database, and finally some other basic
      * access checks are made.
-     * 
+     *
      * @param userId
      *            the ID of the user (derived from the passed API token in {@link ApiTokenFilter})
      * @param mailboxAddress
@@ -169,7 +169,8 @@ public class MailboxApiController extends AbstractApiController
      *            the action to be performed with the mailbox
      * @return the result produced by the action, or an error result
      */
-    private Result performAction(Long userId, String mailboxAddress, Context context, Function<MBox, Result> action)
+    private Result performAction(final Long userId, final String mailboxAddress, final Context context,
+                                 final Function<MBox, Result> action)
     {
         // check the context for violations
         if (context.getValidation().hasViolations())
@@ -178,7 +179,7 @@ public class MailboxApiController extends AbstractApiController
         }
 
         // get mailbox
-        MBox mailbox = MBox.getByAddress(mailboxAddress);
+        final MBox mailbox = MBox.getByAddress(mailboxAddress);
         if (mailbox == null)
         {
             return ApiResults.notFound();
@@ -196,18 +197,18 @@ public class MailboxApiController extends AbstractApiController
 
     /**
      * Creates a new or reactivates an existing, but inactive mailbox.
-     * 
+     *
      * @param mailboxData
      *            the details of the mailbox
      * @param user
      *            the user
      * @return the details of the new mailbox as a {@link MailboxData} object in JSON format, or an error result
      */
-    private Result doCreateMailbox(MailboxData mailboxData, User user)
+    private Result doCreateMailbox(MailboxData mailboxData, final User user)
     {
         // check domain
-        String desiredMailAddress = mailboxData.address;
-        String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress);
+        final String desiredMailAddress = mailboxData.address;
+        final String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress);
         if (!HelperUtils.checkEmailAddressValidness(mailAddressParts, xcmConfiguration.DOMAIN_LIST))
         {
             // mail is not in format "localpart@domain" or domain is not configured in XCMailr
@@ -215,8 +216,8 @@ public class MailboxApiController extends AbstractApiController
             return ApiResults.forbidden("address", "Domain is not allowed");
         }
 
-        String localPart = mailAddressParts[0];
-        String domainPart = mailAddressParts[1];
+        final String localPart = mailAddressParts[0];
+        final String domainPart = mailAddressParts[1];
 
         // check if email address is already claimed by someone else
         MBox mailbox = MBox.find(localPart, domainPart);
@@ -257,18 +258,18 @@ public class MailboxApiController extends AbstractApiController
 
     /**
      * Updates an existing mailbox with new details.
-     * 
+     *
      * @param mailbox
      *            the mailbox entity to update
      * @param mailboxData
      *            the new details of the mailbox
      * @return the details of the updated mailbox as a {@link MailboxData} object in JSON format, or an error result
      */
-    private Result doUpdateMailbox(MBox mailbox, MailboxData mailboxData)
+    private Result doUpdateMailbox(final MBox mailbox, MailboxData mailboxData)
     {
         // check domain
-        String desiredMailAddress = mailboxData.address;
-        String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress);
+        final String desiredMailAddress = mailboxData.address;
+        final String[] mailAddressParts = HelperUtils.splitMailAddress(desiredMailAddress);
         if (!HelperUtils.checkEmailAddressValidness(mailAddressParts, xcmConfiguration.DOMAIN_LIST))
         {
             // mail is not in format "localpart@domain" or domain is not configured in XCMailr
@@ -276,11 +277,11 @@ public class MailboxApiController extends AbstractApiController
             return ApiResults.forbidden("mailboxAddress", "Domain is not allowed.");
         }
 
-        String localPart = mailAddressParts[0];
-        String domainPart = mailAddressParts[1];
+        final String localPart = mailAddressParts[0];
+        final String domainPart = mailAddressParts[1];
 
         // check if email address is already claimed by any other mailbox, even one of mine
-        MBox mbx = MBox.find(localPart, domainPart);
+        final MBox mbx = MBox.find(localPart, domainPart);
         if (mbx != null && mbx.getId() != mailbox.getId())
         {
             log.debug("Email address is owned by user: " + mbx.getUsr().getMail());

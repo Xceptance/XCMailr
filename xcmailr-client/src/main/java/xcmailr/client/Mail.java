@@ -6,13 +6,15 @@ import java.util.List;
 
 /**
  * The data object that represents the details of a mail.
+ * 
+ * @see MailApi
  */
 public class Mail
 {
     /**
      * The mail ID.
      */
-    public String id;
+    public long id;
 
     /**
      * The sender's address.
@@ -30,14 +32,19 @@ public class Mail
     public String subject;
 
     /**
-     * The time (in milliseconds since epoch) when the mail was received.
+     * The time (in milliseconds since epoch) at which the mail was received.
      */
-    public long receiveTime;
+    public long receivedTime;
 
     /**
-     * 
+     * The plain-text content.
      */
-    public Content mailContent;
+    public String textContent;
+
+    /**
+     * The HTML content.
+     */
+    public String htmlContent;
 
     /**
      * The mail attachments.
@@ -47,30 +54,19 @@ public class Mail
     /**
      * The mail headers as a single string, separated by newlines.
      */
-    public String mailHeader;
+    public String headers;
 
-    // TODO
-    public static class Content
-    {
-        public String text;
-
-        public String html;
-
-        private Content(final String aText, final String aHtml)
-        {
-            text = aText;
-            html = aHtml;
-        }
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     public String toString()
     {
-        return String.format("%s:{ id: '%s', sender: '%s', recipient: '%s', subject: '%s', receiveTime: '%s' }",
+        return String.format("%s:{ id: '%s', sender: '%s', recipient: '%s', subject: '%s', receivedTime: '%s' }",
                              super.toString(),
                              id,
                              sender,
                              recipient,
                              subject,
-                             new Date(receiveTime));
+                             new Date(receivedTime));
     }
 }

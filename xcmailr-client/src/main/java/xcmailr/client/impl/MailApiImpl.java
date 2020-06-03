@@ -42,21 +42,23 @@ public class MailApiImpl extends AbstractApiImpl implements MailApi
      */
     public List<Mail> listMails(final String mailboxAddress, final MailFilterOptions options) throws Exception
     {
+        Utils.notBlank(mailboxAddress, "mailboxAddress");
+
         final StringBuilder url = new StringBuilder("mails?");
         appendQueryParameter(url, "mailboxAddress", mailboxAddress);
 
         if (options != null)
         {
-            appendQueryParameter(url, "from", options.fromPattern);
+            appendQueryParameter(url, "from", options.senderPattern);
             appendQueryParameter(url, "subject", options.subjectPattern);
-            appendQueryParameter(url, "mailHeader", options.mailHeaderPattern);
+            appendQueryParameter(url, "mailHeader", options.headersPattern);
             appendQueryParameter(url, "htmlContent", options.htmlContentPattern);
             appendQueryParameter(url, "textContent", options.textContentPattern);
             appendQueryParameter(url, "lastMatch", String.valueOf(options.lastMatchOnly));
         }
 
-        final HttpResponse<String> response = client.executeRequest("GET", url.toString(), null);
-        checkResponse(response, 200);
+        final HttpResponse<String> response = client.executeRequest(HttpMethod.GET, url.toString());
+        checkStatusCode(response, 200);
 
         return gson.fromJson(response.body(), mailListType);
     }
@@ -64,10 +66,10 @@ public class MailApiImpl extends AbstractApiImpl implements MailApi
     /**
      * {@inheritDoc}
      */
-    public Mail getMail(final String mailId) throws Exception
+    public Mail getMail(final long mailId) throws Exception
     {
-        final HttpResponse<String> response = client.executeRequest("GET", "mails/" + mailId, null);
-        checkResponse(response, 200);
+        final HttpResponse<String> response = client.executeRequest(HttpMethod.GET, "mails/" + mailId);
+        checkStatusCode(response, 200);
 
         return gson.fromJson(response.body(), Mail.class);
     }
@@ -75,12 +77,14 @@ public class MailApiImpl extends AbstractApiImpl implements MailApi
     /**
      * {@inheritDoc}
      */
-    public InputStream downloadAttachment(final String mailId, final String attachmentName) throws Exception
+    public InputStream openAttachment(final long mailId, final String attachmentName) throws Exception
     {
-        final HttpResponse<InputStream> response = client.executeRequest2("GET",
-                                                                          "mails/" + mailId + "/attachments/" + attachmentName,
-                                                                          null);
-        checkResponse(response, 200);
+        Utils.notBlank(attachmentName, "attachmentName");
+
+        final HttpResponse<InputStream> response = client.executeRequest2(HttpMethod.GET,
+                                                                          "mails/" + mailId + "/attachments/"
+                                                                                          + Utils.encodePathSegment(attachmentName));
+        checkStatusCode(response, 200);
 
         return response.body();
     }
@@ -88,9 +92,9 @@ public class MailApiImpl extends AbstractApiImpl implements MailApi
     /**
      * {@inheritDoc}
      */
-    public void deleteMail(final String mailId) throws Exception
+    public void deleteMail(final long mailId) throws Exception
     {
-        final HttpResponse<String> response = client.executeRequest("DELETE", "mails/" + mailId, null);
-        checkResponse(response, 204);
+        final HttpResponse<String> response = client.executeRequest(HttpMethod.DELETE, "mails/" + mailId);
+        checkStatusCode(response, 204);
     }
 }
