@@ -465,6 +465,24 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
+     * Returns the mailbox with the given mail address.
+     * 
+     * @param mailAddress
+     *            the complete mail address
+     * @return the MBox object that belongs to this address, or <code>null</code> if not found
+     */
+    public static MBox getByAddress(final String mailAddress)
+    {
+        final String[] parts = StringUtils.split(mailAddress, "@");
+        if (parts == null || parts.length != 2)
+        {
+            return null;
+        }
+
+        return getByName(parts[0], parts[1]);
+    }
+
+    /**
      * Checks the relation between a {@link User} and a Box
      * 
      * @param bId
@@ -657,6 +675,21 @@ public class MBox extends AbstractEntity implements Serializable
         }
         // the entry may be something like "address" or "domain" (just a part of the address)
         return exList1.or(Expr.ilike("address", "%" + input + "%"), Expr.ilike("domain", "%" + input + "%")).findList();
+    }
+
+    /**
+     * Finds a mailbox with the given address parts (local part and domain). The address part lookup is
+     * case-insensitive.
+     * 
+     * @param localPart
+     *            the local part of the address
+     * @param domain
+     *            the domain of the address
+     * @return the mailbox or <code>null</code> if not found
+     */
+    public static MBox find(String localPart, String domain)
+    {
+        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domain).findUnique();
     }
 
     /**
