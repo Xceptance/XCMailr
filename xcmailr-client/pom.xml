@@ -2,27 +2,110 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.xcmailr</groupId>
-        <artifactId>xcmailr</artifactId>
-        <version>2.1.0</version>
-    </parent>
-
+    <groupId>com.xceptance</groupId>
     <artifactId>xcmailr-client</artifactId>
+    <version>2.1.0</version>
     <packaging>jar</packaging>
-    <name>xcmailr-client</name>
+
+    <name>XCMailr Client Library</name>
+    <description>An easy-to-use Java library that simplifies using the REST API of XCMailr in test projects.</description>
+    <url>https://github.com/Xceptance/XCMailr</url>
+    <inceptionYear>2020</inceptionYear>
+
+    <organization>
+        <name>Xceptance Software Technologies GmbH</name>
+        <url>https://www.xceptance.com/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Xceptance Dev Team</name>
+            <id>xceptance</id>
+            <email>xlt.dev@xceptance.com</email>
+            <organization>Xceptance Software Technologies GmbH</organization>
+            <organizationUrl>http://www.xceptance.com/</organizationUrl>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <comments>Apache License, Version 2.0</comments>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/Xceptance/XCMailr</url>
+        <connection>scm:git:https://github.com/Xceptance/XCMailr</connection>
+        <developerConnection>scm:git:https://github.com/Xceptance/XCMailr</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/Xceptance/XCMailr/issues</url>
+    </issueManagement>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <copyright>Copyright (c) ${project.inceptionYear}-2020 ${project.organization.name}</copyright>
     </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <gpgArguments>
+                        <arg>--pinentry-mode</arg>
+                        <arg>loopback</arg>
+                    </gpgArguments>
+                </configuration>
+            </plugin>
+            <!-- Adds or updates the license header in source files. -->
+            <!-- Usage: mvn license:format -->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <header>src/build/resources/license-header.txt</header>
+                    <properties>
+                        <copyright>${copyright}</copyright>
+                    </properties>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.5</version>
+            <version>2.8.6</version>
         </dependency>
     </dependencies>
 
