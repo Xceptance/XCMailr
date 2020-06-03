@@ -72,11 +72,11 @@ public class Demo
 
     public static void main(final String[] args) throws Exception
     {
-        final XCMailrClient api = new XCMailrClient("http://localhost:8080/", "W0NlNNimX4LqTGI6EY1TyGv9oZLOI8qM8G7wxLnhyatkVcrkGu");
+        final XCMailrClient api = new XCMailrClient("http://localhost:8080/", "0oFsLgV7yG3gMgCPZV0Lp2YzEvXykm5Lsd73eTNHyyMyIUoP7Z");
 
         // api.mailboxes().createMailbox("foo@xcmailr.test", 10, true);
         // api.mailboxes().createMailbox("bar@xcmailr.test", 10, true);
-        // api.mailboxes().updateMailbox("bar2@xcmailr.test", "bar2@xcmailr.test", 10, true);
+        // api.mailboxes().updateMailbox("bar@xcmailr.test", "bar2@xcmailr.test", 10, true);
         // System.err.printf("### %s\n", api.mailboxes().listMailboxes());
 
         // retrieve mail
