@@ -63,7 +63,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <copyright>Copyright (c) ${project.inceptionYear}-2020 ${project.organization.name}</copyright>
+        <copyright>Copyright (c) ${project.inceptionYear} ${project.organization.name}</copyright>
     </properties>
 
     <build>
