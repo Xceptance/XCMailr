@@ -1,6 +1,7 @@
 package models;
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,6 +11,8 @@ import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
+
+import com.avaje.ebean.Ebean;
 
 @Entity
 @Table
@@ -107,4 +110,27 @@ public class Mail extends AbstractEntity implements Serializable
         this.uuid = uuid;
     }
 
+    /**
+     * Finds a mail by ID.
+     * 
+     * @param id
+     *            the ID
+     * @return the mail or <code>null</code> if not found
+     */
+    public static Mail find(long id)
+    {
+        return Ebean.find(Mail.class).where().idEq(id).findUnique();
+    }
+
+    /**
+     * Finds all mails in the mailbox with the given ID and returns them sorted by receive time.
+     * 
+     * @param mailboxId
+     *            the ID of the mailbox
+     * @return the list of mails found
+     */
+    public static List<Mail> findAndSort(long mailboxId)
+    {
+        return Ebean.find(Mail.class).where().eq("mailbox_id", mailboxId).order("receiveTime").findList();
+    }
 }
