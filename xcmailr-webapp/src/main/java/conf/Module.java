@@ -16,11 +16,11 @@
 
 package conf;
 
-import ninja.ebean.NinjaEbeanModule;
 import com.google.inject.AbstractModule;
 
 import controllers.CheckDBForMailAddressDuplicates;
 import controllers.JobController;
+import ninja.ebean.NinjaEbeanModule2;
 
 public class Module extends AbstractModule
 {
@@ -34,7 +34,7 @@ public class Module extends AbstractModule
     protected void configure()
     {
         // install the ebean module
-        install(new NinjaEbeanModule());
+        install(new NinjaEbeanModule2());
         // bind configuration-class and jobcontroller
         bind(XCMailrConf.class);
         bind(JobController.class);
