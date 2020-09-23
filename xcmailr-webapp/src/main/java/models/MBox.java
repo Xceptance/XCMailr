@@ -98,6 +98,10 @@ public class MBox extends AbstractEntity implements Serializable
     /** should emails forwarded for this address */
     private boolean forwardEmails;
 
+    /** flag used by MailboxAPI to mark this mailbox to be removed automatically once expired */
+    @JsonIgnore
+    private boolean autoRemove;
+
     /**
      * Default-Constructor
      */
@@ -383,7 +387,6 @@ public class MBox extends AbstractEntity implements Serializable
     @JsonIgnore
     public void setFullAddress(String dummy)
     {
-
     }
 
     // ---------------------------------------------
@@ -790,6 +793,24 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
+     * Takes the Box-IDs, builds an SQL-Statement and deletes all given Boxes that have {@code autoRemove} set to
+     * {@code true}.
+     * <p>
+     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
+     * correctness of the string (esp. thinking on SQL-Injections, etc.)
+     * 
+     * @param boxIds
+     *            a List of BoxIDs
+     * @return the number of boxes removed (or -1 on error)
+     */
+    public static int removeListOfBoxes(List<Long> boxIds)
+    {
+        StringBuilder sqlSb = new StringBuilder();
+        sqlSb.append("DELETE FROM MAILBOXES WHERE AUTO_REMOVE=TRUE");
+        return appendIdsAndExecuteSql(sqlSb, boxIds);
+    }
+
+    /**
      * Takes the user-ID and Box-IDs, builds an SQL-Statement and resets the suppression and forward-counters of the
      * given Boxes. <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to
      * self-check the correctness of the string (esp. thinking on SQL-Injections, etc.)
@@ -931,7 +952,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * @return boolean indicating whether arriving emails should be forwarded to accounts email address or not
+     * @return boolean indicating whether arriving e-mails should be forwarded to accounts email address or not
      */
     public boolean isForwardEmails()
     {
@@ -940,10 +961,29 @@ public class MBox extends AbstractEntity implements Serializable
 
     /**
      * @param forwardEmails
-     *            set if emails should be forwarde to accounts email address or not
+     *            set if e-mails should be forwarded to user account's email address or not
      */
     public void setForwardEmails(boolean forwardEmails)
     {
         this.forwardEmails = forwardEmails;
+    }
+
+    /**
+     * Returns whether this mailbox is marked to be removed once expired.
+     * 
+     * @return <code>true</code> if this mailbox is marked to be removed once expired, <code>false</code> otherwise
+     */
+    @JsonIgnore
+    public boolean isAutoRemove()
+    {
+        return autoRemove;
+    }
+
+    /**
+     * @param autoRemove set if mailbox should be removed automatically once expired
+     */
+    public void setAutoRemove(boolean autoRemove)
+    {
+        this.autoRemove = autoRemove;
     }
 }

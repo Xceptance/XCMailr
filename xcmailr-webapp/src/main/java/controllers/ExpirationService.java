@@ -54,6 +54,8 @@ public class ExpirationService implements Runnable
         List<MBox> expiringMailBoxesList = MBox.getNextBoxes(xcmConfiguration.MB_INTERVAL);
         ListIterator<MBox> mailBoxIterator = expiringMailBoxesList.listIterator();
 
+        LinkedList<Long> boxesToRemove = new LinkedList<>();
+
         DateTime dt = new DateTime();
         MBox mailBox;
         // disable expired mail-addresses
@@ -64,6 +66,11 @@ public class ExpirationService implements Runnable
             { // this element is now expired
                 mailBox.disable();
                 log.debug("Mailbox '{}' expired",mailBox.getFullAddress());
+
+                if(mailBox.isAutoRemove())
+                {
+                    boxesToRemove.add(mailBox.getId());
+                }
             }
         }
 
@@ -201,6 +208,14 @@ public class ExpirationService implements Runnable
             log.debug("Finished Mailtransaction cleanup");
         }
 
+        // delete expired mailboxes that were created via API
+        {
+            log.debug("Cleanup Mailboxes");
+            MBox.removeListOfBoxes( boxesToRemove);
+            log.debug("Finished Mailbox cleanup");
+
+            log.info("Removed {} expired mailboxes from database", boxesToRemove.size());
+        }
     }
 
     private MailStatisticsKey createMailStatisticsKey(MailTransaction mt)

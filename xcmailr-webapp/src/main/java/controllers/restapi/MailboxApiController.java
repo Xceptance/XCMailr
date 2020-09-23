@@ -248,6 +248,7 @@ public class MailboxApiController extends AbstractApiController
             mailbox = new MBox(localPart, domainPart, mailboxData.deactivationTime,
                                mailboxData.deactivationTime <= System.currentTimeMillis(), user);
             mailbox.setForwardEmails(mailboxData.forwardEnabled);
+            mailbox.setAutoRemove(true);
             mailbox.save();
 
             mailboxData = new MailboxData(mailbox);
