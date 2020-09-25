@@ -793,24 +793,6 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * Takes the Box-IDs, builds an SQL-Statement and deletes all given Boxes that have {@code autoRemove} set to
-     * {@code true}.
-     * <p>
-     * <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to self-check the
-     * correctness of the string (esp. thinking on SQL-Injections, etc.)
-     * 
-     * @param boxIds
-     *            a List of BoxIDs
-     * @return the number of boxes removed (or -1 on error)
-     */
-    public static int removeListOfBoxes(List<Long> boxIds)
-    {
-        StringBuilder sqlSb = new StringBuilder();
-        sqlSb.append("DELETE FROM MAILBOXES WHERE AUTO_REMOVE=TRUE");
-        return appendIdsAndExecuteSql(sqlSb, boxIds);
-    }
-
-    /**
      * Takes the user-ID and Box-IDs, builds an SQL-Statement and resets the suppression and forward-counters of the
      * given Boxes. <strong> WARNING:</strong> The Box-ID-String won't be checked again! The calling method has to
      * self-check the correctness of the string (esp. thinking on SQL-Injections, etc.)
