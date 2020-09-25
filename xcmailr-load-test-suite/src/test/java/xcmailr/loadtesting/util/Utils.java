@@ -39,7 +39,16 @@ public class Utils
         final String xcmailrBaseUrl = props.getProperty("xcmailr.baseUrl");
         final String xcmailrApiToken = props.getProperty("xcmailr.apiToken");
 
-        theXCMmailrClient = new XCMailrClient(xcmailrBaseUrl, xcmailrApiToken);
+        XCMailrClient client = null;
+        try
+        {
+            client = new XCMailrClient(xcmailrBaseUrl, xcmailrApiToken);
+        }
+        catch (Throwable t)
+        {
+            t.printStackTrace();
+        }
+        theXCMmailrClient = client;
     }
 
     /**
