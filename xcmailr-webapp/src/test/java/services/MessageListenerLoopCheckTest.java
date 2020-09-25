@@ -1,4 +1,4 @@
-package controllers;
+package services;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -273,7 +273,7 @@ public class MessageListenerLoopCheckTest
      */
     private MimeMessage loadMailFromFile(String mailFile) throws IOException, MessagingException
     {
-        final InputStream inputStream = getClass().getResourceAsStream(mailFile);
+        final InputStream inputStream = getClass().getResourceAsStream("/testmails/" + mailFile);
         Assert.assertNotNull("Failed to load mail '" + mailFile + "'", inputStream);
         final Session session = Session.getInstance(new Properties());
         final MimeMessage mail = new MimeMessage(session, inputStream);

@@ -14,9 +14,8 @@
  *  limitations under the License. 
  *
  */
-package controllers;
+package services;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
@@ -30,7 +29,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.util.MimeMessageUtils;
 import org.slf4j.Logger;
@@ -43,6 +41,7 @@ import com.google.inject.Singleton;
 import conf.XCMailrConf;
 import etc.HelperUtils;
 import etc.MessageComposer;
+import etc.SizeLimitExceededException;
 import models.MBox;
 import models.Mail;
 import models.MailTransaction;
@@ -63,7 +62,7 @@ public class MessageListener implements SimpleMessageListener
     MailrMessageSenderFactory mailrSenderFactory;
 
     @Inject
-    JobController jobController;
+    MailService jobController;
 
     @Inject
     Logger log;
@@ -267,7 +266,7 @@ public class MessageListener implements SimpleMessageListener
             byte[] rawContent = null;
             try
             {
-                rawContent = readLimitedAmount(data, xcmConfiguration.MAX_MAIL_SIZE);
+                rawContent = HelperUtils.readLimitedAmount(data, xcmConfiguration.MAX_MAIL_SIZE);
             }
             catch (IOException e)
             {
@@ -364,32 +363,7 @@ public class MessageListener implements SimpleMessageListener
         }
     }
 
-    /**
-     * Reads up to maxSize bytes from data input stream. If the limit is exceeded an {@link SizeLimitExceededException}
-     * is thrown.
-     * 
-     * @param data
-     *            an {@link InputStream}
-     * @param maxSize
-     *            determines the maximum amount of bytes to be read from data
-     * @return the streams' data
-     * @throws SizeLimitExceededException
-     *             if maxSize read limit is exceeded
-     * @throws IOException
-     *             if an I/O error occurred
-     */
-    static byte[] readLimitedAmount(InputStream data, int maxSize) throws IOException
-    {
-        final ByteArrayOutputStream bos = new ByteArrayOutputStream(data.available());
-        final long count = IOUtils.copy(data, bos, 4096);
 
-        if (count > maxSize)
-        {
-            throw new SizeLimitExceededException("Data stream exceeds size limit of " + maxSize + " bytes");
-        }
-
-        return bos.toByteArray();
-    }
 
     private void persistMail(MBox mailBox, String from, final String subject, byte[] rawData) throws MessagingException
     {
@@ -412,31 +386,5 @@ public class MessageListener implements SimpleMessageListener
             final MailTransaction mtx = new MailTransaction(status, from, recipient, forwardTarget);
             jobController.mtxQueue.add(mtx);
         }
-    }
-
-    public static class SizeLimitExceededException extends IOException
-    {
-        static final long serialVersionUID = -2495864848105342730L;
-
-        public SizeLimitExceededException()
-        {
-            super();
-        }
-
-        public SizeLimitExceededException(String arg0, Throwable arg1)
-        {
-            super(arg0, arg1);
-        }
-
-        public SizeLimitExceededException(String arg0)
-        {
-            super(arg0);
-        }
-
-        public SizeLimitExceededException(Throwable arg0)
-        {
-            super(arg0);
-        }
-
     }
 }

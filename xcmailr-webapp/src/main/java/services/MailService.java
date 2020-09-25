@@ -14,7 +14,7 @@
  *  limitations under the License. 
  *
  */
-package controllers;
+package services;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -38,12 +38,12 @@ import ninja.lifecycle.Start;
 import ninja.utils.NinjaProperties;
 
 /**
- * Handles the Jobs which will be executed on Start and Stop of the Application
+ * Service responsible for handling of e-mails (sending, forwarding, expiring).
  * 
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 @Singleton
-public class JobController
+public class MailService
 {
     private final ScheduledExecutorService expirationService = Executors.newSingleThreadScheduledExecutor();
 

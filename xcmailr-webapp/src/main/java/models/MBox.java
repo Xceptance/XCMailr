@@ -383,7 +383,6 @@ public class MBox extends AbstractEntity implements Serializable
     @JsonIgnore
     public void setFullAddress(String dummy)
     {
-
     }
 
     // ---------------------------------------------
@@ -931,7 +930,7 @@ public class MBox extends AbstractEntity implements Serializable
     }
 
     /**
-     * @return boolean indicating whether arriving emails should be forwarded to accounts email address or not
+     * @return boolean indicating whether arriving e-mails should be forwarded to accounts email address or not
      */
     public boolean isForwardEmails()
     {
@@ -940,7 +939,7 @@ public class MBox extends AbstractEntity implements Serializable
 
     /**
      * @param forwardEmails
-     *            set if emails should be forwarde to accounts email address or not
+     *            set if e-mails should be forwarded to user account's email address or not
      */
     public void setForwardEmails(boolean forwardEmails)
     {

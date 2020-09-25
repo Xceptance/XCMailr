@@ -1,4 +1,4 @@
-package controllers;
+package services;
 
 import java.sql.Date;
 import java.util.Calendar;
@@ -200,7 +200,6 @@ public class ExpirationService implements Runnable
             MailTransaction.deleteTxInPeriod(removalTS);
             log.debug("Finished Mailtransaction cleanup");
         }
-
     }
 
     private MailStatisticsKey createMailStatisticsKey(MailTransaction mt)

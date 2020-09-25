@@ -6,9 +6,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -113,5 +116,12 @@ public class HelperUtilsTest
 
         mailParts[1] = "TesT.LOCALHosT";
         assertTrue(HelperUtils.checkEmailAddressValidness(mailParts, domainList));
+    }
+
+    @Test(expected = SizeLimitExceededException.class)
+    public void testReadRawContent_LimitExceeded() throws Exception
+    {
+        final InputStream is = new ByteArrayInputStream(RandomUtils.nextBytes(30));
+        HelperUtils.readLimitedAmount(is, 25);
     }
 }
