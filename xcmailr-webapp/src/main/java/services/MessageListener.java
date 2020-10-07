@@ -85,7 +85,7 @@ public class MessageListener implements SimpleMessageListener
         // log status 500 (relay denied)
         if (xcmConfiguration.MTX_MAX_AGE != 0)
         { // if mailtransaction.maxage is set to 0 -> log nothing
-            MailTransaction mtx = new MailTransaction(500, from, null, recipient);
+            MailTransaction mtx = new MailTransaction(500, from, recipient, null);
             jobController.mtxQueue.add(mtx);
         }
         return false;
