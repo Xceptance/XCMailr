@@ -1026,11 +1026,17 @@ public class BoxHandler
 
             for (Mail mail : mails)
             {
-                final MailboxEntry mailboxEntry = new MailboxEntry(mail.getMailbox().getFullAddress(), mail);
-
-                if (StringUtils.isBlank(search) || mailboxEntry.matchesSearchPhrase(search))
+                final MBox mailbox = mail.getMailbox();
+                
+                // check if the mailbox of this mail has just been deleted, and, if so, ignore this mail
+                if (mailbox != null)
                 {
-                    matches.add(mailboxEntry);
+                    final MailboxEntry mailboxEntry = new MailboxEntry(mailbox.getFullAddress(), mail);
+    
+                    if (StringUtils.isBlank(search) || mailboxEntry.matchesSearchPhrase(search))
+                    {
+                        matches.add(mailboxEntry);
+                    }
                 }
             }
 
