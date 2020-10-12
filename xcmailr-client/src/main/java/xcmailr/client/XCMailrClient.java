@@ -15,8 +15,6 @@
  */
 package xcmailr.client;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 
 import com.google.gson.Gson;
@@ -52,7 +50,7 @@ public class XCMailrClient
      * @param apiToken
      *            the API token that allows access to XCMailr
      */
-    public XCMailrClient(final String baseUrl, final String apiToken) throws MalformedURLException, URISyntaxException
+    public XCMailrClient(final String baseUrl, final String apiToken)
     {
         this(baseUrl, apiToken, HttpClient.newHttpClient());
     }
