@@ -1,4 +1,4 @@
-package controllers;
+package services;
 
 import java.sql.Date;
 import java.util.Calendar;
@@ -47,6 +47,18 @@ public class ExpirationService implements Runnable
 
     @Override
     public void run()
+    {
+        try
+        {
+            doRun();
+        }
+        catch (Exception ex) 
+        {
+            log.error("Exception while running expiration service", ex);
+        }
+    }
+    
+    private void doRun()
     {
         log.info("Emailaddress Expiration Task run");
 

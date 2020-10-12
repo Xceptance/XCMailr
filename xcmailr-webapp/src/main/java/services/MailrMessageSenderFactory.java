@@ -14,7 +14,7 @@
  *  limitations under the License. 
  *
  */
-package controllers;
+package services;
 
 import java.util.Optional;
 import java.util.Properties;
@@ -61,7 +61,7 @@ public class MailrMessageSenderFactory
     NinjaProperties ninjaProperties;
 
     @Inject
-    JobController jobController;
+    MailService jobController;
 
     private Session session;
 

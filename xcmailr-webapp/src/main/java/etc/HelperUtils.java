@@ -16,6 +16,9 @@
  */
 package etc;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.regex.Pattern;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -188,7 +192,8 @@ public final class HelperUtils
         List<String[]> availableLanguageList = new ArrayList<String[]>();
         for (String abbreviatedLanguageCode : availableLanguages)
         {
-            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult).orElse(abbreviatedLanguageCode);
+            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult)
+                                     .orElse(abbreviatedLanguageCode);
             availableLanguageList.add(new String[]
                 {
                   abbreviatedLanguageCode, languageTranslation
@@ -206,7 +211,7 @@ public final class HelperUtils
      */
     public static boolean checkEmailAddressValidness(String[] mailAddressParts, String[] domainList)
     {
-        if (mailAddressParts == null || domainList == null|| mailAddressParts.length != 2)
+        if (mailAddressParts == null || domainList == null || mailAddressParts.length != 2)
         {
             return false;
         }
@@ -261,5 +266,32 @@ public final class HelperUtils
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Reads up to maxSize bytes from data input stream. If the limit is exceeded an {@link SizeLimitExceededException}
+     * is thrown.
+     * 
+     * @param data
+     *            an {@link InputStream}
+     * @param maxSize
+     *            determines the maximum amount of bytes to be read from data
+     * @return the streams' data
+     * @throws SizeLimitExceededException
+     *             if maxSize read limit is exceeded
+     * @throws IOException
+     *             if an I/O error occurred
+     */
+    public static byte[] readLimitedAmount(InputStream data, int maxSize) throws IOException
+    {
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream(data.available());
+        final long count = IOUtils.copy(data, bos, 4096);
+
+        if (count > maxSize)
+        {
+            throw new SizeLimitExceededException("Data stream exceeds size limit of " + maxSize + " bytes");
+        }
+
+        return bos.toByteArray();
     }
 }

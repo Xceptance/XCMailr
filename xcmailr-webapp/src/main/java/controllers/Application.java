@@ -46,6 +46,7 @@ import ninja.params.Param;
 import ninja.params.PathParam;
 import ninja.validation.JSR303Validation;
 import ninja.validation.Validation;
+import services.MailrMessageSenderFactory;
 
 /**
  * Handles all general application actions like login, logout, forgot password or index page

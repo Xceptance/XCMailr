@@ -52,6 +52,7 @@ import ninja.Results;
 import ninja.i18n.Messages;
 import ninja.params.Param;
 import ninja.params.PathParam;
+import services.MailrMessageSenderFactory;
 
 /**
  * Handles all Actions for the Administration-Section
