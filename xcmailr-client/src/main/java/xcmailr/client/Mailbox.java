@@ -36,12 +36,12 @@ public class Mailbox
     public long deactivationTime;
 
     /**
-     * Whether or not XCMailr should forward mails arriving at this mailbox.
+     * Whether or not XCMailr should forward mails arriving at this mailbox to the mailbox owner.
      */
     public boolean forwardEnabled;
 
     /**
-     * Creates a new empty {@link Mailbox} instance.
+     * Creates a new {@link Mailbox} instance.
      */
     public Mailbox()
     {

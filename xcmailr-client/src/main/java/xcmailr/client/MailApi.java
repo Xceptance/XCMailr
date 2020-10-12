@@ -26,7 +26,7 @@ import java.util.List;
 public interface MailApi
 {
     /**
-     * Lists the details of all mails in a mailbox identified by the given address.
+     * Lists the details of all mails in the mailbox identified by the given address.
      * 
      * @param mailboxAddress
      *            the mailbox address, such as "john.doe@xcmailr.test"
@@ -46,6 +46,7 @@ public interface MailApi
      * @return the details of the mail
      * @throws Exception
      *             if anything went wrong
+     * @see Mail#id
      */
     public Mail getMail(long mailId) throws Exception;
 
@@ -59,6 +60,8 @@ public interface MailApi
      * @return a stream from which the attachment can be read
      * @throws Exception
      *             if anything went wrong
+     * @see Mail#id
+     * @see Attachment#name
      */
     public InputStream openAttachment(long mailId, String attachmentName) throws Exception;
 
@@ -69,6 +72,7 @@ public interface MailApi
      *            the ID of the mail
      * @throws Exception
      *             if anything went wrong
+     * @see Mail#id
      */
     public void deleteMail(long mailId) throws Exception;
 }

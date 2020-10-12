@@ -42,7 +42,7 @@ public interface MailboxApi
      *            the time (in minutes) from now when the mailbox will automatically be deactivated (not deleted!)
      * @param forwardEnabled
      *            whether XCMailr should automatically forward mails put into the new mailbox to the mailbox owner
-     * @return the mailbox details returned from the server
+     * @return the mailbox details as returned from the server
      * @throws Exception
      *             if anything went wrong
      */
@@ -78,9 +78,9 @@ public interface MailboxApi
      * @param newAddress
      *            the new address of the mailbox
      * @param minutesActive
-     *            the new address of the mailbox
+     *            the time (in minutes) from now when the mailbox will automatically be deactivated (not deleted!)
      * @param forwardEnabled
-     *            the new address of the mailbox
+     *            whether XCMailr should automatically forward mails sent to this mailbox to the mailbox owner
      * @return the updated mailbox details as returned from the server
      * @throws Exception
      *             if anything went wrong
@@ -94,7 +94,7 @@ public interface MailboxApi
      * @param address
      *            the address of the mailbox to update
      * @param mailbox
-     *            the details of the new mailbox
+     *            the new details of the mailbox
      * @return the updated mailbox details as returned from the server
      * @throws Exception
      *             if anything went wrong
