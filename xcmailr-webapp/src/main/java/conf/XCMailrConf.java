@@ -206,6 +206,12 @@ public class XCMailrConf
      */
     public final int MAIL_RETENTION_PERIOD;
 
+    /**
+     * The maximum number of days (including today) for which XCMailr maintains drop/forward mail statistics. Not
+     * configurable.
+     */
+    public final int MAIL_STATISTICS_MAX_DAYS = 7;
+
     @Inject
     public XCMailrConf(NinjaProperties ninjaProp)
     {

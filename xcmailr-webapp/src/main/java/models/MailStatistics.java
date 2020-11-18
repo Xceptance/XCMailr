@@ -1,6 +1,7 @@
 package models;
 
 import java.io.Serializable;
+import java.sql.Date;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
@@ -8,6 +9,8 @@ import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+
+import com.avaje.ebean.Ebean;
 
 @Entity
 @Table(name = "MAIL_STATISTICS")
@@ -140,4 +143,17 @@ public class MailStatistics implements Serializable
         return formatter.format(value);
     }
 
+    /**
+     * Deletes all {@link MailStatistics} entries with a date value older than the given date.
+     * 
+     * @param date
+     *            the date
+     * @return the number of deleted entries
+     */
+    public static int deleteAllOlderThan(Date date)
+    {
+        String sql = "DELETE FROM MAIL_STATISTICS WHERE date < '" + date + "';";
+
+        return Ebean.createSqlUpdate(sql).execute();
+    }
 }

@@ -52,12 +52,12 @@ public class ExpirationService implements Runnable
         {
             doRun();
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             log.error("Exception while running expiration service", ex);
         }
     }
-    
+
     private void doRun()
     {
         log.info("Emailaddress Expiration Task run");
@@ -75,7 +75,7 @@ public class ExpirationService implements Runnable
             if (dt.isAfter(mailBox.getTs_Active()) && (mailBox.getTs_Active() != 0))
             { // this element is now expired
                 mailBox.disable();
-                log.debug("Mailbox '{}' expired",mailBox.getFullAddress());
+                log.debug("Mailbox '{}' expired", mailBox.getFullAddress());
             }
         }
 
@@ -212,6 +212,25 @@ public class ExpirationService implements Runnable
             MailTransaction.deleteTxInPeriod(removalTS);
             log.debug("Finished Mailtransaction cleanup");
         }
+
+        // remove old MailStatistics entries
+        deleteExpiredMailStatistics(xcmConfiguration.MAIL_STATISTICS_MAX_DAYS);
+    }
+
+    /**
+     * Deletes all {@link MailStatistics} database entries that are older than the given number of days.
+     * 
+     * @param days
+     *            the days
+     */
+    private void deleteExpiredMailStatistics(int days)
+    {
+        log.debug("Delete MailStatistics entries older than {} days", days);
+
+        Date date = new Date(new DateTime().minusDays(days).getMillis());
+        int deletedCount = MailStatistics.deleteAllOlderThan(date);
+        
+        log.debug("Finished MailStatistics cleanup ({} entries deleted)", deletedCount);
     }
 
     private MailStatisticsKey createMailStatisticsKey(MailTransaction mt)
