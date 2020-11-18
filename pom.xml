@@ -10,7 +10,7 @@
     <groupId>org.xcmailr</groupId>
     <packaging>pom</packaging>
     <name>XCMailr</name>
-    <version>2.2.0</version>
+    <version>2.2.1</version>
 
     <modules>
         <module>xcmailr-webapp</module>
