@@ -162,7 +162,7 @@ ebean.ddl.run=false
 %test.ebean.ddl.run=true
 
 ebean.datasource.minConnections=1
-ebean.datasource.maxConnections=25
+ebean.datasource.maxConnections=50
 ebean.datasource.isolationlevel=read_committed
 ebean.datasource.heartbeatsql=select 1
 
