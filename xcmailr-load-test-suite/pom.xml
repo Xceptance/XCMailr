@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.xceptance</groupId>
-    <artifactId>xcmailr-client</artifactId>
+    <artifactId>xcmailr-load-test-suite</artifactId>
     <version>2.2.1</version>
     <packaging>jar</packaging>
 
-    <name>XCMailr Client Library</name>
+    <name>XCMailr Load Test Suite</name>
     <description>An easy-to-use Java library that simplifies using the REST API of XCMailr in test projects.</description>
     <url>https://github.com/Xceptance/XCMailr</url>
     <inceptionYear>2020</inceptionYear>
@@ -70,57 +70,24 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <excludeScope>provided</excludeScope>
+                </configuration>
                 <executions>
+                    <!-- Automatically copy all non-provided dependencies to "target/dependency" when compiling. This ensures that 
+                        they are present when the test suite is about to be uploaded to the agent machines. -->
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>copy-dependencies</goal>
                         </goals>
+                        <configuration>
+                            <excludeScope>provided</excludeScope>
+                        </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <additionalparam>--allow-script-in-comments</additionalparam>
-                    <author>false</author>
-                    <breakiterator>true</breakiterator>
-                    <failOnError>false</failOnError>
-                    <notimestamp>true</notimestamp>
-                    <quiet>true</quiet>
-                    <source>8</source>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <gpgArguments>
-                        <arg>--pinentry-mode</arg>
-                        <arg>loopback</arg>
-                    </gpgArguments>
-                </configuration>
             </plugin>
             <!-- Adds or updates the license header in source files. -->
             <!-- Usage: mvn license:format -->
@@ -146,9 +113,25 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.6</version>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.xceptance</groupId>
+            <artifactId>xlt</artifactId>
+            <version>5.2.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-email</artifactId>
+            <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.xceptance</groupId>
+            <artifactId>xcmailr-client</artifactId>
+            <version>2.2.1</version>
         </dependency>
     </dependencies>
 

@@ -16,29 +16,27 @@
 
 package conf;
 
-import ninja.ebean.NinjaEbeanModule;
 import com.google.inject.AbstractModule;
 
-import controllers.CheckDBForMailAddressDuplicates;
-import controllers.JobController;
+
+import ninja.ebean.NinjaEbeanModule2;
+import services.CheckDBForMailAddressDuplicates;
+import services.MailService;
 
 public class Module extends AbstractModule
 {
 
-    public Module()
-    {
-        super();
-    }
 
     @Override
     protected void configure()
     {
         // install the ebean module
-        install(new NinjaEbeanModule());
-        // bind configuration-class and jobcontroller
+        install(new NinjaEbeanModule2());
+        // bind configuration-class
         bind(XCMailrConf.class);
-        bind(JobController.class);
 
+        // bind services and jobs
+        bind(MailService.class);
         bind(CheckDBForMailAddressDuplicates.class);
     }
 

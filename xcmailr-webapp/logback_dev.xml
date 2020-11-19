@@ -34,12 +34,16 @@
         <appender-ref ref="file"/>
     </logger>
     <!-- SubEthaMail -->
-    <logger name="org.subethamail" additivity="false" level="debug">
+    <logger name="org.subethamail" additivity="false" level="warn">
         <appender-ref ref="console"/>
         <appender-ref ref="file"/>
     </logger>
     <!-- XCMailr -->
     <logger name="controllers" additivity="false" level="debug">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file"/>
+    </logger>
+    <logger name="services" additivity="false" level="debug">
         <appender-ref ref="console"/>
         <appender-ref ref="file"/>
     </logger>

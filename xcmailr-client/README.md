@@ -11,7 +11,7 @@ Add the XCMailr client library as another dependency to your project:
 <dependency>
     <groupId>com.xceptance</groupId>
     <artifactId>xcmailr-client</artifactId>
-    <version>2.2.0</version>
+    <version>2.2.1</version>
 </dependency>
 ```
 

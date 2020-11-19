@@ -79,7 +79,7 @@ public class TestDataUtils
      */
     public static Mail createMailWithAttachments(final MBox mailbox) throws Exception
     {
-        return createMail(mailbox, TestDataUtils.class.getResource("/controllers/MailWithAttachments.eml"));
+        return createMail(mailbox, TestDataUtils.class.getResource("/testmails/MailWithAttachments.eml"));
     }
 
     /**
@@ -87,7 +87,7 @@ public class TestDataUtils
      */
     public static Mail createMultiPartMail(final MBox mailbox) throws Exception
     {
-        return createMail(mailbox, TestDataUtils.class.getResource("/controllers/multiPart.eml"));
+        return createMail(mailbox, TestDataUtils.class.getResource("/testmails/multiPart.eml"));
     }
 
     private static Mail createMail(final MBox mailbox, final URL mailUrl) throws IOException, MessagingException

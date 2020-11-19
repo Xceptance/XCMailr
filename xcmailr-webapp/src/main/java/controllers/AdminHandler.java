@@ -52,6 +52,7 @@ import ninja.Results;
 import ninja.i18n.Messages;
 import ninja.params.Param;
 import ninja.params.PathParam;
+import services.MailrMessageSenderFactory;
 
 /**
  * Handles all Actions for the Administration-Section
@@ -78,7 +79,8 @@ public class AdminHandler
     @Inject
     CachingSessionHandler cachingSessionHandler;
 
-    private static final Pattern PATTERN_DOMAINS = Pattern.compile("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}", Pattern.CASE_INSENSITIVE);
+    private static final Pattern PATTERN_DOMAINS = Pattern.compile("^[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,6}",
+                                                                   Pattern.CASE_INSENSITIVE);
 
     /**
      * Shows the Administration-Index-Page.
@@ -437,7 +439,8 @@ public class AdminHandler
         List<Long> weeklyTimestamps = new LinkedList<>();
 
         // week statistics
-        reduceStatisticsData(4, getStatistics(6, false), weeklyDroppedMails, weeklyForwardedMails, weeklyTimestamps);
+        reduceStatisticsData(4, getStatistics(xcmConfiguration.MAIL_STATISTICS_MAX_DAYS - 1, false), weeklyDroppedMails,
+                             weeklyForwardedMails, weeklyTimestamps);
 
         html.render("lastWeekTimestamps", weeklyTimestamps);
         html.render("lastWeekDroppedData", weeklyDroppedMails);

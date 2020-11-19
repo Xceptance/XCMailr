@@ -1,4 +1,4 @@
-package controllers;
+package services;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -47,7 +47,7 @@ public class MessageListenerDeliverTest extends NinjaTest
 
         final MessageListener ml = new MessageListener();
         ml.xcmConfiguration = xcmConf;
-        ml.jobController = new JobController();
+        ml.jobController = new MailService();
         final ConcurrentLinkedQueue<MailTransaction> clq = ml.jobController.mtxQueue;
 
         // create an user

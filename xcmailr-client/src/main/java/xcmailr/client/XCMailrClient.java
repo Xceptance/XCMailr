@@ -15,8 +15,6 @@
  */
 package xcmailr.client;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 
 import com.google.gson.Gson;
@@ -48,24 +46,24 @@ public class XCMailrClient
      * Creates a new {@link XCMailrClient} instance which will use a default {@link HttpClient} instance.
      * 
      * @param baseUrl
-     *            the URL of the XCMailr application, including any context part
+     *            the URL of the XCMailr application, including any context path
      * @param apiToken
      *            the API token that allows access to XCMailr
      */
-    public XCMailrClient(final String baseUrl, final String apiToken) throws MalformedURLException, URISyntaxException
+    public XCMailrClient(final String baseUrl, final String apiToken)
     {
         this(baseUrl, apiToken, HttpClient.newHttpClient());
     }
 
     /**
-     * Creates a new {@link XCMailrClient} instance.
+     * Creates a new {@link XCMailrClient} instance which will use a custom {@link HttpClient} instance.
      * 
      * @param baseUrl
-     *            the URL of the XCMailr application, including any context part
+     *            the URL of the XCMailr application, including any context path
      * @param apiToken
      *            the API token that allows access to XCMailr
      * @param httpClient
-     *            a preconfigured {@link HttpClient} instance
+     *            a custom {@link HttpClient} instance
      */
     public XCMailrClient(final String baseUrl, final String apiToken, final HttpClient httpClient)
     {

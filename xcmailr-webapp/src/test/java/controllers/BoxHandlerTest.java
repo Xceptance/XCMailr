@@ -968,11 +968,11 @@ public class BoxHandlerTest extends NinjaTest
         List<MBox> mailBoxes = user.getBoxes();
         assertTrue(mailBoxes.size() == 1);
         final MBox tempMBox = mailBoxes.get(0);
-        final InputStream is = getClass().getResourceAsStream("multiPart.eml");
+        final InputStream is = getClass().getResourceAsStream("/testmails/multiPart.eml");
         Assert.assertNotNull("Failed to load 'multiPart.eml'", is);
 
         final Mail mail = createMail(tempMBox, "spamme@org.com", "Multipart HTML",
-                                     MessageListener.readLimitedAmount(is, 500_000));
+                                     HelperUtils.readLimitedAmount(is, 500_000));
 
         final String uri = ninjaTestServer.getBaseUrl() + "/mailbox/mailboxquery@xcmailr.test/validToken";
 
