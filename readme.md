@@ -1,8 +1,8 @@
 # XCMailr
 ## Summary
 * Name: XCMailr
-* Version: 2.2.1
-* Release: November 2020
+* Version: 2.2.2
+* Release: June 2022 
 * License: Apache V2.0
 * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
 * Tags: AntiSpam, Testutility
