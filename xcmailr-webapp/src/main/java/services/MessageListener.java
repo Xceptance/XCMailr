@@ -246,7 +246,7 @@ public class MessageListener implements SimpleMessageListener
      * @param data
      */
     @Override
-    public void deliver(String from, String recipient, InputStream data)
+    public void deliver(final String from, final String recipient, final InputStream data)
     {
         try
         {
@@ -258,7 +258,7 @@ public class MessageListener implements SimpleMessageListener
             }
 
             final Address forwardAddress;
-            final String forwardTarget =  mailBox.getUsr().getMail();
+            final String forwardTarget = mailBox.getUsr().getMail();
 
             final Session session = mailrSenderFactory.getSession();
             session.setDebug(xcmConfiguration.OUT_SMTP_DEBUG);
@@ -283,8 +283,11 @@ public class MessageListener implements SimpleMessageListener
 
             MimeMessage mail = MimeMessageUtils.createMimeMessage(session, rawContent);
 
+            // determine the author(s) of the mail (who wrote us?)
+            final String originator = StringUtils.defaultIfBlank(StringUtils.join(mail.getFrom(), ','),from);
+
             // write to mail table
-            persistMail(mailBox, from, StringUtils.defaultString(mail.getSubject()), rawContent);
+            persistMail(mailBox, originator, StringUtils.defaultString(mail.getSubject()), rawContent);
 
             // check if the mail address is configured to forward emails
             // the mail is still persisted (see above)
@@ -362,8 +365,6 @@ public class MessageListener implements SimpleMessageListener
             log.error(e.getMessage());
         }
     }
-
-
 
     private void persistMail(MBox mailBox, String from, final String subject, byte[] rawData) throws MessagingException
     {
