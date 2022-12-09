@@ -37,7 +37,7 @@ public class StaticNinjaTest
     @BeforeClass
     public static void startupServerAndBrowser()
     {
-        ninjaTestServer = new NinjaTestServer();
+        ninjaTestServer = NinjaTestServer.builder().build();
         ninjaTestBrowser = new NinjaTestBrowser();
     }
 

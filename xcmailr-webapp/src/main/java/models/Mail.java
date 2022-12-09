@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 
 @Entity
 @Table
@@ -119,7 +119,7 @@ public class Mail extends AbstractEntity implements Serializable
      */
     public static Mail find(long id)
     {
-        return Ebean.find(Mail.class).where().idEq(id).findUnique();
+        return Ebean.find(Mail.class).where().idEq(id).findOne();
     }
 
     /**

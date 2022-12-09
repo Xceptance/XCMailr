@@ -5,8 +5,8 @@ import java.util.HashSet;
 
 import org.slf4j.Logger;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.PagingList;
+import io.ebean.Ebean;
+import io.ebean.PagedList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -38,8 +38,8 @@ public class CheckDBForMailAddressDuplicates
     {
         final HashSet<String> mailAddresses = new HashSet<>();
         final HashMap<Long, String> idToMailAddress = new HashMap<>();
-        final PagingList<User> users = Ebean.find(User.class).select("id, mail").findPagingList(1_000);
-        for (final User user : users.getAsList())
+        final PagedList<User> users = Ebean.find(User.class).select("id, mail").setMaxRows(1_000).findPagedList();
+        for (final User user : users.getList())
         {
             final String userMailLC = user.getMail().toLowerCase();
             if (mailAddresses.contains(userMailLC))
@@ -68,8 +68,8 @@ public class CheckDBForMailAddressDuplicates
     {
         final HashSet<String> mailAddresses = new HashSet<>();
         final HashMap<Long, String> idToMailAddress = new HashMap<>();
-        final PagingList<MBox> boxes = Ebean.find(MBox.class).select("id, address, domain").findPagingList(1_000);
-        for (final MBox box : boxes.getAsList())
+        final PagedList<MBox> boxes = Ebean.find(MBox.class).select("id, address, domain").setMaxRows(1_000).findPagedList();
+        for (final MBox box : boxes.getList())
         {
             final String boxAddressLC = box.getFullAddress().toLowerCase();
             if (mailAddresses.contains(boxAddressLC))

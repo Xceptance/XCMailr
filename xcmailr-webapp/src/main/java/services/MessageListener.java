@@ -34,7 +34,7 @@ import org.apache.commons.mail.util.MimeMessageUtils;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 

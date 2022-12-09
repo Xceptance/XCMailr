@@ -35,7 +35,7 @@ public class UserTest extends NinjaTest
     @Test
     public void UsersTest()
     {
-        ninjaProperties = new NinjaPropertiesImpl(NinjaMode.test);
+        ninjaProperties = NinjaPropertiesImpl.builder().withMode(NinjaMode.test).build();
         /*
          * TEST: create, persist and find a user-object
          */

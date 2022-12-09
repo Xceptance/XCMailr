@@ -26,7 +26,7 @@ public class XCMailrConfTest
     @Before
     public void initProps() throws Throwable
     {
-        ninjaProperties = new NinjaPropertiesImpl(NinjaMode.test);
+        ninjaProperties = NinjaPropertiesImpl.builder().withMode(NinjaMode.test).build();
         disableDelimiterParsing();
     }
 

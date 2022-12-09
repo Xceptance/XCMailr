@@ -22,7 +22,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 
 import models.MBox;
 import models.Mail;

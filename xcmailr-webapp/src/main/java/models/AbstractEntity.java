@@ -3,7 +3,7 @@ package models;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 

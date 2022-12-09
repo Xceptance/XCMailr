@@ -38,7 +38,8 @@ public class MessageListenerDeliverTest extends NinjaTest
     @Test
     public void testDeliveryPreconditions() throws Exception
     {
-        final NinjaProperties ninjaProperties = spy(new NinjaPropertiesImpl(NinjaMode.test));
+        final NinjaProperties props = NinjaPropertiesImpl.builder().withMode(NinjaMode.test).build();
+        final NinjaProperties ninjaProperties = spy(props);
         final XCMailrConf xcmConf = new XCMailrConf(ninjaProperties);
 
         final String local = RandomStringUtils.randomAlphabetic(10).toLowerCase();

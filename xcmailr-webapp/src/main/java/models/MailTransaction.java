@@ -27,11 +27,11 @@ import javax.persistence.Table;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
-import com.avaje.ebean.SqlUpdate;
+import io.ebean.Ebean;
+import io.ebean.Query;
+import io.ebean.RawSql;
+import io.ebean.RawSqlBuilder;
+import io.ebean.SqlUpdate;
 
 /**
  * This Class is used to save all Actions on the Mailserver
@@ -379,6 +379,6 @@ public class MailTransaction
      */
     public static void saveMultipleTx(List<MailTransaction> mtxList)
     {
-        Ebean.save(mtxList);
+        Ebean.saveAll(mtxList);
     }
 }

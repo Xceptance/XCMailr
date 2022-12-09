@@ -47,7 +47,7 @@ import org.hibernate.validator.internal.constraintvalidators.EmailValidator;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

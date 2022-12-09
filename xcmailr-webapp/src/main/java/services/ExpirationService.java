@@ -14,7 +14,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 
 import conf.XCMailrConf;
 import etc.HelperUtils;
@@ -166,7 +166,7 @@ public class ExpirationService implements Runnable
                                             .eq("QUARTER_HOUR", mailStatisticsKey.getQuarterHour()) //
                                             .eq("FROM_DOMAIN", mailStatisticsKey.getFromDomain()) //
                                             .eq("TARGET_DOMAIN", mailStatisticsKey.getTargetDomain()) //
-                                            .findUnique();
+                                            .findOne();
 
                 if (entry == null)
                 {

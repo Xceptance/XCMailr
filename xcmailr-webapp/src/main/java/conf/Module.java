@@ -32,6 +32,8 @@ public class Module extends AbstractModule
     {
         // install the ebean module
         install(new NinjaEbeanModule2());
+        // bind Jackson setup service
+        bind(JacksonSetup.class);
         // bind configuration-class
         bind(XCMailrConf.class);
 

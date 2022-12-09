@@ -34,13 +34,13 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Expr;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
-import com.avaje.ebean.SqlUpdate;
+import io.ebean.Ebean;
+import io.ebean.Expr;
+import io.ebean.ExpressionList;
+import io.ebean.Query;
+import io.ebean.RawSql;
+import io.ebean.RawSqlBuilder;
+import io.ebean.SqlUpdate;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -446,7 +446,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static MBox getByName(String mail, String domain)
     {
-        return queryByName(mail, domain).findUnique();
+        return queryByName(mail, domain).findOne();
     }
 
     /**
@@ -542,7 +542,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static boolean mailExists(String mail, String domain)
     {
-        return queryByName(mail, domain).findRowCount() > 0;
+        return queryByName(mail, domain).exists();
     }
 
     /**
@@ -688,7 +688,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static MBox find(String localPart, String domain)
     {
-        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domain).findUnique();
+        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domain).findOne();
     }
 
     /**

@@ -14,7 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 import com.google.common.collect.Maps;
 
 import models.Domain;
@@ -43,7 +43,7 @@ public class AdminHandlerTest extends NinjaTest
     public void setUp()
     {
         // get the admin-account from the application.conf-file
-        ninjaProperties = new NinjaPropertiesImpl(NinjaMode.test);
+        ninjaProperties = NinjaPropertiesImpl.builder().withMode(NinjaMode.test).build();
         String adminAccName = ninjaProperties.get("mbox.adminaddr");
         String adminPassword = ninjaProperties.get("admin.pass");
 

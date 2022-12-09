@@ -19,7 +19,7 @@ package models;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
-import com.avaje.ebean.annotation.Sql;
+import io.ebean.annotation.Sql;
 
 /**
  * An aggregate Model for the Mailtransactions

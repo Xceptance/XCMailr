@@ -28,9 +28,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.SqlRow;
-import com.avaje.ebean.Transaction;
+import io.ebean.Ebean;
+import io.ebean.SqlRow;
+import io.ebean.Transaction;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 

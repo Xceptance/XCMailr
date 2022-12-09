@@ -2,8 +2,8 @@ package ninja.ebean;
 
 import org.slf4j.Logger;
 
-import com.avaje.ebean.EbeanServer;
-import com.avaje.ebean.config.ServerConfig;
+import io.ebean.EbeanServer;
+import io.ebean.config.ServerConfig;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
