@@ -24,24 +24,27 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Logger;
 import org.h2.tools.RunScript;
-import org.mortbay.log.Log;
 
 /**
  * Executes an SQL script specified as system property.
  */
 public class ScriptRunner
 {
+    private final static Logger LOG = Log.getLog();
+
     public ScriptRunner(StarterConf config)
     {
         try
         {
-            Log.info("Load database driver: " + config.XCM_DB_DRIVER);
-            Class.forName(config.XCM_DB_DRIVER);
+            LOG.info("Load database driver: " + config.XCM_DB_DRIVER);
+            Class.forName(config.XCM_DB_DRIVER, false, Thread.currentThread().getContextClassLoader());
         }
         catch (Exception e)
         {
-            Log.warn("Error while loading driver: " + config.XCM_DB_DRIVER, e);
+            LOG.warn("Error while loading driver: " + config.XCM_DB_DRIVER, e);
             e.printStackTrace();
             System.exit(0);
         }
@@ -51,14 +54,14 @@ public class ScriptRunner
             String customSqlScript = System.getProperty("xcmailr.xcmstart.script");
             if (customSqlScript != null)
             {
-                Log.info("Run sql script: " + customSqlScript);
+                LOG.info("Run sql script: " + customSqlScript);
                 runScript(config, customSqlScript);
                 System.exit(0);
             }
         }
         catch (Exception e)
         {
-            Log.warn("Error while executing: " + config.XCM_DB_DRIVER, e);
+            LOG.warn("Error while executing: " + config.XCM_DB_DRIVER, e);
             e.printStackTrace();
             System.exit(0);
         }
@@ -71,21 +74,28 @@ public class ScriptRunner
             throw new IllegalArgumentException("Parameter filenames mustn't be null");
         }
 
-        if(filenames.length == 0)
+        if (filenames.length == 0)
         {
             return;
         }
 
-        Log.info(MessageFormat.format("Open database: ''{0}'' as user  ''{1}''", config.XCM_DB_URL,
+        LOG.info(MessageFormat.format("Open database: ''{0}'' as user  ''{1}''", config.XCM_DB_URL,
                                       config.XCM_DB_USER));
         Connection connection = DriverManager.getConnection(config.XCM_DB_URL, config.XCM_DB_USER, config.XCM_DB_PASS);
 
-        for (String filename : filenames)
+        try
         {
-            Log.info("Execute sql script from file: " + filename);
-            RunScript.execute(connection, new BufferedReader(new FileReader(filename)));
+            for (String filename : filenames)
+            {
+                LOG.info("Execute sql script from file: " + filename);
+                RunScript.execute(connection, new BufferedReader(new FileReader(filename)));
+            }
+            LOG.info("Execution finished. Close database");
+            connection.close();
         }
-        Log.info("Execution finished. Close database");
-        connection.close();
+        finally
+        {
+            connection.close();
+        }
     }
 }

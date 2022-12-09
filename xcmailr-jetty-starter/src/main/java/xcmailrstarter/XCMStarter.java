@@ -18,12 +18,12 @@
 package xcmailrstarter;
 
 import java.io.File;
-import org.mortbay.jetty.Connector;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.nio.SelectChannelConnector;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.xml.XmlConfiguration;
-import xcmailrstarter.ScriptRunner;
+
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.xml.XmlConfiguration;
 
 /**
  * Main-Class which reads the configurations, handles the preparation of the database and starts the jetty-server
@@ -51,7 +51,7 @@ public class XCMStarter
             File jettyXmlFile = new File(jettyConfDirectory, "jetty.xml");
 
             // load configuration
-            XmlConfiguration configuration = new XmlConfiguration(jettyXmlFile.toURI().toURL());
+            XmlConfiguration configuration = new XmlConfiguration(Resource.newResource(jettyXmlFile));
             configuration.configure(server);
 
             // create WAR path
@@ -69,7 +69,7 @@ public class XCMStarter
             webapp.setWar(warPath.toString());
 
             // create connector
-            Connector connector = new SelectChannelConnector();
+            ServerConnector connector = new ServerConnector(server);
             connector.setPort(config.XCM_PORT);
             connector.setHost(config.XCM_HOST);
 

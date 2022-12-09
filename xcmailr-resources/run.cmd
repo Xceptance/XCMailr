@@ -15,6 +15,11 @@ set LOGBK_OPTS="-Dlogback.configurationFile=conf/logback.xml"
 set JETTY_OPTS="-Djetty.logging=%XCM_INSTALL_DIR:\=/%/logs/jetty.log"
 set XCMAILR_JAR="./xcmailr-jetty-starter.jar"
 
+:: append options to suppress illegal access warnings for Java 9+
+set PACKAGES=java.base/java.lang java.base/java.lang.reflect java.base/java.text java.base/java.util
+for %%p in (%PACKAGES%) do set JVM_OPTS=!JVM_OPTS! --add-opens=%%p=ALL-UNNAMED
+rem set JVM_OPTS=%JVM_OPTS% --illegal-access=debug
+
 :: run with all options
 cd %XCM_INSTALL_DIR%
 java %JVM_OPTS% %XCMAILR_OPTS% %LOGBK_OPTS% %JETTY_OPTS% -jar %XCMAILR_JAR%

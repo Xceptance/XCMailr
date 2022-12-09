@@ -3,14 +3,13 @@
     distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
     specific language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>xcmailr</artifactId>
     <groupId>org.xcmailr</groupId>
     <packaging>pom</packaging>
     <name>XCMailr</name>
-    <version>2.2.2</version>
+    <version>3.0.0</version>
 
     <modules>
         <module>xcmailr-webapp</module>
@@ -46,9 +45,10 @@
         <!-- pin encoding to utf-8 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <siteProjectVersion>${project.version}</siteProjectVersion>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
     </properties>
     <build>
         <plugins>
@@ -117,43 +117,8 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- <plugin> -->
-            <!-- <groupId>org.apache.maven.plugins</groupId> -->
-            <!-- <artifactId>maven-javadoc-plugin</artifactId> -->
-            <!-- <version>2.9.1</version> -->
-            <!-- <executions> -->
-            <!-- <execution> -->
-            <!-- <id>attach-javadocs</id> -->
-            <!-- <phase>package</phase> -->
-            <!-- <goals> -->
-            <!-- <goal>aggregate</goal> -->
-            <!-- </goals> -->
-            <!-- <configuration> -->
-            <!-- <aggregate>true</aggregate> -->
-            <!-- <reportOutputDirectory>${basedir}/xcmailr-build/javadocs</reportOutputDirectory> -->
-            <!-- <destDir>${basedir}/xcmailr-build/javadocs</destDir> -->
-            <!-- </configuration> -->
-            <!-- </execution> -->
-            <!-- </executions> -->
-            <!-- </plugin> -->
         </plugins>
 
-        <resources>
-            <resource>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*</include>
-                </includes>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <targetPath>${project.build.outputDirectory}/views/layout</targetPath>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
         <finalName>${project.artifactId}</finalName>
     </build>
 </project>
