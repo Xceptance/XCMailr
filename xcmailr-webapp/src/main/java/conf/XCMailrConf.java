@@ -171,6 +171,11 @@ public class XCMailrConf
     public final Boolean OUT_SMTP_TLS;
 
     /**
+     * specified with mail.smtp.starttls
+     */
+    public final Boolean OUT_SMTP_STARTTLS;
+
+    /**
      * specified with mail.smtp.user
      */
     public final String OUT_SMTP_USER;
@@ -253,6 +258,7 @@ public class XCMailrConf
             OUT_SMTP_PASS = null;
         }
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
+        OUT_SMTP_STARTTLS = ninjaProp.getBooleanWithDefault("mail.smtp.starttls", false);
         OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", false);
 
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");

@@ -24,7 +24,6 @@ import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -81,7 +80,8 @@ public class MailrMessageSenderFactory
         properties.put("mail.smtp.port", xcmConfiguration.OUT_SMTP_PORT);
         properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
         properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
-        properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
+        properties.put("mail.smtp.ssl.enable", xcmConfiguration.OUT_SMTP_TLS);
+        properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_STARTTLS);
 
         // Intention: Set mail.smtp.from to <> to request the Return-Path header be set to <>
         // which would signal that no automatic responses should be sent.
@@ -134,14 +134,9 @@ public class MailrMessageSenderFactory
             ThreadedMailSend tms = new ThreadedMailSend(message);
             tms.start();
         }
-        catch (AddressException e)
-        {
-            log.error(e.getMessage());
-            return false;
-        }
         catch (MessagingException e)
         {
-            log.error(e.getMessage());
+            log.error("Failed to send mail", e);
             return false;
         }
 
@@ -294,7 +289,7 @@ public class MailrMessageSenderFactory
                     mtx = new MailTransaction(400, from, mailBox.getFullAddress(), recipient);
                     addMtxToJCList(mtx);
                 }
-                log.error(e.getMessage());
+                log.error("Failed to send mail", e);
             }
         }
     }
