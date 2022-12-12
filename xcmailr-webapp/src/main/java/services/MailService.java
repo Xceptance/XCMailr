@@ -95,7 +95,7 @@ public class MailService
         // them
         // and also all new MailTransactions will be stored here and old entries will be removed
         expirationService.scheduleAtFixedRate(new ExpirationService(mtxQueue, deleteTransactions, xcmConfiguration),
-                                              new Long(0), new Long(xcmConfiguration.MB_INTERVAL), TimeUnit.MINUTES);
+                                              0L, xcmConfiguration.MB_INTERVAL.longValue(), TimeUnit.MINUTES);
     }
 
     /**

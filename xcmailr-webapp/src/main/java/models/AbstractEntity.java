@@ -1,17 +1,21 @@
 package models;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-import io.ebean.Ebean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.ebean.Ebean;
 
 @MappedSuperclass
 public abstract class AbstractEntity
 {
     @JsonIgnore
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
 
     // -------------------------------------
