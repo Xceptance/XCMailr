@@ -9,21 +9,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>xcmailr-webapp</artifactId>
-    <packaging>war</packaging>
-    <name>XCMailr-Webapp</name>
-
     <parent>
-        <groupId>org.xcmailr</groupId>
-        <artifactId>xcmailr</artifactId>
-        <version>3.0.0</version>
-        <relativePath>../pom.xml</relativePath>
+      <groupId>org.xcmailr</groupId>
+      <artifactId>xcmailr</artifactId>
+      <version>3.0.0</version>
+      <relativePath>../pom.xml</relativePath>
     </parent>
+    
+    <artifactId>xcmailr-webapp</artifactId>
+    <packaging>jar</packaging>
+    <name>XCMailr-Webapp</name>
 
     <properties>
         <ninja.version>6.8.1</ninja.version>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
     <build>
@@ -58,9 +56,9 @@
                 <configuration>
                     <mode>dev</mode>
                     <jvmArgs>
-                        -Dlogback.configurationFile=logback_dev.xml
-                        -Dninja.external.configuration=application_dev.conf
-                        -Djavax.net.ssl.keyStore=../xcmailr-resources/conf/keystore.jks
+                        -Dlogback.configurationFile=conf/logback_dev.xml
+                        -Dninja.external.configuration=conf/application_dev.conf
+                        -Djavax.net.ssl.keyStore=conf/keystore_dev.jks
                         -Djavax.net.ssl.keyStorePassword=topsecret
                     </jvmArgs>
                     <useDefaultExcludes>true</useDefaultExcludes>
@@ -89,23 +87,24 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.3</version>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                        </manifest>
-                        <manifestEntries>
-                            <Implementation-Build>${project.version}.${maven.build.timestamp}</Implementation-Build>
-                        </manifestEntries>
-                    </archive>
-                    <outputDirectory>${project.parent.basedir}/xcmailr-build/webapps/</outputDirectory>
+                    <descriptor>assembly.xml</descriptor>
+                    <appendAssemblyId>true</appendAssemblyId>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>create-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
@@ -114,20 +113,7 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <mainClass>ninja.standalone.NinjaJetty</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -136,6 +122,24 @@
                     <argLine>--add-modules ALL-SYSTEM</argLine>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>add-third-party</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>add-third-party</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/licenses</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
 
         <resources>
@@ -164,40 +168,6 @@
             </resource>
         </resources>
 
-        <pluginManagement>
-            <plugins>
-
-
-                <!--This plugin's configuration is used to store Eclipse 
-                    m2e settings only. It has no influence on the Maven build itself. -->
-                <!--                <plugin>-->
-                <!--                    <groupId>org.eclipse.m2e</groupId>-->
-                <!--                    <artifactId>lifecycle-mapping</artifactId>-->
-                <!--                    <version>1.0.0</version>-->
-                <!--                    <configuration>-->
-                <!--                        <lifecycleMappingMetadata>-->
-                <!--                            <pluginExecutions>-->
-                <!--                                <pluginExecution>-->
-                <!--                                    <pluginExecutionFilter>-->
-                <!--                                        <groupId>org.avaje.ebeanorm</groupId>-->
-                <!--                                        <artifactId>avaje-ebeanorm-mavenenhancer</artifactId>-->
-                <!--                                        <versionRange>[3.2.2,)</versionRange>-->
-                <!--                                        <goals>-->
-                <!--                                            <goal>enhance</goal>-->
-                <!--                                        </goals>-->
-                <!--                                    </pluginExecutionFilter>-->
-                <!--                                    <action>-->
-                <!--                                        <execute>-->
-                <!--                                            <runOnIncremental>true</runOnIncremental>-->
-                <!--                                        </execute>-->
-                <!--                                    </action>-->
-                <!--                                </pluginExecution>-->
-                <!--                            </pluginExecutions>-->
-                <!--                        </lifecycleMappingMetadata>-->
-                <!--                    </configuration>-->
-                <!--                </plugin>-->
-            </plugins>
-        </pluginManagement>
     </build>
 
     <dependencies>
@@ -232,7 +202,7 @@
         <dependency>
             <groupId>org.ninjaframework</groupId>
             <artifactId>ninja-db-classic</artifactId>
-            <version>6.8.1</version>
+            <version>${ninja.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ninjaframework</groupId>
@@ -290,9 +260,9 @@
                         <configuration>
                             <mode>dev</mode>
                             <jvmArgs>
-                                -Dlogback.configurationFile=logback_dev.xml
-                                -Dninja.external.configuration=application_dev.conf
-                                -Djavax.net.ssl.keyStore=../xcmailr-resources/conf/keystore.jks
+                                -Dlogback.configurationFile=conf/logback_dev.xml
+                                -Dninja.external.configuration=conf/application_dev.conf
+                                -Djavax.net.ssl.keyStore=conf/keystore_dev.jks
                                 -Djavax.net.ssl.keyStorePassword=topsecret
                                 -agentlib:jdwp=transport=dt_socket,server=y,address=8000
                             </jvmArgs>

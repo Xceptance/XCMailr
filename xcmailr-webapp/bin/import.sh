@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
-
-_dir=$(dirname "$0")
+_dir=`realpath -m $(dirname $0)`
 
 if [ $# -lt 1 ]; then
  echo "Must specify at least one argument"
@@ -16,4 +15,4 @@ fi
 IMPORT_FILENAME=$1
 IMPORT_SQL="runscript from '"$IMPORT_FILENAME"';"
 
-sh $_dir/shell.sh "$IMPORT_SQL"
+exec $_dir/shell.sh "$IMPORT_SQL"

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-_dir=$(dirname "$0")
+_dir=`realpath -m $(dirname $0)/..`
 
 conf_val() {
   local raw_val=`cat $_dir/conf/application.conf | egrep "^ebean.datasource.$1"`
@@ -32,7 +32,7 @@ if [ -n "$DB_PASS" ]; then
   ARGS="$ARGS -pass $DB_PASS"
 fi
 
-if [ $# -lt 1 ]; then
+if [ $# -gt 0 ]; then
   java -cp $_dir/lib/h2*.jar org.h2.tools.Shell $ARGS 
 else
   java -cp $_dir/lib/h2*.jar org.h2.tools.Shell $ARGS -sql "$1"
