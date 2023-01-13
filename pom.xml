@@ -5,14 +5,20 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>com.xceptance</groupId>
     <artifactId>xcmailr</artifactId>
-    <groupId>org.xcmailr</groupId>
-    <packaging>pom</packaging>
-    <name>XCMailr</name>
     <version>3.0.0</version>
-
+    <packaging>pom</packaging>
+    
+    <name>XCMailr</name>
+    <url>https://github.com/Xceptance/XCMailr</url>
+    <inceptionYear>2020</inceptionYear>
+    
     <modules>
         <module>xcmailr-webapp</module>
+        <module>xcmailr-client</module>
+        <module>xcmailr-load-test-suite</module>
     </modules>
 
     <properties>
@@ -21,7 +27,25 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+         <copyright>Copyright (c) ${project.inceptionYear} ${project.organization.name}</copyright>
     </properties>
+
+
+    <organization>
+        <name>Xceptance Software Technologies GmbH</name>
+        <url>https://www.xceptance.com/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Xceptance Dev Team</name>
+            <id>xceptance</id>
+            <email>xlt.dev@xceptance.com</email>
+            <organization>Xceptance Software Technologies GmbH</organization>
+            <organizationUrl>http://www.xceptance.com/</organizationUrl>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
 
     <scm>
         <url>https://github.com/Xceptance/XCMailr</url>
@@ -40,11 +64,39 @@
             <distribution>manual</distribution>
         </license>
     </licenses>
-    <distributionManagement>
-        <site>
-            <id>github-project-site</id>
-            <url>gitsite:git@github.com/Xceptance/XCMailr.git</url>
-        </site>
+ <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
     </distributionManagement>
+
+    <build>
+    <plugins>
+               <!-- Adds or updates the license header in source files. -->
+            <!-- Usage: mvn license:format -->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <header>../license-header.txt</header>
+                    <properties>
+                        <copyright>${copyright}</copyright>
+                    </properties>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
