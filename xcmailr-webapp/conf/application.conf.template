@@ -42,7 +42,7 @@ application.default.entriesperpage=15
 
 # indicates the use of the whitelisting function
 # the allowed domains can be configured at the admin-section
-application.whitelist = false
+application.whitelist = true
 
 # maximum time in minutes that a temporary mail could be valid
 application.temporarymail.maximumvalidtime = 30
@@ -137,7 +137,7 @@ cache.implementation=ninja.cache.CacheMemcachedImpl
 ###############################
 # Configure the Ebean-Storage #
 ###############################
-# we use a embeded ebeans in regular config
+# we use an embedded ebeans in regular config
 ebean.datasource.databaseUrl=jdbc:h2:~/xcmailrDB;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
 # in memory db when testing:
 %test.ebean.datasource.databaseUrl=jdbc:h2:mem:tests;DB_CLOSE_DELAY=-1
@@ -167,6 +167,12 @@ ebean.datasource.minConnections=1
 ebean.datasource.maxConnections=50
 ebean.datasource.isolationlevel=read_committed
 ebean.datasource.heartbeatsql=select 1
+
+# configure whether stack traces should be captured by Ebean when obtaining a connection from pool
+# useful when analyzing potential connection pool leaks (adds performance overhead!!!)
+#ebean.datasource.captureStackTrace=false
+#%test.ebean.datasource.captureStackTrace=false
+#%dev.ebean.datasource.captureStackTrace=false
 
 #####################################
 # Ninja DB migration (using Flyway) #
