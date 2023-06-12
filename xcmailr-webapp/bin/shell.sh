@@ -33,7 +33,7 @@ if [ -n "$DB_PASS" ]; then
 fi
 
 if [ $# -gt 0 ]; then
-  java -cp $_dir/lib/h2*.jar org.h2.tools.Shell $ARGS 
-else
   java -cp $_dir/lib/h2*.jar org.h2.tools.Shell $ARGS -sql "$1"
+else
+  java -cp $_dir/lib/h2*.jar org.h2.tools.Shell $ARGS
 fi
