@@ -6,6 +6,3 @@
 .project
 .settings
 .metadata
-/conf/application_dev.conf
-/conf/logback_dev.xml
-/conf/keystore_dev.jks
