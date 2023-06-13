@@ -2,8 +2,6 @@ package services;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.spy;
-
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -39,8 +37,7 @@ public class MessageListenerDeliverTest extends NinjaTest
     public void testDeliveryPreconditions() throws Exception
     {
         final NinjaProperties props = NinjaPropertiesImpl.builder().withMode(NinjaMode.test).build();
-        final NinjaProperties ninjaProperties = spy(props);
-        final XCMailrConf xcmConf = new XCMailrConf(ninjaProperties);
+        final XCMailrConf xcmConf = new XCMailrConf(props);
 
         final String local = RandomStringUtils.randomAlphabetic(10).toLowerCase();
         final String domain = xcmConf.DOMAIN_LIST[0];
