@@ -5,11 +5,10 @@ import java.util.HashSet;
 
 import org.slf4j.Logger;
 
-import io.ebean.Ebean;
-import io.ebean.PagedList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import io.ebean.Ebean;
 import models.MBox;
 import models.User;
 import ninja.lifecycle.Start;
@@ -38,9 +37,8 @@ public class CheckDBForMailAddressDuplicates
     {
         final HashSet<String> mailAddresses = new HashSet<>();
         final HashMap<Long, String> idToMailAddress = new HashMap<>();
-        final PagedList<User> users = Ebean.find(User.class).select("id, mail").setMaxRows(1_000).findPagedList();
-        for (final User user : users.getList())
-        {
+
+        Ebean.find(User.class).select("id, mail").findEach(user -> {
             final String userMailLC = user.getMail().toLowerCase();
             if (mailAddresses.contains(userMailLC))
             {
@@ -48,7 +46,7 @@ public class CheckDBForMailAddressDuplicates
             }
 
             mailAddresses.add(userMailLC);
-        }
+        });
 
         if (!idToMailAddress.isEmpty())
         {
@@ -68,18 +66,16 @@ public class CheckDBForMailAddressDuplicates
     {
         final HashSet<String> mailAddresses = new HashSet<>();
         final HashMap<Long, String> idToMailAddress = new HashMap<>();
-        final PagedList<MBox> boxes = Ebean.find(MBox.class).select("id, address, domain").setMaxRows(1_000).findPagedList();
-        for (final MBox box : boxes.getList())
-        {
-            final String boxAddressLC = box.getFullAddress().toLowerCase();
+
+        Ebean.find(MBox.class).select("id, address, domain").findEach(mailBox -> {
+            final String boxAddressLC = mailBox.getFullAddress().toLowerCase();
             if (mailAddresses.contains(boxAddressLC))
             {
-                idToMailAddress.put(box.getId(), box.getFullAddress());
+                idToMailAddress.put(mailBox.getId(), mailBox.getFullAddress());
             }
 
             mailAddresses.add(boxAddressLC);
-
-        }
+        });
 
         if (!idToMailAddress.isEmpty())
         {
