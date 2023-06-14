@@ -22,6 +22,7 @@
 
     <properties>
         <ninja.version>6.8.1</ninja.version>
+        <slf4j.version>1.7.36</slf4j.version>
     </properties>
 
     <build>
@@ -144,30 +145,25 @@
 
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
-                <targetPath>${project.build.outputDirectory}/views/layout</targetPath>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/*.ftl.html</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>**/*.ftl.html</exclude>
-                </excludes>
-            </resource>
-            <resource>
                 <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*</include>
-                </includes>
                 <excludes>
                     <exclude>**/*.java</exclude>
                 </excludes>
             </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/version.ftl.html</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>**/version.ftl.html</exclude>
+                </excludes>
+            </resource>
         </resources>
-
     </build>
 
     <dependencies>
@@ -235,12 +231,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>1.7.36</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.36</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mindrot</groupId>
