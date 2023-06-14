@@ -1,0 +1,89 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.xceptance</groupId>
+        <artifactId>xcmailr</artifactId>
+        <version>3.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>xcmailr-testsuite</artifactId>
+    <packaging>jar</packaging>
+
+    <name>XCMailr Test Suite</name>
+    <description>Junit tests for XCMailr.</description>
+
+    <properties>
+        <license.skipFormat>false</license.skipFormat>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <excludeScope>provided</excludeScope>
+                </configuration>
+                <executions>
+                    <!-- Automatically copy all non-provided dependencies to "target/dependency" when compiling. This ensures that 
+                        they are present when the test suite is about to be uploaded to the agent machines. -->
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <excludeScope>provided</excludeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <includes>
+                        <include>tests/**/T*.java</include>
+                    </includes>
+                    <failIfNoTests>false</failIfNoTests>
+                    <systemPropertyVariables>
+                        <!-- configure the environment for XLT-based test cases -->
+                        <com.xceptance.xlt.result-dir>${project.build.directory}/results</com.xceptance.xlt.result-dir>
+                        <com.xceptance.xlt.data.directory>${basedir}}/data</com.xceptance.xlt.data.directory>
+                        <log4j.configuration>file:${basedir}/dev-log4j.properties</log4j.configuration>
+                    </systemPropertyVariables>
+                </configuration>
+             </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.xceptance</groupId>
+            <artifactId>xlt</artifactId>
+            <version>6.2.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-email</artifactId>
+            <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.xceptance</groupId>
+            <artifactId>xcmailr-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>
