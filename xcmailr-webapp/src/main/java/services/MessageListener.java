@@ -1,18 +1,17 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License. 
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package services;
 
@@ -34,7 +33,7 @@ import org.apache.commons.mail.util.MimeMessageUtils;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -246,7 +245,7 @@ public class MessageListener implements SimpleMessageListener
      * @param data
      */
     @Override
-    public void deliver(String from, String recipient, InputStream data)
+    public void deliver(final String from, final String recipient, final InputStream data)
     {
         try
         {
@@ -258,7 +257,7 @@ public class MessageListener implements SimpleMessageListener
             }
 
             final Address forwardAddress;
-            final String forwardTarget =  mailBox.getUsr().getMail();
+            final String forwardTarget = mailBox.getUsr().getMail();
 
             final Session session = mailrSenderFactory.getSession();
             session.setDebug(xcmConfiguration.OUT_SMTP_DEBUG);
@@ -283,8 +282,11 @@ public class MessageListener implements SimpleMessageListener
 
             MimeMessage mail = MimeMessageUtils.createMimeMessage(session, rawContent);
 
+            // determine the author(s) of the mail (who wrote us?)
+            final String originator = StringUtils.defaultIfBlank(StringUtils.join(mail.getFrom(), ','),from);
+
             // write to mail table
-            persistMail(mailBox, from, StringUtils.defaultString(mail.getSubject()), rawContent);
+            persistMail(mailBox, originator, StringUtils.defaultString(mail.getSubject()), rawContent);
 
             // check if the mail address is configured to forward emails
             // the mail is still persisted (see above)
@@ -362,8 +364,6 @@ public class MessageListener implements SimpleMessageListener
             log.error(e.getMessage());
         }
     }
-
-
 
     private void persistMail(MBox mailBox, String from, final String subject, byte[] rawData) throws MessagingException
     {

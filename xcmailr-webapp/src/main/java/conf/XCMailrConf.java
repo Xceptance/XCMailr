@@ -1,18 +1,17 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License. 
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package conf;
 
@@ -171,6 +170,11 @@ public class XCMailrConf
     public final Boolean OUT_SMTP_TLS;
 
     /**
+     * specified with mail.smtp.starttls
+     */
+    public final Boolean OUT_SMTP_STARTTLS;
+
+    /**
      * specified with mail.smtp.user
      */
     public final String OUT_SMTP_USER;
@@ -253,6 +257,7 @@ public class XCMailrConf
             OUT_SMTP_PASS = null;
         }
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
+        OUT_SMTP_STARTTLS = ninjaProp.getBooleanWithDefault("mail.smtp.starttls", false);
         OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", false);
 
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");

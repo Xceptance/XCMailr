@@ -1,18 +1,17 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License. 
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package models;
 
@@ -34,13 +33,13 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Expr;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
-import com.avaje.ebean.SqlUpdate;
+import io.ebean.Ebean;
+import io.ebean.Expr;
+import io.ebean.ExpressionList;
+import io.ebean.Query;
+import io.ebean.RawSql;
+import io.ebean.RawSqlBuilder;
+import io.ebean.SqlUpdate;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -446,7 +445,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static MBox getByName(String mail, String domain)
     {
-        return queryByName(mail, domain).findUnique();
+        return queryByName(mail, domain).findOne();
     }
 
     /**
@@ -542,7 +541,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static boolean mailExists(String mail, String domain)
     {
-        return queryByName(mail, domain).findRowCount() > 0;
+        return queryByName(mail, domain).exists();
     }
 
     /**
@@ -688,7 +687,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static MBox find(String localPart, String domain)
     {
-        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domain).findUnique();
+        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domain).findOne();
     }
 
     /**

@@ -6,25 +6,24 @@
     OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
     the specific language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>xcmailr-webapp</artifactId>
-    <packaging>war</packaging>
-    <name>XCMailr-Webapp</name>
-
     <parent>
-        <groupId>org.xcmailr</groupId>
-        <artifactId>xcmailr</artifactId>
-        <version>2.2.1</version>
+      <groupId>com.xceptance</groupId>
+      <artifactId>xcmailr</artifactId>
+      <version>3.0.0</version>
+      <relativePath>../pom.xml</relativePath>
     </parent>
 
+    <artifactId>xcmailr-webapp</artifactId>
+    <packaging>jar</packaging>
+    <name>XCMailr-Webapp</name>
+
     <properties>
-        <ninja.version>6.3.0</ninja.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <ninja.version>6.8.1</ninja.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <license.skipFormat>false</license.skipFormat>
     </properties>
 
     <build>
@@ -59,9 +58,9 @@
                 <configuration>
                     <mode>dev</mode>
                     <jvmArgs>
-                        -Dlogback.configurationFile=logback_dev.xml
-                        -Dninja.external.configuration=application_dev.conf
-                        -Djavax.net.ssl.keyStore=../xcmailr-resources/conf/keystore.jks
+                        -Dlogback.configurationFile=conf/logback_dev.xml
+                        -Dninja.external.configuration=conf/application_dev.conf
+                        -Djavax.net.ssl.keyStore=conf/keystore_dev.jks
                         -Djavax.net.ssl.keyStorePassword=topsecret
                     </jvmArgs>
                     <useDefaultExcludes>true</useDefaultExcludes>
@@ -71,51 +70,43 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.avaje.ebeanorm</groupId>
-                <artifactId>avaje-ebeanorm-mavenenhancer</artifactId>
-                <version>3.2.2</version>
+                <groupId>io.ebean</groupId>
+                <artifactId>ebean-maven-plugin</artifactId>
+                <version>12.1.1</version>
                 <executions>
+                    <!-- enhance main classes -->
                     <execution>
                         <id>main</id>
                         <phase>process-classes</phase>
+                        <configuration>
+                            <classSource>${project.build.outputDirectory}</classSource>
+                            <packages>models</packages>
+                            <transformArgs>debug=1</transformArgs>
+                        </configuration>
                         <goals>
                             <goal>enhance</goal>
                         </goals>
-                        <configuration>
-                            <packages>models</packages>
-                            <transformArgs>debug=1</transformArgs>
-                            <!-- workaround against bug in ebean: https://groups.google.com/forum/?fromgroups#!topic/ebean/w2Q6PSeXKAk%5B1-25%5D -->
-                            <classSource>${project.build.outputDirectory}</classSource>
-                            <classDestination>${project.build.outputDirectory}</classDestination>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <descriptor>assembly.xml</descriptor>
+                    <appendAssemblyId>true</appendAssemblyId>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>create-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                        </manifest>
-                        <manifestEntries>
-                            <Implementation-Build>${project.version}.${maven.build.timestamp}</Implementation-Build>
-                        </manifestEntries>
-                    </archive>
-                    <outputDirectory>${project.parent.basedir}/xcmailr-build/webapps/</outputDirectory>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
@@ -124,84 +115,85 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
                 <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <mainClass>ninja.standalone.NinjaJetty</mainClass>
-                        </manifest>
-                    </archive>
+                    <argLine>--add-modules ALL-SYSTEM</argLine>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>add-third-party</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>add-third-party</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/licenses</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
 
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <targetPath>${project.build.outputDirectory}/views/layout</targetPath>
                 <filtering>true</filtering>
+                <includes>
+                    <include>**/version.ftl.html</include>
+                </includes>
             </resource>
             <resource>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*</include>
-                </includes>
+                <directory>src/main/resources</directory>
                 <excludes>
-                    <exclude>**/*.java</exclude>
+                    <exclude>**/version.ftl.html</exclude>
                 </excludes>
             </resource>
         </resources>
-
-        <pluginManagement>
-            <plugins>
-                <!--This plugin's configuration is used to store Eclipse 
-                    m2e settings only. It has no influence on the Maven build itself. -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.avaje.ebeanorm</groupId>
-                                        <artifactId>avaje-ebeanorm-mavenenhancer</artifactId>
-                                        <versionRange>[3.2.2,)</versionRange>
-                                        <goals>
-                                            <goal>enhance</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <execute>
-                                            <runOnIncremental>true</runOnIncremental>
-                                        </execute>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
 
     <dependencies>
         <dependency>
             <groupId>org.ninjaframework</groupId>
-            <artifactId>ninja-core</artifactId>
+            <artifactId>ninja-standalone</artifactId>
             <version>${ninja.version}</version>
+            <exclusions>
+                <!-- exclude some unneeded/unwanted artifacts to reduce footprint and to avoid version conflicts -->
+                <exclusion>
+                    <artifactId>ehcache-core</artifactId>
+                    <groupId>net.sf.ehcache</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hibernate-entitymanager</artifactId>
+                    <groupId>org.hibernate</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hibernate-c3p0</artifactId>
+                    <groupId>org.hibernate</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-validator</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
-            <scope>provided</scope>
+            <groupId>org.ninjaframework</groupId>
+            <artifactId>ninja-db-classic</artifactId>
+            <version>${ninja.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ninjaframework</groupId>
@@ -217,27 +209,29 @@
         <dependency>
             <groupId>org.ninjaframework</groupId>
             <artifactId>ninja-ebean-module</artifactId>
-            <version>1.5.0</version>
+            <version>3.0.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.ninjaframework</groupId>
-            <artifactId>ninja-servlet</artifactId>
-            <version>${ninja.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.2</version>
-        </dependency>
+
         <dependency>
             <groupId>org.subethamail</groupId>
             <artifactId>subethasmtp</artifactId>
             <version>3.1.7</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>1.7.5</version>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mindrot</groupId>
@@ -248,6 +242,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-email</artifactId>
             <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.0</version>
         </dependency>
     </dependencies>
 
@@ -263,9 +262,9 @@
                         <configuration>
                             <mode>dev</mode>
                             <jvmArgs>
-                                -Dlogback.configurationFile=logback_dev.xml
-                                -Dninja.external.configuration=application_dev.conf
-                                -Djavax.net.ssl.keyStore=../xcmailr-resources/conf/keystore.jks
+                                -Dlogback.configurationFile=conf/logback_dev.xml
+                                -Dninja.external.configuration=conf/application_dev.conf
+                                -Djavax.net.ssl.keyStore=conf/keystore_dev.jks
                                 -Djavax.net.ssl.keyStorePassword=topsecret
                                 -agentlib:jdwp=transport=dt_socket,server=y,address=8000
                             </jvmArgs>

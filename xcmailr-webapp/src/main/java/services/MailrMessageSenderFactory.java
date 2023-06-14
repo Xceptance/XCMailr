@@ -1,18 +1,17 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License. 
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package services;
 
@@ -24,7 +23,6 @@ import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -81,7 +79,8 @@ public class MailrMessageSenderFactory
         properties.put("mail.smtp.port", xcmConfiguration.OUT_SMTP_PORT);
         properties.put("mail.smtp.debug", xcmConfiguration.OUT_SMTP_DEBUG);
         properties.put("mail.smtp.auth", xcmConfiguration.OUT_SMTP_AUTH);
-        properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_TLS);
+        properties.put("mail.smtp.ssl.enable", xcmConfiguration.OUT_SMTP_TLS);
+        properties.put("mail.smtp.starttls.enable", xcmConfiguration.OUT_SMTP_STARTTLS);
 
         // Intention: Set mail.smtp.from to <> to request the Return-Path header be set to <>
         // which would signal that no automatic responses should be sent.
@@ -134,14 +133,9 @@ public class MailrMessageSenderFactory
             ThreadedMailSend tms = new ThreadedMailSend(message);
             tms.start();
         }
-        catch (AddressException e)
-        {
-            log.error(e.getMessage());
-            return false;
-        }
         catch (MessagingException e)
         {
-            log.error(e.getMessage());
+            log.error("Failed to send mail", e);
             return false;
         }
 
@@ -294,7 +288,7 @@ public class MailrMessageSenderFactory
                     mtx = new MailTransaction(400, from, mailBox.getFullAddress(), recipient);
                     addMtxToJCList(mtx);
                 }
-                log.error(e.getMessage());
+                log.error("Failed to send mail", e);
             }
         }
     }
