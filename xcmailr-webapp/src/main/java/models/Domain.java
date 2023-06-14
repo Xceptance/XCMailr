@@ -1,18 +1,17 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License. 
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package models;
 
@@ -22,8 +21,8 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
+import io.ebean.Ebean;
+import io.ebean.ExpressionList;
 
 /**
  * Object to handle the allowed domains
@@ -102,7 +101,7 @@ public class Domain extends AbstractEntity implements Serializable
      */
     public static Domain getByName(String name)
     {
-        return queryByName(name).findUnique();
+        return queryByName(name).findOne();
     }
 
     /**
@@ -122,7 +121,7 @@ public class Domain extends AbstractEntity implements Serializable
      */
     public static boolean exists(String name)
     {
-        return queryByName(name).findRowCount() > 0;
+        return queryByName(name).exists();
     }
 
     private static ExpressionList<Domain> queryByName(final String name)

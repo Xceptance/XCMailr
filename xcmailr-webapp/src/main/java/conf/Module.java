@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 the original author or authors.
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package conf;
 
-import com.google.inject.AbstractModule;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import com.google.inject.AbstractModule;
 
 import ninja.ebean.NinjaEbeanModule2;
 import services.CheckDBForMailAddressDuplicates;
@@ -25,13 +25,15 @@ import services.MailService;
 
 public class Module extends AbstractModule
 {
-
-
     @Override
     protected void configure()
     {
+        // install jul-to-SLF4j Bridge
+        install(new JulToSlf4jModule());
         // install the ebean module
         install(new NinjaEbeanModule2());
+        // bind Jackson setup service
+        bind(JacksonSetup.class);
         // bind configuration-class
         bind(XCMailrConf.class);
 
@@ -40,4 +42,13 @@ public class Module extends AbstractModule
         bind(CheckDBForMailAddressDuplicates.class);
     }
 
+    private static class JulToSlf4jModule extends AbstractModule
+    {
+        @Override
+        protected void configure()
+        {
+            SLF4JBridgeHandler.removeHandlersForRootLogger();
+            SLF4JBridgeHandler.install();
+        }
+    }
 }
