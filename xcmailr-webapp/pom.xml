@@ -15,7 +15,7 @@
       <version>3.0.0</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
-    
+
     <artifactId>xcmailr-webapp</artifactId>
     <packaging>jar</packaging>
     <name>XCMailr-Webapp</name>
@@ -23,6 +23,7 @@
     <properties>
         <ninja.version>6.8.1</ninja.version>
         <slf4j.version>1.7.36</slf4j.version>
+        <license.skipFormat>false</license.skipFormat>
     </properties>
 
     <build>
