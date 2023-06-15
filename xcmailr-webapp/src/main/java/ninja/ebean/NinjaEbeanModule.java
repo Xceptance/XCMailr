@@ -15,12 +15,11 @@
  */
 package ninja.ebean;
 
-import io.ebean.EbeanServer;
+import io.ebean.Database;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.Singleton;
 
-public class NinjaEbeanModule2 extends AbstractModule
+public class NinjaEbeanModule extends AbstractModule
 {
     @Override
     protected void configure()
@@ -29,10 +28,9 @@ public class NinjaEbeanModule2 extends AbstractModule
     }
 
     @Provides
-    @Singleton
-    EbeanServer provideEbeanServer(NinjaEbeanServerLifecycle2 ninjaEbeanServerLifecycle)
+    Database provideEbeanServer(NinjaEbeanDatabaseLifecycle databaseLifecycle)
     {
-        return ninjaEbeanServerLifecycle.getEbeanServer();
+        return databaseLifecycle.getEbeanDatabase();
     }
 
 }

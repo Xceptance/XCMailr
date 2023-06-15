@@ -24,6 +24,7 @@
         <ninja.version>6.8.1</ninja.version>
         <slf4j.version>1.7.36</slf4j.version>
         <license.skipFormat>false</license.skipFormat>
+        <ebean.version>12.16.1</ebean.version>
     </properties>
 
     <build>
@@ -207,10 +208,16 @@
             <version>2.1.210</version>
         </dependency>
         <dependency>
-            <groupId>org.ninjaframework</groupId>
-            <artifactId>ninja-ebean-module</artifactId>
-            <version>3.0.1</version>
+            <groupId>io.ebean</groupId>
+            <artifactId>ebean</artifactId>
+            <version>${ebean.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.ebean</groupId>
+            <artifactId>ebean-ddl-generator</artifactId>
+            <version>${ebean.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.subethamail</groupId>
