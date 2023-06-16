@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package ninja.ebean;
 
 import static ninja.ebean.NinjaEbeanProperties.EBEAN_DATASOURCE_DATABASE_DRIVER;
@@ -24,11 +23,11 @@ import static ninja.ebean.NinjaEbeanProperties.EBEAN_DATASOURCE_MIN_CONNECTIONS;
 import static ninja.ebean.NinjaEbeanProperties.EBEAN_DATASOURCE_NAME;
 import static ninja.ebean.NinjaEbeanProperties.EBEAN_DATASOURCE_PASSWORD;
 import static ninja.ebean.NinjaEbeanProperties.EBEAN_DATASOURCE_USERNAME;
+import static ninja.ebean.NinjaEbeanProperties.EBEAN_DATASOURCE_CAPTURE_STACKTRACE;
 import static ninja.ebean.NinjaEbeanProperties.EBEAN_DDL_GENERATE;
 import static ninja.ebean.NinjaEbeanProperties.EBEAN_DDL_RUN;
 import static ninja.ebean.NinjaEbeanProperties.EBEAN_DDL_INIT_SQL;
 import static ninja.ebean.NinjaEbeanProperties.EBEAN_DDL_SEED_SQL;
-
 
 import static ninja.ebean.NinjaEbeanProperties.EBEAN_MODELS;
 
@@ -36,7 +35,6 @@ import ninja.utils.NinjaProperties;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
 import io.ebean.Database;
 import io.ebean.DatabaseFactory;
 import io.ebean.config.DatabaseConfig;
@@ -59,7 +57,9 @@ import org.slf4j.Logger;
 public class NinjaEbeanDatabaseLifecycle {
 
     private Database ebeanDatabase;
+
     private final NinjaProperties ninjaProperties;
+
     private final Logger logger;
 
     @Inject
@@ -69,7 +69,7 @@ public class NinjaEbeanDatabaseLifecycle {
 
         this.logger = logger;
         this.ninjaProperties = ninjaProperties;
-        
+
         this.startServer();
     }
 
@@ -91,7 +91,7 @@ public class NinjaEbeanDatabaseLifecycle {
 
         String ebeanDdlInitSql = ninjaProperties.get(EBEAN_DDL_INIT_SQL);
         String ebeanDdlSeedSql = ninjaProperties.get(EBEAN_DDL_SEED_SQL);
-        
+
         String ebeanDatasourceName = ninjaProperties.getWithDefault(
                 EBEAN_DATASOURCE_NAME, "default");
         String ebeanDatasourceUserName = ninjaProperties.getWithDefault(
@@ -112,11 +112,13 @@ public class NinjaEbeanDatabaseLifecycle {
 
         String ebeanDatasourceHeartbeatSql = ninjaProperties.getWithDefault(
                 EBEAN_DATASOURCE_HEARTBEAT_SQL, "select 1");
+        boolean ebeanDatasourceCaptureStacktrace = ninjaProperties.getBooleanWithDefault(
+                EBEAN_DATASOURCE_CAPTURE_STACKTRACE, false);
 
         final DatabaseConfig dbConfig = new DatabaseConfig();
         dbConfig.setName(ebeanDatasourceName);
         dbConfig.loadFromProperties();
-        
+
         // Define DataSource parameters
         DataSourceConfig dataSourceConfig = new DataSourceConfig();
         dataSourceConfig.setDriver(ebeanDatasourceDatabaseDriver);
@@ -126,6 +128,7 @@ public class NinjaEbeanDatabaseLifecycle {
         dataSourceConfig.setMinConnections(ebeanDatasourceMinConnections);
         dataSourceConfig.setMaxConnections(ebeanDatasourceMaxConnections);
         dataSourceConfig.setHeartbeatSql(ebeanDatasourceHeartbeatSql);
+        dataSourceConfig.setCaptureStackTrace(ebeanDatasourceCaptureStacktrace);
 
         dbConfig.setDataSourceConfig(dataSourceConfig);
 
@@ -141,13 +144,13 @@ public class NinjaEbeanDatabaseLifecycle {
         // split models configuration into classes & packages
         Set<String> packageNames = new LinkedHashSet<>();
         Set<Class<?>> entityClasses = new LinkedHashSet<>();
-        
+
         // models always added by default
         packageNames.add("models");
-        
+
         // add manually listed classes from the property
         String[] manuallyListedModels = ninjaProperties.getStringArray(EBEAN_MODELS);
-        
+
         if (manuallyListedModels != null) {
             for (String model: manuallyListedModels) {
                 if (model.endsWith(".*")) {
@@ -175,15 +178,15 @@ public class NinjaEbeanDatabaseLifecycle {
         for (Class<?> entityClass : entityClasses) {
             dbConfig.addClass(entityClass);
         }
-        
+
         // create the database instance
         this.ebeanDatabase = this.createEbeanDatabase(dbConfig);
-        
+
         // Register database at Ebean's shutdown manager (disconnects from db, shuts down all threads and so on)
         ShutdownManager.registerDatabase(ebeanDatabase);
 
     }
-    
+
     /**
      * Creates the Ebean database with the prepared database config.  Provides a
      * last chance to modify the config in a subclass if you'd like to customize

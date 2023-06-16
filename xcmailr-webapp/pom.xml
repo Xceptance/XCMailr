@@ -125,6 +125,17 @@
                     <argLine>--add-modules ALL-SYSTEM</argLine>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <excludes>
+                        <exclude>src/main/java/ninja/ebean/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>

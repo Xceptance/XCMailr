@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package ninja.ebean;
 
 /**
@@ -24,7 +23,7 @@ package ninja.ebean;
  * 
  */
 public interface NinjaEbeanProperties {
-    
+
     /** 
      * Comma separated list of Ebean models which should be registered
      * at the EbeanServer.
@@ -49,10 +48,10 @@ public interface NinjaEbeanProperties {
 
     public final String EBEAN_DDL_SEED_SQL = "ebean.ddl.seedSql";
     public final String EBEAN_DDL_INIT_SQL = "ebean.ddl.initSql";
-     
+
     public final String EBEAN_DATASOURCE_USERNAME = "ebean.datasource.username";
     public final String EBEAN_DATASOURCE_PASSWORD = "ebean.datasource.password";
-    
+
     public final String EBEAN_DATASOURCE_NAME = "ebean.datasource.name";
     public final String EBEAN_DATASOURCE_DATABASE_URL = "ebean.datasource.databaseUrl";
     public final String EBEAN_DATASOURCE_DATABASE_DRIVER = "ebean.datasource.databaseDriver";
@@ -61,5 +60,5 @@ public interface NinjaEbeanProperties {
     public final String EBEAN_DATASOURCE_HEARTBEAT_SQL = "ebean.datasource.heartbeatsql";
     public final String EBEAN_DATASOURCE_ISOLATION_LEVEL = "ebean.datasource.isolationlevel";
 
-    
+    public final String EBEAN_DATASOURCE_CAPTURE_STACKTRACE = "ebean.datasource.captureStackTrace";
 }

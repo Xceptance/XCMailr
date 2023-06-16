@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+/**
+ * Copyright (C) 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,15 @@ import io.ebean.Database;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
-public class NinjaEbeanModule extends AbstractModule
-{
+public class NinjaEbeanModule extends AbstractModule {
+
     @Override
-    protected void configure()
-    {
+    protected void configure() {
         // nothing to bind...
     }
 
     @Provides
-    Database provideEbeanServer(NinjaEbeanDatabaseLifecycle databaseLifecycle)
-    {
+    Database provideEbeanServer(NinjaEbeanDatabaseLifecycle databaseLifecycle) {
         return databaseLifecycle.getEbeanDatabase();
     }
 
