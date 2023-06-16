@@ -19,7 +19,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.google.inject.AbstractModule;
 
-import ninja.ebean.NinjaEbeanModule2;
+import ninja.ebean.NinjaEbeanModule;
 import services.CheckDBForMailAddressDuplicates;
 import services.MailService;
 
@@ -31,7 +31,7 @@ public class Module extends AbstractModule
         // install jul-to-SLF4j Bridge
         install(new JulToSlf4jModule());
         // install the ebean module
-        install(new NinjaEbeanModule2());
+        install(new NinjaEbeanModule());
         // bind Jackson setup service
         bind(JacksonSetup.class);
         // bind configuration-class
