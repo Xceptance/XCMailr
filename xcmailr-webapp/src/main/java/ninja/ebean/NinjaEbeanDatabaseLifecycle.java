@@ -39,7 +39,6 @@ import io.ebean.Database;
 import io.ebean.DatabaseFactory;
 import io.ebean.config.DatabaseConfig;
 import io.ebean.datasource.DataSourceConfig;
-import io.ebean.event.ShutdownManager;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -181,10 +180,6 @@ public class NinjaEbeanDatabaseLifecycle {
 
         // create the database instance
         this.ebeanDatabase = this.createEbeanDatabase(dbConfig);
-
-        // Register database at Ebean's shutdown manager (disconnects from db, shuts down all threads and so on)
-        ShutdownManager.registerDatabase(ebeanDatabase);
-
     }
 
     /**
