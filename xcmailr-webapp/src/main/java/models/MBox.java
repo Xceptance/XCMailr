@@ -1,18 +1,17 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License. 
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package models;
 
@@ -34,13 +33,13 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.DateTime;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Expr;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
-import com.avaje.ebean.SqlUpdate;
+import io.ebean.DB;
+import io.ebean.Expr;
+import io.ebean.ExpressionList;
+import io.ebean.Query;
+import io.ebean.RawSql;
+import io.ebean.RawSqlBuilder;
+import io.ebean.SqlUpdate;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -394,7 +393,7 @@ public class MBox extends AbstractEntity implements Serializable
     public void increaseFwd()
     {
         increaseForwards();
-        Ebean.createSqlUpdate("update mailboxes set forwards = ? where id = ?;") //
+        DB.sqlUpdate("update mailboxes set forwards = ? where id = ?;") //
              .setParameter(1, getForwards()) //
              .setParameter(2, getId()) //
              .execute();
@@ -406,7 +405,7 @@ public class MBox extends AbstractEntity implements Serializable
     public void increaseSup()
     {
         increaseSuppressions();
-        Ebean.createSqlUpdate("update mailboxes set suppressions = ? where id = ?;") //
+        DB.sqlUpdate("update mailboxes set suppressions = ? where id = ?;") //
              .setParameter(1, getSuppressions()) //
              .setParameter(2, getId()) //
              .execute();
@@ -420,7 +419,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static void delete(Long id)
     {
-        Ebean.delete(MBox.class, id);
+        DB.delete(MBox.class, id);
     }
 
     /**
@@ -432,7 +431,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static MBox getById(Long id)
     {
-        return Ebean.find(MBox.class, id);
+        return DB.find(MBox.class, id);
     }
 
     /**
@@ -446,7 +445,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static MBox getByName(String mail, String domain)
     {
-        return queryByName(mail, domain).findUnique();
+        return queryByName(mail, domain).findOne();
     }
 
     /**
@@ -460,7 +459,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     private static ExpressionList<MBox> queryByName(String localPart, String domainPart)
     {
-        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domainPart);
+        return DB.find(MBox.class).where().ieq("address", localPart).ieq("domain", domainPart);
     }
 
     /**
@@ -492,7 +491,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static boolean boxToUser(long bId, long uId)
     {
-        MBox mb = Ebean.find(MBox.class, bId);
+        MBox mb = DB.find(MBox.class, bId);
         return (mb != null && (mb.getUsr() != null) && (mb.getUsr().getId() == uId));
     }
 
@@ -516,7 +515,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static List<MBox> all()
     {
-        return Ebean.find(MBox.class).findList();
+        return DB.find(MBox.class).findList();
     }
 
     /**
@@ -528,7 +527,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static List<MBox> allUser(Long id)
     {
-        return Ebean.find(MBox.class).where().eq("usr_id", id.toString()).findList();
+        return DB.find(MBox.class).where().eq("usr_id", id.toString()).findList();
     }
 
     /**
@@ -542,7 +541,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static boolean mailExists(String mail, String domain)
     {
-        return queryByName(mail, domain).findRowCount() > 0;
+        return queryByName(mail, domain).exists();
     }
 
     /**
@@ -615,7 +614,7 @@ public class MBox extends AbstractEntity implements Serializable
 
         // get a list of boxes, that are active, have a timestamp that is lower than the time to check for and not
         // unlimited
-        return Ebean.find(MBox.class).where().eq("expired", false).lt("ts_Active", dt.getMillis()).ne("ts_Active", 0)
+        return DB.find(MBox.class).where().eq("expired", false).lt("ts_Active", dt.getMillis()).ne("ts_Active", 0)
                     .findList();
     }
 
@@ -625,7 +624,7 @@ public class MBox extends AbstractEntity implements Serializable
     public void enable()
     {
         this.setExpired(false);
-        Ebean.update(this);
+        DB.update(this);
     }
 
     /**
@@ -634,7 +633,7 @@ public class MBox extends AbstractEntity implements Serializable
     public void disable()
     {
         this.setExpired(true);
-        Ebean.update(this);
+        DB.update(this);
     }
 
     /**
@@ -652,7 +651,7 @@ public class MBox extends AbstractEntity implements Serializable
         {
             return allUser(userId);
         }
-        ExpressionList<MBox> exList1 = Ebean.find(MBox.class).where().eq("usr_id", userId);
+        ExpressionList<MBox> exList1 = DB.find(MBox.class).where().eq("usr_id", userId);
         if (input.contains("@"))
         { // check for a correct format of a box
             String[] split = input.split("@");
@@ -688,7 +687,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static MBox find(String localPart, String domain)
     {
-        return Ebean.find(MBox.class).where().ieq("address", localPart).ieq("domain", domain).findUnique();
+        return DB.find(MBox.class).where().ieq("address", localPart).ieq("domain", domain).findOne();
     }
 
     /**
@@ -714,7 +713,7 @@ public class MBox extends AbstractEntity implements Serializable
      */
     public static String getActiveMailsForTxt(Long userId)
     {
-        List<MBox> allActiveBoxes = Ebean.find(MBox.class).where().eq("usr_id", userId.toString()).eq("expired", false)
+        List<MBox> allActiveBoxes = DB.find(MBox.class).where().eq("usr_id", userId.toString()).eq("expired", false)
                                          .findList();
         return getBoxListToText(allActiveBoxes);
     }
@@ -744,7 +743,7 @@ public class MBox extends AbstractEntity implements Serializable
                                      {
                                          // execute the final statement
                                          final RawSql rawSql = RawSqlBuilder.parse(finalStmt).create();
-                                         final Query<MBox> query = Ebean.find(MBox.class).setRawSql(rawSql);
+                                         final Query<MBox> query = DB.find(MBox.class).setRawSql(rawSql);
                                          final List<MBox> boxes = query.findList();
 
                                          // aggregate the results
@@ -879,7 +878,7 @@ public class MBox extends AbstractEntity implements Serializable
                                      public void accept(String stmt)
                                      {
                                          // execute the SQL statement
-                                         final SqlUpdate down = Ebean.createSqlUpdate(stmt.toString());
+                                         final SqlUpdate down = DB.sqlUpdate(stmt.toString());
                                          final int processedCount = down.execute();
 
                                          // aggregate result

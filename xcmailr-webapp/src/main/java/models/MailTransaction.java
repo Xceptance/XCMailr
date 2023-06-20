@@ -1,18 +1,17 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License. 
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package models;
 
@@ -21,17 +20,19 @@ import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
-import com.avaje.ebean.SqlUpdate;
+import io.ebean.DB;
+import io.ebean.Query;
+import io.ebean.RawSql;
+import io.ebean.RawSqlBuilder;
+import io.ebean.SqlUpdate;
 
 /**
  * This Class is used to save all Actions on the Mailserver
@@ -43,6 +44,7 @@ import com.avaje.ebean.SqlUpdate;
 public class MailTransaction
 {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     private Long ts;
@@ -233,7 +235,7 @@ public class MailTransaction
      */
     public static List<MailTransaction> all()
     {
-        return Ebean.find(MailTransaction.class).findList();
+        return DB.find(MailTransaction.class).findList();
     }
 
     /**
@@ -244,7 +246,7 @@ public class MailTransaction
      */
     public static List<MailTransaction> all(String sortage)
     {
-        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy(sortage).findList();
+        List<MailTransaction> list = DB.find(MailTransaction.class).where().orderBy(sortage).findList();
 
         return list;
     }
@@ -258,7 +260,7 @@ public class MailTransaction
      */
     public static List<MailTransaction> getAllInPeriod(Period period)
     {
-        return Ebean.find(MailTransaction.class).where().gt("ts", DateTime.now().minus(period).getMillis()).findList();
+        return DB.find(MailTransaction.class).where().gt("ts", DateTime.now().minus(period).getMillis()).findList();
     }
 
     /**
@@ -270,7 +272,7 @@ public class MailTransaction
      */
     public static List<MailTransaction> getSortedAndLimitedList(int limit)
     {
-        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit)
+        List<MailTransaction> list = DB.find(MailTransaction.class).where().orderBy("ts desc").setMaxRows(limit)
                                           .findList();
         return list;
     }
@@ -284,7 +286,7 @@ public class MailTransaction
      */
     public static List<MailTransaction> getForTarget(final String targetAddr)
     {
-        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().eq("targetaddr", targetAddr)
+        List<MailTransaction> list = DB.find(MailTransaction.class).where().eq("targetaddr", targetAddr)
                                           .orderBy("ts desc").findList();
         return list;
     }
@@ -298,7 +300,7 @@ public class MailTransaction
      */
     public static List<MailTransaction> getForRelay(final String relayAddr)
     {
-        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().eq("relayaddr", relayAddr)
+        List<MailTransaction> list = DB.find(MailTransaction.class).where().eq("relayaddr", relayAddr)
                                           .orderBy("ts desc").findList();
         return list;
     }
@@ -312,7 +314,7 @@ public class MailTransaction
      */
     public static List<MailTransaction> getForSource(final String sourceAddr)
     {
-        List<MailTransaction> list = Ebean.find(MailTransaction.class).where().eq("sourceaddr", sourceAddr)
+        List<MailTransaction> list = DB.find(MailTransaction.class).where().eq("sourceaddr", sourceAddr)
                                           .orderBy("ts desc").findList();
         return list;
     }
@@ -330,7 +332,7 @@ public class MailTransaction
         { // there's a timestamp, add
             sql += " WHERE ts < " + ts;
         }
-        SqlUpdate down = Ebean.createSqlUpdate(sql);
+        SqlUpdate down = DB.sqlUpdate(sql);
         down.execute();
     }
 
@@ -343,7 +345,7 @@ public class MailTransaction
      */
     public static MailTransaction getById(long id)
     {
-        return Ebean.find(MailTransaction.class, id);
+        return DB.find(MailTransaction.class, id);
     }
 
     /**
@@ -357,7 +359,7 @@ public class MailTransaction
         // create a sql-query that contains the statuscode and their number of occurences
         String sql = "SELECT mtx.status, COUNT(mtx.status) AS count  FROM mailtransactions mtx GROUP BY mtx.status";
         RawSql rawSql = RawSqlBuilder.parse(sql).columnMapping("mtx.status", "statuscode").create();
-        Query<Status> query = Ebean.find(Status.class);
+        Query<Status> query = DB.find(Status.class);
         query.setRawSql(rawSql);
         List<Status> list = query.findList();
 
@@ -369,7 +371,7 @@ public class MailTransaction
      */
     public void save()
     {
-        Ebean.save(this);
+        DB.save(this);
     }
 
     /**
@@ -379,6 +381,6 @@ public class MailTransaction
      */
     public static void saveMultipleTx(List<MailTransaction> mtxList)
     {
-        Ebean.save(mtxList);
+        DB.saveAll(mtxList);
     }
 }

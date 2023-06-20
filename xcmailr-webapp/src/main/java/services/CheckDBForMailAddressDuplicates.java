@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package services;
 
 import java.util.HashMap;
@@ -5,11 +20,10 @@ import java.util.HashSet;
 
 import org.slf4j.Logger;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.PagingList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import io.ebean.Ebean;
 import models.MBox;
 import models.User;
 import ninja.lifecycle.Start;
@@ -38,9 +52,8 @@ public class CheckDBForMailAddressDuplicates
     {
         final HashSet<String> mailAddresses = new HashSet<>();
         final HashMap<Long, String> idToMailAddress = new HashMap<>();
-        final PagingList<User> users = Ebean.find(User.class).select("id, mail").findPagingList(1_000);
-        for (final User user : users.getAsList())
-        {
+
+        Ebean.find(User.class).select("id, mail").findEach(user -> {
             final String userMailLC = user.getMail().toLowerCase();
             if (mailAddresses.contains(userMailLC))
             {
@@ -48,7 +61,7 @@ public class CheckDBForMailAddressDuplicates
             }
 
             mailAddresses.add(userMailLC);
-        }
+        });
 
         if (!idToMailAddress.isEmpty())
         {
@@ -68,18 +81,16 @@ public class CheckDBForMailAddressDuplicates
     {
         final HashSet<String> mailAddresses = new HashSet<>();
         final HashMap<Long, String> idToMailAddress = new HashMap<>();
-        final PagingList<MBox> boxes = Ebean.find(MBox.class).select("id, address, domain").findPagingList(1_000);
-        for (final MBox box : boxes.getAsList())
-        {
-            final String boxAddressLC = box.getFullAddress().toLowerCase();
+
+        Ebean.find(MBox.class).select("id, address, domain").findEach(mailBox -> {
+            final String boxAddressLC = mailBox.getFullAddress().toLowerCase();
             if (mailAddresses.contains(boxAddressLC))
             {
-                idToMailAddress.put(box.getId(), box.getFullAddress());
+                idToMailAddress.put(mailBox.getId(), mailBox.getFullAddress());
             }
 
             mailAddresses.add(boxAddressLC);
-
-        }
+        });
 
         if (!idToMailAddress.isEmpty())
         {

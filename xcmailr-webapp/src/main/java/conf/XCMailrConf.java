@@ -1,22 +1,22 @@
-/**  
- *  Copyright 2013 the original author or authors.
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License. 
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package conf;
 
 import java.util.ArrayList;
+import java.util.function.BiFunction;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -171,6 +171,11 @@ public class XCMailrConf
     public final Boolean OUT_SMTP_TLS;
 
     /**
+     * specified with mail.smtp.starttls
+     */
+    public final Boolean OUT_SMTP_STARTTLS;
+
+    /**
      * specified with mail.smtp.user
      */
     public final String OUT_SMTP_USER;
@@ -217,7 +222,7 @@ public class XCMailrConf
     {
         APP_NAME = ninjaProp.getOrDie("application.name");
         APP_HOME = ninjaProp.getOrDie("application.url");
-        APP_BASEPATH = ninjaProp.getOrDie("application.basedir");
+        APP_BASEPATH = ninjaProp.getOrDie("ninja.context");
         APP_LANGS = filterDuplicates(ninjaProp.getStringArray("application.languages"), false);
         APP_DEFAULT_ENTRYNO = ninjaProp.getIntegerWithDefault("application.default.entriesperpage", 15);
         APP_WHITELIST = ninjaProp.getBooleanOrDie("application.whitelist");
@@ -253,6 +258,7 @@ public class XCMailrConf
             OUT_SMTP_PASS = null;
         }
         OUT_SMTP_TLS = ninjaProp.getBooleanOrDie("mail.smtp.tls");
+        OUT_SMTP_STARTTLS = ninjaProp.getBooleanWithDefault("mail.smtp.starttls", false);
         OUT_SMTP_DEBUG = ninjaProp.getBooleanWithDefault("mail.smtp.debug", false);
 
         PW_LENGTH = ninjaProp.getIntegerOrDie("pw.length");
@@ -283,6 +289,16 @@ public class XCMailrConf
             throw new RuntimeException("Key 'application.languages' is empty. Please check your application.conf. "
                                        + "Otherwise this app will not work");
         }
+
+        if (!APP_BASEPATH.isBlank())
+        {
+            if (!APP_BASEPATH.startsWith("/") || APP_BASEPATH.endsWith("/"))
+            {
+                throw new RuntimeException("Key 'ninja.context' is set to an invalid value. "
+                                           + "Either leave it blank or configure the context path correctly "
+                                           + "(must start with '/' and must not end with '/').");
+            }
+        }
     }
 
     private String[] filterDuplicates(final String[] args, final boolean ignoreCase)
@@ -292,10 +308,11 @@ public class XCMailrConf
             return null;
         }
 
+        final BiFunction<String, String, Boolean> filterFun = ignoreCase ? StringUtils::equalsIgnoreCase : StringUtils::equals;
         final ArrayList<String> list = new ArrayList<>();
         for (final String arg : args)
         {
-            if (arg == null || list.stream().anyMatch(e -> ignoreCase ? StringUtils.equalsIgnoreCase(e, arg) : StringUtils.equals(e, arg)))
+            if (arg == null || list.stream().anyMatch(e -> filterFun.apply(e, arg)))
             {
                 continue;
             }
@@ -303,6 +320,6 @@ public class XCMailrConf
             list.add(arg);
         }
 
-        return list.toArray(new String[list.size()]);
+        return list.toArray(String[]::new);
     }
 }

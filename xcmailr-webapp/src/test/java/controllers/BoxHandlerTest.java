@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package controllers;
 
 import static org.junit.Assert.assertEquals;
@@ -918,7 +933,7 @@ public class BoxHandlerTest extends NinjaTest
          * can query the amount of mails without actually loading them since they could be huge
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/mails?format=json");
-        assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
+        assertEquals("{\"total\":1,\"rows\":[]}", result);
 
         /*
          * TEST: query json with offset=0 and limit=1 parameter to get also actual mail content of the first mail
@@ -953,7 +968,7 @@ public class BoxHandlerTest extends NinjaTest
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
                                               + "/mails?format=json&search=something");
-        assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
+        assertEquals("{\"total\":1,\"rows\":[]}", result);
     }
 
     @Test
