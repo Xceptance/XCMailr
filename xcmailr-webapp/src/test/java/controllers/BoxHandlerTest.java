@@ -933,7 +933,7 @@ public class BoxHandlerTest extends NinjaTest
          * can query the amount of mails without actually loading them since they could be huge
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/mails?format=json");
-        assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
+        assertEquals("{\"total\":1,\"rows\":[]}", result);
 
         /*
          * TEST: query json with offset=0 and limit=1 parameter to get also actual mail content of the first mail
@@ -968,7 +968,7 @@ public class BoxHandlerTest extends NinjaTest
          */
         result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
                                               + "/mails?format=json&search=something");
-        assertTrue(result.equals("{\"total\":1,\"rows\":[]}"));
+        assertEquals("{\"total\":1,\"rows\":[]}", result);
     }
 
     @Test
