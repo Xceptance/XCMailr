@@ -16,6 +16,7 @@
 package conf;
 
 import java.util.ArrayList;
+import java.util.function.BiFunction;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -221,7 +222,7 @@ public class XCMailrConf
     {
         APP_NAME = ninjaProp.getOrDie("application.name");
         APP_HOME = ninjaProp.getOrDie("application.url");
-        APP_BASEPATH = ninjaProp.getOrDie("application.basedir");
+        APP_BASEPATH = ninjaProp.getOrDie("ninja.context");
         APP_LANGS = filterDuplicates(ninjaProp.getStringArray("application.languages"), false);
         APP_DEFAULT_ENTRYNO = ninjaProp.getIntegerWithDefault("application.default.entriesperpage", 15);
         APP_WHITELIST = ninjaProp.getBooleanOrDie("application.whitelist");
@@ -288,6 +289,16 @@ public class XCMailrConf
             throw new RuntimeException("Key 'application.languages' is empty. Please check your application.conf. "
                                        + "Otherwise this app will not work");
         }
+
+        if (!APP_BASEPATH.isBlank())
+        {
+            if (!APP_BASEPATH.startsWith("/") || APP_BASEPATH.endsWith("/"))
+            {
+                throw new RuntimeException("Key 'ninja.context' is set to an invalid value. "
+                                           + "Either leave it blank or configure the context path correctly "
+                                           + "(must start with '/' and must not end with '/').");
+            }
+        }
     }
 
     private String[] filterDuplicates(final String[] args, final boolean ignoreCase)
@@ -297,10 +308,11 @@ public class XCMailrConf
             return null;
         }
 
+        final BiFunction<String, String, Boolean> filterFun = ignoreCase ? StringUtils::equalsIgnoreCase : StringUtils::equals;
         final ArrayList<String> list = new ArrayList<>();
         for (final String arg : args)
         {
-            if (arg == null || list.stream().anyMatch(e -> ignoreCase ? StringUtils.equalsIgnoreCase(e, arg) : StringUtils.equals(e, arg)))
+            if (arg == null || list.stream().anyMatch(e -> filterFun.apply(e, arg)))
             {
                 continue;
             }
@@ -308,6 +320,6 @@ public class XCMailrConf
             list.add(arg);
         }
 
-        return list.toArray(new String[list.size()]);
+        return list.toArray(String[]::new);
     }
 }

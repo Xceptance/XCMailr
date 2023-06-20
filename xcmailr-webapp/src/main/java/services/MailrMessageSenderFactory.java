@@ -163,9 +163,9 @@ public class MailrMessageSenderFactory
         // build the Verification Link
         StringBuilder strb = new StringBuilder();
         strb.append(xcmConfiguration.APP_HOME);
-        if (!xcmConfiguration.APP_BASEPATH.isEmpty())
+        if (!xcmConfiguration.APP_BASEPATH.isBlank())
         {
-            strb.append("/" + xcmConfiguration.APP_BASEPATH);
+            strb.append(xcmConfiguration.APP_BASEPATH);
         }
         strb.append("/verify/" + id + "/" + token);
 
@@ -201,9 +201,9 @@ public class MailrMessageSenderFactory
         // build the PW-Reset Link
         StringBuilder strb = new StringBuilder();
         strb.append(xcmConfiguration.APP_HOME);
-        if (!xcmConfiguration.APP_BASEPATH.isEmpty())
+        if (!xcmConfiguration.APP_BASEPATH.isBlank())
         {
-            strb.append("/" + xcmConfiguration.APP_BASEPATH);
+            strb.append(xcmConfiguration.APP_BASEPATH);
         }
         strb.append("/lostpw/" + id + "/" + token);
 
