@@ -25,7 +25,7 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 
 @Entity
 @Table(name = "MAIL_STATISTICS")
@@ -169,6 +169,6 @@ public class MailStatistics implements Serializable
     {
         String sql = "DELETE FROM MAIL_STATISTICS WHERE date < '" + date + "';";
 
-        return Ebean.createSqlUpdate(sql).execute();
+        return DB.sqlUpdate(sql).execute();
     }
 }

@@ -27,7 +27,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 
 @Entity
 @Table
@@ -134,7 +134,7 @@ public class Mail extends AbstractEntity implements Serializable
      */
     public static Mail find(long id)
     {
-        return Ebean.find(Mail.class).where().idEq(id).findOne();
+        return DB.find(Mail.class).where().idEq(id).findOne();
     }
 
     /**
@@ -146,6 +146,6 @@ public class Mail extends AbstractEntity implements Serializable
      */
     public static List<Mail> findAndSort(long mailboxId)
     {
-        return Ebean.find(Mail.class).where().eq("mailbox_id", mailboxId).order("receiveTime").findList();
+        return DB.find(Mail.class).where().eq("mailbox_id", mailboxId).order("receiveTime").findList();
     }
 }

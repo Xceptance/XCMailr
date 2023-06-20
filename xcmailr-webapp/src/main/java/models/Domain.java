@@ -21,7 +21,7 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 import io.ebean.ExpressionList;
 
 /**
@@ -69,7 +69,7 @@ public class Domain extends AbstractEntity implements Serializable
      */
     public static void delete(Long id)
     {
-        Ebean.delete(Domain.class, id);
+        DB.delete(Domain.class, id);
     }
 
     /**
@@ -91,7 +91,7 @@ public class Domain extends AbstractEntity implements Serializable
      */
     public static Domain getById(Long id)
     {
-        return Ebean.find(Domain.class, id);
+        return DB.find(Domain.class, id);
     }
 
     /**
@@ -109,7 +109,7 @@ public class Domain extends AbstractEntity implements Serializable
      */
     public static List<Domain> getAll()
     {
-        return Ebean.find(Domain.class).findList();
+        return DB.find(Domain.class).findList();
     }
 
     /**
@@ -126,6 +126,6 @@ public class Domain extends AbstractEntity implements Serializable
 
     private static ExpressionList<Domain> queryByName(final String name)
     {
-        return Ebean.find(Domain.class).where().ieq("domainname", name);
+        return DB.find(Domain.class).where().ieq("domainname", name);
     }
 }

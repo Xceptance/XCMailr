@@ -23,7 +23,8 @@ import javax.persistence.MappedSuperclass;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
+
 
 @MappedSuperclass
 public abstract class AbstractEntity
@@ -60,7 +61,7 @@ public abstract class AbstractEntity
      */
     public void delete()
     {
-        Ebean.delete(this);
+        DB.delete(this);
     }
 
     /**
@@ -69,7 +70,7 @@ public abstract class AbstractEntity
 
     public void save()
     {
-        Ebean.save(this);
+        DB.save(this);
     }
 
     /**
@@ -77,7 +78,7 @@ public abstract class AbstractEntity
      */
     public void update()
     {
-        Ebean.update(this);
+        DB.update(this);
     }
 
 }

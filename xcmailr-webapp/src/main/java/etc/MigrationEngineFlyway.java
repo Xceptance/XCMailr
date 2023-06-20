@@ -48,11 +48,12 @@ public class MigrationEngineFlyway implements MigrationEngine
         String connectionUsername = ninjaProperties.getOrDie(NinjaEbeanProperties.EBEAN_DATASOURCE_USERNAME);
         String connectionPassword = ninjaProperties.getOrDie(NinjaEbeanProperties.EBEAN_DATASOURCE_PASSWORD);
 
+        boolean baselineOnMigrate = ninjaProperties.getBooleanWithDefault("ninja.migration.baselineOnMigrate", false);
+
         // We migrate automatically => if you do not want that (eg in production)
         // set ninja.migration.run=false in application.conf
-        Flyway flyway = new Flyway();
-        flyway.setDataSource(connectionUrl, connectionUsername, connectionPassword);
-        flyway.setBaselineOnMigrate(ninjaProperties.getBooleanWithDefault("ninja.migration.baselineOnMigrate", false));
+        Flyway flyway = Flyway.configure().dataSource(connectionUrl, connectionUsername, connectionPassword)
+                              .baselineOnMigrate(baselineOnMigrate).load();
 
         // In testmode we are cleaning the database so that subsequent testcases
         // get a fresh database.

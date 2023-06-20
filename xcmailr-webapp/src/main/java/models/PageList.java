@@ -126,7 +126,7 @@ public class PageList<T>
         }
         else
         { // calculate the number of pages
-            return (int) Math.ceil((entrys / new Double(pageSize)));
+            return (int) Math.ceil((entrys / Double.valueOf(pageSize)));
         }
     }
 

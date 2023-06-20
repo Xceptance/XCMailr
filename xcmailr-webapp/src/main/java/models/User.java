@@ -30,7 +30,7 @@ import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.mindrot.jbcrypt.BCrypt;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 import io.ebean.ExpressionList;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -396,7 +396,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static List<User> all()
     {
-        return Ebean.find(User.class).findList();
+        return DB.find(User.class).findList();
 
     }
 
@@ -418,7 +418,7 @@ public class User extends AbstractEntity implements Serializable
     public boolean isLastAdmin()
     {
         // this user is admin and there's only one admin in the database, so he's the last one
-        return isAdmin() && (Ebean.find(User.class).where().eq("admin", true).findCount() == 1);
+        return isAdmin() && (DB.find(User.class).where().eq("admin", true).findCount() == 1);
     }
 
     /**
@@ -442,7 +442,7 @@ public class User extends AbstractEntity implements Serializable
      */
     private static ExpressionList<User> queryByMail(String mail)
     {
-        return Ebean.find(User.class).where().ieq("mail", mail);
+        return DB.find(User.class).where().ieq("mail", mail);
     }
 
     /**
@@ -487,7 +487,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static User getById(Long id)
     {
-        return Ebean.find(User.class, id);
+        return DB.find(User.class, id);
     }
 
     /**
@@ -498,7 +498,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static void delete(Long id)
     {
-        Ebean.delete(User.class, id);
+        DB.delete(User.class, id);
     }
 
     /**
@@ -511,7 +511,7 @@ public class User extends AbstractEntity implements Serializable
     {
         final User usr = getById(id);
         usr.setAdmin(!usr.admin);
-        Ebean.update(usr);
+        DB.update(usr);
     }
 
     /**
@@ -524,7 +524,7 @@ public class User extends AbstractEntity implements Serializable
     {
         final User usr = getById(id);
         usr.setActive(!usr.isActive());
-        Ebean.update(usr);
+        DB.update(usr);
         return usr.isActive();
 
     }
@@ -538,7 +538,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static List<User> getUsersOfDomain(String domainName)
     {
-        return Ebean.find(User.class).where().ilike("mail", "%@" + domainName).findList();
+        return DB.find(User.class).where().ilike("mail", "%@" + domainName).findList();
     }
 
     /**
@@ -549,7 +549,7 @@ public class User extends AbstractEntity implements Serializable
      */
     public static void deleteUsersOfDomain(String domainName)
     {
-        Ebean.delete(getUsersOfDomain(domainName));
+        DB.delete(getUsersOfDomain(domainName));
     }
 
     /**
@@ -575,7 +575,7 @@ public class User extends AbstractEntity implements Serializable
         {
             return all();
         }
-        return Ebean.find(User.class).where().ilike("mail", "%" + input + "%").findList();
+        return DB.find(User.class).where().ilike("mail", "%" + input + "%").findList();
     }
 
     /**
@@ -590,7 +590,7 @@ public class User extends AbstractEntity implements Serializable
     {
         try
         {
-            return Ebean.find(User.class).where().eq("APITOKEN", apiToken).eq("active", true).findOne();
+            return DB.find(User.class).where().eq("APITOKEN", apiToken).eq("active", true).findOne();
         }
         catch (PersistenceException e)
         {
