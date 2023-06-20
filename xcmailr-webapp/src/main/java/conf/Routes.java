@@ -37,106 +37,107 @@ public class Routes implements ApplicationRoutes
          * 
          * Contains all actions which do not require a user who's logged in
          */
-        router.GET().route("/").with(Application.class, "index");
+        router.GET().route("/").with(Application::index);
 
-        router.GET().route("/login").with(Application.class, "loginForm");
-        router.POST().route("/login").with(Application.class, "logInProcess");
+        router.GET().route("/login").with(Application::loginForm);
+        router.POST().route("/login").with(Application::logInProcess);
 
-        router.GET().route("/logout").with(Application.class, "logoutProcess");
+        router.GET().route("/logout").with(Application::logoutProcess);
 
-        router.GET().route("/lostpw/{id}/{token}").with(Application.class, "resetPasswordForm");
-        router.POST().route("/lostpw/{id}/{token}").with(Application.class, "resetPasswordProcess");
+        router.GET().route("/lostpw/{id}/{token}").with(Application::resetPasswordForm);
+        router.POST().route("/lostpw/{id}/{token}").with(Application::resetPasswordProcess);
 
-        router.GET().route("/pwresend").with(Application.class, "forgotPasswordForm");
-        router.POST().route("/pwresend").with(Application.class, "forgotPasswordProcess");
+        router.GET().route("/pwresend").with(Application::forgotPasswordForm);
+        router.POST().route("/pwresend").with(Application::forgotPasswordProcess);
 
-        router.GET().route("/register").with(Application.class, "registerForm");
-        router.POST().route("/register").with(Application.class, "registrationProcess");
+        router.GET().route("/register").with(Application::registerForm);
+        router.POST().route("/register").with(Application::registrationProcess);
 
-        router.GET().route("/verify/{id}/{token}").with(Application.class, "verifyActivation");
+        router.GET().route("/verify/{id}/{token}").with(Application::verifyActivation);
 
-        router.POST().route("/getMessage").with(Application.class, "getStatusMessage");
+        router.POST().route("/getMessage").with(Application::getStatusMessage);
+
         /*
          * Routes for UserHandling (after login) (Controller: UserHandler)
          */
-        router.GET().route("/user/edit").with(UserHandler.class, "editUserForm");
-        router.POST().route("/user/edit").with(UserHandler.class, "editUserProcess");
+        router.GET().route("/user/edit").with(UserHandler::editUserForm);
+        router.POST().route("/user/edit").with(UserHandler::editUserProcess);
 
-        router.POST().route("/user/delete").with(UserHandler.class, "deleteUserProcess");
+        router.POST().route("/user/delete").with(UserHandler::deleteUserProcess);
 
-        router.GET().route("/user/newApiToken").with(UserHandler.class, "createNewApiToken");
-        router.GET().route("/user/revokeApiToken").with(UserHandler.class, "revokeApiToken");
+        router.GET().route("/user/newApiToken").with(UserHandler::createNewApiToken);
+        router.GET().route("/user/revokeApiToken").with(UserHandler::revokeApiToken);
 
         /*
          * Routes for the Mail-Handling (Controller: BoxHandler)
          */
-        router.GET().route("/mail").with(BoxHandler.class, "showAngularBoxOverview");
-        router.POST().route("/mail").with(BoxHandler.class, "showAngularBoxOverview");
-        router.GET().route("/mail/getmails").with(BoxHandler.class, "jsonBox");
-        router.GET().route("/mail/editBoxDialog.html").with(BoxHandler.class, "editBoxDialog");
-        router.GET().route("/mail/deleteBoxDialog.html").with(BoxHandler.class, "deleteBoxDialog");
-        router.GET().route("/mail/newDateDialog.html").with(BoxHandler.class, "newDateDialog");
+        router.GET().route("/mail").with(BoxHandler::showAngularBoxOverview);
+        router.POST().route("/mail").with(BoxHandler::showAngularBoxOverview);
+        router.GET().route("/mail/getmails").with(BoxHandler::jsonBox);
+        router.GET().route("/mail/editBoxDialog.html").with(BoxHandler::editBoxDialog);
+        router.GET().route("/mail/deleteBoxDialog.html").with(BoxHandler::deleteBoxDialog);
+        router.GET().route("/mail/newDateDialog.html").with(BoxHandler::newDateDialog);
 
-        router.GET().route("/mail/addAddressData").with(BoxHandler.class, "addBoxJsonData");
-        router.POST().route("/mail/addAddress").with(BoxHandler.class, "addBoxJsonProcess");
+        router.GET().route("/mail/addAddressData").with(BoxHandler::addBoxJsonData);
+        router.POST().route("/mail/addAddress").with(BoxHandler::addBoxJsonProcess);
 
-        router.POST().route("/mail/bulkDelete").with(BoxHandler.class, "bulkDeleteBoxes");
-        router.POST().route("/mail/bulkReset").with(BoxHandler.class, "bulkResetBoxes");
-        router.POST().route("/mail/bulkDisable").with(BoxHandler.class, "bulkDisableBoxes");
-        router.POST().route("/mail/bulkEnablePossible").with(BoxHandler.class, "bulkEnablePossibleBoxes");
-        router.POST().route("/mail/bulkNewDate").with(BoxHandler.class, "bulkNewDate");
+        router.POST().route("/mail/bulkDelete").with(BoxHandler::bulkDeleteBoxes);
+        router.POST().route("/mail/bulkReset").with(BoxHandler::bulkResetBoxes);
+        router.POST().route("/mail/bulkDisable").with(BoxHandler::bulkDisableBoxes);
+        router.POST().route("/mail/bulkEnablePossible").with(BoxHandler::bulkEnablePossibleBoxes);
+        router.POST().route("/mail/bulkNewDate").with(BoxHandler::bulkNewDate);
 
-        router.POST().route("/mail/delete/{id}").with(BoxHandler.class, "deleteBoxByJson");
+        router.POST().route("/mail/delete/{id}").with(BoxHandler::deleteBoxByJson);
         //
-        router.POST().route("/mail/edit/{id}").with(BoxHandler.class, "editBoxJson");
-        router.POST().route("/mail/expire/{id}").with(BoxHandler.class, "expireBoxJson");
+        router.POST().route("/mail/edit/{id}").with(BoxHandler::editBoxJson);
+        router.POST().route("/mail/expire/{id}").with(BoxHandler::expireBoxJson);
 
-        router.GET().route("/mail/mymaillist.txt").with(BoxHandler.class, "showMailsAsTextList");
-        router.GET().route("/mail/myactivemaillist.txt").with(BoxHandler.class, "showActiveMailsAsTextList");
-        router.GET().route("/mail/myselectedmaillist.txt").with(BoxHandler.class, "showSelectedMailsAsTextList");
-        router.POST().route("/mail/myselectedmaillist.txt").with(BoxHandler.class, "showSelectedMailsAsTextList");
+        router.GET().route("/mail/mymaillist.txt").with(BoxHandler::showMailsAsTextList);
+        router.GET().route("/mail/myactivemaillist.txt").with(BoxHandler::showActiveMailsAsTextList);
+        router.GET().route("/mail/myselectedmaillist.txt").with(BoxHandler::showSelectedMailsAsTextList);
+        router.POST().route("/mail/myselectedmaillist.txt").with(BoxHandler::showSelectedMailsAsTextList);
 
-        router.POST().route("/mail/reset/{id}").with(BoxHandler.class, "resetBoxCounterProcessXhr");
+        router.POST().route("/mail/reset/{id}").with(BoxHandler::resetBoxCounterProcessXhr);
 
-        router.GET().route("/mail/domainlist").with(BoxHandler.class, "jsonDomainList");
+        router.GET().route("/mail/domainlist").with(BoxHandler::jsonDomainList);
 
         router.GET().route("/create/temporaryMail/{token}/{mailAddress}/{validTime}")
-              .with(BoxHandler.class, "createTemporaryMailAddress");
+              .with(BoxHandler::createTemporaryMailAddress);
 
-        router.GET().route("/mailbox/{mailAddress}/{token}").with(BoxHandler.class, "queryMailbox");
-        router.GET().route("/mailbox").with(BoxHandler.class, "queryMailbox");
-        router.GET().route("/mails").with(BoxHandler.class, "queryAllMailboxes");
-        router.GET().route("/download/{downloadToken}/{filename}").with(BoxHandler.class, "downloadMailAttachment");
+        router.GET().route("/mailbox/{mailAddress}/{token}").with(BoxHandler::queryMailbox);
+        router.GET().route("/mailbox").with(BoxHandler::queryMailbox);
+        router.GET().route("/mails").with(BoxHandler::queryAllMailboxes);
+        router.GET().route("/download/{downloadToken}/{filename}").with(BoxHandler::downloadMailAttachment);
 
         /*
          * Routes in the admin-section (Controller: AdminHandler)
          */
-        router.GET().route("/admin").with(AdminHandler.class, "showAdmin");
+        router.GET().route("/admin").with(AdminHandler::showAdmin);
 
-        router.POST().route("/admin/activate/{id}").with(AdminHandler.class, "activateUserProcess");
+        router.POST().route("/admin/activate/{id}").with(AdminHandler::activateUserProcess);
 
-        router.POST().route("/admin/delete/{id}").with(AdminHandler.class, "deleteUserProcess");
+        router.POST().route("/admin/delete/{id}").with(AdminHandler::deleteUserProcess);
 
-        router.GET().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
-        router.POST().route("/admin/mtxs").with(AdminHandler.class, "pagedMTX");
-        router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler.class, "deleteMTXProcess");
+        router.GET().route("/admin/mtxs").with(AdminHandler::pagedMTX);
+        router.POST().route("/admin/mtxs").with(AdminHandler::pagedMTX);
+        router.GET().route("/admin/mtxs/delete/{time}").with(AdminHandler::deleteMTXProcess);
 
-        router.POST().route("/admin/promote/{id}").with(AdminHandler.class, "promoteUserProcess");
+        router.POST().route("/admin/promote/{id}").with(AdminHandler::promoteUserProcess);
 
-        router.GET().route("/admin/summedtx").with(AdminHandler.class, "showSummedTransactions");
+        router.GET().route("/admin/summedtx").with(AdminHandler::showSummedTransactions);
 
-        router.GET().route("/admin/users").with(AdminHandler.class, "showUsers");
-        router.POST().route("/admin/users").with(AdminHandler.class, "showUsers");
+        router.GET().route("/admin/users").with(AdminHandler::showUsers);
+        router.POST().route("/admin/users").with(AdminHandler::showUsers);
 
-        router.GET().route("/admin/usersearch").with(AdminHandler.class, "jsonUserSearch");
+        router.GET().route("/admin/usersearch").with(AdminHandler::jsonUserSearch);
 
-        router.GET().route("/admin/whitelist").with(AdminHandler.class, "showDomainWhitelist");
-        router.POST().route("/admin/whitelist/remove").with(AdminHandler.class, "callRemoveDomain");
-        router.GET().route("/admin/whitelist/remove").with(AdminHandler.class, "handleRemoveDomain");
-        router.POST().route("/admin/whitelist/add").with(AdminHandler.class, "addDomain");
+        router.GET().route("/admin/whitelist").with(AdminHandler::showDomainWhitelist);
+        router.POST().route("/admin/whitelist/remove").with(AdminHandler::callRemoveDomain);
+        router.GET().route("/admin/whitelist/remove").with(AdminHandler::handleRemoveDomain);
+        router.POST().route("/admin/whitelist/add").with(AdminHandler::addDomain);
 
-        router.GET().route("/admin/emailStatistics").with(AdminHandler.class, "showEmailStatistics");
-        router.GET().route("/admin/emailSenderPage").with(AdminHandler.class, "getEmailSenderTablePage");
+        router.GET().route("/admin/emailStatistics").with(AdminHandler::showEmailStatistics);
+        router.GET().route("/admin/emailSenderPage").with(AdminHandler::getEmailSenderTablePage);
 
         /*
          * REST API
@@ -159,7 +160,7 @@ public class Routes implements ApplicationRoutes
         /*
          * Assets-Handling (Ninja's AssetsController)
          */
-        router.GET().route("/assets/webjars/{fileName: .*}").with(AssetsController.class, "serveWebJars");
-        router.GET().route("/assets/{fileName: .*}").with(AssetsController.class, "serveStatic");
+        router.GET().route("/assets/webjars/{fileName: .*}").with(AssetsController::serveWebJars);
+        router.GET().route("/assets/{fileName: .*}").with(AssetsController::serveStatic);
     }
 }

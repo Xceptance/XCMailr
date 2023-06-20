@@ -709,14 +709,14 @@ public class BoxHandler
      * @return a text page with all selected addresses of a user
      */
     @FilterWith(SecureFilter.class)
-    public Result showSelectedMailsAsTextList(@Param("jsonObj") String inputList, Context context)
+    public Result showSelectedMailsAsTextList(@Param("jsonObj") Optional<String> inputList, Context context)
     {
         Result result = Results.text();
         String errorMessage = messages.get("mailbox_Flash_NoBoxSelected", context, Optional.of(result)).get();
-        if (inputList == null)
+        if (inputList.isEmpty())
             return result.render(errorMessage);
 
-        Map<String, Boolean> boxIdMap = getMapFoMaprStrings(inputList);
+        Map<String, Boolean> boxIdMap = getMapFoMaprStrings(inputList.get());
         if (boxIdMap == null || boxIdMap.isEmpty())
             return result.render(errorMessage);
 
@@ -766,9 +766,6 @@ public class BoxHandler
                                              @PathParam("mailAddress") String desiredMailAddress,
                                              @PathParam("validTime") String validTime, Context context)
     {
-        if (apiToken == null || desiredMailAddress == null || validTime == null)
-            return ninja.getBadRequestResult(context, null);
-
         if (!new EmailValidator().isValid(desiredMailAddress, null))
             return ninja.getBadRequestResult(context, null);
 
@@ -861,9 +858,6 @@ public class BoxHandler
                                Context context)
         throws Exception
     {
-        if (apiToken == null || mailAddress == null)
-            return ninja.getBadRequestResult(context, null);
-
         log.trace("passed null check");
         User user = User.findUserByToken(apiToken);
 
@@ -997,9 +991,9 @@ public class BoxHandler
     }
 
     @FilterWith(SecureFilter.class)
-    public Result queryAllMailboxes(Context context, @Param("offset") final Integer offset,
-                                    @Param("limit") final Integer limit, @Param("sort") String sort,
-                                    @Param("order") String order, @Param("search") String search)
+    public Result queryAllMailboxes(Context context, @Param("offset") final Optional<Integer> offset,
+                                    @Param("limit") final Optional<Integer> limit, @Param("sort")final Optional<String> sort,
+                                    @Param("order") final Optional<String> order, @Param("search") final Optional<String> search)
         throws Exception
     {
         final String formatParameter = context.getParameter("format", "html").toLowerCase();
@@ -1011,11 +1005,12 @@ public class BoxHandler
         else if ("json".equals(formatParameter))
         {
 
-            final int iOffset = offset == null ? 0 : Math.max(0, offset);
-            final int iLimit = limit == null ? 0 : Math.max(limit, 1);
+            final int iOffset = Math.max(0, offset.orElse(0));
+            final int iLimit = limit.map(i -> Math.max(1, i)).orElse(0);
 
-            sort = getOrderColumn(sort);
-            order = getOrderDirection(order);
+            final String _sort = getOrderColumn(sort.orElse(null));
+            final String _order = getOrderDirection(order.orElse(null));
+            final String _search = search.orElse(null);
 
             final User user = context.getAttribute("user", User.class);
 
@@ -1023,7 +1018,7 @@ public class BoxHandler
             final List<?> mailboxIds = Ebean.find(MBox.class).where().eq("usr_id", user.getId()).findIds();
 
             final List<Mail> mails = Ebean.find(Mail.class).where().in("mailbox_id", mailboxIds)
-                                          .orderBy(sort + " " + order).findList();
+                                          .orderBy(_sort + " " + _order).findList();
 
             final List<MailboxEntry> matches = new ArrayList<>();
 
@@ -1039,7 +1034,7 @@ public class BoxHandler
                 {
                     final MailboxEntry mailboxEntry = new MailboxEntry(mailbox.getFullAddress(), mail);
     
-                    if (StringUtils.isBlank(search) || mailboxEntry.matchesSearchPhrase(search))
+                    if (StringUtils.isBlank(_search) || mailboxEntry.matchesSearchPhrase(_search))
                     {
                         matches.add(mailboxEntry);
                     }

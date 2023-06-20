@@ -47,8 +47,7 @@ public class NoLoginFilter implements Filter
         }
         else
         {
-            Result result = Results.html().template("/views/system/noContent.ftl.html");
-            return result.redirect(context.getContextPath() + "/");
+            return Results.redirect(context.getContextPath() + "/");
         }
     }
 }

@@ -20,9 +20,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.apache.commons.lang3.StringUtils;
-
 import controllers.restapi.util.Email.EmailValidator;
+import etc.HelperUtils;
 import ninja.Context;
 import ninja.validation.ConstraintViolation;
 import ninja.validation.Validator;
@@ -57,7 +56,7 @@ public @interface Email
 
         public void validate(String value, String fieldName, Context context)
         {
-            String[] parts = StringUtils.split(StringUtils.defaultString(value), '@');
+            final String[] parts = HelperUtils.splitMailAddress(value);
 
             if (parts.length != 2)
             {

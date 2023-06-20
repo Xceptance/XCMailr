@@ -17,6 +17,7 @@ package models;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A generic Wrapper-Class for a List to provide Pagination
@@ -31,7 +32,7 @@ public class PageList<T>
     /**
      * the complete list with all entries
      */
-    private List<T> allEntrys;
+    private List<T> entries;
 
     /**
      * number of entries per page
@@ -43,7 +44,7 @@ public class PageList<T>
      */
     public PageList()
     {
-        this.allEntrys = new ArrayList<T>();
+        this.entries = new ArrayList<T>();
         this.pageSize = 0;
     }
 
@@ -57,33 +58,32 @@ public class PageList<T>
      */
     public PageList(List<T> in, int size)
     {
-        this.allEntrys = in;
+        this.entries = Objects.requireNonNull(in);
         this.pageSize = size;
     }
 
     /**
-     * @return the complete list which has been initialized
+     * @return copy of the complete list of entries
      */
-    public List<T> getAllEntrys()
+    public List<T> getEntries()
     {
-        return allEntrys;
+        return List.copyOf(entries);
     }
 
     /**
      * Sets the List to handle
      * 
-     * @param allEntrys
+     * @param entries
      *            the List with Entries
      */
-    public void setAllEntrys(List<T> allEntrys)
+    public void setEntriess(List<T> entries)
     {
-        this.allEntrys = allEntrys;
+        this.entries = Objects.requireNonNull(entries);
     }
 
     /**
      * @return the Number of Entries on a Page
      */
-
     public int getPagesize()
     {
         return this.pageSize;
@@ -95,10 +95,9 @@ public class PageList<T>
      * @param size
      *            the Number of Entries
      */
-
     public void setPagesize(int size)
     {
-        this.pageSize = size;
+        this.pageSize = Math.max(0, size);
     }
 
     /**
@@ -106,7 +105,7 @@ public class PageList<T>
      */
     public int getEntryCount()
     {
-        return allEntrys.size();
+        return entries.size();
     }
 
     /**
@@ -119,7 +118,7 @@ public class PageList<T>
             return 1;
         }
 
-        int entrys = allEntrys.size();
+        int entrys = entries.size();
         if (entrys < pageSize)
         { // return 1 if the number of entries in the list is below the number of entries on a page
             return 1;
@@ -132,32 +131,23 @@ public class PageList<T>
 
     /**
      * @param page
-     *            the Page-number
+     *            the Page-number (starting at 1)
      * @return a List which contains all Entries of the specified Page
      */
     public List<T> getPage(int page)
     {
         if (pageSize <= 0)
         { // the number of entries is less than 0, return all
-            return allEntrys;
+            return entries;
         }
-        if (page > getPageCount())
-        { // the page-number which is called is greater than the number of existing pages, return nothing
+        if (page <= 0 || page > getPageCount())
+        { // the page-number is less than one or greater than the number of existing pages -> return empty list
             return new ArrayList<T>();
         }
-        // get the index-number of the last entry on the page
-        int endIndex = (page * pageSize) - 1;
-        // get the index-number of the first entry on the page
-        int startIndex = endIndex - pageSize + 1;
 
-        if (endIndex >= getEntryCount())
-        { // the calculated last entry is greater than the number of existing entries
-            endIndex = getEntryCount();
-        }
-        else
-        { // the last entry exists, but the sublist takes the endIndex as EXCLUSIVE value
-            endIndex += 1;
-        }
-        return allEntrys.subList(startIndex, endIndex);
+        int startIndex = (page -1 ) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, getEntryCount());
+
+        return entries.subList(startIndex, endIndex);
     }
 }
