@@ -13,10 +13,11 @@
     <packaging>jar</packaging>
 
     <name>XCMailr Load Test Suite</name>
-    <description>An easy-to-use Java library that simplifies using the REST API of XCMailr in test projects.</description>
+    <description>XCMailr load test suite using XLT</description>
 
     <properties>
         <license.skipFormat>false</license.skipFormat>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <build>
@@ -24,7 +25,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>3.6.0</version>
                 <configuration>
                     <excludeScope>provided</excludeScope>
                 </configuration>
@@ -38,6 +39,22 @@
                         </goals>
                         <configuration>
                             <excludeScope>provided</excludeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                        <configuration>
+                            <skipIfEmpty>true</skipIfEmpty>
                         </configuration>
                     </execution>
                 </executions>
