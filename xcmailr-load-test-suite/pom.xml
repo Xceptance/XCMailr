@@ -54,7 +54,7 @@
         <dependency>
             <groupId>com.xceptance</groupId>
             <artifactId>xlt</artifactId>
-            <version>5.2.0</version>
+            <version>6.2.5</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

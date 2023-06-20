@@ -47,7 +47,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <additionalparam>--allow-script-in-comments</additionalparam>
                     <author>false</author>
                     <breakiterator>true</breakiterator>
                     <failOnError>false</failOnError>
