@@ -15,6 +15,8 @@
     <url>https://github.com/Xceptance/XCMailr</url>
     <inceptionYear>2013</inceptionYear>
 
+    <description>Parent POM for all XCMailr projects.</description>
+
     <modules>
         <module>xcmailr-webapp</module>
         <module>xcmailr-client</module>
@@ -30,7 +32,6 @@
         <copyright>Copyright (c) ${project.inceptionYear}-2023 ${project.organization.name}</copyright>
         <license.skipFormat>true</license.skipFormat>
     </properties>
-
 
     <organization>
         <name>Xceptance Software Technologies GmbH</name>
@@ -106,6 +107,25 @@
                         <java>SLASHSTAR_STYLE</java>
                     </mapping>
                     <skip>${license.skipFormat}</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <gpgArguments>
+                        <arg>--pinentry-mode</arg>
+                        <arg>loopback</arg>
+                    </gpgArguments>
                 </configuration>
             </plugin>
         </plugins>
