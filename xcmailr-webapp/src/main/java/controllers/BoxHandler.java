@@ -589,12 +589,12 @@ public class BoxHandler
         User user = context.getAttribute("user", User.class);
         Result result = Results.json();
         String errorMessage = "";
+        // check, whether the mailbox belongs to the current user
         if (!mailBox.belongsTo(user.getId()))
         { // box does not belong to this user -> error
             errorMessage = messages.get("flash_BoxToUser", context, Optional.of(result)).get();
             return result.render("success", false).render("statusmsg", errorMessage);
         }
-        // check, whether the mailbox belongs to the current user
         if ((mailBox.getTs_Active() != 0) && (mailBox.getTs_Active() < DateTime.now().getMillis()))
         { // if the validity period is over, return the Edit page and give the user a response why he gets there
             errorMessage = messages.get("expireEmail_Flash_Expired", context, Optional.of(result)).get();
@@ -602,7 +602,14 @@ public class BoxHandler
         }
         else
         { // otherwise just set the new status
-            mailBox.enable();
+            if(mailBox.isExpired())
+            {
+                mailBox.enable();
+            }
+            else
+            {
+                mailBox.disable();
+            }
             return result.render("success", true);
         }
     }

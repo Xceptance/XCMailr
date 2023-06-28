@@ -8,5 +8,5 @@ if not exist "%SQL_FILE%" (
   exit /b 1
 )
 
-call %0\..\shell.cmd "runscript from '%SQL_FILE%';"
+call %0\..\shell.cmd "runscript from '%SQL_FILE%' from_1x;"
 
