@@ -33,7 +33,7 @@ import org.apache.commons.mail.util.MimeMessageUtils;
 import org.slf4j.Logger;
 import org.subethamail.smtp.helper.SimpleMessageListener;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -375,7 +375,7 @@ public class MessageListener implements SimpleMessageListener
         newMail.setReceiveTime(System.currentTimeMillis());
         newMail.setUuid(UUID.randomUUID().toString());
 
-        Ebean.save(newMail);
+        DB.save(newMail);
     }
 
     private void createMtxAndAddToQueue(final int status, final String from, final String recipient,
