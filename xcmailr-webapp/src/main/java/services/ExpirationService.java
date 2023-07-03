@@ -29,7 +29,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 
 import conf.XCMailrConf;
 import etc.HelperUtils;
@@ -97,7 +97,7 @@ public class ExpirationService implements Runnable
         // delete expired mails
         long olderThanRetentionPolicy = System.currentTimeMillis()
                                         - (xcmConfiguration.MAIL_RETENTION_PERIOD * 60 * 1000);
-        List<Mail> findList = Ebean.find(Mail.class).where().lt("receiveTime", olderThanRetentionPolicy).findList();
+        List<Mail> findList = DB.find(Mail.class).where().lt("receiveTime", olderThanRetentionPolicy).findList();
 
         if (findList.size() > 0)
         {
@@ -112,7 +112,7 @@ public class ExpirationService implements Runnable
         tokenExpiration.add(Calendar.DAY_OF_MONTH, -1 * xcmConfiguration.APITOKEN_EXPIRATION);
 
         // delete expired API token
-        List<User> expiredUserToken = Ebean.find(User.class).where() //
+        List<User> expiredUserToken = DB.find(User.class).where() //
                                            .between("API_TOKEN_CREATION_TIMESTAMP", 1,
                                                     tokenExpiration.getTimeInMillis())
                                            .findList();
@@ -176,7 +176,7 @@ public class ExpirationService implements Runnable
                 int additionalMailDropCount = statisticEntry.getValue().getDropCount();
                 int additionalMailForwardCount = statisticEntry.getValue().getForwardCount();
 
-                MailStatistics entry = Ebean.find(MailStatistics.class).where() //
+                MailStatistics entry = DB.find(MailStatistics.class).where() //
                                             .eq("DATE", mailStatisticsKey.getDate()) //
                                             .eq("QUARTER_HOUR", mailStatisticsKey.getQuarterHour()) //
                                             .eq("FROM_DOMAIN", mailStatisticsKey.getFromDomain()) //
@@ -193,7 +193,7 @@ public class ExpirationService implements Runnable
 
                     try
                     {
-                        Ebean.save(mailStatisticEntry);
+                        DB.save(mailStatisticEntry);
                     }
                     catch (Exception e)
                     {
@@ -204,7 +204,7 @@ public class ExpirationService implements Runnable
                 {
                     entry.setDropCount(entry.getDropCount() + additionalMailDropCount);
                     entry.setForwardCount(entry.getForwardCount() + additionalMailForwardCount);
-                    Ebean.update(entry);
+                    DB.update(entry);
                 }
             }
             log.info("Finished writing mail statistics to DB");

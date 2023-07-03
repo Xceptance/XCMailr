@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 import io.ebean.SqlRow;
 import io.ebean.Transaction;
 import com.google.inject.Inject;
@@ -512,7 +512,7 @@ public class AdminHandler
 
         sql.append(" order by \"" + orderColumn + "\" " + orderBy);
 
-        List<SqlRow> droppedMail = Ebean.createSqlQuery(sql.toString()).findList();
+        List<SqlRow> droppedMail = DB.sqlQuery(sql.toString()).findList();
         List<MailStatisticsJson> droppedMailSender = new LinkedList<>();
         int rowIdx = 0;
         for (final SqlRow row : droppedMail)
@@ -580,10 +580,10 @@ public class AdminHandler
         // new line
         String newLine = "\n";
 
-        Transaction transaction = Ebean.beginTransaction();
+        Transaction transaction = DB.beginTransaction();
 
         // set starting quarter of the day as a variable for sliding window results
-        Ebean.createSqlUpdate("set @startingQuarter = ((hour(CURRENT_TIME()) + 1)  * 4)").execute();
+        DB.sqlUpdate("set @startingQuarter = ((hour(CURRENT_TIME()) + 1)  * 4)").execute();
 
         StringBuilder sb = new StringBuilder(5000);
         sb.append("select temp.DATE");
@@ -626,7 +626,7 @@ public class AdminHandler
         // System.out.println(sb.toString());
         // System.out.println("==========================================");
 
-        List<SqlRow> result = Ebean.createSqlQuery(sb.toString()).findList();
+        List<SqlRow> result = DB.sqlQuery(sb.toString()).findList();
         transaction.commit();
 
         return result;

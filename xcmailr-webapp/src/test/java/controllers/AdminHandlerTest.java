@@ -29,7 +29,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 import com.google.common.collect.Maps;
 
 import models.Domain;
@@ -444,7 +444,7 @@ public class AdminHandlerTest extends NinjaTest
         mailStatistics.setKey(mailStatisticsKey);
         mailStatistics.setDropCount(13);
         mailStatistics.setForwardCount(5);
-        Ebean.save(mailStatistics);
+        DB.save(mailStatistics);
 
         result = ninjaTestBrowser.makeJsonRequest(ninjaTestServer.getBaseUrl()
                                                   + "/admin/emailSenderPage?scope=day&offset=0&limit=10");

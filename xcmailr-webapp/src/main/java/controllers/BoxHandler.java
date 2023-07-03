@@ -46,7 +46,7 @@ import org.hibernate.validator.internal.constraintvalidators.EmailValidator;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -893,7 +893,7 @@ public class BoxHandler
             return ninja.getForbiddenResult(context);
         }
 
-        List<Mail> emails = Ebean.find(Mail.class).where() //
+        List<Mail> emails = DB.find(Mail.class).where() //
                                  .eq("mailbox_id", mailbox.getId()) //
                                  .order("receiveTime")//
                                  .findList();
@@ -1015,9 +1015,9 @@ public class BoxHandler
             final User user = context.getAttribute("user", User.class);
 
             // #61: look up mail boxes freshly
-            final List<?> mailboxIds = Ebean.find(MBox.class).where().eq("usr_id", user.getId()).findIds();
+            final List<?> mailboxIds = DB.find(MBox.class).where().eq("usr_id", user.getId()).findIds();
 
-            final List<Mail> mails = Ebean.find(Mail.class).where().in("mailbox_id", mailboxIds)
+            final List<Mail> mails = DB.find(Mail.class).where().in("mailbox_id", mailboxIds)
                                           .orderBy(_sort + " " + _order).findList();
 
             final List<MailboxEntry> matches = new ArrayList<>();
@@ -1075,7 +1075,7 @@ public class BoxHandler
                                          @PathParam("filename") String filename)
         throws Exception
     {
-        List<Mail> foundMails = Ebean.find(Mail.class).where().eq("uuid", downloadToken).findList();
+        List<Mail> foundMails = DB.find(Mail.class).where().eq("uuid", downloadToken).findList();
 
         if (foundMails.isEmpty())
         {
