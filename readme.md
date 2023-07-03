@@ -49,7 +49,7 @@ The copy should be named `application.conf` and reside in the `conf` folder as w
 
 Now, open and edit it in your favorite editor (see Configuration). Make sure to save it using UTF-8 encoding.
 
-Finally, run the script `bin/run.sh` (or `bin\run.cmd` respectively). If configured correctly, you should see something like the following on your console
+Finally, run the script `bin/run.sh` (or `bin\run.cmd` respectively). If configured correctly, you should see something like the following in your console
 
 ```
     Ninja application running at
