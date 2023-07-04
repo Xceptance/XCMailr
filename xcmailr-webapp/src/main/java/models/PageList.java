@@ -118,14 +118,14 @@ public class PageList<T>
             return 1;
         }
 
-        int entrys = entries.size();
-        if (entrys < pageSize)
-        { // return 1 if the number of entries in the list is below the number of entries on a page
+        int entriesTotal = entries.size();
+        if (entriesTotal <= pageSize)
+        { // return 1 if the number of entries in the list is below (or equal to) the number of entries on a page
             return 1;
         }
         else
         { // calculate the number of pages
-            return (int) Math.ceil((entrys / Double.valueOf(pageSize)));
+            return (int) Math.ceil((entriesTotal / Double.valueOf(pageSize)));
         }
     }
 

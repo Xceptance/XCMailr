@@ -58,7 +58,7 @@ public @interface Email
         {
             final String[] parts = HelperUtils.splitMailAddress(value);
 
-            if (parts.length != 2)
+            if (parts == null || parts.length != 2)
             {
                 context.getValidation()
                        .addViolation(new ConstraintViolation(null, fieldName, emailAnnotation.message(), value));
