@@ -197,7 +197,7 @@ public class AdminHandler
     {
         // get the user who executes this action
         User executingUser = context.getAttribute("user", User.class);
-        // no action of admin wants to (de)activate his own account
+        // no action if admin wants to (de)activate his own account
         if (executingUser.getId() != userId)
         {
             // activate or deactivate the user
