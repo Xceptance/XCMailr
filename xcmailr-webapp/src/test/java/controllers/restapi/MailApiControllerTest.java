@@ -205,6 +205,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.listMails(invalidAddress);
 
+        // validate response
         RestApiTestUtils.validateStatusCode(response, 400);
         RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
@@ -231,6 +232,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.getMail(mailId);
 
+        // validate response
         RestApiTestUtils.validateStatusCode(response, 200);
     }
 
@@ -242,6 +244,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.getMail(otherUsersMailId);
 
+        // validate response
         RestApiTestUtils.validateStatusCode(response, 403);
         RestApiTestUtils.validateErrors(response, "mailId");
     }
@@ -254,8 +257,8 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.getMail(invalidId);
 
-        RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "mailId");
+        // validate response
+        RestApiTestUtils.validateBadRequest(response);
     }
 
     /**
@@ -266,6 +269,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.getMail(unknownId);
 
+        // validate response
         RestApiTestUtils.validateStatusCode(response, 404);
     }
 
@@ -346,8 +350,7 @@ public class MailApiControllerTest extends StaticNinjaTest
         final HttpResponse response = apiClient.deleteMail(invalidId);
 
         // validate response
-        RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "mailId");
+        RestApiTestUtils.validateBadRequest(response);
     }
 
     /**

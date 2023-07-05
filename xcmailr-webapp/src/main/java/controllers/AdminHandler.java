@@ -165,22 +165,19 @@ public class AdminHandler
      *            the time in days (all before will be deleted)
      * @return mail-transactions overview page
      */
-    public Result deleteMTXProcess(@PathParam("time") Optional<Integer> time, Context context)
+    public Result deleteMTXProcess(@PathParam("time") Integer time, Context context)
     {
-        final Integer _time = time.orElse(null);
-        if (_time != null)
-        {
-            if (_time == -1)
-            { // all entries will be deleted
-                MailTransaction.deleteTxInPeriod(null);
-            }
-            else
-            {
-                // calculate the time and delete all entries before
-                DateTime dt = DateTime.now().minusDays(_time);
-                MailTransaction.deleteTxInPeriod(dt.getMillis());
-            }
+        if (time < 0)
+        { // all entries will be deleted
+            MailTransaction.deleteTxInPeriod(null);
         }
+        else
+        {
+            // calculate the time and delete all entries before
+            DateTime dt = DateTime.now().minusDays(time);
+            MailTransaction.deleteTxInPeriod(dt.getMillis());
+        }
+
         return Results.redirect(context.getContextPath() + "/admin/mtxs");
     }
 
@@ -342,13 +339,12 @@ public class AdminHandler
      * @return overview of all white-listed domains
      */
     @FilterWith(WhitelistFilter.class)
-    public Result handleRemoveDomain(Context context, @Param("action") Optional<String> action,
+    public Result handleRemoveDomain(Context context, @Param("action") String action,
                                      @Param("domainId") Long domainId)
     {
         Result result = Results.redirect(context.getContextPath() + "/admin/whitelist");
-        String _action = action.orElse(null);
 
-        if ("deleteUsersAndDomain".equals(_action))
+        if ("deleteUsersAndDomain".equals(action))
         {
             Domain domain = Domain.getById(domainId);
             List<User> usersToDelete = User.getUsersOfDomain(domain.getDomainname());
@@ -360,12 +356,12 @@ public class AdminHandler
             }
             domain.delete();
         }
-        else if ("deleteDomain".equals(_action))
+        else if ("deleteDomain".equals(action))
         {// just delete the domain
             Domain.delete(domainId);
         }
 
-        // if no action matches or the actions had been executed, redirect
+        // if no action matches or the action had been executed, redirect
         return result;
     }
 
@@ -379,30 +375,29 @@ public class AdminHandler
      * @return overview of all white-listed domains
      */
     @FilterWith(WhitelistFilter.class)
-    public Result addDomain(Context context, @Param("domainName") Optional<String> domainName)
+    public Result addDomain(Context context, @Param("domainName") String domainName)
     {
         Result result = Results.redirect(context.getContextPath() + "/admin/whitelist");
-        String _domainName = domainName.orElse(null);
-        if (StringUtils.isBlank(_domainName))
+        if (StringUtils.isBlank(domainName))
         {
             // the input-string was empty
             context.getFlashScope().error("adminAddDomain_Flash_EmptyField");
             return result;
         }
 
-        if (!PATTERN_DOMAINS.matcher(_domainName).matches())
+        if (!PATTERN_DOMAINS.matcher(domainName).matches())
         { // the validation of the domain-name failed
             context.getFlashScope().error("adminAddDomain_Flash_InvalidDomain");
             return result;
         }
 
-        if (Domain.exists(_domainName))
+        if (Domain.exists(domainName))
         { // the domain-name is already part of the domain-list
             context.getFlashScope().error("adminAddDomain_Flash_DomainExists");
             return result;
         }
 
-        Domain domain = new Domain(_domainName);
+        Domain domain = new Domain(domainName);
         domain.save();
         context.getFlashScope().success("adminAddDomain_Flash_Success");
 
@@ -416,10 +411,7 @@ public class AdminHandler
      *            the context of this request
      * @return
      */
-    public Result showEmailStatistics(Context context, @Param("dayPage") Optional<Integer> dayPage,
-                                      @Param("weekPage") Optional<Integer> weekPage,
-                                      @Param("sortDailyList") Optional<String> sortDailyList,
-                                      @Param("sortWeeklyList") Optional<String> sortWeeklyList)
+    public Result showEmailStatistics(Context context)
     {
         Result html = Results.html();
 
@@ -449,42 +441,31 @@ public class AdminHandler
         return html;
     }
 
-    public Result getEmailSenderTablePage(Context context, @Param("scope") String scope,
-                                          @Param("page") Optional<Integer> page,
+    public Result getEmailSenderTablePage(Context context, @Param("scope") LookBehind scope,
                                           @Param("offset") Optional<Integer> offset,
-                                          @Param("limit") Optional<Integer> limit, @Param("sort") Optional<String> sort,
+                                          @Param("limit") Optional<Integer> limit,
+                                          @Param("sort") Optional<String> sort,
                                           @Param("order") Optional<String> order)
     {
-        List<MailStatisticsJson> data = null;
-
         final int _offset = offset.orElse(0);
         final int _limit = limit.orElse(0);
         final String _sort = sort.orElse(null);
         final String _order = order.orElse(null);
-        switch (scope)
-        {
-            case "day":
-                data = getMailSenderList(0, _sort, _order);
-                break;
 
-            case "week":
-                data = getMailSenderList(6, _sort, _order);
-                break;
-
-            default:
-                return Results.badRequest();
-        }
-
-        final int total = data.size();
+        final int total;
         final List<MailStatisticsJson> rows;
-        if (_offset < 0 || _limit <= 0 || total == 0)
+        if(_offset < 0 || _limit <= 0)
         {
+            total = 0;
             rows = Collections.emptyList();
         }
         else
         {
+            final List<MailStatisticsJson> data = getMailSenderList(scope.days, _sort, _order);
+            total = data.size();
             rows = data.subList(Math.min(_offset, total), Math.min(_offset + _limit, total));
         }
+
         return Results.json().render("rows", rows).render("total", total);
     }
 
@@ -497,14 +478,11 @@ public class AdminHandler
      */
     private List<MailStatisticsJson> getMailSenderList(int lastNDays, String sort, String order)
     {
-        if (lastNDays < 0)
-            lastNDays = 0;
-
         // daily top for dropped mail sender
         StringBuilder sql = new StringBuilder();
         sql.append("select ms.FROM_DOMAIN as \"fromDomain\", sum(ms.DROP_COUNT) as \"droppedCount\", sum(ms.FORWARD_COUNT) as \"forwardedCount\"");
         sql.append("  from MAIL_STATISTICS ms");
-        sql.append(" where ms.DATE >= CURRENT_DATE() - " + lastNDays);
+        sql.append(" where ms.DATE >= CURRENT_DATE() - ").append(Math.max(lastNDays, 0));
         sql.append(" group by ms.FROM_DOMAIN");
 
         String orderColumn = getOrderColumn(sort);
@@ -525,7 +503,6 @@ public class AdminHandler
 
             droppedMailSender.add(ms);
         }
-        ;
 
         return droppedMailSender;
     }
@@ -674,5 +651,17 @@ public class AdminHandler
             outForwardedMails.add(sumForwarded);
         }
 
+    }
+
+    public static enum LookBehind
+    {
+        day(0),
+        week(6);
+
+        public final int days;
+        private LookBehind(int days)
+        {
+            this.days = days;
+        }
     }
 }

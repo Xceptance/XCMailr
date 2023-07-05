@@ -17,7 +17,6 @@ package controllers.restapi;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -119,7 +118,7 @@ public class MailApiController extends AbstractApiController
      * @return the details of the mail as a {@link MailData} object in JSON format
      */
     // @Get("/api/v1/mails/<mailId>")
-    public Result getMail(@PathParam("mailId") @DbId final Optional<Long> mailId, @Attribute("userId") @DbId final Long userId,
+    public Result getMail(@PathParam("mailId") @DbId final Long mailId, @Attribute("userId") @DbId final Long userId,
                           final Context context)
     {
         return performAction(mailId, userId, context, mail -> {
@@ -150,7 +149,7 @@ public class MailApiController extends AbstractApiController
      * @return the attachment with the correct content type set
      */
     // @Get("/api/v1/mails/<mailId>/attachments/<attachmentName>")
-    public Result getMailAttachment(@PathParam("mailId") @DbId final Optional<Long> mailId,
+    public Result getMailAttachment(@PathParam("mailId") final Long mailId,
                                     @PathParam("attachmentName") @NotBlank final String attachmentName,
                                     @Attribute("userId") @DbId final Long userId, final Context context)
     {
@@ -171,7 +170,7 @@ public class MailApiController extends AbstractApiController
      * @return an empty result
      */
     // @Delete("/api/v1/mails/<mailId>")
-    public Result deleteMail(@PathParam("mailId") @DbId final Optional<Long> mailId, @Attribute("userId") @DbId final Long userId,
+    public Result deleteMail(@PathParam("mailId") final Long mailId, @Attribute("userId") @DbId final Long userId,
                              final Context context)
     {
         return performAction(mailId, userId, context, mail -> {
@@ -195,7 +194,7 @@ public class MailApiController extends AbstractApiController
      *            the action that manipulates the mail entity and returns a corresponding result
      * @return the result produced by the action, or an error result
      */
-    private Result performAction(final Optional<Long> mailId, final Long userId, final Context context,
+    private Result performAction(final Long mailId, final Long userId, final Context context,
                                  final Function<Mail, Result> action)
     {
         // check the context for violations
@@ -204,12 +203,8 @@ public class MailApiController extends AbstractApiController
             return ApiResults.badRequest(context.getValidation().getViolations());
         }
 
-        if(mailId.isEmpty())
-        {
-            return ApiResults.badRequest(List.of());
-        }
         // get mail
-        final Mail mail = Mail.find(mailId.get());
+        final Mail mail = Mail.find(mailId);
         if (mail == null)
         {
             return ApiResults.notFound();

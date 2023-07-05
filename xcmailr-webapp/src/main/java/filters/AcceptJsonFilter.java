@@ -18,6 +18,7 @@ package filters;
 import org.apache.commons.lang3.StringUtils;
 
 import controllers.restapi.util.ApiResults;
+import ninja.ContentTypes;
 import ninja.Context;
 import ninja.Filter;
 import ninja.FilterChain;
@@ -32,13 +33,13 @@ public class AcceptJsonFilter implements Filter
     public Result filter(FilterChain chain, Context context)
     {
         String contentType = context.getHeader("Content-Type");
-        if (contentType != null && !StringUtils.startsWith(contentType, "application/json"))
+        if (contentType != null && !StringUtils.startsWith(contentType, ContentTypes.APPLICATION_JSON))
         {
             return ApiResults.unsupportedMediaType();
         }
 
         String accept = context.getHeader("Accept");
-        if (accept != null && !StringUtils.startsWithAny(accept, "application/json", "*/*"))
+        if (accept != null && !StringUtils.startsWithAny(accept, ContentTypes.APPLICATION_JSON, "*/*"))
         {
             return ApiResults.notAcceptable();
         }
