@@ -144,20 +144,18 @@ public class AdminHandler
      *            the context of this request
      * @return the page to show paginated mail-transactions
      */
-    public Result pagedMTX(Context context, @Param("p") int page)
+    public Result pagedMTX(Context context, @Param("p") Optional<Integer> page)
     {
         // set a default number or the number which the user had chosen
         HelperUtils.parseEntryValue(context, xcmConfiguration.APP_DEFAULT_ENTRYNO);
         // get the default number of entries per page
         int entries = Integer.parseInt(context.getSession().get("no"));
-
-        // set a default value if there's no one given
-        page = (page == 0) ? 1 : page;
+        int _page = page.orElse(1);
 
         // generate the paged-list to get pagination on the page
         PageList<MailTransaction> pagedMailTransactionList = new PageList<MailTransaction>(MailTransaction.getSortedAndLimitedList(xcmConfiguration.MTX_LIMIT),
                                                                                            entries);
-        return Results.html().render("plist", pagedMailTransactionList).render("curPage", page);
+        return Results.html().render("plist", pagedMailTransactionList).render("curPage", _page);
     }
 
     /**
@@ -169,10 +167,7 @@ public class AdminHandler
      */
     public Result deleteMTXProcess(@PathParam("time") Integer time, Context context)
     {
-        if (time == null)
-            return Results.redirect(context.getContextPath() + "/admin/mtxs");
-
-        if (time == -1)
+        if (time < 0)
         { // all entries will be deleted
             MailTransaction.deleteTxInPeriod(null);
         }
@@ -182,6 +177,7 @@ public class AdminHandler
             DateTime dt = DateTime.now().minusDays(time);
             MailTransaction.deleteTxInPeriod(dt.getMillis());
         }
+
         return Results.redirect(context.getContextPath() + "/admin/mtxs");
     }
 
@@ -198,32 +194,32 @@ public class AdminHandler
     {
         // get the user who executes this action
         User executingUser = context.getAttribute("user", User.class);
-        if (executingUser.getId() == userId)
-            // the admin wants to disable his own account, this is not allowed
-            return Results.redirect(context.getContextPath() + "/admin/users");
+        // no action if admin wants to (de)activate his own account
+        if (executingUser.getId() != userId)
+        {
+            // activate or deactivate the user
+            boolean active = User.activate(userId);
 
-        // activate or deactivate the user
-        boolean active = User.activate(userId);
+            // generate the (de-)activation-information mail and send it to the user
+            User user = User.getById(userId);
+            String from = xcmConfiguration.ADMIN_ADDRESS;
+            String host = xcmConfiguration.MB_HOST;
 
-        // generate the (de-)activation-information mail and send it to the user
-        User user = User.getById(userId);
-        String from = xcmConfiguration.ADMIN_ADDRESS;
-        String host = xcmConfiguration.MB_HOST;
+            Optional<String> optLanguage = Optional.of(user.getLanguage());
 
-        Optional<String> optLanguage = Optional.of(user.getLanguage());
-
-        // generate the message title
-        String subject = messages.get(active ? "user_Activate_Title" : "user_Deactivate_Title", optLanguage, host)
-                                 .get();
-        // generate the message body
-        String content = messages.get(active ? "user_Activate_Message" : "user_Deactivate_Message", optLanguage,
-                                      user.getForename())
-                                 .get();
-        // send the mail
-        mailSender.sendMail(from, user.getMail(), content, subject);
-        if (!active)
-        { // delete the sessions of this user
-            cachingSessionHandler.deleteUsersSessions(User.getById(userId));
+            // generate the message title
+            String subject = messages.get(active ? "user_Activate_Title" : "user_Deactivate_Title", optLanguage, host)
+                                     .get();
+            // generate the message body
+            String content = messages.get(active ? "user_Activate_Message" : "user_Deactivate_Message", optLanguage,
+                                          user.getForename())
+                                     .get();
+            // send the mail
+            mailSender.sendMail(from, user.getMail(), content, subject);
+            if (!active)
+            { // delete the sessions of this user
+                cachingSessionHandler.deleteUsersSessions(User.getById(userId));
+            }
         }
         return Results.redirect(context.getContextPath() + "/admin/users");
     }
@@ -289,7 +285,7 @@ public class AdminHandler
         UserFormData userData;
         List<UserFormData> userDatalist = new ArrayList<UserFormData>();
 
-        // GSON can't handle with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
+        // GSON can't handle object graphs with cyclic references (the 1:m relation between user and MBox will end up in a cycle)
         // so we need to transform the data which does not contain the reference
         for (User currentUser : userList)
         {
@@ -343,13 +339,12 @@ public class AdminHandler
      * @return overview of all white-listed domains
      */
     @FilterWith(WhitelistFilter.class)
-    public Result handleRemoveDomain(Context context, @Param("action") String action, @Param("domainId") long domainId)
+    public Result handleRemoveDomain(Context context, @Param("action") String action,
+                                     @Param("domainId") Long domainId)
     {
         Result result = Results.redirect(context.getContextPath() + "/admin/whitelist");
-        if (StringUtils.isBlank(action))
-            return result;
 
-        if (action.equals("deleteUsersAndDomain"))
+        if ("deleteUsersAndDomain".equals(action))
         {
             Domain domain = Domain.getById(domainId);
             List<User> usersToDelete = User.getUsersOfDomain(domain.getDomainname());
@@ -361,12 +356,12 @@ public class AdminHandler
             }
             domain.delete();
         }
-        else if (action.equals("deleteDomain"))
+        else if ("deleteDomain".equals(action))
         {// just delete the domain
             Domain.delete(domainId);
         }
 
-        // if no action matches or the actions had been executed, redirect
+        // if no action matches or the action had been executed, redirect
         return result;
     }
 
@@ -416,9 +411,7 @@ public class AdminHandler
      *            the context of this request
      * @return
      */
-    public Result showEmailStatistics(Context context, @Param("dayPage") int dayPage, @Param("weekPage") int weekPage,
-                                      @Param("sortDailyList") String sortDailyList,
-                                      @Param("sortWeeklyList") String sortWeeklyList)
+    public Result showEmailStatistics(Context context)
     {
         Result html = Results.html();
 
@@ -448,35 +441,31 @@ public class AdminHandler
         return html;
     }
 
-    public Result getEmailSenderTablePage(Context context, @Param("scope") String scope, @Param("page") int page,
-                                          @Param("offset") int offset, @Param("limit") int limit,
-                                          @Param("sort") String sort, @Param("order") String order)
+    public Result getEmailSenderTablePage(Context context, @Param("scope") LookBehind scope,
+                                          @Param("offset") Optional<Integer> offset,
+                                          @Param("limit") Optional<Integer> limit,
+                                          @Param("sort") Optional<String> sort,
+                                          @Param("order") Optional<String> order)
     {
-        List<MailStatisticsJson> data = null;
-        switch (scope)
-        {
-            case "day":
-                data = getMailSenderList(0, sort, order);
-                break;
+        final int _offset = offset.orElse(0);
+        final int _limit = limit.orElse(0);
+        final String _sort = sort.orElse(null);
+        final String _order = order.orElse(null);
 
-            case "week":
-                data = getMailSenderList(6, sort, order);
-                break;
-
-            default:
-                return Results.badRequest();
-        }
-
-        final int total = data.size();
+        final int total;
         final List<MailStatisticsJson> rows;
-        if (offset < 0 || limit <= 0 || total == 0)
+        if(_offset < 0 || _limit <= 0)
         {
+            total = 0;
             rows = Collections.emptyList();
         }
         else
         {
-            rows = data.subList(Math.min(offset, total), Math.min(offset + limit, total));
+            final List<MailStatisticsJson> data = getMailSenderList(scope.days, _sort, _order);
+            total = data.size();
+            rows = data.subList(Math.min(_offset, total), Math.min(_offset + _limit, total));
         }
+
         return Results.json().render("rows", rows).render("total", total);
     }
 
@@ -489,14 +478,11 @@ public class AdminHandler
      */
     private List<MailStatisticsJson> getMailSenderList(int lastNDays, String sort, String order)
     {
-        if (lastNDays < 0)
-            lastNDays = 0;
-
         // daily top for dropped mail sender
         StringBuilder sql = new StringBuilder();
         sql.append("select ms.FROM_DOMAIN as \"fromDomain\", sum(ms.DROP_COUNT) as \"droppedCount\", sum(ms.FORWARD_COUNT) as \"forwardedCount\"");
         sql.append("  from MAIL_STATISTICS ms");
-        sql.append(" where ms.DATE >= CURRENT_DATE() - " + lastNDays);
+        sql.append(" where ms.DATE >= CURRENT_DATE() - ").append(Math.max(lastNDays, 0));
         sql.append(" group by ms.FROM_DOMAIN");
 
         String orderColumn = getOrderColumn(sort);
@@ -517,7 +503,6 @@ public class AdminHandler
 
             droppedMailSender.add(ms);
         }
-        ;
 
         return droppedMailSender;
     }
@@ -666,5 +651,17 @@ public class AdminHandler
             outForwardedMails.add(sumForwarded);
         }
 
+    }
+
+    public static enum LookBehind
+    {
+        day(0),
+        week(6);
+
+        public final int days;
+        private LookBehind(int days)
+        {
+            this.days = days;
+        }
     }
 }

@@ -30,6 +30,9 @@ ninja.ssl.truststore.password=${ninja.ssl.keystore.password}
 ## if this app runs on http://localhost:8080, leave it empty
 ninja.context=
 
+## Enable strict argument extractors (don't allow null as value for required request parameters)
+ninja.strict_argument_extractors = true
+
 application.name=XCMailr
 application.cookie.prefix=XCMailr
 

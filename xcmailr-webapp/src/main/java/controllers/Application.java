@@ -77,7 +77,7 @@ public class Application
      *            the context of this request
      * @return the application start page
      */
-    public Result index(Context context, @Param("lang") String languageParam)
+    public Result index(Context context, @Param("lang") Optional<String> languageParam)
     {
         Result result = Results.ok().html();
         // set the wanted language
@@ -497,7 +497,7 @@ public class Application
      */
     private void setShortPwInCtx(String language, Context context)
     {
-        Optional<String> optionalLanguage = Optional.of(language);
+        Optional<String> optionalLanguage = Optional.ofNullable(language);
         String tooShortPassword = messages.get("flash_PasswordTooShort", optionalLanguage, xcmConfiguration.PW_LENGTH)
                                           .get();
         context.getFlashScope().error(tooShortPassword);
@@ -513,6 +513,11 @@ public class Application
     protected void enforceUserLang(final User user, final Result result)
     {
         enforceUserLang(user.getLanguage(), result);
+    }
+
+    protected void enforceUserLang(final Optional<String> language, final Result result)
+    {
+        language.ifPresent(lang -> enforceUserLang(lang, result));
     }
 
     protected void enforceUserLang(final String language, final Result result)

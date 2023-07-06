@@ -28,6 +28,7 @@ import controllers.restapi.MailboxData;
 import controllers.restapi.util.ApiError;
 import controllers.restapi.util.ApiErrors;
 import models.MBox;
+import ninja.utils.NinjaConstant;
 
 /**
  * Common utilities needed when testing the REST API.
@@ -114,9 +115,21 @@ public class RestApiTestUtils
      */
     public static <T> T getResponseBodyAs(final HttpResponse response, final Class<T> c) throws Exception
     {
-        final HttpEntity entity = response.getEntity();
-        final String text = EntityUtils.toString(entity);
+        final String text = getResponseBodyText(response);
 
         return new Gson().fromJson(text, c);
+    }
+
+    public static void validateBadRequest(HttpResponse response) throws Exception
+    {
+        validateStatusCode(response, 400);
+
+        final String text = getResponseBodyText(response);
+        Assert.assertTrue(text.contains(NinjaConstant.I18N_NINJA_SYSTEM_BAD_REQUEST_TEXT_DEFAULT.replace("''", "'")));
+    }
+
+    private static String getResponseBodyText(final HttpResponse response) throws Exception
+    {
+        return EntityUtils.toString(response.getEntity());
     }
 }

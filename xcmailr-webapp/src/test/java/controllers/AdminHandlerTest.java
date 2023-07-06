@@ -38,6 +38,7 @@ import models.MailStatisticsKey;
 import models.MailTransaction;
 import models.User;
 import ninja.NinjaTest;
+import ninja.utils.NinjaConstant;
 import ninja.utils.NinjaMode;
 import ninja.utils.NinjaProperties;
 import ninja.utils.NinjaPropertiesImpl;
@@ -383,6 +384,8 @@ public class AdminHandlerTest extends NinjaTest
     @Test
     public void testShowEmailStatistics() throws Exception
     {
+        final String badRequestMessage = NinjaConstant.I18N_NINJA_SYSTEM_BAD_REQUEST_TEXT_DEFAULT.replace("''", "'");
+
         /*
          * TEST: show email statistics
          */
@@ -428,7 +431,7 @@ public class AdminHandlerTest extends NinjaTest
         result = ninjaTestBrowser.makeJsonRequest(ninjaTestServer.getBaseUrl()
                                                   + "/admin/emailSenderPage?scope=month&offset=0&limit=10");
 
-        assertTrue("null".equals(result));
+        assertTrue("Unexpected result:\n" + result, result.contains(badRequestMessage));
 
         /*
          * TEST: get first page for the day
