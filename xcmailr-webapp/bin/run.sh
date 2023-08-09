@@ -7,7 +7,7 @@ INSTALL_DIR=${INSTALL_DIR:-`realpath -m $(dirname $0)/..`}
 CLASSPATH=$INSTALL_DIR/lib/\*
 
 # setup paths and options
-JAVA_OPTS="-Dh2.maxCompactTime=15000  -Dninja.external.configuration=conf/application.conf  -Dninja.mode=prod"
+JAVA_OPTS="$JAVA_OPTIONS -Dh2.maxCompactTime=15000 -Dninja.external.configuration=conf/application.conf -Dninja.mode=prod"
 JAVA_OPTS="$JAVA_OPTS -Dlogback.configurationFile=file://$INSTALL_DIR/conf/logback.xml"
 
 # append options to suppress illegal access warnings for Java 9+
