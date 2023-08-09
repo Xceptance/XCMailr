@@ -13,6 +13,6 @@ if [ -z "$1" ]; then
 fi
 
 IMPORT_FILENAME=$1
-IMPORT_SQL="runscript from '"$IMPORT_FILENAME"';"
+IMPORT_SQL="runscript from '"$IMPORT_FILENAME"' from_1x;"
 
 exec $_dir/shell.sh "$IMPORT_SQL"

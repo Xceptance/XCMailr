@@ -12,7 +12,7 @@
     <parent>
       <groupId>com.xceptance</groupId>
       <artifactId>xcmailr</artifactId>
-      <version>3.0.0</version>
+      <version>3.0.1</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -61,8 +61,7 @@
                     <jvmArgs>
                         -Dlogback.configurationFile=conf/logback_dev.xml
                         -Dninja.external.configuration=conf/application_dev.conf
-                        -Djavax.net.ssl.keyStore=conf/keystore_dev.jks
-                        -Djavax.net.ssl.keyStorePassword=topsecret
+                        -Dninja.ssl.keystore.uri=file://${basedir}/conf/keystore_dev.jks
                     </jvmArgs>
                     <useDefaultExcludes>true</useDefaultExcludes>
                     <excludes>
@@ -123,6 +122,10 @@
                 <version>3.1.2</version>
                 <configuration>
                     <argLine>--add-modules ALL-SYSTEM</argLine>
+                    <systemPropertyVariables>
+                        <logback.configurationFile>conf/logback_dev.xml</logback.configurationFile>
+                        <ninja.mode>test</ninja.mode>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 
@@ -216,7 +219,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>2.1.214</version>
+            <version>2.2.220</version>
         </dependency>
         <dependency>
             <groupId>io.ebean</groupId>
@@ -282,8 +285,7 @@
                             <jvmArgs>
                                 -Dlogback.configurationFile=conf/logback_dev.xml
                                 -Dninja.external.configuration=conf/application_dev.conf
-                                -Djavax.net.ssl.keyStore=conf/keystore_dev.jks
-                                -Djavax.net.ssl.keyStorePassword=topsecret
+                                -Dninja.ssl.keystore.uri=file://${basedir}/conf/keystore_dev.jks
                                 -agentlib:jdwp=transport=dt_socket,server=y,address=8000
                             </jvmArgs>
                             <useDefaultExcludes>true</useDefaultExcludes>

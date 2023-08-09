@@ -149,7 +149,7 @@ public class MailApiController extends AbstractApiController
      * @return the attachment with the correct content type set
      */
     // @Get("/api/v1/mails/<mailId>/attachments/<attachmentName>")
-    public Result getMailAttachment(@PathParam("mailId") @DbId final Long mailId,
+    public Result getMailAttachment(@PathParam("mailId") final Long mailId,
                                     @PathParam("attachmentName") @NotBlank final String attachmentName,
                                     @Attribute("userId") @DbId final Long userId, final Context context)
     {
@@ -170,7 +170,7 @@ public class MailApiController extends AbstractApiController
      * @return an empty result
      */
     // @Delete("/api/v1/mails/<mailId>")
-    public Result deleteMail(@PathParam("mailId") @DbId final Long mailId, @Attribute("userId") @DbId final Long userId,
+    public Result deleteMail(@PathParam("mailId") final Long mailId, @Attribute("userId") @DbId final Long userId,
                              final Context context)
     {
         return performAction(mailId, userId, context, mail -> {

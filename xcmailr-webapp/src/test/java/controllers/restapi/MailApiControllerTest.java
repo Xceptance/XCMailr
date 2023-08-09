@@ -22,7 +22,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import io.ebean.Ebean;
+import io.ebean.DB;
 
 import models.MBox;
 import models.Mail;
@@ -205,6 +205,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.listMails(invalidAddress);
 
+        // validate response
         RestApiTestUtils.validateStatusCode(response, 400);
         RestApiTestUtils.validateErrors(response, "mailboxAddress");
     }
@@ -231,6 +232,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.getMail(mailId);
 
+        // validate response
         RestApiTestUtils.validateStatusCode(response, 200);
     }
 
@@ -242,6 +244,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.getMail(otherUsersMailId);
 
+        // validate response
         RestApiTestUtils.validateStatusCode(response, 403);
         RestApiTestUtils.validateErrors(response, "mailId");
     }
@@ -254,8 +257,8 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.getMail(invalidId);
 
-        RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "mailId");
+        // validate response
+        RestApiTestUtils.validateBadRequest(response);
     }
 
     /**
@@ -266,6 +269,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         final HttpResponse response = apiClient.getMail(unknownId);
 
+        // validate response
         RestApiTestUtils.validateStatusCode(response, 404);
     }
 
@@ -312,7 +316,7 @@ public class MailApiControllerTest extends StaticNinjaTest
     {
         // prepare a doomed mail and check it's in the DB
         final Mail mail = TestDataUtils.createMailWithAttachments(mailbox);
-        Assert.assertNotNull(Ebean.find(Mail.class, mail.getId()));
+        Assert.assertNotNull(DB.find(Mail.class, mail.getId()));
 
         // make the API call
         final HttpResponse response = apiClient.deleteMail(String.valueOf(mail.getId()));
@@ -321,7 +325,7 @@ public class MailApiControllerTest extends StaticNinjaTest
         RestApiTestUtils.validateStatusCode(response, 204);
 
         // validate database
-        Assert.assertNull(Ebean.find(Mail.class, mail.getId()));
+        Assert.assertNull(DB.find(Mail.class, mail.getId()));
     }
 
     /**
@@ -346,8 +350,7 @@ public class MailApiControllerTest extends StaticNinjaTest
         final HttpResponse response = apiClient.deleteMail(invalidId);
 
         // validate response
-        RestApiTestUtils.validateStatusCode(response, 400);
-        RestApiTestUtils.validateErrors(response, "mailId");
+        RestApiTestUtils.validateBadRequest(response);
     }
 
     /**
