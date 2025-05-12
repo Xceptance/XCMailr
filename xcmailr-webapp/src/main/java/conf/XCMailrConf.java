@@ -107,6 +107,11 @@ public class XCMailrConf
     public final Integer MB_PORT;
 
     /**
+     * specified with mbox.port2
+     */
+    public final Integer MB_PORT2;
+
+    /**
      * Whether or not the inbound SMTP server supports upgrading the connection to TLS.
      */
     public final Boolean MB_ENABLE_TLS;
@@ -234,6 +239,7 @@ public class XCMailrConf
 
         DOMAIN_LIST = filterDuplicates(ninjaProp.getStringArray("mbox.dlist"), true);
         MB_PORT = ninjaProp.getIntegerOrDie("mbox.port");
+        MB_PORT2 = ninjaProp.getInteger("mbox.port2");
         MB_HOST = ninjaProp.getOrDie("mbox.host");
         MB_ENABLE_TLS = ninjaProp.getBooleanWithDefault("mbox.enableTls", true);
         MB_REQUIRE_TLS = MB_ENABLE_TLS && ninjaProp.getBooleanWithDefault("mbox.requireTls", false);

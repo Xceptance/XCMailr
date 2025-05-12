@@ -48,6 +48,8 @@ public class MailService
 
     private SMTPServer smtpServer;
 
+    private SMTPServer smtpServer2;
+
     @Inject
     Logger log;
 
@@ -86,15 +88,27 @@ public class MailService
             user.save();
 
         }
-        // create and start the server for incoming mails
-        smtpServer = createSmtpServer();
+        // create and start the main SMTP server for incoming mails
+        // use a dynamic port in test-mode or the port specified in application.conf in all other modes
+        int port = ninjaProperties.isTest() ? findAvailablePort(49152, 65535) : xcmConfiguration.MB_PORT;
+        smtpServer = createSmtpServer(port);
         smtpServer.start();
 
+        // create and start the alternative SMTP server for incoming mails
+        if (xcmConfiguration.MB_PORT2 != null)
+        {
+            // use a dynamic port in test-mode or the port specified in application.conf in all other modes
+            int alternativePort = ninjaProperties.isTest() ? findAvailablePort(49152, 65535)
+                                                           : xcmConfiguration.MB_PORT2;
+
+            smtpServer2 = createSmtpServer(alternativePort);
+            smtpServer2.start();
+        }
+
         // create the executor-service to check the mail-addresses which were expired since the last run and disable
-        // them
-        // and also all new MailTransactions will be stored here and old entries will be removed
-        expirationService.scheduleAtFixedRate(new ExpirationService(mtxQueue, deleteTransactions, xcmConfiguration),
-                                              0L, xcmConfiguration.MB_INTERVAL.longValue(), TimeUnit.MINUTES);
+        // them and also all new MailTransactions will be stored here and old entries will be removed
+        expirationService.scheduleAtFixedRate(new ExpirationService(mtxQueue, deleteTransactions, xcmConfiguration), 0L,
+                                              xcmConfiguration.MB_INTERVAL.longValue(), TimeUnit.MINUTES);
     }
 
     /**
@@ -103,11 +117,18 @@ public class MailService
     @Dispose(order = 90)
     public void stopActions()
     {
-        // stop the forwarding-service
+        // stop the main SMTP server if present
         if (smtpServer != null)
         {
             smtpServer.stop();
             smtpServer = null;
+        }
+
+        // stop the alternative SMTP server if present
+        if (smtpServer2 != null)
+        {
+            smtpServer2.stop();
+            smtpServer2 = null;
         }
 
         // stop the job to expire the mailboxes
@@ -119,12 +140,9 @@ public class MailService
      * 
      * @return the configured SMTP server
      */
-    private SMTPServer createSmtpServer()
+    private SMTPServer createSmtpServer(int port)
     {
         SMTPServer smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(messageListener));
-
-        // use a dynamic port for the smtp in test-mode or the port specified in application.conf in all other modes
-        int port = ninjaProperties.isTest() ? findAvailablePort(49152, 65535) : xcmConfiguration.MB_PORT;
 
         smtpServer.setPort(port);
 
