@@ -20,11 +20,8 @@ import java.util.Properties;
 import javax.mail.Session;
 
 import com.xceptance.xlt.api.engine.ActionData;
-import com.xceptance.xlt.api.engine.GlobalClock;
 import com.xceptance.xlt.api.util.XltProperties;
-import com.xceptance.xlt.api.util.XltRandom;
 import com.xceptance.xlt.engine.SessionImpl;
-import com.xceptance.xlt.engine.util.TimerUtils;
 
 import xcmailr.client.XCMailrClient;
 
@@ -113,12 +110,8 @@ public class Utils
     {
         final ActionData actionData = new ActionData(actionName);
 
-        final long start = TimerUtils.get().getStartTime();
-        
         try
         {
-            actionData.setTime(GlobalClock.millis());
-
             return action.run();
         }
         catch (final Throwable t)
@@ -129,9 +122,7 @@ public class Utils
         }
         finally
         {
-            final long elapsed = TimerUtils.get().getElapsedTime(start);
-
-            actionData.setRunTime(elapsed);
+            actionData.setRunTime();
 
             SessionImpl.getCurrent().getDataManager().logDataRecord(actionData);
         }
