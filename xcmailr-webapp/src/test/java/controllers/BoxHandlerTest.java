@@ -43,28 +43,33 @@ import etc.HelperUtils;
 import models.MBox;
 import models.Mail;
 import models.User;
-import ninja.NinjaTest;
+import ninja.FreshNinjaServerTester;
 import ninja.utils.NinjaConstant;
+import ninja.utils.NinjaTestBrowser;
 
-public class BoxHandlerTest extends NinjaTest
+public class BoxHandlerTest extends FreshNinjaServerTester
 {
-    Map<String, String> headers = Maps.newHashMap();
+    private Map<String, String> headers = Maps.newHashMap();
 
-    Map<String, String> formParams = Maps.newHashMap();
+    private Map<String, String> formParams = Maps.newHashMap();
 
-    Map<String, String> returnedData = Maps.newHashMap();
+    private Map<String, String> returnedData = Maps.newHashMap();
 
-    Map<String, String> boxData = Maps.newHashMap();
+    private Map<String, String> boxData = Maps.newHashMap();
 
-    MBox testMb;
+    private MBox testMb;
 
-    String result;
+    private String result;
 
-    User user;
+    private User user;
+
+    private NinjaTestBrowser ninjaTestBrowser;
 
     @Before
     public void setUp()
     {
+        ninjaTestBrowser = new NinjaTestBrowser();
+
         // create the user (in test mode a volatile in-memory db is used)
         user = new User("John", "Doe", "admin@ccmailr.test", "1234", "en");
         user.setActive(true);
@@ -78,7 +83,8 @@ public class BoxHandlerTest extends NinjaTest
         // login
         formParams.put("mail", "admin@ccmailr.test");
         formParams.put("password", "1234");
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "/login", headers, formParams);
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(getNinjaTestServer().getServerUrl() + "/login",
+                                                                    headers, formParams);
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
@@ -88,7 +94,10 @@ public class BoxHandlerTest extends NinjaTest
     @After
     public void tearDown()
     {
-
+        if (ninjaTestBrowser != null)
+        {
+            ninjaTestBrowser.shutdown();
+        }
     }
 
     @Test
@@ -97,12 +106,12 @@ public class BoxHandlerTest extends NinjaTest
 
         /*
          * TEST: Try adding a box without having logged in
-         */ 
+         */
         // logout
-        ninjaTestBrowser.makeRequest(getServerAddress() + "/logout");
+        ninjaTestBrowser.makeRequest(withBaseUrl("/logout"));
         testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
 
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
         // verify that the login-page is shown (check for menu with register-field and the login-form-action)
         assertTrue(result.contains("\"error\":\"nologin\""));
 
@@ -122,14 +131,14 @@ public class BoxHandlerTest extends NinjaTest
         formParams.put("mail", "admin@ccmailr.test");
         formParams.put("password", "1234");
 
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "login", headers, formParams);
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(withBaseUrl("/login"), headers, formParams);
         formParams.clear();
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
         // add the box
         testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
 
         // check that the add of the mbox was successful
 
@@ -145,7 +154,7 @@ public class BoxHandlerTest extends NinjaTest
 
         // add the box
         testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
 
         // check that the add of the mbox was not successful
         assertTrue(result.contains("\"success\":false"));
@@ -158,7 +167,7 @@ public class BoxHandlerTest extends NinjaTest
 
         // add the box
         testMb = new MBox();
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
 
         // check that the add of the mbox was not successful
         assertTrue(result.contains("\"success\":false"));
@@ -174,7 +183,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
         testMb = setValues(new MBox(), "mf8h33333wft", "xcmailr.test", 1408556945594L, false, user);
         testMb.setDateTime("2d,3xqwjk");
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
 
         // check that the add of the mbox was successful
         assertTrue(result.contains("\"success\":false"));
@@ -196,7 +205,7 @@ public class BoxHandlerTest extends NinjaTest
         testMb.setDateTime(ts);
         // TODO
         // testMb = new MBoxTestModel("abox", "xcmailr.test", timeStamp, false, user, ts);
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
 
         // check that the add of the mbox was not successful
         assertTrue(result.contains("\"success\":false"));
@@ -216,7 +225,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
 
         testMb = setValues(new MBox(), "$$³@@@..", "xcmailr.test", 0L, false, user);
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
 
         // check that the add of the mbox failed and the overview-page is shown
         assertTrue(result.contains("\"success\":false"));
@@ -233,7 +242,7 @@ public class BoxHandlerTest extends NinjaTest
         testMb = setValues(new MBox(),
                            "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
                            "xcmailr.test", 0L, false, user);
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
         // check that the add of the mbox failed and the overview-page is shown
         assertTrue(result.contains("\"success\":false"));
         // check that there is a mailbox with that address
@@ -255,7 +264,7 @@ public class BoxHandlerTest extends NinjaTest
         // "a12345678901234567890123456789012345678901234567890123456789012345678901234567890a",
         // "a12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890aa12345678901234567890123456789012345678901234567890123456789012345678901234567890a.test",
         // 0L, false, user, "0");
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
         // check that the add of the mbox failed and the overview-page is shown
         assertTrue(result.contains("\"success\":false"));
         // check that there is no mailbox with that address
@@ -277,7 +286,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
 
         testMb = setValues(new MBox(), "abox", "xcmailr.abc", 0L, false, user);
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
         // check that the add of the mbox failed and the overview-page is shown
         assertTrue(result.contains("\"success\":false"));
         // check that there is no mailbox with that address
@@ -291,7 +300,7 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
 
         testMb = setValues(new MBox(), "abox", "xcmlr@a.abc", 0L, false, user);
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
         // check that the add of the mbox has failed
         assertTrue(result.contains("\"success\":false"));
         // check that there is no mailbox with that address
@@ -311,15 +320,15 @@ public class BoxHandlerTest extends NinjaTest
         // add the box
 
         testMb = setValues(new MBox(), "abox", "xcmailr.test", 0L, false, user);
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/addAddress", testMb);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/addAddress"), testMb);
         MBox mb = MBox.getByName("abox", "xcmailr.test");
         assertNotNull(mb);
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
         formParams.clear();
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/delete/" + mb.getId(),
-                                                                    headers, formParams);
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(withBaseUrl("/mail/delete/" + mb.getId()), headers,
+                                                                    formParams);
         // verify that the action was successful
         assertTrue(result.contains("\"success\":true"));
         // verify that the box was deleted from the db
@@ -335,47 +344,47 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * The returned page should have a form with prepopulated values
          */
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/editBoxDialog.html");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mail/editBoxDialog.html"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
         // load the data for an AddBox-Dialog
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/addAddressData");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mail/addAddressData"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         assertTrue(result.contains("\"currentBox\""));
 
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/deleteBoxDialog.html");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mail/deleteBoxDialog.html"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/newDateDialog.html");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mail/newDateDialog.html"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mail"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
         // get all addresses
         MBox mb = new MBox("moh", "xcmailr.test", 0, false, user);
         mb.save();
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/getmails");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mail/getmails"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         // show all mails as txt
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/mymaillist.txt");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mail/mymaillist.txt"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         assertTrue(result.contains("moh@xcmailr.test"));
 
         // show the active mails as txt
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/myactivemaillist.txt");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mail/myactivemaillist.txt"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
         assertTrue(result.contains("moh@xcmailr.test"));
         // get all boxes
-        result = ninjaTestBrowser.makeRequest(getServerAddress() + "/mail/domainlist");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mail/domainlist"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
 
@@ -412,7 +421,7 @@ public class BoxHandlerTest extends NinjaTest
         jsm.setForwards(0);
         jsm.setSuppressions(0);
 
-        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/edit/" + mailBoxId, jsm);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/edit/" + mailBoxId), jsm);
         // verify that the action was not successful
 
         assertTrue(result.contains("\"success\":false"));
@@ -425,7 +434,7 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: Form with a wrong domain
          */
         jsm.setDomain("xcmailr.null");
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/edit/" + mailbox.getId()), jsm);
         assertNull(MBox.getByName("abcdefg", "xcmailr.null"));
         assertTrue(result.contains("\"success\":false"));
         assertFalse(result.contains("FreeMarker template error"));
@@ -436,7 +445,7 @@ public class BoxHandlerTest extends NinjaTest
          */
         jsm.setAddress(null);
         jsm.setDomain("xcmailr.test");
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/edit/" + mailbox.getId()), jsm);
         System.out.println("\n\n" + result + "\n\n");
         assertTrue(result.contains("\"success\":false"));
         assertFalse(result.contains("FreeMarker template error"));
@@ -450,7 +459,7 @@ public class BoxHandlerTest extends NinjaTest
         DateTime dt = new DateTime().plusHours(1);
         jsm.setDateTime(HelperUtils.parseStringTs(dt.getMillis()));
 
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/edit/" + mailbox.getId()), jsm);
         assertTrue(result.contains("\"success\":true"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
@@ -460,7 +469,7 @@ public class BoxHandlerTest extends NinjaTest
          */
 
         jsm.setDateTime("01-01-00");
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/edit/" + mailbox.getId()), jsm);
         assertTrue(result.contains("\"success\":false"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
@@ -476,7 +485,7 @@ public class BoxHandlerTest extends NinjaTest
         // jsm.prepopulateJS(mbox2);
 
         // try to edit this box (POST to /mail/edit/id)
-        result = ninjaTestBrowser.postJson(getServerAddress() + "mail/edit/" + mailbox.getId(), jsm);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/edit/" + mailbox.getId()), jsm);
         assertTrue(result.contains("\"success\":false"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
@@ -493,8 +502,8 @@ public class BoxHandlerTest extends NinjaTest
         MBox mailbox = new MBox("abcdefg", "xcmailr.test", 0L, false, user);
         mailbox.save();
         formParams.clear();
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/expire/"
-                                                                    + mailbox.getId(), headers, formParams);
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(withBaseUrl("/mail/expire/" + mailbox.getId()),
+                                                                    headers, formParams);
 
         assertTrue(result.contains("\"success\":true"));
         assertFalse(result.contains("FreeMarker template error"));
@@ -509,8 +518,8 @@ public class BoxHandlerTest extends NinjaTest
         mailbox2.save();
         formParams.clear();
         // we want to reactivate the box and expect the edit-page then (because its expired)
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/expire/"
-                                                                    + mailbox2.getId(), headers, formParams);
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(withBaseUrl("/mail/expire/" + mailbox2.getId()),
+                                                                    headers, formParams);
         assertTrue(result.contains("\"success\":false"));
         assertFalse(result.contains("FreeMarker template error"));
         assertFalse(result.contains("<title>404 - not found</title>"));
@@ -534,8 +543,8 @@ public class BoxHandlerTest extends NinjaTest
 
         formParams.clear();
         // try to reset the box via controller method
-        result = ninjaTestBrowser.makePostRequestWithFormParameters(getServerAddress() + "mail/reset/"
-                                                                    + mailbox.getId(), headers, formParams);
+        result = ninjaTestBrowser.makePostRequestWithFormParameters(withBaseUrl("/mail/reset/" + mailbox.getId()),
+                                                                    headers, formParams);
         MBox mailbox2 = MBox.getById(mailbox.getId());
 
         assertEquals(0, mailbox2.getSuppressions());
@@ -582,7 +591,7 @@ public class BoxHandlerTest extends NinjaTest
         testmap.put(mailbox2.getId(), true);
         testmap.put(mailbox3.getId(), true);
 
-        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkReset", testmap);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/bulkReset"), testmap);
 
         assertTrue(result.contains("\"success\":true"));
 
@@ -627,7 +636,7 @@ public class BoxHandlerTest extends NinjaTest
         testmap.put(mailbox3.getId(), true);
 
         // try to enable the boxes via controller method
-        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkEnablePossible", testmap);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/bulkEnablePossible"), testmap);
         // update the boxes
         MBox mailbox1new = MBox.getById(mailbox1.getId());
         MBox mailbox2new = MBox.getById(mailbox2.getId());
@@ -641,7 +650,7 @@ public class BoxHandlerTest extends NinjaTest
         assertTrue(mailbox3new.isActive());
 
         // try to disable the boxes via controller method
-        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkEnablePossible", testmap);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/bulkEnablePossible"), testmap);
         // update the boxes
         mailbox1 = MBox.getById(mailbox1.getId());
         mailbox2 = MBox.getById(mailbox2.getId());
@@ -684,7 +693,7 @@ public class BoxHandlerTest extends NinjaTest
         testmap.put(mailbox3.getId(), true);
 
         // try to enable the boxes via controller method
-        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkDisable", testmap);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/bulkDisable"), testmap);
         // update the boxes
         MBox mailbox1new = MBox.getById(mailbox1.getId());
         MBox mailbox2new = MBox.getById(mailbox2.getId());
@@ -698,7 +707,7 @@ public class BoxHandlerTest extends NinjaTest
         assertFalse(mailbox3new.isActive());
 
         // try to disable the boxes via controller method again
-        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkDisable", testmap);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/bulkDisable"), testmap);
         // update the boxes
         mailbox1 = MBox.getById(mailbox1.getId());
         mailbox2 = MBox.getById(mailbox2.getId());
@@ -750,7 +759,7 @@ public class BoxHandlerTest extends NinjaTest
         testmap2.put("newDateTime", timeStamp);
 
         // try to enable the boxes via controller method
-        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkNewDate", testmap2);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/bulkNewDate"), testmap2);
         // update the boxes
         MBox mailbox1new = MBox.getById(mailbox1.getId());
         MBox mailbox2new = MBox.getById(mailbox2.getId());
@@ -787,7 +796,7 @@ public class BoxHandlerTest extends NinjaTest
         testmap.put(mailbox3.getId(), true);
 
         // try to enable the boxes via controller method
-        result = ninjaTestBrowser.postJson(getServerAddress() + "/mail/bulkDelete", testmap);
+        result = ninjaTestBrowser.postJson(withBaseUrl("/mail/bulkDelete"), testmap);
         // update the boxes
         MBox mailbox1new = MBox.getById(mailbox1.getId());
         MBox mailbox2new = MBox.getById(mailbox2.getId());
@@ -807,14 +816,15 @@ public class BoxHandlerTest extends NinjaTest
     public void testTemporayMailCreation() throws Exception
     {
         // massage default error messages such that they look as returned from the server
-        final String forbiddenMessage = NinjaConstant.I18N_NINJA_SYSTEM_FORBIDDEN_REQUEST_TEXT_DEFAULT.replace("''", "&#39;");
-        final String badRequestMessage = NinjaConstant.I18N_NINJA_SYSTEM_BAD_REQUEST_TEXT_DEFAULT.replace("''", "&#39;");
-        
+        final String forbiddenMessage = NinjaConstant.I18N_NINJA_SYSTEM_FORBIDDEN_REQUEST_TEXT_DEFAULT.replace("''",
+                                                                                                               "&#39;");
+        final String badRequestMessage = NinjaConstant.I18N_NINJA_SYSTEM_BAD_REQUEST_TEXT_DEFAULT.replace("''",
+                                                                                                          "&#39;");
+
         /*
          * TEST: invalid API key
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                              + "/create/temporaryMail/invalidkey/apicreationtest@xcmailr.test/1");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/invalidkey/apicreationtest@xcmailr.test/1"));
 
         // check for invalid request
         assertTrue(result.contains(NinjaConstant.I18N_NINJA_SYSTEM_UNAUTHORIZED_REQUEST_TEXT_DEFAULT));
@@ -824,40 +834,35 @@ public class BoxHandlerTest extends NinjaTest
          */
         user.setApiToken("validKey");
         user.save();
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                              + "/create/temporaryMail/validKey/apicreationtest@google.com/1");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/validKey/apicreationtest@google.com/1"));
         // check for invalid request
         assertTrue(result.contains(forbiddenMessage));
 
         /*
          * TEST: invalid duration (above limit)
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                              + "/create/temporaryMail/validKey/apicreationtest@xcmailr.test/99");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/validKey/apicreationtest@xcmailr.test/99"));
         // check for invalid request
         assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: invalid duration (below limit)
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                              + "/create/temporaryMail/validKey/apicreationtest@xcmailr.test/0");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/validKey/apicreationtest@xcmailr.test/0"));
         // check for invalid request
         assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: invalid duration (negative)
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                              + "/create/temporaryMail/validKey/apicreationtest@xcmailr.test/-1");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/validKey/apicreationtest@xcmailr.test/-1"));
         // check for invalid request
         assertTrue(result.contains(badRequestMessage));
 
         /*
          * TEST: invalid duration (not a number)
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                              + "/create/temporaryMail/validKey/apicreationtest@xcmailr.test/y");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/validKey/apicreationtest@xcmailr.test/y"));
         // check for invalid request
         assertTrue(result.contains(badRequestMessage));
 
@@ -870,12 +875,10 @@ public class BoxHandlerTest extends NinjaTest
         otherUser.setActive(true);
         otherUser.save();
 
-        ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                     + "/create/temporaryMail/otherUsersToken/claimed@xcmailr.test/10");
+        ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/otherUsersToken/claimed@xcmailr.test/10"));
 
         // try claim again
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                              + "/create/temporaryMail/validKey/claimed@xcmailr.test/10");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/validKey/claimed@xcmailr.test/10"));
         // check for invalid request
         assertTrue(result.contains(forbiddenMessage));
 
@@ -883,12 +886,12 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: create temporary email via API key (happy path)
          */
         // first create API token for the account
-        ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/user/newApiToken");
+        ninjaTestBrowser.makeRequest(withBaseUrl("/user/newApiToken"));
         user = User.getUsrByMail(user.getMail());
 
         // create temporary mail address "apicreationtest@xcmailr.test"
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/create/temporaryMail/"
-                                              + user.getApiToken() + "/apicreationtest@xcmailr.test/1");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/" + user.getApiToken()
+                                                          + "/apicreationtest@xcmailr.test/1"));
         List<MBox> findBoxLike = MBox.findBoxLike("apicreationtest@xcmailr.test", user.getId());
         assertTrue(findBoxLike.size() == 1);
 
@@ -896,8 +899,8 @@ public class BoxHandlerTest extends NinjaTest
          * TEST: create temporary email via API key with json response
          */
         // create temporary mail address "apicreationtest@xcmailr.test"
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/create/temporaryMail/"
-                                              + user.getApiToken() + "/apicreationjsontest@xcmailr.test/1?format=json");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/" + user.getApiToken()
+                                                          + "/apicreationjsontest@xcmailr.test/1?format=json"));
         findBoxLike = MBox.findBoxLike("apicreationtest@xcmailr.test", user.getId());
         assertTrue(findBoxLike.size() == 1);
         assertTrue(result.contains("emailAddress"));
@@ -912,8 +915,8 @@ public class BoxHandlerTest extends NinjaTest
         // create mailbox for the tests
         user.setApiToken("validToken");
         user.save();
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/create/temporaryMail/"
-                                              + user.getApiToken() + "/queryallmails@xcmailr.test/11");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/create/temporaryMail/" + user.getApiToken()
+                                                          + "/queryallmails@xcmailr.test/11"));
         assertTrue(result.contains("<div id=\"createdMail\">"));
 
         user = User.getById(user.getId());
@@ -925,21 +928,20 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: query html
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/mails?format=html");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mails?format=html"));
         assertTrue(result.contains("WARNING: Emails will be available for only 10 minutes upon receipt and deleted afterwards."));
 
         /*
          * TEST: query json. it is more or less intentional to retrieve no row data but the total count. in that way one
          * can query the amount of mails without actually loading them since they could be huge
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/mails?format=json");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mails?format=json"));
         assertEquals("{\"total\":1,\"rows\":[]}", result);
 
         /*
          * TEST: query json with offset=0 and limit=1 parameter to get also actual mail content of the first mail
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                              + "/mails?format=json&offset=0&limit=1");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mails?format=json&offset=0&limit=1"));
         final JsonNode node = new ObjectMapper().readTree(result);
         assertTrue(node.isObject());
         assertEquals(1, node.get("total").asInt());
@@ -960,14 +962,13 @@ public class BoxHandlerTest extends NinjaTest
         /*
          * TEST: query csv
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/mails?format=csv");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mails?format=csv"));
         assertTrue(result.contains(NinjaConstant.I18N_NINJA_SYSTEM_BAD_REQUEST_TEXT_DEFAULT.replace("''", "&#39;")));
 
         /*
          * TEST: search the mailbox
          */
-        result = ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl()
-                                              + "/mails?format=json&search=something");
+        result = ninjaTestBrowser.makeRequest(withBaseUrl("/mails?format=json&search=something"));
         assertEquals("{\"total\":1,\"rows\":[]}", result);
     }
 
@@ -977,7 +978,7 @@ public class BoxHandlerTest extends NinjaTest
         // create mailbox for the tests
         user.setApiToken("validToken");
         user.save();
-        ninjaTestBrowser.makeRequest(ninjaTestServer.getBaseUrl() + "/create/temporaryMail/" + user.getApiToken()
+        ninjaTestBrowser.makeRequest(baseUrl() + "/create/temporaryMail/" + user.getApiToken()
                                      + "/mailboxquery@xcmailr.test/10");
         user = User.getById(user.getId());
         List<MBox> mailBoxes = user.getBoxes();
@@ -989,7 +990,7 @@ public class BoxHandlerTest extends NinjaTest
         final Mail mail = createMail(tempMBox, "spamme@org.com", "Multipart HTML",
                                      HelperUtils.readLimitedAmount(is, 500_000));
 
-        final String uri = ninjaTestServer.getBaseUrl() + "/mailbox/mailboxquery@xcmailr.test/validToken";
+        final String uri = baseUrl() + "/mailbox/mailboxquery@xcmailr.test/validToken";
 
         /*
          * TEST: query html
@@ -1008,7 +1009,9 @@ public class BoxHandlerTest extends NinjaTest
          */
         result = ninjaTestBrowser.makeRequest(uri + "?format=header");
         // NinjaTestBrowser#makeRequest() removes all line terminators from received response
-        assertEquals(HelperUtils.getHeaderText(MimeMessageUtils.createMimeMessage(null, mail.getMessage())).replaceAll("[\r\n]+", ""), result);
+        assertEquals(HelperUtils.getHeaderText(MimeMessageUtils.createMimeMessage(null, mail.getMessage()))
+                                .replaceAll("[\r\n]+", ""),
+                     result);
 
     }
 

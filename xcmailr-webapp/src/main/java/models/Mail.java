@@ -18,10 +18,10 @@ package models;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Lob;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.Length;
@@ -146,6 +146,6 @@ public class Mail extends AbstractEntity implements Serializable
      */
     public static List<Mail> findAndSort(long mailboxId)
     {
-        return DB.find(Mail.class).where().eq("mailbox_id", mailboxId).order("receiveTime").findList();
+        return DB.find(Mail.class).where().eq("mailbox_id", mailboxId).orderBy("receiveTime").findList();
     }
 }
