@@ -20,6 +20,7 @@ import java.util.Properties;
 import javax.mail.Session;
 
 import com.xceptance.xlt.api.engine.ActionData;
+import com.xceptance.xlt.api.engine.GlobalClock;
 import com.xceptance.xlt.api.util.XltProperties;
 import com.xceptance.xlt.engine.SessionImpl;
 
@@ -110,6 +111,7 @@ public class Utils
     {
         final ActionData actionData = new ActionData(actionName);
 
+        final long start = GlobalClock.millis();
         try
         {
             return action.run();
@@ -122,7 +124,7 @@ public class Utils
         }
         finally
         {
-            actionData.setRunTime();
+            actionData.setRunTime(GlobalClock.millis() - start);
 
             SessionImpl.getCurrent().getDataManager().logDataRecord(actionData);
         }

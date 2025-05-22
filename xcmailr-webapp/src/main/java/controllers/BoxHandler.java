@@ -893,10 +893,7 @@ public class BoxHandler
             return ninja.getForbiddenResult(context);
         }
 
-        List<Mail> emails = DB.find(Mail.class).where() //
-                                 .eq("mailbox_id", mailbox.getId()) //
-                                 .order("receiveTime")//
-                                 .findList();
+        List<Mail> emails = Mail.findAndSort(mailbox.getId());
 
         String senderRegex = context.getParameter("from");
         String subjectRegex = context.getParameter("subject");

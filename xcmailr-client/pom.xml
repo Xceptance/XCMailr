@@ -5,7 +5,7 @@
     <parent>
       <groupId>com.xceptance</groupId>
       <artifactId>xcmailr</artifactId>
-      <version>3.0.1</version>
+      <version>3.1.0</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -24,12 +24,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>jar-no-fork</goal>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -37,7 +37,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.11.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -52,7 +52,6 @@
                     <failOnError>false</failOnError>
                     <notimestamp>true</notimestamp>
                     <quiet>true</quiet>
-                    <source>11</source>
                 </configuration>
             </plugin>
         </plugins>
@@ -62,7 +61,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <version>2.13.1</version>
         </dependency>
     </dependencies>
 
