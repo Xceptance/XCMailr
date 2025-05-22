@@ -14,7 +14,6 @@
     <name>XCMailr</name>
     <url>https://github.com/Xceptance/XCMailr</url>
     <inceptionYear>2013</inceptionYear>
-
     <description>Parent POM for all XCMailr projects.</description>
 
     <modules>
@@ -32,6 +31,7 @@
         <copyright>Copyright (c) ${project.inceptionYear}-2023 ${project.organization.name}</copyright>
         <license.skipFormat>true</license.skipFormat>
     </properties>
+
 
     <organization>
         <name>Xceptance Software Technologies GmbH</name>
@@ -83,11 +83,10 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>3.1.4</version>
+                    <version>2.5.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
             <!-- Adds or updates the license header in source files. -->
             <!-- Usage: mvn license:format -->
