@@ -41,8 +41,7 @@ application.languages=en,de
 
 application.session.expire_time_in_seconds=3600
 application.session.send_only_if_changed=true
-application.session.transferred_over_https_only=true
-application.session.http_only=true
+application.session.transferred_over_https_only=false
 
 ## The url of the server (used for links in emails), without the basedir and the trailing "/"
 ## e.g. if your app runs on http://localhost:8080/xc/mailr, add "http://localhost:8080" here
