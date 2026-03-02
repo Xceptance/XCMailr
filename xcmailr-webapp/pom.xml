@@ -26,7 +26,7 @@
         <slf4j.version>1.7.36</slf4j.version>
         <license.skipFormat>false</license.skipFormat>
         <ebean.version>15.11.0</ebean.version>
-        <jackson.version>2.19.0</jackson.version>
+        <jackson.version>2.21.1</jackson.version>
     </properties>
 
     <build>
