@@ -26,8 +26,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.Table;
 
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotEmpty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 import org.mindrot.jbcrypt.BCrypt;
 
 import io.ebean.DB;
@@ -263,7 +263,7 @@ public class User extends AbstractEntity implements Serializable
      * @param passwd
      *            the Password to set (after hashing with BCrypt)
      */
-    void setPasswd(String passwd)
+    public void setPasswd(String passwd)
     {
         this.passwd = passwd;
     }

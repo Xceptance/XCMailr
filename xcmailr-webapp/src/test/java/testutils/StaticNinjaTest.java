@@ -37,7 +37,7 @@ public class StaticNinjaTest
     @BeforeClass
     public static void startupServerAndBrowser()
     {
-        ninjaTestServer = NinjaTestServer.builder().build();
+        ninjaTestServer = NinjaTestServer.builder().port(ninja.standalone.StandaloneHelper.findAvailablePort(1024, 10000)).build();
         ninjaTestBrowser = new NinjaTestBrowser();
     }
 

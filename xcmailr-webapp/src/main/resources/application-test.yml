@@ -1,0 +1,27 @@
+# Spring Boot Test Configuration for XCMailr
+server:
+  port: 0
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:xcmailr_test;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        id:
+          sequence:
+            increment_size_mismatch_strategy: fix
+  flyway:
+    enabled: true
+    clean-disabled: false
+
+xcmailr:
+  mbox:
+    port: 0
+  outbound-smtp:
+    enabled: false

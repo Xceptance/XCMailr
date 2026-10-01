@@ -18,14 +18,15 @@ package controllers.restapi;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.activation.DataSource;
-import javax.mail.internet.MimeMessage;
+import jakarta.activation.DataSource;
+import jakarta.mail.internet.MimeMessage;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.mail.util.MimeMessageParser;
-import org.apache.commons.mail.util.MimeMessageUtils;
+
+import com.xceptance.xcmailr.util.JakartaMimeMessageParser;
 
 import etc.HelperUtils;
+import models.MBox;
 import models.Mail;
 
 /**
@@ -53,8 +54,13 @@ public class MailData
 
     public MailData(final Mail mail) throws Exception
     {
+        this(mail, mail.getMailbox());
+    }
+
+    public MailData(final Mail mail, final MBox mailbox) throws Exception
+    {
         id = mail.getId();
-        recipient = mail.getMailbox().getFullAddress();
+        recipient = mailbox != null ? mailbox.getFullAddress() : null;
         sender = mail.getSender();
         subject = StringUtils.defaultString(mail.getSubject());
         receivedTime = mail.getReceiveTime();
@@ -63,11 +69,11 @@ public class MailData
 
         if (rawContent != null && rawContent.length > 0)
         {
-            final MimeMessage mimeMessage = MimeMessageUtils.createMimeMessage(null, rawContent);
-            final MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessage);
+            final MimeMessage mimeMessage = JakartaMimeMessageParser.createMimeMessage(rawContent);
+            final JakartaMimeMessageParser mimeMessageParser = new JakartaMimeMessageParser(mimeMessage);
             mimeMessageParser.parse();
 
-            headers = HelperUtils.getHeaderText(mimeMessage);
+            headers = JakartaMimeMessageParser.getHeaderText(mimeMessage);
 
             textContent = mimeMessageParser.getPlainContent();
             htmlContent = mimeMessageParser.getHtmlContent();

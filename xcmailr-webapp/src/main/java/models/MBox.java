@@ -26,11 +26,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import javax.validation.constraints.Pattern;
-
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import io.ebean.DB;
@@ -73,7 +72,7 @@ public class MBox extends AbstractEntity implements Serializable
     /** the domain-part of an address */
     @NotEmpty
     @Pattern(regexp = "(?i)[a-z-]+(\\.[\\w-]+)+")
-    @Length(min = 1, max = 255)
+    @Size(min = 1, max = 255)
     private String domain;
 
     /** the number of forwards for this box */
@@ -176,6 +175,17 @@ public class MBox extends AbstractEntity implements Serializable
     public boolean isActive()
     {
         return !expired;
+    }
+
+    /**
+     * Sets whether the mailbox is active.
+     *
+     * @param active true if active, false if expired/inactive
+     */
+    @JsonIgnore
+    public void setActive(boolean active)
+    {
+        this.expired = !active;
     }
 
     /**

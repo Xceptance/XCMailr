@@ -140,17 +140,14 @@ public class MailService
      * 
      * @return the configured SMTP server
      */
-    private SMTPServer createSmtpServer(int port)
+    private SMTPServer createSmtpServer(final int port)
     {
-        SMTPServer smtpServer = new SMTPServer(new SimpleMessageListenerAdapter(messageListener));
-
-        smtpServer.setPort(port);
-
-        // configure TLS support
-        smtpServer.setEnableTLS(xcmConfiguration.MB_ENABLE_TLS);
-        smtpServer.setRequireTLS(xcmConfiguration.MB_REQUIRE_TLS);
-
-        return smtpServer;
+        // Build SMTP server using the modernized SubEthaSMTP builder API
+        return SMTPServer.port(port)
+                         .simpleMessageListener(messageListener)
+                         .enableTLS(xcmConfiguration.MB_ENABLE_TLS)
+                         .requireTLS(xcmConfiguration.MB_REQUIRE_TLS)
+                         .build();
     }
 
     /**
@@ -179,5 +176,10 @@ public class MailService
             }
         }
         throw new IllegalStateException("Could not find available port in range " + min + " to " + max);
+    }
+
+    public int getSmtpPort()
+    {
+        return (smtpServer != null) ? smtpServer.getPort() : -1;
     }
 }

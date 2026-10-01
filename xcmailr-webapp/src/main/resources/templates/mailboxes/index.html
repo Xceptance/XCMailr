@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::content})}">
+<body>
+
+<div th:fragment="content">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold mb-1">Mailboxes</h2>
+            <p class="text-muted mb-0">Manage your temporary email addresses, forwarding, and expiration policies.</p>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <button class="btn btn-primary" type="button"
+                    th:attr="hx-get=@{/mailboxes/new},hx-target='#modal-container',hx-swap='innerHTML'"
+                    data-bs-toggle="modal" data-bs-target="#actionModal">
+                <span class="me-1">+</span> New Mailbox
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert / notification banners if any -->
+    <div th:if="${param.created}" class="alert alert-success alert-dismissible fade show" role="alert">
+        Mailbox created successfully.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${param.error == 'mailboxExists'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        A mailbox with this address already exists. Please choose a different local part.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Filter & Live Search Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row g-2 align-items-center">
+                <!-- Search Input with HTMX live search (triggers on keyup with 300ms debounce) -->
+                <div class="col-md-7 col-lg-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">🔍</span>
+                        <input type="search" class="form-control border-start-0" name="search"
+                               placeholder="Live search by address or domain..."
+                               th:value="${search}"
+                               hx-get="/mailboxes"
+                               hx-trigger="keyup changed delay:300ms, search"
+                               hx-target="#mailbox-table-container"
+                               hx-swap="outerHTML"
+                               hx-include="#statusFilterSelect">
+                    </div>
+                </div>
+
+                <!-- Status Filter Dropdown -->
+                <div class="col-md-5 col-lg-4">
+                    <div class="d-flex align-items-center justify-content-md-end">
+                        <label for="statusFilterSelect" class="form-label text-muted small me-2 mb-0">Filter:</label>
+                        <select class="form-select form-select-sm w-auto" id="statusFilterSelect" name="status"
+                                hx-get="/mailboxes"
+                                hx-trigger="change"
+                                hx-target="#mailbox-table-container"
+                                hx-swap="outerHTML"
+                                hx-include="[name='search']">
+                            <option value="ALL" th:selected="${status == 'ALL'}">All Statuses</option>
+                            <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Active Only</option>
+                            <option value="EXPIRED" th:selected="${status == 'EXPIRED'}">Expired Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mailbox Table Container (Updated dynamically via HTMX) -->
+    <div th:replace="~{mailboxes/fragments/mailbox-table :: table}"></div>
+
+    <!-- Generic Modal Dialog Host for dynamic HTMX modals -->
+    <div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
+        <div id="modal-container">
+            <!-- Modal dialog fragments are loaded here via HTMX -->
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

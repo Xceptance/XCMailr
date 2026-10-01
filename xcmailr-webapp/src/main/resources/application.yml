@@ -1,0 +1,88 @@
+# Spring Boot Configuration for XCMailr Modernization
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: ${CONTEXT_PATH:}
+    session:
+      timeout: 60m
+      cookie:
+        name: XCMailrSession
+        http-only: true
+        same-site: lax
+
+spring:
+  application:
+    name: XCMailr
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:~/xcmailrDB;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE}
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.H2Dialect
+        id:
+          sequence:
+            increment_size_mismatch_strategy: fix
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+  thymeleaf:
+    cache: false
+    mode: HTML
+    encoding: UTF-8
+
+xcmailr:
+  app:
+    name: XCMailr
+    url: ${APP_URL:http://localhost:8080}
+    languages:
+      - en
+      - de
+    default-entries-per-page: 15
+    whitelist: true
+    confirmation-period-hours: 1
+    cookie-expire-time-seconds: 3600
+    cookie-prefix: XCMailr
+  admin:
+    address: ${ADMIN_ADDRESS:admin@xcmailr.test}
+    password: ${ADMIN_PASSWORD:1234}
+  api:
+    token-expiration-days: 30
+  temporary-mail:
+    maximum-valid-time-minutes: 30
+  mbox:
+    host: ${MBOX_HOST:xcmailr.test}
+    port: ${MBOX_PORT:25000}
+    enable-tls: true
+    require-tls: false
+    interval-minutes: 1
+    mail-interval-minutes: 1
+    domain-list:
+      - xcmailr.test
+      - ccmailr.test
+    max-size: 25000000
+    retention-period-minutes: 10
+  mail-transaction:
+    display-limit: 9000
+    max-age-hours: 168
+  outbound-smtp:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:25}
+    user: ${SMTP_USER:}
+    password: ${SMTP_PASS:}
+    auth: true
+    tls: true
+    starttls: false
+    debug: true
+    msg-rewrite: false

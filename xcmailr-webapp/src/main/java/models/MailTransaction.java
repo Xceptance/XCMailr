@@ -356,14 +356,8 @@ public class MailTransaction
      */
     public static List<Status> getStatusList()
     {
-        // create a sql-query that contains the statuscode and their number of occurences
-        String sql = "SELECT mtx.status, COUNT(mtx.status) AS count  FROM mailtransactions mtx GROUP BY mtx.status";
-        RawSql rawSql = RawSqlBuilder.parse(sql).columnMapping("mtx.status", "statuscode").create();
-        Query<Status> query = DB.find(Status.class);
-        query.setRawSql(rawSql);
-        List<Status> list = query.findList();
-
-        return list;
+        final String sql = "SELECT mtx.status AS statuscode, COUNT(mtx.status) AS count FROM mailtransactions mtx GROUP BY mtx.status";
+        return DB.findDto(Status.class, sql).findList();
     }
 
     /**

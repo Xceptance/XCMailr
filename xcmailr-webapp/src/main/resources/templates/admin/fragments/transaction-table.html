@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="table" id="transaction-table-container">
+    <div class="table-responsive bg-white rounded shadow-sm border">
+        <table class="table table-hover table-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="min-width: 160px;">Timestamp</th>
+                    <th scope="col" style="min-width: 160px;">Source</th>
+                    <th scope="col" style="min-width: 160px;">Relay</th>
+                    <th scope="col" style="min-width: 160px;">Target</th>
+                    <th scope="col" style="width: 140px;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(transactions)}">
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <em>No transaction logs recorded yet.</em>
+                    </td>
+                </tr>
+
+                <tr th:each="tx : ${transactions}">
+                    <td class="text-muted small" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(tx.ts))}">
+                        2026-10-01 12:00:00
+                    </td>
+                    <td class="text-break" th:text="${tx.sourceaddr}">sender@example.com</td>
+                    <td class="text-break" th:text="${tx.relayaddr}">box@xcmailr.test</td>
+                    <td class="text-break" th:text="${tx.targetaddr}">recipient@example.com</td>
+                    <td>
+                        <span th:if="${tx.status == 300}" class="badge bg-success">Forwarded (300)</span>
+                        <span th:if="${tx.status == 200}" class="badge bg-warning text-dark">Inactive (200)</span>
+                        <span th:if="${tx.status == 100}" class="badge bg-secondary">Unknown (100)</span>
+                        <span th:if="${tx.status == 400}" class="badge bg-danger">Failed (400)</span>
+                        <span th:if="${tx.status == 500}" class="badge bg-danger">Relay Denied (500)</span>
+                        <span th:if="${tx.status == 600}" class="badge bg-secondary">User Inactive (600)</span>
+                        <span th:if="${tx.status == 0}" class="badge bg-secondary">Invalid (0)</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center mt-3" th:if="${page.totalPages > 1}">
+        <span class="text-muted small">
+            Page <strong th:text="${page.number + 1}">1</strong> of <strong th:text="${page.totalPages}">1</strong>
+            (<span th:text="${page.totalElements}">0</span> total transactions)
+        </span>
+
+        <nav aria-label="Transaction pagination">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
+                    <button class="page-link" type="button"
+                            th:attr="hx-get=@{/admin/transactions(page=${page.number - 1})},hx-target='#transaction-table-container',hx-swap='outerHTML'">
+                        Previous
+                    </button>
+                </li>
+                <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+                    class="page-item" th:classappend="${i == page.number ? 'active' : ''}">
+                    <button class="page-link" type="button" th:text="${i + 1}"
+                            th:attr="hx-get=@{/admin/transactions(page=${i})},hx-target='#transaction-table-container',hx-swap='outerHTML'">
+                        1
+                    </button>
+                </li>
+                <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
+                    <button class="page-link" type="button"
+                            th:attr="hx-get=@{/admin/transactions(page=${page.number + 1})},hx-target='#transaction-table-container',hx-swap='outerHTML'">
+                        Next
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+</body>
+</html>

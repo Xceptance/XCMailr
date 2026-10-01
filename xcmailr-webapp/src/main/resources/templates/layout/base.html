@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(content)"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSRF Tokens for HTMX and AJAX -->
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    <title th:text="${pageTitle != null ? pageTitle + ' - XCMailr' : 'XCMailr'}">XCMailr</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="shortcut icon" th:href="@{/assets/ico/favicon.ico}">
+    <style>
+        body {
+            padding-top: 4.5rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+        main {
+            flex: 1 0 auto;
+        }
+        footer {
+            flex-shrink: 0;
+            background-color: #e9ecef;
+            border-top: 1px solid #dee2e6;
+            padding: 1.25rem 0;
+            font-size: 0.9rem;
+        }
+        .badge-active {
+            background-color: #198754;
+        }
+        .badge-expired {
+            background-color: #dc3545;
+        }
+        .table-middle td, .table-middle th {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <span class="text-primary">XC</span>Mailr
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-span navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/}">Mailboxes</a>
+                </li>
+                <!-- Admin Dropdown -->
+                <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Administration
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminDropdown">
+                        <li><a class="dropdown-item" th:href="@{/admin/users}">User Management</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/domains}">Domain Whitelist</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/transactions}">Audit Log (Transactions)</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/statistics}">Email Statistics</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="nav-link" th:href="@{/login}">Login</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="btn btn-outline-light btn-sm ms-lg-2" th:href="@{/register}">Register</a>
+                </li>
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span sec:authentication="name">User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" th:href="@{/profile}">Profile & API Tokens</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="px-2 py-1">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">Log Out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Page Content -->
+<main class="container my-4">
+    <!-- Flash Messages & Alerts -->
+    <div th:if="${successMessage != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}">Operation successful</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}">An error occurred</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${infoMessage != null}" class="alert alert-info alert-dismissible fade show" role="alert">
+        <span th:text="${infoMessage}">Information notice</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Target content injected here -->
+    <div th:replace="${content}">
+        <p>Default content placeholder.</p>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="text-center text-muted">
+    <div class="container">
+        <p class="mb-1">&copy; 2013-2026 <a href="https://www.xceptance.com" target="_blank" class="text-decoration-none">Xceptance Software Technologies GmbH</a>. All rights reserved.</p>
+        <p class="small mb-0">XCMailr Modernized &bull; Java 25 &bull; Spring Boot 4.x &bull; HTMX</p>
+    </div>
+</footer>
+
+<!-- Scripts: Bootstrap 5 & HTMX -->
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}"></script>
+
+<!-- Global HTMX CSRF Handler -->
+<script>
+    document.body.addEventListener('htmx:configRequest', function (evt) {
+        const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+        const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+        if (token && header) {
+            evt.detail.headers[header] = token;
+        }
+    });
+</script>
+
+</body>
+</html>

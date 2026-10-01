@@ -15,7 +15,8 @@
  */
 package controllers.restapi;
 
-import org.hibernate.validator.constraints.Email;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 
 import models.MBox;
 
@@ -24,6 +25,7 @@ import models.MBox;
  */
 public class MailboxData
 {
+    @NotEmpty
     @Email
     public String address;
 

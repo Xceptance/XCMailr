@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::content})}">
+<body>
+
+<div th:fragment="content">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold mb-1">User Management</h2>
+            <p class="text-muted mb-0">Manage registered user accounts, activation states, and administrator privileges.</p>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">🔍</span>
+                <input type="search" class="form-control border-start-0" name="search"
+                       placeholder="Search users by email, first name, or last name..."
+                       th:value="${search}"
+                       hx-get="/admin/users"
+                       hx-trigger="keyup changed delay:300ms, search"
+                       hx-target="#user-table-container"
+                       hx-swap="outerHTML">
+            </div>
+        </div>
+    </div>
+
+    <!-- User Table (Loaded / updated via HTMX) -->
+    <div th:replace="~{admin/fragments/user-table :: table}"></div>
+</div>
+
+</body>
+</html>

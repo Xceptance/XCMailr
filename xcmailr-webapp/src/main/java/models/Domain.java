@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) 2013-2026 Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,19 @@ package models;
 import java.io.Serializable;
 import java.util.List;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 import io.ebean.DB;
 import io.ebean.ExpressionList;
 
 /**
- * Object to handle the allowed domains
- * 
+ * Entity representing an allowed email domain registered in XCMailr.
+ * Maps to the {@code register_domains} table.
+ *
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
 @Entity
@@ -37,74 +41,98 @@ public class Domain extends AbstractEntity implements Serializable
     private static final long serialVersionUID = 2659762572278339375L;
 
     /**
-     * the domainname
+     * The domain name (e.g., "example.com" or "xcmailr.test").
      */
+    @NotEmpty
+    @Size(max = 255)
+    @Column(name = "domainname", nullable = false, length = 255)
     private String domainname;
 
+    /**
+     * Default constructor required by JPA and serialization.
+     */
     public Domain()
     {
         this.domainname = "";
     }
 
-    public Domain(String domainname)
+    /**
+     * Constructs a new Domain entity with the given domain name.
+     *
+     * @param domainname the domain name to assign
+     */
+    public Domain(final String domainname)
     {
         this.domainname = domainname;
     }
 
+    /**
+     * @return the domain name string
+     */
     public String getDomainname()
     {
         return domainname;
     }
 
-    public void setDomainname(String domainname)
+    /**
+     * Sets the domain name string.
+     *
+     * @param domainname the domain name to set
+     */
+    public void setDomainname(final String domainname)
     {
         this.domainname = domainname;
     }
 
     /**
-     * Deletes the domain-object with the specified ID from the Database
-     * 
-     * @param id
-     *            the ID of the domain
+     * Deletes the domain object with the specified ID from the database.
+     *
+     * @param id the ID of the domain
      */
-    public static void delete(Long id)
+    public static void delete(final Long id)
     {
         DB.delete(Domain.class, id);
     }
 
     /**
-     * Deletes the domain-object with the specified domain-name from the Database
-     * 
-     * @param name
-     *            the domain-name
+     * Deletes the domain object with the specified domain name from the database.
+     *
+     * @param name the domain name
      */
-    public static void delete(String name)
+    public static void delete(final String name)
     {
-        Domain domain = getByName(name);
-        domain.delete();
+        final Domain domain = getByName(name);
+        if (domain != null)
+        {
+            domain.delete();
+        }
     }
 
     /**
-     * @param id
-     *            the ID of the domain
-     * @return a domain-object
+     * Finds a domain by its database ID.
+     *
+     * @param id the primary key ID of the domain
+     * @return a domain entity or null if not found
      */
-    public static Domain getById(Long id)
+    public static Domain getById(final Long id)
     {
         return DB.find(Domain.class, id);
     }
 
     /**
-     * @param name
-     *            the domain-name
-     * @return the domain-object for this name
+     * Finds a domain by its domain name (case-insensitive).
+     *
+     * @param name the domain name
+     * @return the matching domain entity or null
      */
-    public static Domain getByName(String name)
+    public static Domain getByName(final String name)
     {
         return queryByName(name).findOne();
     }
 
     /**
+     * Returns all registered domains in the database.
+     *
      * @return all listed domains in the database
      */
     public static List<Domain> getAll()
@@ -113,13 +141,12 @@ public class Domain extends AbstractEntity implements Serializable
     }
 
     /**
-     * Indicates whether a domain-name already exists
-     * 
-     * @param name
-     *            the domain-name to search for
+     * Indicates whether a domain name already exists in the database.
+     *
+     * @param name the domain name to search for
      * @return true, if the specified name already exists
      */
-    public static boolean exists(String name)
+    public static boolean exists(final String name)
     {
         return queryByName(name).exists();
     }
