@@ -25,6 +25,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
@@ -33,8 +34,17 @@ import models.Domain;
 import models.User;
 
 /**
- * Initializes the default administrator account and domain whitelist upon application startup
- * if they do not already exist in the database.
+ * Initializes the primary administrator account and default domain whitelist entry upon
+ * application startup if they do not already exist in the database.
+ * <p>
+ * This initializer operates in a strictly non-destructive manner across all environments:
+ * <ul>
+ *   <li>If administrator credentials are omitted or blank, bootstrapping is bypassed with zero database queries.</li>
+ *   <li>If an account with the configured administrator address already exists, it is left completely untouched
+ *       to prevent overwriting user-updated passwords or permissions.</li>
+ *   <li>If absent (such as on a fresh database or during disaster recovery after accidental deletion), the account
+ *       is created and the default domain whitelist entry is seeded.</li>
+ * </ul>
  */
 @Component
 @Order(10)
@@ -42,11 +52,24 @@ public class AdminUserInitializer implements ApplicationRunner
 {
     private static final Logger LOG = LoggerFactory.getLogger(AdminUserInitializer.class);
 
+    /**
+     * Default placeholder password used for local development warnings.
+     */
+    private static final String DEFAULT_DEV_PASSWORD = "1234";
+
     private final UserRepository userRepository;
     private final DomainRepository domainRepository;
     private final XcmailrProperties properties;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Constructs the initializer with required repository and security dependencies.
+     *
+     * @param userRepository repository for managing user persistence
+     * @param domainRepository repository for managing domain whitelist persistence
+     * @param properties application configuration properties
+     * @param passwordEncoder encoder used to hash passwords securely
+     */
     public AdminUserInitializer(final UserRepository userRepository,
                                 final DomainRepository domainRepository,
                                 final XcmailrProperties properties,
@@ -62,79 +85,63 @@ public class AdminUserInitializer implements ApplicationRunner
     @Transactional
     public void run(final ApplicationArguments args)
     {
-        seedAdminUser();
-        seedDefaultDomain();
-    }
-
-    private void seedAdminUser()
-    {
         final String adminMail = properties.getAdmin().getAddress();
         final String adminPassword = properties.getAdmin().getPassword();
 
-        if (adminMail == null || adminMail.isBlank())
+        // 1. Guard against blank or unconfigured credentials: skip lookups completely if either is missing or blank.
+        if (!StringUtils.hasText(adminMail) || !StringUtils.hasText(adminPassword))
         {
-            LOG.warn("No administrator address configured in xcmailr.admin.address. Skipping admin account creation.");
+            LOG.info("Administrator address or password is blank or not configured. Skipping admin account bootstrap.");
             return;
         }
 
         final String normalizedMail = adminMail.trim().toLowerCase();
+
+        // 2. Perform idempotent absence check: only seed if the account does not already exist.
         final Optional<User> existingUserOpt = userRepository.findByMailIgnoreCase(normalizedMail);
-
-        if (existingUserOpt.isEmpty())
+        if (existingUserOpt.isPresent())
         {
-            LOG.info("Creating default administrator account: {}", normalizedMail);
-            final User admin = new User();
-            admin.setForename("Site");
-            admin.setSurname("Admin");
-            admin.setMail(normalizedMail);
-            admin.setPasswd(passwordEncoder.encode(adminPassword));
-            admin.setLanguage("en");
-            admin.setAdmin(true);
-            admin.setActive(true);
-            userRepository.save(admin);
-            LOG.info("Default administrator account created successfully.");
+            LOG.debug("Administrator account '{}' already exists. Leaving credentials and permissions untouched.", normalizedMail);
+            return;
         }
-        else
+
+        // 3. Create missing administrator account (fresh installation or disaster recovery).
+        LOG.info("Administrator account '{}' not found. Bootstrapping initial administrative user.", normalizedMail);
+        if (DEFAULT_DEV_PASSWORD.equals(adminPassword))
         {
-            final User existing = existingUserOpt.get();
-            boolean modified = false;
-
-            if (!existing.isAdmin())
-            {
-                existing.setAdmin(true);
-                modified = true;
-            }
-            if (!existing.isActive())
-            {
-                existing.setActive(true);
-                modified = true;
-            }
-            if (existing.getPasswd() == null || existing.getPasswd().isBlank()
-                || !passwordEncoder.matches(adminPassword, existing.getPasswd()))
-            {
-                existing.setPasswd(passwordEncoder.encode(adminPassword));
-                modified = true;
-                LOG.info("Synchronized administrator account password with configured admin password.");
-            }
-
-            if (modified)
-            {
-                userRepository.save(existing);
-                LOG.info("Updated existing administrator account permissions for: {}", normalizedMail);
-            }
+            LOG.warn("SECURITY WARNING: Bootstrapping administrator account '{}' with default placeholder password. "
+                     + "Change this password immediately in production!", normalizedMail);
         }
+
+        final User admin = new User();
+        admin.setForename("Site");
+        admin.setSurname("Admin");
+        admin.setMail(normalizedMail);
+        admin.setPasswd(passwordEncoder.encode(adminPassword));
+        admin.setLanguage("en");
+        admin.setAdmin(true);
+        admin.setActive(true);
+        userRepository.save(admin);
+        LOG.info("Administrative account '{}' created successfully.", normalizedMail);
+
+        // 4. Seed default domain whitelist entry if absent.
+        seedDefaultDomain(normalizedMail);
     }
 
-    private void seedDefaultDomain()
+    /**
+     * Extracts the domain from the administrator's email address and ensures it exists in the domain whitelist.
+     *
+     * @param normalizedAdminMail the normalized administrator email address
+     */
+    private void seedDefaultDomain(final String normalizedAdminMail)
     {
-        final String adminMail = properties.getAdmin().getAddress();
-        if (adminMail == null || !adminMail.contains("@"))
+        if (!normalizedAdminMail.contains("@"))
         {
             return;
         }
 
-        final String domainPart = adminMail.substring(adminMail.indexOf('@') + 1).trim().toLowerCase();
-        if (!domainPart.isBlank() && !domainRepository.existsByDomainnameIgnoreCase(domainPart))
+        final String domainPart = normalizedAdminMail.substring(normalizedAdminMail.indexOf('@') + 1).trim().toLowerCase();
+        if (StringUtils.hasText(domainPart) && !domainRepository.existsByDomainnameIgnoreCase(domainPart))
         {
             LOG.info("Seeding default domain in whitelist: {}", domainPart);
             final Domain domain = new Domain(domainPart);

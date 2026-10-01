@@ -88,11 +88,41 @@ Once started, access the web dashboard at:
 http://localhost:8080/
 ```
 
-### Default Credentials
-Upon first initialization on an empty database, Flyway seeds a default administrator account:
+## Administrator Account Management
+
+### Initial Bootstrap & Configuration
+Upon application startup, XCMailr checks if administrator bootstrapping is configured:
+* **Configuration Properties**: `xcmailr.admin.address` and `xcmailr.admin.password`
+* **Environment Variables**: `ADMIN_ADDRESS` and `ADMIN_PASSWORD` (or `XCMAILR_ADMIN_ADDRESS` and `XCMAILR_ADMIN_PASSWORD`)
+
+Default credentials for local development:
 * **Username**: `admin@xcmailr.test`
 * **Password**: `1234`
-*(Important: Change the default administrator password immediately after first startup via the Profile menu.)*
+
+If valid credentials are provided and the account does not yet exist in the database (e.g. during fresh deployment on an empty database), XCMailr automatically:
+1. Bootstraps the administrator user account with active status and admin privileges.
+2. Automatically seeds the domain part of the administrator email into the registered domain whitelist if not already present.
+
+> [!WARNING]
+> If the administrator account is bootstrapped with the default password (`1234`), a prominent security warning is logged at startup. In any production or publicly accessible environment, configure strong initial credentials or change the password immediately.
+
+### Non-Destructive Startup Guarantee
+XCMailr enforces a strictly non-destructive startup policy:
+* **No Database Lookups When Unconfigured**: If either `xcmailr.admin.address` or `xcmailr.admin.password` is omitted, `null`, empty, or whitespace-only, the initialization step exits immediately without issuing any database queries.
+* **Zero Overwrites of Existing Accounts**: If an account with the configured administrator email already exists in the database, XCMailr leaves it completely untouched. Configured passwords or environment variables will **never** overwrite passwords, roles, or states of existing accounts.
+* **Password Updates**: After the administrator account has been bootstrapped, all subsequent password changes must be performed through the web UI profile dashboard (`/profile`).
+
+### Production Security Hardening
+In production environments, choose one of the following approaches:
+1. **Bootstrap with Strong Secrets**: Set `ADMIN_ADDRESS` and a strong, unique `ADMIN_PASSWORD` prior to the very first launch. After the initial start has initialized the database, you can safely remove or unset `ADMIN_PASSWORD`.
+2. **Explicitly Suppress Auto-Bootstrap**: Leaving `ADMIN_PASSWORD=""` or unset prevents any automatic administrator creation during startup.
+
+### Disaster Recovery
+If the primary administrator account is ever deleted accidentally or administrative access is lost:
+1. Ensure `ADMIN_ADDRESS` and a strong `ADMIN_PASSWORD` are supplied via environment variables.
+2. Restart the XCMailr application container or service.
+3. The system will detect the absence of the administrator account, safely recreate it with administrator privileges, and log the bootstrap event.
+4. Once restored, log in via the web dashboard and remove or unset `ADMIN_PASSWORD` if desired.
 
 ## REST API & Client SDK
 XCMailr provides a full REST API for programmatic mailbox generation and email assertion in test suites.
