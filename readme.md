@@ -124,6 +124,41 @@ If the primary administrator account is ever deleted accidentally or administrat
 3. The system will detect the absence of the administrator account, safely recreate it with administrator privileges, and log the bootstrap event.
 4. Once restored, log in via the web dashboard and remove or unset `ADMIN_PASSWORD` if desired.
 
+## User Registration & Email Confirmation
+
+By default, self-service user registration requires email verification before an account can be used to log in:
+
+1. A visitor registers via the `/register` web form.
+2. The user is created in an inactive state (`active = false`), an activation token is generated, and a verification email is dispatched via SMTP.
+3. The user clicks the link in the email (`/confirm/{token}`), which activates their account (`active = true`) and clears the token.
+4. The user is redirected to `/login?confirmed` and can log in with their credentials.
+
+### Development & Offline Testing Mode
+
+In local development, automated test pipelines, or environments without an active SMTP mail relay, you can disable email confirmation using the `APP_REQUIRE_CONFIRMATION` environment variable or configuration toggle:
+
+```bash
+# Run with automatic account activation upon registration
+APP_REQUIRE_CONFIRMATION=false mvn spring-boot:run -pl xcmailr-webapp
+```
+
+Or configure in `application.yml`:
+
+```yaml
+xcmailr:
+  app:
+    require-confirmation: false
+```
+
+When `require-confirmation` is `false`:
+* Newly registered accounts are activated immediately (`active = true`).
+* No confirmation token is created, and no SMTP email is sent.
+* Upon registration, the user is redirected to `/login?ready` and can log in immediately.
+
+### Security Guarantees
+* **Anti-Enumeration (CWE-204)**: During web login, credentials (email + password) are validated **before** checking account activation status. Attempting to log in with an unconfirmed email but an invalid password returns a generic error (`/login?error`) rather than an activation notice, preventing attackers from probing whether an email address is registered.
+* **Token Redaction (CWE-532)**: Confirmation tokens and activation URLs are strictly excluded from application logs to prevent bearer token leakage.
+
 ## REST API & Client SDK
 XCMailr provides a full REST API for programmatic mailbox generation and email assertion in test suites.
 

@@ -88,6 +88,12 @@ public class WebAuthController
 
     /**
      * Processes self-service account registration.
+     * <p>
+     * If {@code xcmailr.app.require-confirmation} is {@code true} (the default), the account is created with
+     * {@code active = false}, an activation token is generated, and a confirmation email is dispatched asynchronously.
+     * If {@code require-confirmation} is {@code false}, the account is activated immediately upon registration.
+     * In accordance with CWE-532, bearer confirmation tokens are never written to application logs.
+     * </p>
      *
      * @param forename user's first name
      * @param surname user's last name
@@ -136,6 +142,18 @@ public class WebAuthController
         user.setPasswd(passwordEncoder.encode(password));
         user.setLanguage(language);
 
+        final boolean requireConfirmation = properties.getApp().isRequireConfirmation();
+        if (!requireConfirmation)
+        {
+            // Auto-activate account for local development or offline test environments.
+            user.setActive(true);
+            user.setConfirmation(null);
+            user.setTs_confirm(null);
+            userRepository.save(user);
+            LOG.info("Registered user {} with immediate activation (requireConfirmation is disabled)", cleanMail);
+            return "redirect:/login?ready";
+        }
+
         final String token = UUID.randomUUID().toString();
         final long validityHours = properties.getApp().getConfirmationPeriodHours();
         final long expiration = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(validityHours);
@@ -153,6 +171,7 @@ public class WebAuthController
                           + "This link expires in " + validityHours + " hours.\n";
 
         outboundMailService.sendAsync(cleanMail, subject, body);
+        // Security audit compliance (CWE-532): Never log the token or full confirmation URL in application logs.
         LOG.info("Sent registration confirmation email to {}", cleanMail);
         return "redirect:/login?registered";
     }
@@ -169,6 +188,7 @@ public class WebAuthController
         final Optional<User> userOpt = userRepository.findByConfirmation(token);
         if (userOpt.isEmpty())
         {
+            LOG.warn("Confirmation attempt with invalid or non-existent token");
             return "redirect:/login?invalidToken";
         }
 
@@ -176,7 +196,7 @@ public class WebAuthController
         if (user.getTs_confirm() != null && user.getTs_confirm() < System.currentTimeMillis())
         {
             LOG.warn("Confirmation token expired for user {}", user.getMail());
-            return "redirect:/login?invalidToken";
+            return "redirect:/login?expiredToken";
         }
 
         user.setActive(true);

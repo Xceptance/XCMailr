@@ -54,6 +54,10 @@ xcmailr:
     confirmation-period-hours: 1
     cookie-expire-time-seconds: 3600
     cookie-prefix: XCMailr
+    # Whether user self-registration requires email confirmation before login.
+    # Defaults to true for production security. Set to false (e.g. via APP_REQUIRE_CONFIRMATION=false)
+    # for offline development, local demos, or CI environments without an active SMTP server.
+    require-confirmation: ${APP_REQUIRE_CONFIRMATION:true}
   admin:
     address: ${ADMIN_ADDRESS:admin@xcmailr.test}
     password: ${ADMIN_PASSWORD:1234}

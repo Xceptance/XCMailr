@@ -25,11 +25,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -79,6 +83,41 @@ public class SecurityConfig
     }
 
     /**
+     * Password-first authentication provider preventing user enumeration (CWE-204).
+     *
+     * @param userDetailsService user lookup service
+     * @param passwordEncoder password hashing encoder
+     * @return configured authentication provider
+     */
+    @Bean
+    public AuthenticationProvider authenticationProvider(final UserDetailsService userDetailsService,
+                                                         final PasswordEncoder passwordEncoder)
+    {
+        return new PasswordFirstAuthenticationProvider(userDetailsService, passwordEncoder);
+    }
+
+    /**
+     * Custom authentication failure handler distinguishing unconfirmed accounts from invalid credentials.
+     *
+     * @return failure handler routing DisabledException to /login?unconfirmed
+     */
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler()
+    {
+        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+        return (request, response, exception) -> {
+            if (exception instanceof DisabledException)
+            {
+                redirectStrategy.sendRedirect(request, response, "/login?unconfirmed");
+            }
+            else
+            {
+                redirectStrategy.sendRedirect(request, response, "/login?error");
+            }
+        };
+    }
+
+    /**
      * Security filter chain for REST API endpoints ({@code /api/**}).
      * Uses stateless sessions, disables CSRF, and authenticates via Bearer API tokens.
      *
@@ -108,12 +147,14 @@ public class SecurityConfig
      * Security filter chain for web pages, assets, and standard form login ({@code /**}).
      *
      * @param http HTTP security builder
+     * @param failureHandler failure handler directing unconfirmed accounts to ?unconfirmed
      * @return security filter chain
      * @throws Exception on configuration error
      */
     @Bean
     @Order(2)
-    public SecurityFilterChain webSecurityFilterChain(final HttpSecurity http) throws Exception
+    public SecurityFilterChain webSecurityFilterChain(final HttpSecurity http,
+                                                      final AuthenticationFailureHandler failureHandler) throws Exception
     {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
@@ -141,6 +182,7 @@ public class SecurityConfig
                 .usernameParameter("mail")
                 .passwordParameter("password")
                 .defaultSuccessUrl("/", true)
+                .failureHandler(failureHandler)
                 .permitAll()
             )
             .logout(logout -> logout

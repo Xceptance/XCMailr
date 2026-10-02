@@ -199,6 +199,26 @@ public class XcmailrProperties
         {
             this.cookiePrefix = cookiePrefix;
         }
+
+        /**
+         * Whether email confirmation is required for newly registered user accounts.
+         * <p>
+         * Defaults to {@code true}. When set to {@code false} (e.g. via environment variable
+         * {@code APP_REQUIRE_CONFIRMATION=false}), newly registered accounts are automatically
+         * activated immediately upon form submission without dispatching an activation email.
+         * </p>
+         */
+        private boolean requireConfirmation = true;
+
+        public boolean isRequireConfirmation()
+        {
+            return requireConfirmation;
+        }
+
+        public void setRequireConfirmation(final boolean requireConfirmation)
+        {
+            this.requireConfirmation = requireConfirmation;
+        }
     }
 
     /**

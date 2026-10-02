@@ -1,10 +1,6 @@
-# Web Console UI Specification
+# Spec Delta
 
-## Purpose
-
-Provides a responsive, server-driven web management console using Thymeleaf and HTMX for self-service mailbox operations, email inspection, and system administration.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: User Authentication and Self-Service
 The system SHALL provide web views for user registration, email verification, session login, password reset, and profile management, handling both success and error conditions gracefully.
@@ -44,25 +40,3 @@ The system SHALL provide web views for user registration, email verification, se
 #### Scenario: Case-Insensitive Email Authentication
 - **WHEN** a user logs in using an email address whose casing differs from the registration record
 - **THEN** the system normalizes the email casing and successfully authenticates the user
-
-### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads.
-
-#### Scenario: Live Search and Filter
-- **WHEN** the user types into the mailbox filter input
-- **THEN** HTMX triggers an asynchronous partial update of the mailbox table matching the filter criteria
-
-#### Scenario: Modal Dialog Actions
-- **WHEN** the user clicks to edit, delete, or extend expiration on a mailbox
-- **THEN** HTMX loads the modal fragment dynamically and updates the table row upon successful submission
-
-### Requirement: Admin Management Console
-The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist.
-
-#### Scenario: Domain Whitelist Configuration
-- **WHEN** an administrator adds or removes an allowed domain via the admin console
-- **THEN** the system updates the registered domain table and enforces the change on the inbound SMTP listener immediately
-
-#### Scenario: Paged Transaction Auditing
-- **WHEN** an administrator inspects the mail transaction log
-- **THEN** the system displays paginated records with filtering by timestamp, status, and address

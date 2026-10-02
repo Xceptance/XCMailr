@@ -21,8 +21,14 @@
                 <div th:if="${param.logout != null}" class="alert alert-info" role="alert">
                     You have been logged out successfully.
                 </div>
-                <div th:if="${param.registered != null}" class="alert alert-success" role="alert">
+                <div th:if="${param.registered != null}" class="alert alert-info" role="alert">
+                    Registration successful! Please check your email to activate your account before logging in.
+                </div>
+                <div th:if="${param.ready != null}" class="alert alert-success" role="alert">
                     Registration successful! You may now log in.
+                </div>
+                <div th:if="${param.unconfirmed != null}" class="alert alert-warning" role="alert">
+                    Your account has not been activated yet. Please check your email for the confirmation link.
                 </div>
                 <div th:if="${param.confirmed != null}" class="alert alert-success" role="alert">
                     Your account has been activated! Please log in.
@@ -34,7 +40,10 @@
                     Your password has been reset successfully. Please log in with your new password.
                 </div>
                 <div th:if="${param.invalidToken != null}" class="alert alert-danger" role="alert">
-                    The confirmation or reset link is invalid or has expired.
+                    The confirmation or reset link is invalid or has already been used.
+                </div>
+                <div th:if="${param.expiredToken != null}" class="alert alert-danger" role="alert">
+                    The confirmation link has expired. Please register again or request a new link.
                 </div>
 
                 <form th:action="@{/login}" method="post">

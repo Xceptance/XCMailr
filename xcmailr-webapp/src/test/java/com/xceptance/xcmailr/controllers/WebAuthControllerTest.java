@@ -17,6 +17,7 @@ package com.xceptance.xcmailr.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -38,6 +39,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.xceptance.xcmailr.XcmailrApplication;
+import com.xceptance.xcmailr.config.XcmailrProperties;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
 import models.User;
@@ -62,6 +64,9 @@ public class WebAuthControllerTest
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private XcmailrProperties properties;
 
     @BeforeEach
     public void setup()
@@ -215,5 +220,192 @@ public class WebAuthControllerTest
                .param("password", "WrongPassword"))
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/login?error"));
+    }
+
+    @Test
+    @DisplayName("Roundtrip: Email confirmation flow (register -> login blocked with ?unconfirmed -> confirm token -> login succeeds)")
+    public void testEmailConfirmationRoundtrip() throws Exception
+    {
+        properties.getApp().setRequireConfirmation(true);
+
+        // Step 1: Self-service registration
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Hans")
+               .param("surname", "Kanns")
+               .param("mail", "hans.kanns@varmail.de")
+               .param("password", "123456")
+               .param("confirmPassword", "123456"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?registered"));
+
+        final User registeredUser = userRepository.findByMailIgnoreCase("hans.kanns@varmail.de").orElse(null);
+        assertNotNull(registeredUser, "User should be registered");
+        assertFalse(registeredUser.isActive(), "User must be inactive before confirmation");
+        assertNotNull(registeredUser.getConfirmation(), "Confirmation token must be generated");
+        final String token = registeredUser.getConfirmation();
+
+        // Step 2: Attempt login prior to activation with valid password -> redirected to /login?unconfirmed
+        mockMvc.perform(post("/login")
+               .with(csrf())
+               .param("mail", "hans.kanns@varmail.de")
+               .param("password", "123456"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?unconfirmed"));
+
+        // Step 3: Activate account via confirmation token link
+        mockMvc.perform(get("/confirm/" + token))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?confirmed"));
+
+        final User activatedUser = userRepository.findByMailIgnoreCase("hans.kanns@varmail.de").orElse(null);
+        assertNotNull(activatedUser, "User should exist");
+        assertTrue(activatedUser.isActive(), "User must be active after confirmation");
+        assertNull(activatedUser.getConfirmation(), "Confirmation token must be cleared after use");
+
+        // Step 4: Login with activated credentials -> successfully authenticated and redirected to /
+        mockMvc.perform(post("/login")
+               .with(csrf())
+               .param("mail", "hans.kanns@varmail.de")
+               .param("password", "123456"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/"));
+    }
+
+    @Test
+    @DisplayName("Roundtrip: Auto-activation flow when requireConfirmation=false (register -> login?ready -> immediate login succeeds)")
+    public void testAutoActivationRoundtrip() throws Exception
+    {
+        final boolean previousSetting = properties.getApp().isRequireConfirmation();
+        try
+        {
+            properties.getApp().setRequireConfirmation(false);
+
+            // Step 1: Self-service registration with auto-activation
+            mockMvc.perform(post("/register")
+                   .with(csrf())
+                   .param("forename", "Auto")
+                   .param("surname", "User")
+                   .param("mail", "auto.active@varmail.de")
+                   .param("password", "SecureSecret123!")
+                   .param("confirmPassword", "SecureSecret123!"))
+                   .andExpect(status().is3xxRedirection())
+                   .andExpect(redirectedUrl("/login?ready"));
+
+            final User registeredUser = userRepository.findByMailIgnoreCase("auto.active@varmail.de").orElse(null);
+            assertNotNull(registeredUser, "User should be registered");
+            assertTrue(registeredUser.isActive(), "User must be active immediately when requireConfirmation is false");
+            assertNull(registeredUser.getConfirmation(), "Confirmation token must not be generated");
+
+            // Step 2: Immediate login without confirmation link -> succeeds and redirects to /
+            mockMvc.perform(post("/login")
+                   .with(csrf())
+                   .param("mail", "auto.active@varmail.de")
+                   .param("password", "SecureSecret123!"))
+                   .andExpect(status().is3xxRedirection())
+                   .andExpect(redirectedUrl("/"));
+        }
+        finally
+        {
+            properties.getApp().setRequireConfirmation(previousSetting);
+        }
+    }
+
+    @Test
+    @DisplayName("Anti-enumeration: Login with wrong password on unconfirmed account must redirect to /login?error")
+    public void testUnconfirmedLoginWithWrongPasswordAntiEnumeration() throws Exception
+    {
+        final User unconfirmed = new User("Target", "Victim", "victim@xcmailr.test", "RealSecretPassword123", "en");
+        unconfirmed.setActive(false);
+        unconfirmed.setConfirmation("target-token-uuid");
+        unconfirmed.setTs_confirm(System.currentTimeMillis() + 3600_000L);
+        userRepository.save(unconfirmed);
+
+        // Attacker attempts login with wrong password
+        mockMvc.perform(post("/login")
+               .with(csrf())
+               .param("mail", "victim@xcmailr.test")
+               .param("password", "GuessedWrongPassword"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?error")); // Must NOT redirect to /login?unconfirmed (CWE-204)
+    }
+
+    @Test
+    @DisplayName("POST /register with password shorter than 6 characters should reject")
+    public void testRegisterShortPassword() throws Exception
+    {
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Short")
+               .param("surname", "Pass")
+               .param("mail", "shortpass@xcmailr.test")
+               .param("password", "12345")
+               .param("confirmPassword", "12345"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Password must be at least 6 characters long."));
+    }
+
+    @Test
+    @DisplayName("POST /register with duplicate email case-insensitively should reject")
+    public void testRegisterDuplicateEmailCaseInsensitive() throws Exception
+    {
+        final User existing = new User("Original", "User", "duplicate@xcmailr.test", "Password123", "en");
+        existing.setActive(true);
+        userRepository.save(existing);
+
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Another")
+               .param("surname", "User")
+               .param("mail", "DUPLICATE@XCMAILR.TEST")
+               .param("password", "DifferentPass123")
+               .param("confirmPassword", "DifferentPass123"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "An account with this email address already exists."));
+    }
+
+    @Test
+    @DisplayName("GET /confirm/{token} with non-existent token should redirect to /login?invalidToken")
+    public void testConfirmAccountInvalidToken() throws Exception
+    {
+        mockMvc.perform(get("/confirm/non-existent-token-xyz"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?invalidToken"));
+    }
+
+    @Test
+    @DisplayName("GET /confirm/{token} with expired token should redirect to /login?expiredToken")
+    public void testConfirmAccountExpiredToken() throws Exception
+    {
+        final User user = new User("Expired", "User", "expired@xcmailr.test", "secretPassword123", "en");
+        user.setActive(false);
+        user.setConfirmation("expired-token-1234");
+        user.setTs_confirm(System.currentTimeMillis() - 60_000L); // expired 1 minute ago
+        userRepository.save(user);
+
+        mockMvc.perform(get("/confirm/expired-token-1234"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?expiredToken"));
+
+        final User reloaded = userRepository.findById(user.getId()).orElseThrow();
+        assertFalse(reloaded.isActive(), "User must remain inactive after expired confirmation attempt");
+    }
+
+    @Test
+    @DisplayName("POST /login with upper-case email should authenticate active user")
+    public void testFormLoginCaseInsensitiveEmail() throws Exception
+    {
+        final User user = new User("Case", "Test", "case.test@xcmailr.test", "Secret123", "en");
+        user.setActive(true);
+        userRepository.save(user);
+
+        mockMvc.perform(post("/login")
+               .with(csrf())
+               .param("mail", "CASE.TEST@XCMAILR.TEST")
+               .param("password", "Secret123"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/"));
     }
 }
