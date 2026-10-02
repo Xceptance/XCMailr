@@ -14,7 +14,7 @@
             <button class="btn btn-primary" type="button"
                     th:attr="hx-get=@{/mailboxes/new},hx-target='#modal-container',hx-swap='innerHTML'"
                     data-bs-toggle="modal" data-bs-target="#actionModal">
-                <span class="me-1">+</span> New Mailbox
+                <i class="bi bi-plus-lg me-1"></i> New Mailbox
             </button>
         </div>
     </div>
@@ -36,7 +36,7 @@
                 <!-- Search Input with HTMX live search (triggers on keyup with 300ms debounce) -->
                 <div class="col-md-7 col-lg-8">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">🔍</span>
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-muted"></i></span>
                         <input type="search" class="form-control border-start-0" name="search"
                                placeholder="Live search by address or domain..."
                                th:value="${search}"

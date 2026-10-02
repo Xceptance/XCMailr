@@ -194,4 +194,16 @@ public class SecurityConfig
 
         return http.build();
     }
+
+    /**
+     * Declares the Thymeleaf Spring Security dialect bean to enable {@code sec:authorize}
+     * and {@code sec:authentication} evaluation during server-side HTML rendering.
+     *
+     * @return configured spring security dialect
+     */
+    @Bean
+    public org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect springSecurityDialect()
+    {
+        return new org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect();
+    }
 }

@@ -20,7 +20,12 @@ XCMailr allows you to host your own disposable email testing service. You contro
 
 ## Key Features & Modern Stack
 * **Java 25 & Spring Boot 4.1.1**: High throughput and modern language features with Project Loom Virtual Threads enabled for all HTTP requests and background tasks.
-* **Modern Web UI**: Built with server-side Thymeleaf 3, Bootstrap 5, and HTMX 2 for responsive, reactive single-page app UX without requiring Node.js or npm.
+* **Modern Web Console & Responsive UI**: Built with server-side Thymeleaf 3, Bootstrap 5.3, and HTMX 2 for responsive, reactive single-page app UX without requiring Node.js or npm.
+* **Corporate Theme & Design System**: Styled according to Xceptance corporate identity (`#004682` brand blue, `#003868` hover, `#dc3545` accent) with Roboto and Roboto Condensed typography.
+* **Responsive Offcanvas Drawer**: Sticky corporate navbar on desktop screens and a smooth slide-out Bootstrap 5 Offcanvas drawer (`#navbarOffcanvas`) on mobile viewports.
+* **Dark & Light Mode Support**: Native Bootstrap 5.3 color mode switching (`[data-bs-theme]`) with `prefers-color-scheme` auto-detection, `localStorage` persistence, and FOIT-free initialization.
+* **Standardized Bootstrap Icons**: Integrated `bootstrap-icons:1.11.3` WebJar providing vector icons for search, actions, navigation, and theme toggling.
+* **Role-Based Access Control & OWASP Compliance**: Server-side Thymeleaf Spring Security 6 dialect (`sec:authorize`) eliminates unauthorized DOM exposure; method-level `@PreAuthorize("hasRole('ADMIN')")` and URL security filters enforce multi-layer Broken Access Control (OWASP A01:2021) defenses.
 * **Embedded SMTP Engine**: Powered by SubEthaSMTP 7.2.2 with virtual-thread dispatching, handling inbound emails directly on port 25000 (configurable).
 * **OWASP HTML Sanitizer**: Safe webmail message rendering stripping malicious `<script>` tags, event handlers, and unsafe protocols while preserving styles and formatting.
 * **Spring Security & BCrypt**: Robust password hashing with automatic transparent upgrade for legacy SHA-512 hashes upon successful login.
@@ -234,9 +239,9 @@ server {
 
 ## Third-Party Libraries & Technologies
 * **Spring Boot & Spring Framework**: Apache 2.0 License
-* **Thymeleaf**: Apache 2.0 License
+* **Thymeleaf & Thymeleaf Extras Spring Security 6**: Apache 2.0 License
 * **HTMX**: Zero-Clause BSD / MIT License
-* **Bootstrap 5**: MIT License
+* **Bootstrap 5 & Bootstrap Icons**: MIT License
 * **SubEthaSMTP**: Apache 2.0 License
 * **OWASP Java HTML Sanitizer**: Apache 2.0 License
 * **Flyway**: Apache 2.0 License
