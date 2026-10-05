@@ -54,7 +54,7 @@ public class MailData
 
     public MailData(final Mail mail) throws Exception
     {
-        this(mail, mail.getMailbox());
+        this(mail, null);
     }
 
     public MailData(final Mail mail, final MBox mailbox) throws Exception

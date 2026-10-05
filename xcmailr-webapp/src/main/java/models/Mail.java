@@ -26,8 +26,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import io.ebean.DB;
-
 /**
  * Entity representing an email received and stored for a temporary mailbox.
  * Maps to the {@code mail} table.
@@ -155,15 +153,7 @@ public class Mail extends AbstractEntity implements Serializable
         this.message = message;
     }
 
-    /**
-     * Resolves the associated mailbox entity.
-     *
-     * @return associated MBox or null
-     */
-    public MBox getMailbox()
-    {
-        return MBox.getById(mailbox);
-    }
+
 
     /**
      * @return foreign mailbox identifier
@@ -219,27 +209,5 @@ public class Mail extends AbstractEntity implements Serializable
         {
             this.uuid = java.util.UUID.randomUUID().toString();
         }
-    }
-
-    /**
-     * Finds a mail by ID.
-     * 
-     * @param id the ID
-     * @return the mail or null if not found
-     */
-    public static Mail find(final long id)
-    {
-        return DB.find(Mail.class).where().idEq(id).findOne();
-    }
-
-    /**
-     * Finds all mails in the mailbox with the given ID and returns them sorted by receive time.
-     * 
-     * @param mailboxId the ID of the mailbox
-     * @return the list of mails found
-     */
-    public static List<Mail> findAndSort(final long mailboxId)
-    {
-        return DB.find(Mail.class).where().eq("mailbox_id", mailboxId).orderBy("receiveTime").findList();
     }
 }

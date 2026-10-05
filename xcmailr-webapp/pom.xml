@@ -22,33 +22,13 @@
 
     <properties>
         <java.version>25</java.version>
-        <ninja.version>6.9.0</ninja.version>
-        <!-- Have to stay on slf4j v1.x as Ninja and other used libraries depend on it -->
         <slf4j.version>1.7.36</slf4j.version>
         <license.skipFormat>false</license.skipFormat>
-        <ebean.version>15.11.0</ebean.version>
         <jackson.version>2.19.0</jackson.version>
     </properties>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.ninjaframework</groupId>
-                <artifactId>ninja-maven-plugin</artifactId>
-                <version>${ninja.version}</version>
-                <configuration>
-                    <mode>dev</mode>
-                    <jvmArgs>
-                        -Dlogback.configurationFile=conf/logback_dev.xml
-                        -Dninja.external.configuration=conf/application_dev.conf
-                        -Dninja.ssl.keystore.uri=file://${basedir}/conf/keystore_dev.jks
-                    </jvmArgs>
-                    <useDefaultExcludes>true</useDefaultExcludes>
-                    <excludes>
-                        <exclude>(.*)ftl.html$</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -56,25 +36,6 @@
                     <execution>
                         <goals>
                             <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptors>
-                        <descriptor>assembly.xml</descriptor>
-                    </descriptors>
-                    <appendAssemblyId>true</appendAssemblyId>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>create-distribution</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -95,16 +56,6 @@
                 <version>3.5.3</version>
                 <configuration>
                     <argLine>--add-modules ALL-SYSTEM</argLine>
-                    <systemPropertyVariables>
-                        <logback.configurationFile>conf/logback_dev.xml</logback.configurationFile>
-                        <ninja.mode>test</ninja.mode>
-                    </systemPropertyVariables>
-                    <properties>
-                        <property>
-                            <name>listener</name>
-                            <value>testutils.MacOsPortFixListener</value>
-                        </property>
-                    </properties>
                 </configuration>
             </plugin>
 
@@ -123,16 +74,6 @@
                 <configuration>
                     <classesDirectory>${project.build.outputDirectory}</classesDirectory>
                     <argLine>--add-modules ALL-SYSTEM</argLine>
-                    <systemPropertyVariables>
-                        <logback.configurationFile>conf/logback_dev.xml</logback.configurationFile>
-                        <ninja.mode>test</ninja.mode>
-                    </systemPropertyVariables>
-                    <properties>
-                        <property>
-                            <name>listener</name>
-                            <value>testutils.MacOsPortFixListener</value>
-                        </property>
-                    </properties>
                 </configuration>
             </plugin>
 
@@ -140,11 +81,6 @@
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
                 <version>4.6</version>
-                <configuration>
-                    <excludes>
-                        <exclude>src/main/java/ninja/ebean/**</exclude>
-                    </excludes>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -267,71 +203,12 @@
         </dependency>
 
         <dependency>
-            <groupId>org.ninjaframework</groupId>
-            <artifactId>ninja-standalone</artifactId>
-            <version>${ninja.version}</version>
-            <exclusions>
-                <!-- exclude some unneeded/unwanted artifacts to reduce footprint and to avoid version conflicts -->
-                <exclusion>
-                    <artifactId>ehcache-core</artifactId>
-                    <groupId>net.sf.ehcache</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hibernate-entitymanager</artifactId>
-                    <groupId>org.hibernate</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hibernate-c3p0</artifactId>
-                    <groupId>org.hibernate</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.hibernate</groupId>
-                    <artifactId>hibernate-validator</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.ninjaframework</groupId>
-            <artifactId>ninja-db-classic</artifactId>
-            <version>${ninja.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ninjaframework</groupId>
-            <artifactId>ninja-test-utilities</artifactId>
-            <version>${ninja.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.activation</groupId>
-                    <artifactId>activation</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.mail</groupId>
-                    <artifactId>mail</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>2.3.232</version>
         </dependency>
-        <dependency>
-            <groupId>io.ebean</groupId>
-            <artifactId>ebean</artifactId>
-            <version>${ebean.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ebean</groupId>
-            <artifactId>ebean-ddl-generator</artifactId>
-            <version>${ebean.version}</version>
-        </dependency>
 
-        <!--Overrides of Ninja dependencies -->
+        <!-- Jackson dependencies -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
@@ -368,7 +245,6 @@
             <version>7.1.0</version>
         </dependency>
 
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
@@ -386,37 +262,13 @@
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
-            <artifactId>commons-email</artifactId>
-            <version>1.6.0</version>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.18.0</version>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>dev</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.ninjaframework</groupId>
-                        <artifactId>ninja-maven-plugin</artifactId>
-                        <version>${ninja.version}</version>
-                        <configuration>
-                            <mode>dev</mode>
-                            <jvmArgs>
-                                -Dlogback.configurationFile=conf/logback_dev.xml
-                                -Dninja.external.configuration=conf/application_dev.conf
-                                -Dninja.ssl.keystore.uri=file://${basedir}/conf/keystore_dev.jks
-                                -agentlib:jdwp=transport=dt_socket,server=y,address=8000
-                            </jvmArgs>
-                            <useDefaultExcludes>true</useDefaultExcludes>
-                            <excludes>
-                                <exclude>(.*)ftl.html$</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
 </project>

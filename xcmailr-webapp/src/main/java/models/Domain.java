@@ -24,9 +24,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
-import io.ebean.DB;
-import io.ebean.ExpressionList;
-
 /**
  * Entity representing an allowed email domain registered in XCMailr.
  * Maps to the {@code register_domains} table.
@@ -82,77 +79,5 @@ public class Domain extends AbstractEntity implements Serializable
     public void setDomainname(final String domainname)
     {
         this.domainname = domainname;
-    }
-
-    /**
-     * Deletes the domain object with the specified ID from the database.
-     *
-     * @param id the ID of the domain
-     */
-    public static void delete(final Long id)
-    {
-        DB.delete(Domain.class, id);
-    }
-
-    /**
-     * Deletes the domain object with the specified domain name from the database.
-     *
-     * @param name the domain name
-     */
-    public static void delete(final String name)
-    {
-        final Domain domain = getByName(name);
-        if (domain != null)
-        {
-            domain.delete();
-        }
-    }
-
-    /**
-     * Finds a domain by its database ID.
-     *
-     * @param id the primary key ID of the domain
-     * @return a domain entity or null if not found
-     */
-    public static Domain getById(final Long id)
-    {
-        return DB.find(Domain.class, id);
-    }
-
-    /**
-     * Finds a domain by its domain name (case-insensitive).
-     *
-     * @param name the domain name
-     * @return the matching domain entity or null
-     */
-    public static Domain getByName(final String name)
-    {
-        return queryByName(name).findOne();
-    }
-
-    /**
-     * Returns all registered domains in the database.
-     *
-     * @return all listed domains in the database
-     */
-    public static List<Domain> getAll()
-    {
-        return DB.find(Domain.class).findList();
-    }
-
-    /**
-     * Indicates whether a domain name already exists in the database.
-     *
-     * @param name the domain name to search for
-     * @return true, if the specified name already exists
-     */
-    public static boolean exists(final String name)
-    {
-        return queryByName(name).exists();
-    }
-
-    private static ExpressionList<Domain> queryByName(final String name)
-    {
-        return DB.find(Domain.class).where().ieq("domainname", name);
     }
 }
