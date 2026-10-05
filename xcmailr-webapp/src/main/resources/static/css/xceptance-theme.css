@@ -301,3 +301,24 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     background-color: rgba(13, 110, 253, 0.08);
 }
 
+/* ==========================================================================
+   Error Views
+   ========================================================================== */
+
+.error-container {
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    background-color: var(--bs-body-bg, #ffffff);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+[data-bs-theme="dark"] .error-container {
+    border-color: rgba(255, 255, 255, 0.12);
+    background-color: #1e242b;
+}
+
+.error-badge .badge {
+    font-weight: 500;
+    letter-spacing: 0.025em;
+}
+
+

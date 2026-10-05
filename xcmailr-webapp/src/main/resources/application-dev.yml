@@ -11,6 +11,13 @@ spring:
   # Disable Thymeleaf template caching for immediate UI feedback during development
   thymeleaf:
     cache: false
+  devtools:
+    restart:
+      enabled: true
+      poll-interval: 1000ms
+      quiet-period: 500ms
+    livereload:
+      enabled: true
 
 logging:
   level:
