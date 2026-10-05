@@ -2,7 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<div th:fragment="table" id="mailbox-table-container">
+<div th:fragment="table" id="mailbox-table-container"
+     hx-get="/mailboxes"
+     hx-trigger="mailboxChanged from:body"
+     hx-target="#mailbox-table-container"
+     hx-swap="outerHTML">
     <div class="table-responsive bg-white rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">

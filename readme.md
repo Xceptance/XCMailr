@@ -237,6 +237,10 @@ server {
 }
 ```
 
+## Local Development & Email Testing
+For instructions on running XCMailr locally and testing the complete email pipeline (inbound receiving on port 25000 and outbound forwarding to a mock inbox via Mailpit), see:
+* **[Local Email Testing Guide](docs/local-testing-guide.md)**
+
 ## Third-Party Libraries & Technologies
 * **Spring Boot & Spring Framework**: Apache 2.0 License
 * **Thymeleaf & Thymeleaf Extras Spring Security 6**: Apache 2.0 License

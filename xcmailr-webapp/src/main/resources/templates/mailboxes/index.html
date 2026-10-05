@@ -70,13 +70,6 @@
 
     <!-- Mailbox Table Container (Updated dynamically via HTMX) -->
     <div th:replace="~{mailboxes/fragments/mailbox-table :: table}"></div>
-
-    <!-- Generic Modal Dialog Host for dynamic HTMX modals -->
-    <div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
-        <div id="modal-container">
-            <!-- Modal dialog fragments are loaded here via HTMX -->
-        </div>
-    </div>
 </div>
 
 </body>

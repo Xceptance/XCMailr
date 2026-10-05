@@ -169,7 +169,18 @@ public class MailboxWebControllerTest
     }
 
     @Test
-    @DisplayName("POST /mailboxes via HTMX should return 200 with HX-Trigger header")
+    @DisplayName("GET /mailboxes/new should return modal fragment with domains and suggested address")
+    public void testNewMailboxModal() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes/new")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attributeExists("domains", "suggestedAddress"));
+    }
+
+    @Test
+    @DisplayName("POST /mailboxes via HTMX should return 200 with HX-Trigger and HX-Trigger-After-Swap headers")
     public void testCreateMailboxHtmx() throws Exception
     {
         mockMvc.perform(post("/mailboxes")
@@ -181,11 +192,60 @@ public class MailboxWebControllerTest
                .param("durationHours", "1")
                .param("forwardEmails", "false"))
                .andExpect(status().isOk())
-               .andExpect(header().string("HX-Trigger", "mailboxChanged"));
+               .andExpect(header().string("HX-Trigger", "mailboxChanged"))
+               .andExpect(header().string("HX-Trigger-After-Swap", "closeModal"));
 
         final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("htmx-box", "xcmailr.test").orElse(null);
         assertNotNull(box);
         assertFalse(box.isForwardEmails());
+    }
+
+    @Test
+    @DisplayName("POST /mailboxes via HTMX with invalid address should return modal with error")
+    public void testCreateMailboxHtmxInvalidAddress() throws Exception
+    {
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", "invalid@@address")
+               .param("domain", "xcmailr.test"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attribute("error", "Invalid mailbox address characters."));
+    }
+
+    @Test
+    @DisplayName("POST /mailboxes via HTMX with unknown domain should return modal with error")
+    public void testCreateMailboxHtmxInvalidDomain() throws Exception
+    {
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", "valid-box")
+               .param("domain", "unknown-domain.test"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attribute("error", "Specified domain is not configured or whitelisted."));
+    }
+
+    @Test
+    @DisplayName("POST /mailboxes via HTMX with duplicate address should return modal with error")
+    public void testCreateMailboxHtmxDuplicateAddress() throws Exception
+    {
+        final MBox existing = new MBox("existing-box", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(existing);
+
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", "existing-box")
+               .param("domain", "xcmailr.test"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attribute("error", "A mailbox with this address already exists."));
     }
 
     @Test

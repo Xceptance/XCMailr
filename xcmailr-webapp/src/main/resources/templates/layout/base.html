@@ -237,6 +237,13 @@
     </div>
 </footer>
 
+<!-- Generic Action Modal Host for dynamic HTMX dialogs -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" id="modal-container">
+        <!-- Modal content loaded here dynamically via HTMX -->
+    </div>
+</div>
+
 <!-- Scripts: Bootstrap 5 & HTMX -->
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}"></script>
@@ -317,6 +324,17 @@
             const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
             if (token && header) {
                 evt.detail.headers[header] = token;
+            }
+        });
+
+        // Global HTMX closeModal event listener to dismiss actionModal
+        document.body.addEventListener('closeModal', function () {
+            const modalEl = document.getElementById('actionModal');
+            if (modalEl) {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
             }
         });
     })();

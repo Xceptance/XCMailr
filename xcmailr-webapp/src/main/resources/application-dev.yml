@@ -1,0 +1,40 @@
+# ==============================================================================
+# XCMailr Spring Boot Profile: 'dev'
+#
+# Activate via:
+#   mvn spring-boot:run -pl xcmailr-webapp -Dspring-boot.run.profiles=dev
+# or:
+#   java -jar target/xcmailr-webapp-*.jar --spring.profiles.active=dev
+# ==============================================================================
+
+spring:
+  # Disable Thymeleaf template caching for immediate UI feedback during development
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    root: INFO
+    com.xceptance.xcmailr: DEBUG
+    # Verbose logging for Jakarta Mail SMTP delivery
+    jakarta.mail: DEBUG
+
+xcmailr:
+  app:
+    # Retain user confirmation requirement so verification emails are dispatched to Mailpit
+    require-confirmation: true
+    url: http://localhost:8080
+
+  outbound-smtp:
+    # Direct outbound emails (verification links, forwarded mail) to local Mailpit
+    host: localhost
+    port: 1025
+    user: ""
+    password: ""
+    auth: false
+    tls: false
+    ssl: false
+    starttls: false
+    debug: true
+    enabled: true
+    msg-rewrite: false

@@ -202,6 +202,7 @@ public class MailboxWebController
     {
         final User user = getUser(principal);
         String localAddress = address != null ? address.trim().toLowerCase() : "";
+        final String cleanDomain = domain != null ? domain.trim().toLowerCase() : "";
 
         if (localAddress.isEmpty())
         {
@@ -212,17 +213,24 @@ public class MailboxWebController
         {
             if ("true".equalsIgnoreCase(hxRequest))
             {
-                return ResponseEntity.badRequest().body("Invalid mailbox address characters.");
+                model.addAttribute("error", "Invalid mailbox address characters.");
+                model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
+                model.addAttribute("address", localAddress);
+                model.addAttribute("selectedDomain", cleanDomain);
+                return "mailboxes/fragments/modal-new :: modal";
             }
             return "redirect:/mailboxes?error=invalidAddress";
         }
 
-        final String cleanDomain = domain.trim().toLowerCase();
         if (!domainRepository.existsByDomainnameIgnoreCase(cleanDomain))
         {
             if ("true".equalsIgnoreCase(hxRequest))
             {
-                return ResponseEntity.badRequest().body("Specified domain is not configured or whitelisted.");
+                model.addAttribute("error", "Specified domain is not configured or whitelisted.");
+                model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
+                model.addAttribute("address", localAddress);
+                model.addAttribute("selectedDomain", cleanDomain);
+                return "mailboxes/fragments/modal-new :: modal";
             }
             return "redirect:/mailboxes?error=invalidDomain";
         }
@@ -231,7 +239,11 @@ public class MailboxWebController
         {
             if ("true".equalsIgnoreCase(hxRequest))
             {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Mailbox address already exists.");
+                model.addAttribute("error", "A mailbox with this address already exists.");
+                model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
+                model.addAttribute("address", localAddress);
+                model.addAttribute("selectedDomain", cleanDomain);
+                return "mailboxes/fragments/modal-new :: modal";
             }
             return "redirect:/mailboxes?error=mailboxExists";
         }
@@ -249,6 +261,7 @@ public class MailboxWebController
         {
             final HttpHeaders headers = new HttpHeaders();
             headers.add("HX-Trigger", "mailboxChanged");
+            headers.add("HX-Trigger-After-Swap", "closeModal");
             return ResponseEntity.ok().headers(headers).body("");
         }
 
@@ -306,6 +319,7 @@ public class MailboxWebController
         {
             final HttpHeaders headers = new HttpHeaders();
             headers.add("HX-Trigger", "mailboxChanged");
+            headers.add("HX-Trigger-After-Swap", "closeModal");
             return ResponseEntity.ok().headers(headers).body("");
         }
 
