@@ -44,6 +44,14 @@ public interface MailRepository extends JpaRepository<Mail, Long>
     List<Mail> findByMailboxOrderByReceiveTimeAsc(final long mailboxId);
 
     /**
+     * Retrieves all mails delivered to any of the specified mailbox IDs, ordered by receive timestamp descending.
+     *
+     * @param mailboxIds collection of mailbox IDs
+     * @return list of matching mails ordered newest first
+     */
+    List<Mail> findByMailboxInOrderByReceiveTimeDesc(final List<Long> mailboxIds);
+
+    /**
      * Finds a mail by its unique UUID identifier.
      *
      * @param uuid message UUID

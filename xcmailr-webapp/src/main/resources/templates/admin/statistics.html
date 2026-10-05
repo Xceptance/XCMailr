@@ -16,26 +16,38 @@
     <div class="row g-3 mb-4">
         <div class="col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm p-3">
-                <div class="text-muted small">Registered Users</div>
-                <div class="fs-2 fw-bold text-primary" th:text="${totalUsers}">0</div>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small">Registered Users</span>
+                    <i class="bi bi-people text-secondary opacity-75"></i>
+                </div>
+                <div class="fs-2 fw-bold text-body-emphasis" th:text="${totalUsers}">0</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm p-3">
-                <div class="text-muted small">Active Mailboxes</div>
-                <div class="fs-2 fw-bold text-success" th:text="${totalMailboxes}">0</div>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small">Active Mailboxes</span>
+                    <i class="bi bi-mailbox text-secondary opacity-75"></i>
+                </div>
+                <div class="fs-2 fw-bold text-body-emphasis" th:text="${totalMailboxes}">0</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm p-3">
-                <div class="text-muted small">Stored Webmail Messages</div>
-                <div class="fs-2 fw-bold text-info" th:text="${totalMails}">0</div>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small">Stored Messages</span>
+                    <i class="bi bi-inbox text-secondary opacity-75"></i>
+                </div>
+                <div class="fs-2 fw-bold text-body-emphasis" th:text="${totalMails}">0</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm p-3">
-                <div class="text-muted small">Logged Transactions</div>
-                <div class="fs-2 fw-bold text-secondary" th:text="${totalTransactions}">0</div>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small">Logged Transactions</span>
+                    <i class="bi bi-journal-text text-secondary opacity-75"></i>
+                </div>
+                <div class="fs-2 fw-bold text-body-emphasis" th:text="${totalTransactions}">0</div>
             </div>
         </div>
     </div>
@@ -60,13 +72,13 @@
                     </tr>
                     <tr th:each="st : ${statusSummary}">
                         <td>
-                            <span th:if="${st.statuscode == 300}" class="text-success fw-semibold">Forwarded</span>
-                            <span th:if="${st.statuscode == 200}" class="text-warning fw-semibold">Inactive Mailbox</span>
-                            <span th:if="${st.statuscode == 100}" class="text-secondary fw-semibold">Unknown Mailbox</span>
-                            <span th:if="${st.statuscode == 400}" class="text-danger fw-semibold">Target Unreachable</span>
-                            <span th:if="${st.statuscode == 500}" class="text-danger fw-semibold">Relay Denied</span>
-                            <span th:if="${st.statuscode == 600}" class="text-secondary fw-semibold">Inactive User</span>
-                            <span th:if="${st.statuscode == 0}" class="text-secondary fw-semibold">Invalid Pattern</span>
+                            <span th:if="${st.statuscode == 300}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill">Forwarded</span>
+                            <span th:if="${st.statuscode == 200}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill">Inactive Mailbox</span>
+                            <span th:if="${st.statuscode == 100}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">Unknown Mailbox</span>
+                            <span th:if="${st.statuscode == 400}" class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill">Target Unreachable</span>
+                            <span th:if="${st.statuscode == 500}" class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill">Relay Denied</span>
+                            <span th:if="${st.statuscode == 600}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">Inactive User</span>
+                            <span th:if="${st.statuscode == 0}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">Invalid Pattern</span>
                         </td>
                         <td><code th:text="${st.statuscode}">300</code></td>
                         <td class="text-end fw-bold" th:text="${st.count}">0</td>

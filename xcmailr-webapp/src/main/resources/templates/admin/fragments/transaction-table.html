@@ -7,10 +7,10 @@
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th scope="col" style="min-width: 160px;">Timestamp</th>
-                    <th scope="col" style="min-width: 160px;">Source</th>
-                    <th scope="col" style="min-width: 160px;">Relay</th>
-                    <th scope="col" style="min-width: 160px;">Target</th>
+                    <th scope="col" class="d-none d-sm-table-cell" style="width: 155px;">Timestamp</th>
+                    <th scope="col">Mailbox Relay</th>
+                    <th scope="col" class="d-none d-md-table-cell">Source</th>
+                    <th scope="col" class="d-none d-lg-table-cell">Target</th>
                     <th scope="col" style="width: 140px;">Status</th>
                 </tr>
             </thead>
@@ -22,20 +22,31 @@
                 </tr>
 
                 <tr th:each="tx : ${transactions}">
-                    <td class="text-muted small" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(tx.ts))}">
+                    <td class="d-none d-sm-table-cell text-muted small" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(tx.ts))}">
                         2026-10-01 12:00:00
                     </td>
-                    <td class="text-break" th:text="${tx.sourceaddr}">sender@example.com</td>
-                    <td class="text-break" th:text="${tx.relayaddr}">box@xcmailr.test</td>
-                    <td class="text-break" th:text="${tx.targetaddr}">recipient@example.com</td>
                     <td>
-                        <span th:if="${tx.status == 300}" class="badge bg-success">Forwarded (300)</span>
-                        <span th:if="${tx.status == 200}" class="badge bg-warning text-dark">Inactive (200)</span>
-                        <span th:if="${tx.status == 100}" class="badge bg-secondary">Unknown (100)</span>
-                        <span th:if="${tx.status == 400}" class="badge bg-danger">Failed (400)</span>
-                        <span th:if="${tx.status == 500}" class="badge bg-danger">Relay Denied (500)</span>
-                        <span th:if="${tx.status == 600}" class="badge bg-secondary">User Inactive (600)</span>
-                        <span th:if="${tx.status == 0}" class="badge bg-secondary">Invalid (0)</span>
+                        <span class="fw-semibold text-break" th:text="${tx.relayaddr}">box@xcmailr.test</span>
+                        <div class="small text-muted d-md-none mt-1">
+                            <span class="text-break" th:text="${tx.sourceaddr}">sender@example.com</span>
+                            &rarr;
+                            <span class="text-break" th:text="${tx.targetaddr}">recipient@example.com</span>
+                        </div>
+                        <div class="small text-muted d-sm-none mt-1">
+                            <i class="bi bi-clock me-1"></i>
+                            <span th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(tx.ts))}">2026-10-01 12:00</span>
+                        </div>
+                    </td>
+                    <td class="d-none d-md-table-cell text-break" th:text="${tx.sourceaddr}">sender@example.com</td>
+                    <td class="d-none d-lg-table-cell text-break" th:text="${tx.targetaddr}">recipient@example.com</td>
+                    <td>
+                        <span th:if="${tx.status == 300}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill">Forwarded (300)</span>
+                        <span th:if="${tx.status == 200}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill">Inactive (200)</span>
+                        <span th:if="${tx.status == 100}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">Unknown (100)</span>
+                        <span th:if="${tx.status == 400}" class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill">Failed (400)</span>
+                        <span th:if="${tx.status == 500}" class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill">Relay Denied (500)</span>
+                        <span th:if="${tx.status == 600}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">User Inactive (600)</span>
+                        <span th:if="${tx.status == 0}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">Invalid (0)</span>
                     </td>
                 </tr>
             </tbody>

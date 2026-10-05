@@ -8,10 +8,10 @@
             <thead class="table-light">
                 <tr>
                     <th scope="col">Email</th>
-                    <th scope="col">Name</th>
-                    <th scope="col" style="width: 100px;">Status</th>
-                    <th scope="col" style="width: 100px;">Role</th>
-                    <th scope="col" class="text-end" style="min-width: 200px;">Actions</th>
+                    <th scope="col" class="d-none d-md-table-cell">Name</th>
+                    <th scope="col" style="width: 110px;">Status</th>
+                    <th scope="col" class="d-none d-sm-table-cell" style="width: 90px;">Role</th>
+                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -23,19 +23,31 @@
 
                 <tr th:each="u : ${users}" th:id="'user-row-' + ${u.id}">
                     <td>
-                        <span class="fw-semibold text-break" th:text="${u.mail}">user@example.com</span>
-                        <span th:if="${u.id == currentAdmin.id}" class="badge bg-info text-dark ms-1">You</span>
+                        <div class="d-flex align-items-center">
+                            <span class="fw-semibold text-break" th:text="${u.mail}">user@example.com</span>
+                            <span th:if="${u.id == currentAdmin.id}" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-2">You</span>
+                        </div>
+                        <div class="small text-muted d-md-none mt-1">
+                            <span th:text="${u.forename + ' ' + u.surname}">John Doe</span>
+                            <span class="d-sm-none ms-1">
+                                &bull; <span th:text="${u.admin ? 'Admin' : 'User'}">User</span>
+                            </span>
+                        </div>
                     </td>
-                    <td th:text="${u.forename + ' ' + u.surname}">John Doe</td>
+                    <td class="d-none d-md-table-cell" th:text="${u.forename + ' ' + u.surname}">John Doe</td>
                     <td>
-                        <span th:if="${u.active}" class="badge bg-success">Active</span>
-                        <span th:unless="${u.active}" class="badge bg-secondary">Inactive</span>
+                        <span th:if="${u.active}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill">
+                            <span class="status-dot status-dot-active"></span>Active
+                        </span>
+                        <span th:unless="${u.active}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">
+                            <span class="status-dot status-dot-inactive"></span>Inactive
+                        </span>
                     </td>
-                    <td>
-                        <span th:if="${u.admin}" class="badge bg-danger">Admin</span>
-                        <span th:unless="${u.admin}" class="badge bg-secondary">User</span>
+                    <td class="d-none d-sm-table-cell">
+                        <span th:if="${u.admin}" class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle rounded-pill">Admin</span>
+                        <span th:unless="${u.admin}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">User</span>
                     </td>
-                    <td class="text-end">
+                    <td class="text-end text-nowrap">
                         <div class="btn-group btn-group-sm" th:if="${u.id != currentAdmin.id}">
                             <!-- Toggle Active Status -->
                             <button class="btn btn-outline-secondary" type="button"
@@ -57,7 +69,7 @@
                             <button class="btn btn-outline-danger" type="button"
                                     th:attr="hx-delete=@{'/admin/users/' + ${u.id}},hx-target='#user-table-container',hx-swap='outerHTML',hx-confirm='Are you sure you want to delete user ' + ${u.mail} + ' and all their mailboxes and emails?'"
                                     title="Delete user account">
-                                &times;
+                                <i class="bi bi-trash"></i>
                             </button>
                         </div>
                         <span th:if="${u.id == currentAdmin.id}" class="text-muted small">Current Account</span>

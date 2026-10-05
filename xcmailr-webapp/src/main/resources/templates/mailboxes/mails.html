@@ -17,26 +17,30 @@
         <div class="col-md-7">
             <div class="d-flex align-items-center gap-2">
                 <h2 class="fw-bold mb-0 text-break" th:text="${mailbox.fullAddress}">test@example.com</h2>
-                <span th:if="${mailbox.active}" class="badge bg-success">Active</span>
-                <span th:unless="${mailbox.active}" class="badge bg-secondary">Expired</span>
+                <span th:if="${mailbox.active}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill">
+                    <span class="status-dot status-dot-active"></span>Active
+                </span>
+                <span th:unless="${mailbox.active}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">
+                    <span class="status-dot status-dot-expired"></span>Expired
+                </span>
             </div>
             <p class="text-muted small mb-0 mt-1">
                 Expires:
-                <span th:if="${mailbox.ts_Active == 0}" class="text-success fw-semibold">Unlimited</span>
+                <span th:if="${mailbox.ts_Active == 0}" class="text-success-emphasis fw-medium">Unlimited</span>
                 <span th:unless="${mailbox.ts_Active == 0}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mailbox.ts_Active))}">2026-10-01 12:00:00</span>
                 &bull; Forwards: <strong th:text="${mailbox.forwards}">0</strong>
                 &bull; Suppressed: <strong th:text="${mailbox.suppressions}">0</strong>
             </p>
         </div>
         <div class="col-md-5 text-md-end mt-3 mt-md-0">
-            <div class="btn-group">
+            <div class="btn-group btn-group-sm">
                 <button class="btn btn-outline-secondary" type="button"
                         th:attr="hx-get=@{'/mailboxes/' + ${mailbox.id} + '/mails'},hx-target='#mail-list-container',hx-swap='outerHTML'">
-                    Refresh Inbox
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh Inbox
                 </button>
                 <button class="btn btn-outline-danger" type="button"
                         th:attr="hx-delete=@{'/mailboxes/' + ${mailbox.id} + '/mails'},hx-target='#mail-list-container',hx-swap='outerHTML',hx-confirm='Are you sure you want to delete all emails in this mailbox?'">
-                    Purge All Mails
+                    <i class="bi bi-trash me-1"></i> Purge All Mails
                 </button>
             </div>
         </div>
@@ -57,7 +61,7 @@
             <div id="mail-viewer-pane">
                 <div class="card border-0 shadow-sm p-5 text-center text-muted">
                     <div class="py-5">
-                        <div style="font-size: 2.5rem;">📬</div>
+                        <i class="bi bi-inbox display-3 text-secondary opacity-50"></i>
                         <h5 class="mt-3">Select an email to view</h5>
                         <p class="small text-muted mb-0">Choose an email from the list to preview its sanitized HTML and attachments.</p>
                     </div>

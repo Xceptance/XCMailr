@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +84,48 @@ public class MailWebController
         this.mailboxRepository = mailboxRepository;
         this.userRepository = userRepository;
         this.sanitizationService = sanitizationService;
+    }
+
+    /**
+     * Unified "All Mails" inbox view listing emails across all mailboxes owned by the user.
+     *
+     * @param hxRequest header indicating HTMX request
+     * @param principal authenticated user
+     * @param model template model
+     * @return view or fragment name
+     */
+    @GetMapping("/mails")
+    public String listAllMails(@RequestHeader(value = "HX-Request", required = false) final String hxRequest,
+                               final Principal principal,
+                               final Model model)
+    {
+        final User user = getUser(principal);
+        final List<MBox> userMailboxes = mailboxRepository.findByUsr(user);
+        final List<Long> mailboxIds = userMailboxes.stream().map(MBox::getId).toList();
+
+        final List<Mail> mails;
+        if (mailboxIds.isEmpty())
+        {
+            mails = Collections.emptyList();
+        }
+        else
+        {
+            mails = mailRepository.findByMailboxInOrderByReceiveTimeDesc(mailboxIds);
+        }
+
+        final Map<Long, String> mailboxAddressMap = userMailboxes.stream()
+            .collect(Collectors.toMap(MBox::getId, MBox::getFullAddress, (a, b) -> a));
+
+        model.addAttribute("mails", mails);
+        model.addAttribute("mailboxAddressMap", mailboxAddressMap);
+        model.addAttribute("dateFormatter", DATE_FORMATTER);
+
+        if ("true".equalsIgnoreCase(hxRequest))
+        {
+            return "mailboxes/fragments/all-mail-list :: mailList";
+        }
+
+        return "mailboxes/all-mails";
     }
 
     /**

@@ -156,6 +156,29 @@ public class MailWebControllerTest
     }
 
     @Test
+    @DisplayName("GET /mails should list all emails across mailboxes for authenticated user")
+    public void testListAllMailsFullPage() throws Exception
+    {
+        mockMvc.perform(get("/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/all-mails"))
+               .andExpect(model().attributeExists("mails"))
+               .andExpect(model().attributeExists("mailboxAddressMap"));
+    }
+
+    @Test
+    @DisplayName("GET /mails with HX-Request should return all-mail-list fragment")
+    public void testListAllMailsFragment() throws Exception
+    {
+        mockMvc.perform(get("/mails")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/all-mail-list :: mailList"));
+    }
+
+    @Test
     @DisplayName("GET /mailboxes/{boxId}/mails should list emails for mailbox owner")
     public void testListMailsFullPage() throws Exception
     {
