@@ -220,6 +220,110 @@ Legacy XCMailr endpoint URLs remain fully supported for backward compatibility:
 * `GET /create/temporaryMail/{token}/{mailAddress}/{validTime}`
 * `GET /mailbox/{mailAddress}/{token}`
 
+## Production Deployment & SSL/TLS Configuration
+
+In production environments, both the Web Dashboard / REST API and the Inbound SMTP service should be secured with TLS certificates.
+
+### 1. Web UI & REST API Security (HTTPS)
+
+You have two primary architectural choices for securing the Web UI and REST API:
+
+#### Option A: Reverse Proxy TLS Termination (Recommended)
+Terminate TLS at an edge reverse proxy (such as Nginx, Caddy, HAProxy, or AWS ALB/Cloudflare) and forward unencrypted HTTP traffic to XCMailr on `localhost:8080`.
+
+Example Nginx configuration:
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name mail.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/mail.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mail.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+```
+
+#### Option B: Embedded Spring Boot HTTPS
+Directly configure Spring Boot's embedded web server with a PKCS12 keystore:
+```properties
+server.port=8443
+server.ssl.key-store=file:/etc/ssl/certs/xcmailr-web.p12
+server.ssl.key-store-password=your-web-password
+server.ssl.key-store-type=PKCS12
+```
+
+---
+
+### 2. Inbound SMTP SSL/TLS (STARTTLS) Configuration
+
+Unlike web traffic, inbound SMTP cannot be easily terminated behind standard HTTP reverse proxies; the embedded SubEthaSMTP engine terminates SMTP connections directly.
+
+#### Development Keystore
+For zero-config local development and testing, XCMailr includes a self-signed PKCS12 development keystore (`classpath:keystore.p12`, password `topsecret`, alias `localhost`, valid for 10 years).
+
+#### Production PKCS12 Keystore Conversion
+For production with a real CA-signed certificate (e.g. from Let's Encrypt / Certbot), convert standard PEM files into a PKCS12 keystore using OpenSSL:
+
+```bash
+openssl pkcs12 -export \
+  -in /etc/letsencrypt/live/mail.example.com/fullchain.pem \
+  -inkey /etc/letsencrypt/live/mail.example.com/privkey.pem \
+  -out /etc/xcmailr/smtp-keystore.p12 \
+  -name xcmailr \
+  -password pass:MyStrongKeystorePassword
+```
+Ensure the resulting keystore file is readable by the user running XCMailr (`chmod 600 /etc/xcmailr/smtp-keystore.p12`).
+
+#### Configuration Properties & Environment Variables
+Configure the inbound SMTP keystore in `application.yml` or via environment variables:
+
+| Property | Environment Variable | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `xcmailr.mbox.port` | `MBOX_PORT` | `25000` | Inbound SMTP listening port |
+| `xcmailr.mbox.enable-tls` | `MBOX_ENABLE_TLS` | `true` | Enables inbound SMTP STARTTLS negotiation |
+| `xcmailr.mbox.require-tls` | `MBOX_REQUIRE_TLS` | `false` | When true, rejects unencrypted commands with SMTP 530 |
+| `xcmailr.mbox.ssl.key-store` | `MBOX_SSL_KEY_STORE` | `classpath:keystore.p12` | Path to PKCS12 keystore (`classpath:` or `file:`) |
+| `xcmailr.mbox.ssl.key-store-password` | `MBOX_SSL_KEY_STORE_PASSWORD` | `topsecret` | Password for unlocking the keystore |
+| `xcmailr.mbox.ssl.key-store-type` | `MBOX_SSL_KEY_STORE_TYPE` | `PKCS12` | Keystore format type |
+| `xcmailr.mbox.ssl.key-alias` | `MBOX_SSL_KEY_ALIAS` | _(none)_ | Optional certificate alias |
+
+Example production execution command:
+```bash
+export MBOX_SSL_KEY_STORE="file:/etc/xcmailr/smtp-keystore.p12"
+export MBOX_SSL_KEY_STORE_PASSWORD="MyStrongKeystorePassword"
+export MBOX_PORT=25
+java -jar xcmailr-webapp.jar
+```
+
+#### Understanding `require-tls` (Opportunistic vs. Mandatory TLS)
+* **Opportunistic TLS (`require-tls=false`, Default)**: Advertises `STARTTLS` in `EHLO` response. Clients supporting TLS upgrade their connection and transmit encrypted data. Clients without TLS support can still send email in plaintext. **Recommended for public internet MX servers** to prevent legitimate emails from older MTAs from bouncing.
+* **Mandatory TLS (`require-tls=true`)**: Forces every SMTP client to issue `STARTTLS` before executing `MAIL FROM`, `RCPT TO`, or `DATA`. Any attempt to send without TLS is rejected with `530 5.7.0 Must issue a STARTTLS command first`. Recommended for high-security, internal test environments, or compliance zones (e.g., PCI-DSS, HIPAA).
+
+#### Binding Linux Privileged Port 25
+On Linux, standard SMTP operates on port 25, which is a privileged port (< 1024). Do **NOT** run XCMailr as `root`. Choose one of these standard methods:
+1. **Linux Capabilities (Recommended)**: Grant non-root Java process capability to bind privileged ports:
+   ```bash
+   sudo setcap 'cap_net_bind_service=+ep' $(readlink -f $(which java))
+   ```
+2. **`iptables` / `nftables` Port Forwarding**: Run XCMailr on port 25000 and forward port 25:
+   ```bash
+   sudo iptables -t nat -A PREROUTING -p tcp --dport 25 -j REDIRECT --to-port 25000
+   ```
+3. **`systemd` Socket Activation or Ambient Capabilities**: In the `xcmailr.service` systemd unit file:
+   ```ini
+   [Service]
+   User=xcmailr
+   AmbientCapabilities=CAP_NET_BIND_SERVICE
+   ExecStart=/usr/bin/java -jar /opt/xcmailr/xcmailr-webapp.jar
+   ```
+
 ## Reverse Proxy Setup (Nginx)
 When deploying behind Nginx or Apache, configure proxy headers to pass client IP and scheme:
 ```nginx

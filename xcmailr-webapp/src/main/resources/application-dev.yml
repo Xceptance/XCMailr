@@ -32,6 +32,10 @@ xcmailr:
     require-confirmation: true
     url: http://localhost:8080
 
+  mbox:
+    # Inbound SMTP uses localhost:25000 and bundled classpath:keystore.p12 for STARTTLS
+    # Overridable via MBOX_PORT, MBOX_ENABLE_TLS, MBOX_REQUIRE_TLS, MBOX_SSL_KEY_STORE, etc.
+
   outbound-smtp:
     # Direct outbound emails (verification links, forwarded mail) to local Mailpit
     host: localhost

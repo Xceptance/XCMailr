@@ -228,6 +228,7 @@ public class XcmailrProperties
     {
         private String address = "admin@xcmailr.test";
         private String password = "1234";
+        private String apiToken = "xcmailr-admin-api-token-2026";
 
         public String getAddress()
         {
@@ -247,6 +248,16 @@ public class XcmailrProperties
         public void setPassword(final String password)
         {
             this.password = password;
+        }
+
+        public String getApiToken()
+        {
+            return apiToken;
+        }
+
+        public void setApiToken(final String apiToken)
+        {
+            this.apiToken = apiToken;
         }
     }
 
@@ -389,6 +400,119 @@ public class XcmailrProperties
         public void setRetentionPeriodMinutes(final int retentionPeriodMinutes)
         {
             this.retentionPeriodMinutes = retentionPeriodMinutes;
+        }
+
+        private SslProperties ssl = new SslProperties();
+
+        /**
+         * Returns the inbound SMTP SSL/TLS keystore properties.
+         *
+         * @return the SSL configuration properties
+         */
+        public SslProperties getSsl()
+        {
+            return ssl;
+        }
+
+        /**
+         * Sets the inbound SMTP SSL/TLS keystore properties.
+         *
+         * @param ssl the SSL configuration properties to set
+         */
+        public void setSsl(final SslProperties ssl)
+        {
+            this.ssl = ssl;
+        }
+
+        /**
+         * Inbound SMTP SSL/TLS keystore and certificate settings.
+         */
+        public static class SslProperties
+        {
+            private String keyStore = "classpath:keystore.p12";
+            private String keyStorePassword = "topsecret";
+            private String keyStoreType = "PKCS12";
+            private String keyAlias;
+
+            /**
+             * Returns the path or resource location to the keystore file.
+             *
+             * @return the keystore resource location
+             */
+            public String getKeyStore()
+            {
+                return keyStore;
+            }
+
+            /**
+             * Sets the path or resource location to the keystore file.
+             *
+             * @param keyStore the keystore location to set
+             */
+            public void setKeyStore(final String keyStore)
+            {
+                this.keyStore = keyStore;
+            }
+
+            /**
+             * Returns the password for unlocking the keystore.
+             *
+             * @return the keystore password
+             */
+            public String getKeyStorePassword()
+            {
+                return keyStorePassword;
+            }
+
+            /**
+             * Sets the password for unlocking the keystore.
+             *
+             * @param keyStorePassword the keystore password to set
+             */
+            public void setKeyStorePassword(final String keyStorePassword)
+            {
+                this.keyStorePassword = keyStorePassword;
+            }
+
+            /**
+             * Returns the keystore format type (e.g. PKCS12, JKS).
+             *
+             * @return the keystore format type
+             */
+            public String getKeyStoreType()
+            {
+                return keyStoreType;
+            }
+
+            /**
+             * Sets the keystore format type (e.g. PKCS12, JKS).
+             *
+             * @param keyStoreType the keystore type to set
+             */
+            public void setKeyStoreType(final String keyStoreType)
+            {
+                this.keyStoreType = keyStoreType;
+            }
+
+            /**
+             * Returns the optional alias of the certificate entry to use within the keystore.
+             *
+             * @return the certificate alias, or null for default entry
+             */
+            public String getKeyAlias()
+            {
+                return keyAlias;
+            }
+
+            /**
+             * Sets the optional alias of the certificate entry to use within the keystore.
+             *
+             * @param keyAlias the certificate alias to set
+             */
+            public void setKeyAlias(final String keyAlias)
+            {
+                this.keyAlias = keyAlias;
+            }
         }
     }
 

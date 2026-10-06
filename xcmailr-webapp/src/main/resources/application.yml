@@ -61,6 +61,7 @@ xcmailr:
   admin:
     address: ${ADMIN_ADDRESS:admin@xcmailr.test}
     password: ${ADMIN_PASSWORD:1234}
+    api-token: ${ADMIN_API_TOKEN:xcmailr-admin-api-token-2026}
   api:
     token-expiration-days: 30
   temporary-mail:
@@ -68,8 +69,13 @@ xcmailr:
   mbox:
     host: ${MBOX_HOST:xcmailr.test}
     port: ${MBOX_PORT:25000}
-    enable-tls: true
-    require-tls: false
+    enable-tls: ${MBOX_ENABLE_TLS:true}
+    require-tls: ${MBOX_REQUIRE_TLS:false}
+    ssl:
+      key-store: ${MBOX_SSL_KEY_STORE:classpath:keystore.p12}
+      key-store-password: ${MBOX_SSL_KEY_STORE_PASSWORD:topsecret}
+      key-store-type: ${MBOX_SSL_KEY_STORE_TYPE:PKCS12}
+      key-alias: ${MBOX_SSL_KEY_ALIAS:}
     interval-minutes: 1
     mail-interval-minutes: 1
     domain-list:

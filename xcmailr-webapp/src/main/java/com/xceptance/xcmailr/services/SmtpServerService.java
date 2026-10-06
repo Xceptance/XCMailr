@@ -20,6 +20,8 @@ import java.util.concurrent.Executors;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
+import javax.net.ssl.SSLContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,7 @@ public class SmtpServerService
 
     private final XcmailrProperties properties;
     private final MailDeliveryService mailDeliveryService;
+    private final SmtpSslContextFactory smtpSslContextFactory;
 
     private SMTPServer smtpServer;
     private SMTPServer smtpServer2;
@@ -52,12 +55,15 @@ public class SmtpServerService
      *
      * @param properties configuration properties
      * @param mailDeliveryService inbound message delivery listener
+     * @param smtpSslContextFactory factory for creating inbound SMTP SSLContext instances
      */
     public SmtpServerService(final XcmailrProperties properties,
-                             final MailDeliveryService mailDeliveryService)
+                             final MailDeliveryService mailDeliveryService,
+                             final SmtpSslContextFactory smtpSslContextFactory)
     {
         this.properties = properties;
         this.mailDeliveryService = mailDeliveryService;
+        this.smtpSslContextFactory = smtpSslContextFactory;
     }
 
     /**
@@ -87,13 +93,27 @@ public class SmtpServerService
      */
     private SMTPServer createServer(final int port)
     {
-        return SMTPServer.port(port)
-                         .simpleMessageListener(mailDeliveryService)
-                         .executorService(Executors.newVirtualThreadPerTaskExecutor())
-                         .enableTLS(properties.getMbox().isEnableTls())
-                         .requireTLS(properties.getMbox().isRequireTls())
-                         .softwareName("XCMailr-SMTP")
-                         .build();
+        final boolean enableTls = properties.getMbox().isEnableTls();
+        final boolean requireTls = properties.getMbox().isRequireTls();
+
+        final SMTPServer.Builder builder = SMTPServer.port(port)
+                                                     .simpleMessageListener(mailDeliveryService)
+                                                     .executorService(Executors.newVirtualThreadPerTaskExecutor())
+                                                     .enableTLS(enableTls)
+                                                     .requireTLS(requireTls)
+                                                     .softwareName("XCMailr-SMTP");
+
+        // When inbound TLS is enabled, configure the server certificate SSLContext for STARTTLS negotiation
+        if (enableTls)
+        {
+            final SSLContext sslContext = smtpSslContextFactory.createSslContext(properties.getMbox());
+            if (sslContext != null)
+            {
+                builder.startTlsSocketFactory(sslContext);
+            }
+        }
+
+        return builder.build();
     }
 
     /**

@@ -97,10 +97,20 @@ public class AdminUserInitializer implements ApplicationRunner
 
         final String normalizedMail = adminMail.trim().toLowerCase();
 
+        final String adminApiToken = properties.getAdmin().getApiToken();
+
         // 2. Perform idempotent absence check: only seed if the account does not already exist.
         final Optional<User> existingUserOpt = userRepository.findByMailIgnoreCase(normalizedMail);
         if (existingUserOpt.isPresent())
         {
+            final User existing = existingUserOpt.get();
+            if (!StringUtils.hasText(existing.getApiToken()) && StringUtils.hasText(adminApiToken))
+            {
+                existing.setApiToken(adminApiToken.trim());
+                existing.setApiTokenCreationTimestamp(System.currentTimeMillis());
+                userRepository.save(existing);
+                LOG.info("Configured initial API token for existing administrator account '{}'", normalizedMail);
+            }
             LOG.debug("Administrator account '{}' already exists. Leaving credentials and permissions untouched.", normalizedMail);
             return;
         }
@@ -121,6 +131,11 @@ public class AdminUserInitializer implements ApplicationRunner
         admin.setLanguage("en");
         admin.setAdmin(true);
         admin.setActive(true);
+        if (StringUtils.hasText(adminApiToken))
+        {
+            admin.setApiToken(adminApiToken.trim());
+            admin.setApiTokenCreationTimestamp(System.currentTimeMillis());
+        }
         userRepository.save(admin);
         LOG.info("Administrative account '{}' created successfully.", normalizedMail);
 

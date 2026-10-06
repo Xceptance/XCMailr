@@ -22,6 +22,8 @@ spring:
 
 xcmailr:
   mbox:
+    # Ephemeral port for integration tests to prevent port collisions
     port: 0
+    # Inherits classpath:keystore.p12 for STARTTLS test execution
   outbound-smtp:
     enabled: false

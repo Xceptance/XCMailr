@@ -51,13 +51,26 @@ You can run individual test scenarios against a running XCMailr instance using M
 2. **User Account & API Token**:
    - Log into the XCMailr web console (default local URL: `http://localhost:8080`).
    - Navigate to your user profile and generate/copy your API token.
+   - *Note*: The test suite utility class `xcmailr.loadtesting.util.Utils` initializes `XCMailrClient` during class loading; therefore, `-Dxcmailr.apiToken` must be specified for **all** test scenarios (even for `SendMail`, where any non-blank dummy token like `-Dxcmailr.apiToken=token` suffices if only testing SMTP socket delivery).
 
 ---
 
 ### Running Scenarios via Maven CLI
 
-#### 1. Test Mailbox Creation and Deletion
-Runs a single pass of `CreateAndDeleteMailbox`:
+#### 1. Test Inbound SMTP Mail Submission (`SendMail`)
+Sends an email over SMTP to a pre-existing mailbox (e.g. `testbox@xcmailr.test`) with STARTTLS negotiation:
+```bash
+mvn test -pl xcmailr-load-test-suite \
+  -Dtest=SendMail \
+  -Dxcmailr.host=localhost \
+  -Dxcmailr.apiToken=<YOUR_API_TOKEN> \
+  -Dsmtp.port=25000 \
+  -Dsmtp.requireStartTls=true
+```
+*Note*: Ensure that the recipient mailbox (e.g. `testbox@xcmailr.test`) has been created and is active in XCMailr before running this test.
+
+#### 2. Test Mailbox Creation and Deletion (`CreateAndDeleteMailbox`)
+Runs a single pass of `CreateAndDeleteMailbox` via the REST API:
 ```bash
 mvn test -pl xcmailr-load-test-suite \
   -Dtest=CreateAndDeleteMailbox \
@@ -65,23 +78,14 @@ mvn test -pl xcmailr-load-test-suite \
   -Dxcmailr.apiToken=<YOUR_API_TOKEN>
 ```
 
-#### 2. Test Inbound SMTP Mail Submission
-Sends an email over SMTP to a pre-existing mailbox (e.g. `testbox@xcmailr.test`):
-```bash
-mvn test -pl xcmailr-load-test-suite \
-  -Dtest=SendMail \
-  -Dxcmailr.host=localhost \
-  -Dsmtp.port=25000 \
-  -Dsmtp.requireStartTls=true
-```
-
-#### 3. Test Full SMTP + REST Verification Roundtrip
-Sends an email over SMTP and verifies its arrival via the REST API:
+#### 3. Test Full SMTP + REST Verification Roundtrip (`SendAndCheckMail`)
+Creates a temporary mailbox via REST API, delivers an email over SMTP with STARTTLS, polls the REST API until the mail arrives, asserts subject and body contents, and cleans up the mailbox:
 ```bash
 mvn test -pl xcmailr-load-test-suite \
   -Dtest=SendAndCheckMail \
   -Dxcmailr.baseUrl=http://localhost:8080 \
   -Dxcmailr.apiToken=<YOUR_API_TOKEN> \
+  -Dxcmailr.host=localhost \
   -Dsmtp.port=25000 \
   -Dsmtp.requireStartTls=true
 ```
