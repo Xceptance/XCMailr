@@ -12,10 +12,11 @@ This runbook guides you through testing database backward compatibility and cuto
 +-----------------------------------------------------------------------------------------+
 |                                                                                         |
 |  1. ../XCMailr-legacy  (branch: develop)                                                |
-|     - Run legacy Ninja framework (Jetty on :8080, SMTP on :10025)                       |
+|     - Step 1: mvn clean process-classes -pl xcmailr-webapp  (compile + Ebean enhance)   |
+|     - Step 2: mvn ninja:run -pl xcmailr-webapp              (Jetty :8080, SMTP :10025)  |
 |     - Database generated at: xcmailr-webapp/target/xcmailr.mv.db                         |
 |     - Admin: admin@xcmailr.test (pwd: 1234)                                             |
-|     - Regular user: jane.doe@xcmailr.test (pwd: Password123!)                           |
+|     - Regular user: jane.doe@example.com (pwd: Password123!)                            |
 |     - Mailbox: jane-box@xcmailr.test + received test email                              |
 |     - Stop legacy server (Ctrl+C)                                                       |
 |                                                                                         |
@@ -25,7 +26,7 @@ This runbook guides you through testing database backward compatibility and cuto
 |                                                                                         |
 |  2. .  (current workspace, branch: modernizeXCMailr)                                   |
 |     - Run modernized Spring Boot application (Tomcat on :8080, SMTP on :25000)          |
-|     - Log in as jane.doe@xcmailr.test (pwd: Password123!) -> Verifies non-admin user    |
+|     - Log in as jane.doe@example.com (pwd: Password123!) -> Verifies non-admin user     |
 |     - Log in as admin@xcmailr.test (pwd: 1234)           -> Verifies admin preservation |
 |     - Create new mailbox and receive new mail            -> Verifies sequence safety    |
 |                                                                                         |
@@ -34,7 +35,7 @@ This runbook guides you through testing database backward compatibility and cuto
 
 ---
 
-## 2. Phase 1: Create Legacy Worktree & Populate Real Data
+## 2. Phase 1: Create Legacy Worktree, Build & Populate Real Data
 
 ### Step 1: Create the Worktree
 From the root of your current repository, create an isolated worktree for the `develop` branch in a sibling directory:
@@ -47,18 +48,48 @@ cd ../XCMailr-legacy
 > [!NOTE]
 > `git worktree` creates an independent checkout folder sharing the same underlying git object store. Your current branch and any uncommitted workspace changes remain completely untouched.
 
-### Step 2: Start the Legacy Application
-Compile, enhance entity bytecode, and launch the legacy Ninja development server:
+---
+
+### Step 2: Build & Enhance Legacy Entity Bytecode
+
+Legacy XCMailr uses Ebean ORM, which requires bytecode enhancement (weaving accessors and dirty-tracking into entity classes such as `MailStatisticsKey` and `MBox`). The enhancement plugin binds to Maven's `process-classes` phase.
+
+Run the build step to compile sources and weave Ebean enhancements:
 
 ```bash
-mvn process-classes ninja:run -pl xcmailr-webapp
+mvn clean process-classes -pl xcmailr-webapp
 ```
 
-> [!NOTE]
-> `process-classes` is required instead of `compile` because legacy XCMailr uses Ebean ORM. The `ebean-maven-plugin:enhance` goal binds to the `process-classes` phase to weave bytecode enhancement into entities (such as `MailStatisticsKey` and `MBox`) before Ninja and Jetty boot.
-
-Wait until you see the Ninja startup banner and confirmation message:
+Verify that the output contains the `ebean:enhance` execution:
 ```text
+[INFO] --- enhance:15.12.0:enhance (main) @ xcmailr-webapp ---
+[INFO] classSource=.../xcmailr-webapp/target/classes transformArgs=debug=1
+[INFO] Enhanced .../models/MailStatisticsKey.class
+[INFO] Enhanced .../models/MBox.class
+[INFO] BUILD SUCCESS
+```
+
+---
+
+### Step 3: Start the Legacy Application Server
+
+Launch the legacy Ninja development server (Jetty):
+
+```bash
+mvn ninja:run -pl xcmailr-webapp
+```
+
+*(Alternatively, you can run both steps together in a single command: `mvn clean process-classes ninja:run -pl xcmailr-webapp`)*.
+
+Wait until you see the Ninja startup banner:
+```text
+ _______  .___ _______        ____.  _____   
+ \      \ |   |\      \      |    | /  _  \  
+ /   |   \|   |/   |   \     |    |/  /_\  \ 
+/    |    \   /    |    \/\__|    /    |    \  https://www.ninjaframework.org
+\____|__  /___\____|__  /\________\____|__  /  @ninjaframework
+     web\/framework   \/                  \/   6.9.0
+
 INFO  [main] - Ninja application started in ...ms
 ```
 
@@ -69,22 +100,26 @@ The legacy application is now running with:
 
 ---
 
-### Step 3: Register a Standard Non-Admin User
+### Step 4: Register a Standard Non-Admin User
 
 1. Open `http://localhost:8080` in your web browser.
 2. Click **Register** in the top navigation (or visit `http://localhost:8080/register`).
 3. Fill in the user registration form:
    - **First Name**: `Jane`
    - **Surname**: `Doe`
-   - **Email**: `jane.doe@xcmailr.test`
+   - **Email**: `jane.doe@example.com`
    - **Language**: `en`
    - **Password**: `Password123!`
    - **Confirm Password**: `Password123!`
 4. Click **Register**. The registration is stored in the database with `active = false`.
 
+> [!IMPORTANT]
+> **Why `example.com` instead of `xcmailr.test`?**
+> In XCMailr, a user's account email is their real external forwarding destination. To prevent infinite forwarding loops, the application strictly forbids registering accounts with its own managed domains (`xcmailr.test`, `ccmailr.test`). Registering with an `@xcmailr.test` address triggers the anti-loop error: *"Email addresses containing this domain are not allowed."* Always use an external domain (e.g. `@example.com` or `@company.org`) for user accounts.
+
 ---
 
-### Step 4: Activate Jane's Account via Admin Console
+### Step 5: Activate Jane's Account via Admin Console
 
 By default, accounts require confirmation. Activate Jane's account directly using the pre-seeded legacy administrator:
 
@@ -93,16 +128,16 @@ By default, accounts require confirmation. Activate Jane's account directly usin
    - **Email**: `admin@xcmailr.test`
    - **Password**: `1234`
 3. Click **Admin** $\rightarrow$ **Users** in the navigation bar.
-4. Locate `jane.doe@xcmailr.test` in the user table.
+4. Locate `jane.doe@example.com` in the user table.
 5. Click **Activate** next to Jane's entry (status updates to active).
 6. Click **Sign Out**.
 
 ---
 
-### Step 5: Create a Mailbox and Send a Legacy Email for Jane
+### Step 6: Create a Mailbox and Send a Legacy Email for Jane
 
 1. Click **Sign In** and authenticate as the regular user:
-   - **Email**: `jane.doe@xcmailr.test`
+   - **Email**: `jane.doe@example.com`
    - **Password**: `Password123!`
 2. Navigate to **Email Addresses** $\rightarrow$ **Add Email**:
    - **Address**: `jane-box`
@@ -135,9 +170,9 @@ By default, accounts require confirmation. Activate Jane's account directly usin
 
 ---
 
-### Step 6: Gracefully Shut Down Legacy Application
+### Step 7: Gracefully Shut Down Legacy Application
 
-In the terminal running `mvn process-classes ninja:run`:
+In the terminal running `mvn ninja:run`:
 - Press `Ctrl + C` to stop the server.
 - The H2 database cleanly releases file locks and flushes all changes to `xcmailr-webapp/target/xcmailr.mv.db`.
 
@@ -184,10 +219,10 @@ Verify the console output for the following critical milestones:
 ### Checkpoint 2: Standard Non-Admin User Authentication & Data
 1. Navigate to `http://localhost:8080/login`.
 2. Sign in as Jane:
-   - **Email**: `jane.doe@xcmailr.test`
+   - **Email**: `jane.doe@example.com`
    - **Password**: `Password123!`
 3. Verify:
-   - **Authentication**: Password succeeds immediately via `BCryptPasswordEncoder` verifying the legacy `$2a$` hash.
+   - **Authentication**: Password succeeds immediately via `BCryptPasswordEncoder` verifying the legacy `$2a$` hash without requiring a password reset.
    - **Role**: Only standard user controls are visible (no Admin navigation).
    - **Mailbox**: `jane-box@xcmailr.test` is listed.
    - **Email Content**: Click `jane-box@xcmailr.test` $\rightarrow$ historical email `"Legacy Mail for Jane"` renders sender, subject, timestamp, and message body intact.
@@ -229,7 +264,7 @@ With Jane still logged in:
 3. Verify:
    - Login succeeds.
    - **Admin** menu is accessible.
-   - **Admin** $\rightarrow$ **Users** lists both `admin@xcmailr.test` and `jane.doe@xcmailr.test`.
+   - **Admin** $\rightarrow$ **Users** lists both `admin@xcmailr.test` and `jane.doe@example.com`.
 4. Click **Sign Out**.
 
 ---
