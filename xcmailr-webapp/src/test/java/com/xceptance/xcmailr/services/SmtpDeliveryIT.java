@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.xceptance.xcmailr.config.XcmailrProperties;
 import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailTransactionRepository;
@@ -80,6 +81,9 @@ public class SmtpDeliveryIT
 
     @Autowired
     private DomainRepository domainRepository;
+
+    @Autowired
+    private XcmailrProperties xcmailrProperties;
 
     private User testUser;
 
@@ -220,6 +224,116 @@ public class SmtpDeliveryIT
         final List<MailTransaction> transactions = mailTransactionRepository.findAll();
         final boolean forwardTxExists = transactions.stream().anyMatch(t -> t.getStatus() == 300);
         assertFalse(forwardTxExists, "Forward transaction should not be created for looped message");
+    }
+
+    /**
+     * Verifies that sending an email to a non-existent mailbox on a whitelisted domain
+     * completes the SMTP handshake (250 OK queued) to prevent recipient enumeration
+     * and backscatter spam, but silently drops the body and records transaction status 100.
+     */
+    @Test
+    @DisplayName("Should accept email for uncreated mailbox on valid domain, drop body, and log status 100")
+    public void testInboundDeliveryToNonExistentMailbox() throws Exception
+    {
+        final int port = smtpServerService.getPort();
+        assertTrue(port > 0, "SMTP server port should be bound");
+
+        // Send to an uncreated mailbox address on the whitelisted domain
+        sendSmtpEmail(port, "sender@example.com", "uncreated@xcmailr.test",
+                      "Non-existent box subject", "Content for missing mailbox", null);
+
+        // Verify no mail was persisted in database
+        assertEquals(0, mailRepository.count(), "No mail should be stored for non-existent mailbox");
+
+        // Verify transaction status 100 (mailbox not found) was recorded
+        final List<MailTransaction> transactions = mailTransactionRepository.findAll();
+        final MailTransaction dropTx = transactions.stream()
+                                                   .filter(t -> t.getStatus() == 100)
+                                                   .findFirst()
+                                                   .orElse(null);
+        assertNotNull(dropTx, "Should have logged status 100 transaction for uncreated mailbox drop");
+        assertEquals("uncreated@xcmailr.test", dropTx.getRelayaddr());
+    }
+
+    /**
+     * Verifies that sending an email to an active mailbox owned by an inactive user
+     * drops the email content, increments mailbox suppressions, and logs status 600.
+     */
+    @Test
+    @DisplayName("Should drop email sent to mailbox owned by inactive user, increment suppressions, and log status 600")
+    public void testInboundDeliveryToInactiveUser() throws Exception
+    {
+        final int port = smtpServerService.getPort();
+        assertTrue(port > 0, "SMTP server port should be bound");
+
+        // Create inactive owning user
+        final User inactiveUser = new User("Disabled", "Owner", "disabled_owner@realdomain.test", "password", "en");
+        inactiveUser.setActive(false);
+        userRepository.save(inactiveUser);
+
+        // Create active mailbox owned by inactive user
+        final MBox box = new MBox("inactiveowner", "xcmailr.test", 0L, false, inactiveUser);
+        box.setActive(true);
+        mailboxRepository.save(box);
+
+        sendSmtpEmail(port, "sender@example.com", "inactiveowner@xcmailr.test",
+                      "Disabled User Mail", "Should be dropped because user is inactive", null);
+
+        // Verify no mail was persisted in database
+        assertEquals(0, mailRepository.count(), "No mail should be stored when owning user is inactive");
+
+        // Reload mailbox and check suppression counter
+        final MBox reloaded = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertEquals(1, reloaded.getSuppressions(), "Suppressions counter should be incremented");
+
+        // Verify transaction status 600 was recorded
+        final List<MailTransaction> transactions = mailTransactionRepository.findAll();
+        final MailTransaction dropTx = transactions.stream()
+                                                   .filter(t -> t.getStatus() == 600)
+                                                   .findFirst()
+                                                   .orElse(null);
+        assertNotNull(dropTx, "Should have logged status 600 for inactive user drop");
+        assertEquals("disabled_owner@realdomain.test", dropTx.getTargetaddr());
+    }
+
+    /**
+     * Verifies that sending an email whose size exceeds the configured maximum message size
+     * causes the SMTP server to reject the data stream with an SMTP error and drops the email.
+     */
+    @Test
+    @DisplayName("Should reject email exceeding configured maximum message size limit")
+    public void testOversizedEmailRejection() throws Exception
+    {
+        final int port = smtpServerService.getPort();
+        assertTrue(port > 0, "SMTP server port should be bound");
+
+        final MBox activeBox = new MBox("sizetest", "xcmailr.test", 0L, false, testUser);
+        activeBox.setActive(true);
+        mailboxRepository.save(activeBox);
+
+        final int originalMaxSize = xcmailrProperties.getMbox().getMaxSize();
+        try
+        {
+            // Temporarily configure small size threshold of 200 bytes
+            xcmailrProperties.getMbox().setMaxSize(200);
+
+            // Construct email payload exceeding the 200-byte limit
+            final String largeBody = "X".repeat(2000);
+
+            final MessagingException exception = assertThrows(MessagingException.class, () -> {
+                sendSmtpEmail(port, "sender@example.com", "sizetest@xcmailr.test",
+                              "Oversized Email Subject", largeBody, null);
+            });
+
+            assertNotNull(exception.getMessage(), "Exception message should indicate rejection");
+
+            // Verify no mail was persisted
+            assertEquals(0, mailRepository.count(), "No mail should be stored for oversized message");
+        }
+        finally
+        {
+            xcmailrProperties.getMbox().setMaxSize(originalMaxSize);
+        }
     }
 
     /**

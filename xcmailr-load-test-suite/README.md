@@ -58,33 +58,41 @@ You can run individual test scenarios against a running XCMailr instance using M
 ### Running Scenarios via Maven CLI
 
 #### 1. Test Inbound SMTP Mail Submission (`SendMail`)
-Sends an email over SMTP to a pre-existing mailbox (e.g. `testbox@xcmailr.test`) with STARTTLS negotiation:
+Sends an email over SMTP to `jw@xcmailr.test` with optional STARTTLS negotiation. This is a **pure SMTP throughput benchmark**:
 ```bash
 mvn test -pl xcmailr-load-test-suite \
   -Dtest=SendMail \
   -Dxcmailr.host=localhost \
-  -Dxcmailr.apiToken=<YOUR_API_TOKEN> \
+  -Dxcmailr.apiToken=dummy \
   -Dsmtp.port=25000 \
   -Dsmtp.requireStartTls=true
 ```
-*Note*: Ensure that the recipient mailbox (e.g. `testbox@xcmailr.test`) has been created and is active in XCMailr before running this test.
+
+> **Architectural Note on `SendMail` vs. `SendAndCheckMail`:**
+>
+> - **Protocol Scope**: `SendMail` only exercises the inbound SMTP socket (port 25000). It does **not** make any HTTP REST API requests.
+> - **API Token Parameter**: The shared test harness utility (`Utils`) statically initializes `XCMailrClient` when loaded, which requires `xcmailr.apiToken` to be non-blank. For `SendMail`, any non-blank value (such as `-Dxcmailr.apiToken=dummy`) succeeds because the SMTP server does not authenticate REST tokens.
+> - **Mailbox Handling & Black-Holing**: In accordance with disposable email server design (to prevent backscatter spam and user enumeration), XCMailr accepts emails (`250 OK`) for any address belonging to a managed domain (e.g. `xcmailr.test`).
+>   - If the recipient mailbox (`jw@xcmailr.test`) **does not exist**, XCMailr accepts the email, drops the content without persisting it to the database, and logs transaction status `100` ("Mailbox not found"). `SendMail` completes successfully because the SMTP delivery succeeded.
+>   - If `jw@xcmailr.test` **was pre-created**, XCMailr persists the message body and metadata to the database.
+> - If you want an end-to-end test that **authenticates via REST**, creates a mailbox, delivers an email, and **verifies that the message was stored in the database**, run `SendAndCheckMail` (Scenario 3 below).
 
 #### 2. Test Mailbox Creation and Deletion (`CreateAndDeleteMailbox`)
-Runs a single pass of `CreateAndDeleteMailbox` via the REST API:
+Runs a single pass of `CreateAndDeleteMailbox` via the REST API (requires a valid user API token):
 ```bash
 mvn test -pl xcmailr-load-test-suite \
   -Dtest=CreateAndDeleteMailbox \
   -Dxcmailr.baseUrl=http://localhost:8080 \
-  -Dxcmailr.apiToken=<YOUR_API_TOKEN>
+  -Dxcmailr.apiToken=<YOUR_VALID_API_TOKEN>
 ```
 
 #### 3. Test Full SMTP + REST Verification Roundtrip (`SendAndCheckMail`)
-Creates a temporary mailbox via REST API, delivers an email over SMTP with STARTTLS, polls the REST API until the mail arrives, asserts subject and body contents, and cleans up the mailbox:
+Creates a temporary mailbox via the REST API, delivers an email over SMTP with STARTTLS, polls the REST API until the mail arrives, asserts subject and body contents, and cleans up the mailbox. This scenario verifies both protocol layers and requires a valid API token:
 ```bash
 mvn test -pl xcmailr-load-test-suite \
   -Dtest=SendAndCheckMail \
   -Dxcmailr.baseUrl=http://localhost:8080 \
-  -Dxcmailr.apiToken=<YOUR_API_TOKEN> \
+  -Dxcmailr.apiToken=<YOUR_VALID_API_TOKEN> \
   -Dxcmailr.host=localhost \
   -Dsmtp.port=25000 \
   -Dsmtp.requireStartTls=true
