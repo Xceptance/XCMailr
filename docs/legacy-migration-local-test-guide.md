@@ -48,11 +48,14 @@ cd ../XCMailr-legacy
 > `git worktree` creates an independent checkout folder sharing the same underlying git object store. Your current branch and any uncommitted workspace changes remain completely untouched.
 
 ### Step 2: Start the Legacy Application
-Compile and launch the legacy Ninja development server:
+Compile, enhance entity bytecode, and launch the legacy Ninja development server:
 
 ```bash
-mvn compile ninja:run -pl xcmailr-webapp
+mvn process-classes ninja:run -pl xcmailr-webapp
 ```
+
+> [!NOTE]
+> `process-classes` is required instead of `compile` because legacy XCMailr uses Ebean ORM. The `ebean-maven-plugin:enhance` goal binds to the `process-classes` phase to weave bytecode enhancement into entities (such as `MailStatisticsKey` and `MBox`) before Ninja and Jetty boot.
 
 Wait until you see the Ninja startup banner and confirmation message:
 ```text
@@ -134,7 +137,7 @@ By default, accounts require confirmation. Activate Jane's account directly usin
 
 ### Step 6: Gracefully Shut Down Legacy Application
 
-In the terminal running `mvn compile ninja:run`:
+In the terminal running `mvn process-classes ninja:run`:
 - Press `Ctrl + C` to stop the server.
 - The H2 database cleanly releases file locks and flushes all changes to `xcmailr-webapp/target/xcmailr.mv.db`.
 
