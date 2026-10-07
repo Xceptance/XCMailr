@@ -188,13 +188,25 @@ cd ../XCMailr
 ```
 
 ### Step 2: Launch Modernized XCMailr
-Run Spring Boot with the `dev` profile and pass the relative path to the legacy database using `-Dspring.datasource.url`:
+Launch Spring Boot with the `dev` profile and pass the relative path to the legacy database using `-Dspring-boot.run.arguments`:
 
 ```bash
 mvn spring-boot:run -pl xcmailr-webapp \
   -Dspring-boot.run.profiles=dev \
-  -Dspring.datasource.url="jdbc:h2:../XCMailr-legacy/xcmailr-webapp/target/xcmailr;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE"
+  -Dspring-boot.run.arguments="--spring.datasource.url=jdbc:h2:../../XCMailr-legacy/xcmailr-webapp/target/xcmailr;IFEXISTS=TRUE;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE"
 ```
+
+*(Alternatively, you can pass it via environment variable)*:
+```bash
+SPRING_DATASOURCE_URL="jdbc:h2:../../XCMailr-legacy/xcmailr-webapp/target/xcmailr;IFEXISTS=TRUE;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE" \
+mvn spring-boot:run -pl xcmailr-webapp -Dspring-boot.run.profiles=dev
+```
+
+> [!NOTE]
+> **Why `../../`, `-Dspring-boot.run.arguments`, and `;IFEXISTS=TRUE`?**
+> 1. **`../../`**: When Maven executes `spring-boot:run` with `-pl xcmailr-webapp`, the working directory of the running process is `xcmailr-webapp/`. Two upward steps (`../../`) are required to reach the sibling workspace directory `../XCMailr-legacy`.
+> 2. **`-Dspring-boot.run.arguments="--spring.datasource.url=..."`**: `spring-boot:run` forks a separate JVM for the application. Passing this via `spring-boot.run.arguments` ensures the argument is passed directly to Spring Boot rather than being consumed solely by Maven.
+> 3. **`;IFEXISTS=TRUE`**: Tells H2 to fail fast with an error if the database file is missing or the path is incorrect, preventing H2 from silently creating a brand-new empty database.
 
 ---
 
