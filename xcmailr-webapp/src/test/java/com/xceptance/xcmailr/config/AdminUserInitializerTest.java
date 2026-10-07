@@ -149,4 +149,44 @@ public class AdminUserInitializerTest
         assertTrue(recoveredOpt.isPresent(), "Admin account should be recovered on restart");
         assertTrue(recoveredOpt.get().isAdmin(), "Recovered user should have admin privileges");
     }
+
+    /**
+     * Verifies that when an administrator account already exists (e.g. following a legacy database migration)
+     * but the domain whitelist table is empty, the default domain is seeded on startup and user credentials
+     * remain untouched.
+     */
+    @Test
+    void testSeedsDomainWhenAdminAlreadyExistsWithoutDomain()
+    {
+        final String adminMail = properties.getAdmin().getAddress().toLowerCase();
+        final String customPassword = "legacyAdminPassword123!";
+
+        final User existing = new User();
+        existing.setForename("Legacy");
+        existing.setSurname("Admin");
+        existing.setMail(adminMail);
+        existing.setPasswd(passwordEncoder.encode(customPassword));
+        existing.setAdmin(true);
+        existing.setActive(true);
+        existing.setLanguage("en");
+        userRepository.save(existing);
+
+        // Ensure domain repository is completely empty (simulating legacy database cutover)
+        domainRepository.deleteAll();
+        assertEquals(0, domainRepository.count(), "Domain repository must initially be empty");
+
+        // Run the initializer
+        initializer.run(new DefaultApplicationArguments());
+
+        // Verify credentials were preserved
+        final User admin = userRepository.findByMailIgnoreCase(adminMail).orElseThrow();
+        assertEquals("Legacy", admin.getForename(), "Forename must not be altered");
+        assertEquals("Admin", admin.getSurname(), "Surname must not be altered");
+        assertTrue(passwordEncoder.matches(customPassword, admin.getPasswd()), "Legacy password must be preserved");
+
+        // Verify default domain was seeded
+        final String domainName = adminMail.substring(adminMail.indexOf('@') + 1);
+        final Optional<Domain> domainOpt = domainRepository.findByDomainnameIgnoreCase(domainName);
+        assertTrue(domainOpt.isPresent(), "Default domain must be seeded when admin already exists but domain is missing");
+    }
 }

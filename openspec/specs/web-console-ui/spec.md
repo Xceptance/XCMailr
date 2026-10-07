@@ -95,6 +95,10 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 - **WHEN** an administrator inspects the mail transaction log
 - **THEN** the system displays paginated records with filtering by timestamp, status, and address
 
+#### Scenario: Default Domain Whitelist Seeding on Startup
+- **WHEN** the application starts up against a fresh or migrated legacy database
+- **THEN** the system ensures the administrator's default domain is present in the registered domain whitelist if absent, ensuring that mailbox creation domain options are available
+
 ### Requirement: Role-Based Navigation Visibility
 The system SHALL conditionally render navigation links and action items based on the visitor's authentication state and granted roles, ensuring that administrative and personal account controls are never exposed to unauthorized sessions.
 

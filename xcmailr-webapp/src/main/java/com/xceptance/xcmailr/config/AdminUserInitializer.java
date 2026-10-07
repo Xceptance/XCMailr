@@ -112,6 +112,7 @@ public class AdminUserInitializer implements ApplicationRunner
                 LOG.info("Configured initial API token for existing administrator account '{}'", normalizedMail);
             }
             LOG.debug("Administrator account '{}' already exists. Leaving credentials and permissions untouched.", normalizedMail);
+            seedDefaultDomain(normalizedMail);
             return;
         }
 

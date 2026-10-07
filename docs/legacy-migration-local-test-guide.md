@@ -215,16 +215,32 @@ mvn spring-boot:run -pl xcmailr-webapp -Dspring-boot.run.profiles=dev
 ### Checkpoint 1: Inspect Startup Logs
 Verify the console output for the following critical milestones:
 1. **Flyway Schema Check**:
-   ```text
-   o.f.core.internal.command.DbMigrate : Current version of schema: 3
-   o.f.core.internal.command.DbMigrate : Schema is up to date. No migration necessary.
-   ```
+   - **Initial Migration Cutover (First Run)**:
+     Legacy XCMailr managed its schema via Ebean ORM rather than Flyway, so `flyway_schema_history` does not exist yet. On the first run, Flyway baselines the legacy schema at version `0` and applies migrations V1–V3 (all statements use non-destructive `IF NOT EXISTS` / `IF EXISTS` logic, preserving all legacy data and completing in milliseconds):
+     ```text
+     o.f.c.i.database.base.BaseDatabaseType   : Database: jdbc:h2:../../XCMailr-legacy/xcmailr-webapp/target/xcmailr (H2 2.3)
+     o.f.core.internal.command.DbBaseline     : Creating Schema History table "PUBLIC"."flyway_schema_history" with baseline ...
+     o.f.core.internal.command.DbBaseline     : Successfully baselined schema with version: 0
+     o.f.core.internal.command.DbMigrate      : Current version of schema "PUBLIC": 0
+     o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "1 - Initial Setup"
+     o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "2 - Change Mail Message Type"
+     o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "3 - Remove Mail2MailBox Reference"
+     o.f.core.internal.command.DbMigrate      : Successfully applied 3 migrations to schema "PUBLIC", now at version v3
+     ```
+   - **Subsequent Application Restarts**:
+     Once baselined and migrated, subsequent runs report schema version 3 is already up to date:
+     ```text
+     o.f.core.internal.command.DbMigrate      : Current version of schema "PUBLIC": 3
+     o.f.core.internal.command.DbMigrate      : Schema "PUBLIC" is up to date. No migration necessary.
+     ```
 2. **Hibernate Schema Validation**:
    Spring Boot boots cleanly without `SchemaManagementException`, confirming all JPA entities match existing database columns.
-3. **Admin Account Preservation**:
+3. **Admin Account Preservation & Default Domain Seeding**:
    ```text
-   c.x.xcmailr.config.AdminUserInitializer : Administrator account 'admin@xcmailr.test' already exists. Leaving credentials and permissions untouched.
+   c.x.xcmailr.config.AdminUserInitializer  : Administrator account 'admin@xcmailr.test' already exists. Leaving credentials and permissions untouched.
+   c.x.xcmailr.config.AdminUserInitializer  : Seeding default domain in whitelist: xcmailr.test
    ```
+   *(The admin's password and privileges are left untouched, while `xcmailr.test` is seeded into `register_domains` if absent, ensuring the web UI mailbox creation dropdown is immediately populated.)*
 
 ---
 
