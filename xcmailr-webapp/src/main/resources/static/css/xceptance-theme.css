@@ -1,0 +1,324 @@
+/*
+ * Copyright (c) 2013-2026 Xceptance Software Technologies GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* ==========================================================================
+   Xceptance Corporate Theme Design Tokens & Typography
+   Aligned with https://www.xceptance.com/en/
+   ========================================================================== */
+
+:root {
+    --xc-primary: #004682;
+    --xc-primary-hover: #003868;
+    --xc-accent: #dc3545;
+    --xc-font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --xc-font-family-condensed: 'Roboto Condensed', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    /* Theme colors */
+    --xc-bg-surface: #ffffff;
+    --xc-bg-card: #ffffff;
+    --xc-border-color: #dee2e6;
+    --xc-text-muted: #6c757d;
+    --xc-footer-bg: #f8f9fa;
+    --xc-footer-text: #6c757d;
+    --xc-offcanvas-bg: #ffffff;
+}
+
+[data-bs-theme="dark"] {
+    --xc-primary: #3b82f6;
+    --xc-primary-hover: #2563eb;
+    --xc-accent: #ef4444;
+
+    /* Dark theme tokens */
+    --xc-bg-surface: #1e293b;
+    --xc-bg-card: #1e293b;
+    --xc-border-color: #334155;
+    --xc-text-muted: #94a3b8;
+    --xc-footer-bg: #0f172a;
+    --xc-footer-text: #94a3b8;
+    --xc-offcanvas-bg: #1e293b;
+}
+
+/* Base Typography */
+body {
+    font-family: var(--xc-font-family);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+h1, h2, h3, h4, h5, h6, .navbar-brand {
+    font-family: var(--xc-font-family-condensed);
+    letter-spacing: -0.01em;
+}
+
+/* ==========================================================================
+   Header & Sticky Navigation Bar
+   ========================================================================== */
+
+.navbar-xceptance {
+    background-color: var(--xc-bg-surface);
+    border-bottom: 2px solid var(--xc-primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+    z-index: 1030;
+}
+
+.navbar-xceptance .navbar-brand {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--xc-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.navbar-xceptance .nav-link {
+    font-weight: 500;
+    color: var(--bs-body-color);
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.375rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.navbar-xceptance .nav-link:hover,
+.navbar-xceptance .nav-link:focus {
+    color: var(--xc-primary);
+    background-color: rgba(0, 70, 130, 0.06);
+}
+
+[data-bs-theme="dark"] .navbar-xceptance .nav-link:hover,
+[data-bs-theme="dark"] .navbar-xceptance .nav-link:focus {
+    color: var(--xc-primary);
+    background-color: rgba(59, 130, 246, 0.12);
+}
+
+/* Active Nav Link Marker */
+.navbar-xceptance .nav-link.active {
+    color: var(--xc-primary);
+    font-weight: 600;
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--xc-border-color);
+    color: var(--bs-body-color);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.theme-toggle-btn:hover {
+    color: var(--xc-primary);
+    border-color: var(--xc-primary);
+    background-color: rgba(0, 70, 130, 0.05);
+}
+
+[data-bs-theme="dark"] .theme-toggle-btn:hover {
+    background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* ==========================================================================
+   Responsive Offcanvas Drawer (<992px)
+   ========================================================================== */
+
+.offcanvas-navbar {
+    background-color: var(--xc-offcanvas-bg);
+    width: 280px !important;
+}
+
+.offcanvas-navbar .offcanvas-header {
+    border-bottom: 1px solid var(--xc-border-color);
+    padding: 1rem 1.25rem;
+}
+
+.offcanvas-navbar .offcanvas-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.offcanvas-section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--xc-text-muted);
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+.offcanvas-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.offcanvas-nav-list .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    color: var(--bs-body-color);
+}
+
+.offcanvas-nav-list .nav-link:hover {
+    color: var(--xc-primary);
+    background-color: rgba(0, 70, 130, 0.08);
+}
+
+[data-bs-theme="dark"] .offcanvas-nav-list .nav-link:hover {
+    background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* ==========================================================================
+   Cards, Tables, and Corporate Components
+   ========================================================================== */
+
+.card {
+    background-color: var(--xc-bg-card);
+    border-color: var(--xc-border-color);
+}
+
+.table {
+    --bs-table-bg: transparent;
+}
+
+.table-hover > tbody > tr:hover > * {
+    --bs-table-bg-state: rgba(0, 70, 130, 0.04);
+}
+
+[data-bs-theme="dark"] .table-hover > tbody > tr:hover > * {
+    --bs-table-bg-state: rgba(59, 130, 246, 0.08);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--xc-primary);
+    border-color: var(--xc-primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--xc-primary-hover);
+    border-color: var(--xc-primary-hover);
+}
+
+/* Corporate Footer */
+.footer-xceptance {
+    background-color: var(--xc-footer-bg);
+    border-top: 1px solid var(--xc-border-color);
+    color: var(--xc-footer-text);
+    padding: 1.5rem 0;
+    margin-top: auto;
+    font-size: 0.875rem;
+}
+
+.footer-xceptance a {
+    color: var(--xc-primary);
+    text-decoration: none;
+}
+
+.footer-xceptance a:hover {
+    text-decoration: underline;
+}
+
+/* Mailbox address link with interactive hover state */
+.mailbox-address-link {
+    font-weight: 600;
+    color: var(--xc-body-color, #1a202c);
+    text-decoration: none;
+    transition: color 0.15s ease-in-out;
+}
+
+.mailbox-address-link:hover {
+    color: var(--xc-primary, #0d6efd);
+    text-decoration: underline;
+}
+
+/* Subtle status dot indicators */
+.status-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    margin-right: 0.375rem;
+    vertical-align: middle;
+}
+
+.status-dot-active {
+    background-color: var(--bs-success, #198754);
+}
+
+.status-dot-expired {
+    background-color: var(--bs-secondary, #6c757d);
+}
+
+/* Clipboard copy button */
+.btn-copy {
+    background: transparent;
+    border: none;
+    color: var(--bs-secondary, #6c757d);
+    padding: 0.125rem 0.25rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.btn-copy:hover {
+    color: var(--xc-primary, #0d6efd);
+    background-color: rgba(13, 110, 253, 0.08);
+}
+
+/* ==========================================================================
+   Error Views
+   ========================================================================== */
+
+.error-container {
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    background-color: var(--bs-body-bg, #ffffff);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+[data-bs-theme="dark"] .error-container {
+    border-color: rgba(255, 255, 255, 0.12);
+    background-color: #1e242b;
+}
+
+.error-badge .badge {
+    font-weight: 500;
+    letter-spacing: 0.025em;
+}
+
+

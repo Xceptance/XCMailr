@@ -26,12 +26,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.Table;
 
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotEmpty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 import org.mindrot.jbcrypt.BCrypt;
 
-import io.ebean.DB;
-import io.ebean.ExpressionList;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 /**
@@ -263,7 +261,7 @@ public class User extends AbstractEntity implements Serializable
      * @param passwd
      *            the Password to set (after hashing with BCrypt)
      */
-    void setPasswd(String passwd)
+    public void setPasswd(String passwd)
     {
         this.passwd = passwd;
     }
@@ -390,168 +388,6 @@ public class User extends AbstractEntity implements Serializable
         this.apiTokenCreationTimestamp = timestamp;
     }
 
-    // ---------------------------- EBean-Functions----------------------
-    /**
-     * @return the List of all Users in the Database
-     */
-    public static List<User> all()
-    {
-        return DB.find(User.class).findList();
-
-    }
-
-    /**
-     * Returns whether the Database contains an user with the given mail address (case-insensitive lookup).
-     * 
-     * @param mail
-     *            the given mail address
-     * @return true if there is an user with the given address
-     */
-    public static boolean mailExists(String mail)
-    {
-        return queryByMail(mail).exists();
-    }
-
-    /**
-     * @return true, if the user is the last admin-account in this app
-     */
-    public boolean isLastAdmin()
-    {
-        // this user is admin and there's only one admin in the database, so he's the last one
-        return isAdmin() && (DB.find(User.class).where().eq("admin", true).findCount() == 1);
-    }
-
-    /**
-     * returns the User-Object that belongs to the given Mail-Address
-     * 
-     * @param mail
-     *            Address of a User
-     * @return the User
-     */
-    public static User getUsrByMail(String mail)
-    {
-        return queryByMail(mail).findOne();
-    }
-
-    /**
-     * Creates and returns a query for an user with the given mail address.
-     * 
-     * @param mail
-     *            the user's mail address
-     * @return query for an user with the given mail address
-     */
-    private static ExpressionList<User> queryByMail(String mail)
-    {
-        return DB.find(User.class).where().ieq("mail", mail);
-    }
-
-    /**
-     * returns the User-Object if the given Mail and Password combination matches
-     * 
-     * @param mail
-     *            the User's Mail-Address
-     * @param pw
-     *            the Password the User entered
-     * @return the User Object if the given Mail and Password belong together, null - else
-     */
-
-    public static User auth(String mail, String pw)
-    {
-        // get the user by the mailadress
-        final User usr = getUsrByMail(mail);
-        return (usr != null && BCrypt.checkpw(pw, usr.getPasswd())) ? usr : null;
-    }
-
-    /**
-     * This Method returns the User-Object if the given User-ID and Password belong together, otherwise it will return
-     * null
-     * 
-     * @param id
-     *            the ID of a User
-     * @param pw
-     *            the Password of a User
-     * @return the User-Object if the given User-ID and Password belong together
-     */
-    public static User authById(Long id, String pw)
-    {
-        final User usr = getById(id);
-        return (usr != null && BCrypt.checkpw(pw, usr.getPasswd())) ? usr : null;
-    }
-
-    /**
-     * Returns the User-Object which belongs to the given User-ID
-     * 
-     * @param id
-     *            an Users-ID
-     * @return the User-Object
-     */
-    public static User getById(Long id)
-    {
-        return DB.find(User.class, id);
-    }
-
-    /**
-     * Deletes the User with the given ID
-     * 
-     * @param id
-     *            the ID of the User that has to be deleted
-     */
-    public static void delete(Long id)
-    {
-        DB.delete(User.class, id);
-    }
-
-    /**
-     * Promotes or Demotes the User and Updates the DB. The Method checks the actual state and sets the Opposite
-     * 
-     * @param id
-     *            ID of the User
-     */
-    public static void promote(Long id)
-    {
-        final User usr = getById(id);
-        usr.setAdmin(!usr.admin);
-        DB.update(usr);
-    }
-
-    /**
-     * Activates or Deactivates the User and Updates the DB. The Method checks the actual state and sets the opposite
-     * 
-     * @param id
-     *            ID of the User
-     */
-    public static boolean activate(Long id)
-    {
-        final User usr = getById(id);
-        usr.setActive(!usr.isActive());
-        DB.update(usr);
-        return usr.isActive();
-
-    }
-
-    /**
-     * Returns a List of all users which have email-addresses that belong to the given domain
-     * 
-     * @param domainName
-     *            the domain-name
-     * @return a List of Users
-     */
-    public static List<User> getUsersOfDomain(String domainName)
-    {
-        return DB.find(User.class).where().ilike("mail", "%@" + domainName).findList();
-    }
-
-    /**
-     * Deletes all users with an email-addresses of the given domain
-     * 
-     * @param domainName
-     *            the domain-name
-     */
-    public static void deleteUsersOfDomain(String domainName)
-    {
-        DB.delete(getUsersOfDomain(domainName));
-    }
-
     /**
      * Converts the User-Object to a String which contains in one line: UserID, First name, Last name, Mail and
      * Password. The fields are separated by a Whitespace
@@ -560,43 +396,5 @@ public class User extends AbstractEntity implements Serializable
     public String toString()
     {
         return getId() + " " + forename + " " + " " + surname + " " + mail + " ";
-    }
-
-    /**
-     * Finds all users with an email that is like the Input-String
-     * 
-     * @param input
-     *            the full email or just a part of it so search for
-     * @return a list of users
-     */
-    public static List<User> findUserLike(String input)
-    {
-        if (input.equals(""))
-        {
-            return all();
-        }
-        return DB.find(User.class).where().ilike("mail", "%" + input + "%").findList();
-    }
-
-    /**
-     * Searches the user the given API token. If it doesn't exist or if token's value isn't unique then null will be
-     * returned.
-     * 
-     * @param apiToken
-     *            the apiToken
-     * @return active user owning the given token or {@code null} otherwise
-     */
-    public static User findUserByToken(String apiToken)
-    {
-        try
-        {
-            return DB.find(User.class).where().eq("APITOKEN", apiToken).eq("active", true).findOne();
-        }
-        catch (PersistenceException e)
-        {
-            // in case there is more than one user with the exact same token
-            // this should never ever happen except someone is extreme lucky
-            return null;
-        }
     }
 }

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="table" id="domain-table-container">
+    <div class="table-responsive bg-white rounded shadow-sm border">
+        <table class="table table-hover table-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Domain Name</th>
+                    <th scope="col" class="text-end" style="width: 120px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(domains)}">
+                    <td colspan="2" class="text-center text-muted py-4">
+                        <em>No domains configured in whitelist.</em>
+                    </td>
+                </tr>
+
+                <tr th:each="d : ${domains}" th:id="'domain-row-' + ${d.id}">
+                    <td>
+                        <span class="fw-semibold" th:text="${d.domainname}">example.com</span>
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger" type="button"
+                                th:attr="hx-delete=@{'/admin/domains/' + ${d.id}},hx-target='#domain-table-container',hx-swap='outerHTML',hx-confirm='Remove domain ' + ${d.domainname} + ' from the whitelist?'"
+                                title="Remove domain">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

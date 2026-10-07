@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::content})}">
+<body>
+
+<div th:fragment="content">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/mailboxes}">Mailboxes</a></li>
+            <li class="breadcrumb-item"><a th:href="@{'/mailboxes/' + ${mailbox.id} + '/mails'}" th:text="${mailbox.fullAddress}">test@example.com</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${mail.subject}">Email Subject</li>
+        </ol>
+    </nav>
+
+    <div th:replace="~{mailboxes/fragments/mail-detail :: detail}"></div>
+</div>
+
+</body>
+</html>

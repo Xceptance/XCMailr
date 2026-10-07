@@ -44,6 +44,10 @@ public class MailStatisticsKey implements Serializable
     @Column(name = "TARGET_DOMAIN", nullable = false)
     private String targetDomain;
 
+    public MailStatisticsKey()
+    {
+    }
+
     public MailStatisticsKey(Date date, int quarterHour, String fromDomain, String targetDomain)
     {
         this.date = date;

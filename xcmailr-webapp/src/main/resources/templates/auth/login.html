@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::content})}">
+<head>
+    <title>Log In - XCMailr</title>
+</head>
+<body>
+<div th:fragment="content" class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold">Sign In</h2>
+                    <p class="text-muted">Access your temporary and disposable mailboxes</p>
+                </div>
+
+                <!-- Status banners -->
+                <div th:if="${param.error != null}" class="alert alert-danger" role="alert">
+                    Invalid email address or password. Please try again.
+                </div>
+                <div th:if="${param.logout != null}" class="alert alert-info" role="alert">
+                    You have been logged out successfully.
+                </div>
+                <div th:if="${param.registered != null}" class="alert alert-info" role="alert">
+                    Registration successful! Please check your email to activate your account before logging in.
+                </div>
+                <div th:if="${param.ready != null}" class="alert alert-success" role="alert">
+                    Registration successful! You may now log in.
+                </div>
+                <div th:if="${param.unconfirmed != null}" class="alert alert-warning" role="alert">
+                    Your account has not been activated yet. Please check your email for the confirmation link.
+                </div>
+                <div th:if="${param.confirmed != null}" class="alert alert-success" role="alert">
+                    Your account has been activated! Please log in.
+                </div>
+                <div th:if="${param.resetRequested != null}" class="alert alert-info" role="alert">
+                    If the email matches an account, password reset instructions have been sent.
+                </div>
+                <div th:if="${param.passwordReset != null}" class="alert alert-success" role="alert">
+                    Your password has been reset successfully. Please log in with your new password.
+                </div>
+                <div th:if="${param.invalidToken != null}" class="alert alert-danger" role="alert">
+                    The confirmation or reset link is invalid or has already been used.
+                </div>
+                <div th:if="${param.expiredToken != null}" class="alert alert-danger" role="alert">
+                    The confirmation link has expired. Please register again or request a new link.
+                </div>
+
+                <form th:action="@{/login}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <div class="mb-3">
+                        <label for="mail" class="form-label fw-semibold">Email address</label>
+                        <input type="email" class="form-control" id="mail" name="mail" required autofocus placeholder="name@example.com">
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="password" class="form-label fw-semibold mb-0">Password</label>
+                            <a th:href="@{/forgot-password}" class="small text-decoration-none">Forgot password?</a>
+                        </div>
+                        <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 mt-3 fw-semibold">Log In</button>
+                </form>
+
+                <div class="text-center mt-4 pt-2 border-top">
+                    <p class="text-muted small mb-0">
+                        Don't have an account? <a th:href="@{/register}" class="text-decoration-none fw-semibold">Register here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

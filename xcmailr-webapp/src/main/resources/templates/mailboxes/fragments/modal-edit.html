@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="modal" class="modal-content">
+    <form th:attr="hx-post=@{'/mailboxes/' + ${mailbox.id} + '/edit'}" hx-target="#modal-container" hx-swap="innerHTML">
+        <div class="modal-header">
+            <h5 class="modal-title">Edit Mailbox</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <!-- Inline error alert if update fails -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${error}">Validation error</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted">Mailbox Address</label>
+                <input type="text" class="form-control" th:value="${mailbox.fullAddress}" readonly disabled>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted">Current Expiration</label>
+                <div class="fw-semibold">
+                    <span th:if="${mailbox.ts_Active == 0}" class="text-success">Unlimited</span>
+                    <span th:unless="${mailbox.ts_Active == 0}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mailbox.ts_Active))}">2026-10-01 12:00</span>
+                </div>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="activeEditCheck" name="active" value="true"
+                       th:checked="${mailbox.active}">
+                <label class="form-check-label" for="activeEditCheck">
+                    Mailbox is active
+                </label>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="forwardEditCheck" name="forwardEmails" value="true"
+                       th:checked="${mailbox.forwardEmails}">
+                <label class="form-check-label" for="forwardEditCheck">
+                    Forward incoming emails to my account address
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

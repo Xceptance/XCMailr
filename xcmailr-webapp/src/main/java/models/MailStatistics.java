@@ -25,8 +25,6 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
-import io.ebean.DB;
-
 @Entity
 @Table(name = "MAIL_STATISTICS")
 public class MailStatistics implements Serializable
@@ -156,19 +154,5 @@ public class MailStatistics implements Serializable
         formatter.setGroupingUsed(true);
 
         return formatter.format(value);
-    }
-
-    /**
-     * Deletes all {@link MailStatistics} entries with a date value older than the given date.
-     * 
-     * @param date
-     *            the date
-     * @return the number of deleted entries
-     */
-    public static int deleteAllOlderThan(Date date)
-    {
-        String sql = "DELETE FROM MAIL_STATISTICS WHERE date < '" + date + "';";
-
-        return DB.sqlUpdate(sql).execute();
     }
 }

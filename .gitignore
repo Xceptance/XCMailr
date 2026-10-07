@@ -1,5 +1,8 @@
 /xcmailr-build/
 /target/
+**/target/
+bin/
+**/bin/
 xcmailr_testsuite/results
 .DS_Store
 .DS_Store?
@@ -7,3 +10,6 @@ xcmailr_testsuite/results
 .project
 .settings
 .metadata
+.idea/
+*.iml
+xcmailr-webapp/conf/application.conf

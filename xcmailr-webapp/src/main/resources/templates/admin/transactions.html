@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::content})}">
+<body>
+
+<div th:fragment="content">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h2 class="fw-bold mb-1">Transaction Audit Log</h2>
+            <p class="text-muted mb-0">Inspect inbound SMTP traffic, relay outcomes, suppression events, and delivery errors.</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+            <!-- Purge Form -->
+            <form th:action="@{/admin/transactions/purge}" method="post" class="d-inline-flex gap-2 align-items-center"
+                  onsubmit="return confirm('Are you sure you want to purge transaction records?');">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <select class="form-select form-select-sm w-auto" name="days">
+                    <option value="7">Older than 7 days</option>
+                    <option value="30" selected>Older than 30 days</option>
+                    <option value="90">Older than 90 days</option>
+                    <option value="-1">All records (Purge All)</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-danger">Purge</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alert banners -->
+    <div th:if="${param.purged}" class="alert alert-info alert-dismissible fade show" role="alert">
+        Transaction logs purged successfully.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Status summary badges -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="d-flex flex-wrap gap-3 align-items-center">
+                <span class="text-muted small fw-semibold">Status Overview:</span>
+                <span th:each="st : ${statusSummary}">
+                    <span th:if="${st.statuscode == 300}" class="badge bg-success py-2 px-3">
+                        Forwarded (300): <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode == 200}" class="badge bg-warning text-dark py-2 px-3">
+                        Inactive (200): <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode == 100}" class="badge bg-secondary py-2 px-3">
+                        Unknown (100): <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode >= 400}" class="badge bg-danger py-2 px-3">
+                        Error (<span th:text="${st.statuscode}">400</span>): <strong th:text="${st.count}">0</strong>
+                    </span>
+                </span>
+                <span th:if="${#lists.isEmpty(statusSummary)}" class="text-muted small">No transactions recorded yet.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Table -->
+    <div th:replace="~{admin/fragments/transaction-table :: table}"></div>
+</div>
+
+</body>
+</html>

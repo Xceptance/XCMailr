@@ -1,216 +1,361 @@
 # XCMailr
 ## Summary
 * Name: XCMailr
-* Version: 3.0.1
-* Release: June 2023
+* Version: 3.1.0
+* Release: October 2026
 * License: Apache V2.0
 * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
-* Tags: AntiSpam, Testutility
+* Tags: AntiSpam, TestUtility, EmailTesting, SpringBoot, HTMX
 * Contributors:
   * Patrick Thum, Xceptance Software Technologies GmbH
   * Patrick Hähnlein, Xceptance Software Technologies GmbH
+  * René Baumgarten, Xceptance Software Technologies GmbH
 
 ## Description
-XCMailr has been built to aid testing. Testing needs email addresses to create accounts, test formats of emails addresses, and last but not least load testing needs a ton of that. A special challenge for load testing is, that the mails should be deliverable, so that the sending system is not overwhelmed by returns. 
+XCMailr was built to aid software and automated test engineering. Testing often requires disposable email addresses to create test accounts, validate complex email validation flows, and conduct large-scale load and performance testing without bounce-backs overwhelming sending systems.
 
-Commercial or free system do not want to see 20k fake accounts that receive about 1,500 emails per day each. Your sender will be blocked quickly. Additionally you often cannot disable email delivery because the system under test does either not have that option or it is out of reach.
+Commercial or public temporary mail services often block or throttle automated test accounts and discard emails. Additionally, transmitting sensitive test emails (e.g., account activation tokens, password reset links) through third-party services poses privacy and compliance risks.
 
-XCMailr lets you quickly and easily setup email accounts for testing purposes. Simply create temporary email addresses and have all incoming email forwarded to your actual account. When its configurable lifetime expires, the address gets deactivated and all incoming mail will be silently dropped. XCMailr doesn't store any email content and and won't notify the sender if the address is no longer valid.
+XCMailr allows you to host your own disposable email testing service. You control security, availability, domains, and data retention. Incoming test emails can be inspected via an interactive web dashboard, forwarded to configured destination addresses, or queried via standard REST APIs.
 
-So you host XCMailr yourself, you control security, you control availability, you control the domains, you control everything. Hence XCMailr is perfect for real-life testing of sensitive systems as well, because no third party will see your test emails and draw conclusion from it.
+## Key Features & Modern Stack
+* **Java 25 & Spring Boot 4.1.1**: High throughput and modern language features with Project Loom Virtual Threads enabled for all HTTP requests and background tasks.
+* **Modern Web Console & Responsive UI**: Built with server-side Thymeleaf 3, Bootstrap 5.3, and HTMX 2 for responsive, reactive single-page app UX without requiring Node.js or npm.
+* **Corporate Theme & Design System**: Styled according to Xceptance corporate identity (`#004682` brand blue, `#003868` hover, `#dc3545` accent) with Roboto and Roboto Condensed typography.
+* **Responsive Offcanvas Drawer**: Sticky corporate navbar on desktop screens and a smooth slide-out Bootstrap 5 Offcanvas drawer (`#navbarOffcanvas`) on mobile viewports.
+* **Dark & Light Mode Support**: Native Bootstrap 5.3 color mode switching (`[data-bs-theme]`) with `prefers-color-scheme` auto-detection, `localStorage` persistence, and FOIT-free initialization.
+* **Standardized Bootstrap Icons**: Integrated `bootstrap-icons:1.11.3` WebJar providing vector icons for search, actions, navigation, and theme toggling.
+* **Role-Based Access Control & OWASP Compliance**: Server-side Thymeleaf Spring Security 6 dialect (`sec:authorize`) eliminates unauthorized DOM exposure; method-level `@PreAuthorize("hasRole('ADMIN')")` and URL security filters enforce multi-layer Broken Access Control (OWASP A01:2021) defenses.
+* **Embedded SMTP Engine**: Powered by SubEthaSMTP 7.2.2 with virtual-thread dispatching, handling inbound emails directly on port 25000 (configurable).
+* **OWASP HTML Sanitizer**: Safe webmail message rendering stripping malicious `<script>` tags, event handlers, and unsafe protocols while preserving styles and formatting.
+* **Spring Security & BCrypt**: Robust password hashing with automatic transparent upgrade for legacy SHA-512 hashes upon successful login.
+* **Dual Security Filters**: Session-based form login for web UI and HTTP Bearer token authentication for REST APIs.
+* **Flyway Database Migrations**: Automated, zero-downtime database schema versioning supporting embedded H2, PostgreSQL, and MySQL/MariaDB.
+* **Java Client Library (`xcmailr-client`)**: Lightweight client SDK for seamless integration into test frameworks (JUnit, TestNG, Selenium, Playwright).
 
-## Requirements
-* Java 11 runtime (OpenJDK compatible)
-* Apache Maven 3.0.0+ for building the sources
-* [Memcached](http://memcached.org/), optional since V1.1.3 but recommended for production
+## System Requirements
+* **Java 25 runtime** (OpenJDK compatible, e.g. Eclipse Temurin or Homebrew OpenJDK 25)
+* **Apache Maven 3.9+** (or included Maven wrapper `./mvnw`)
 
 ## Configuration
-* Copy the application configuration template `conf/application.conf.template` to `conf/application.conf` and open it in your editor.
-* It is strongly recommended to create a new application secret. This secret ensures that the session-cookie of a user has not been modified. 
-* You should especially customize the following settings:
-    * **application.secret** uncomment and set this line, its used to verify session-cookies
-    * **mbox.dlist** the list of available domains
-    * **mbox.host** the main-application-host
-    * **mail.smtp.&#42;** the "outbound" SMTP-Server (the server to which the application will forward any "valid" messages)
-    * **memcached.&#42;** the MemCached-Server (host and port)
-    * **ebean.&#42;** the Ebean-Configuration
-* Logging can be configured by editing conf/logback.xml. See https://logback.qos.ch/manual/ for documentation.
-* To configure HTTP and HTTPS, you can set the following properties to desired values as described on https://www.ninjaframework.org/documentation/configuration_and_modes.html
-    * **ninja.ssl.port** the HTTPS port (set to `-1` to disable HTTPS listener)
-    * **ninja.port** the HTTP port (set to `-1` to disable clear-text HTTP listener)
-    * **ninja.ssl.keystore.uri** the URI to the keystore to use
-    * **ninja.ssl.keystore.password** the password of the keystore
-    * **ninja.ssl.truststore.uri** the URI to the truststore to use
-    * **ninja.ssl.truststore.password** the password of the truststore
+Application configuration is managed via standard Spring Boot properties in `xcmailr-webapp/src/main/resources/application.properties` or overridden via external files or environment variables:
 
-## Run the Application
-First of all, you should create your own application configuration file by simply making a copy of the existing template `application.conf.template` located in the `conf` folder.
-The copy should be named `application.conf` and reside in the `conf` folder as well.
+| Property | Default | Description |
+| :--- | :--- | :--- |
+| `server.port` | `8080` | HTTP listener port |
+| `xcmailr.app.domain` | `localhost` | Default application domain |
+| `xcmailr.smtp.listen-port` | `25000` | Inbound SMTP server listener port |
+| `xcmailr.smtp.bind-address` | `0.0.0.0` | Inbound SMTP server bind address |
+| `xcmailr.mail.expiration-minutes-default` | `60` | Default mailbox validity duration |
+| `xcmailr.mail.retention-days-default` | `30` | Default retention period for message and transaction purge |
+| `spring.datasource.url` | `jdbc:h2:mem:xcmailr_db;...` | JDBC database connection URL |
+| `spring.mail.host` | `localhost` | Outbound relay SMTP server hostname |
+| `spring.mail.port` | `25` | Outbound relay SMTP server port |
 
-Now, open and edit it in your favorite editor (see Configuration). Make sure to save it using UTF-8 encoding.
-
-Finally, run the script `bin/run.sh` (or `bin\run.cmd` respectively). If configured correctly, you should see something like the following in your console
-
+To override settings in production, provide an external configuration file:
+```bash
+java -jar xcmailr-webapp.jar --spring.config.additional-location=file:/path/to/custom-application.properties
 ```
-    Ninja application running at
-     => http://localhost:8080
-```
-If you set a value for `ninja.context`, the server will use that value as context path for your application. That means when you specify the value "xcmailr" for `ninja.context` and "http://localhost:8080" as `application.url`, then your application can be locally reached at "http://localhost:8080/xcmailr". In case you want to run the application behind a reverse proxy, have a look at the section below.
 
-**IMPORTANT** Make sure to use different values for all of the following settings, otherwise you might purge your production DB by accident:
-* ebean.datasource.databaseUrl
-* %test.ebean.datasource.databaseUrl
-* %dev.ebean.datasource.databaseUrl
+Or use environment variables:
+```bash
+export XCMAILR_SMTP_LISTEN_PORT=25
+export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/xcmailr"
+export SPRING_DATASOURCE_USERNAME="xcmailr"
+export SPRING_DATASOURCE_PASSWORD="securepassword"
+java -jar xcmailr-webapp.jar
+```
 
 ## Build from Source
-* If you want to build the project from the sources, you have two options to run the webapp.
-* First option (after you've changed something and want to check your changes), the development-mode:
-    * cd into the 'xcmailr-webapp' folder
-    * if you build the app the very first time, execute `mvn clean compile process-classes` to clean up the target folder (if existent) and compile the app
-    * execute `mvn ninja:run` to run the app in development-mode inside an embedded Jetty listing on localhost:8080 for HTTP and localhost:8443 for HTTPS
-    * NOTE (especially for contributors): You probably want to change the configuration-file in dev-mode. Thereby, you should either set a gitignore (or svn:ignore) to prevent that your personal data (e.g. the mailservice-login) will be committed to the repository or you can place another application.conf at /home/yourUsername/conf/ . The ninja-framework uses Apache Commons Configuration to read the file. It will search for the configuration-file at first in this folder. In both cases you have to take care that the .conf-files at ./xcmailr-webapp/src/main/resources/conf and ./xcmailr-webapp/conf are up-to-date and contain all necessary keys.
-* Second option (to create the distribution archive):
-    * cd into the 'xcmailr-webapp' folder
-    * execute `mvn clean package` to compile the app, run tests and create the distribution archive
-    * extract the distribution archive located in the 'target' directory anywhere you like and proceed as described in section "Run the Application"
-
-## Using an Apache Reverse-Proxy
-* You may want to use an (Apache2) reverse-proxy in front of the application. With the `ninja.context` setting in the application.conf, you can specify a context path for your application. Thereby, you can use the same path on which the app will be available through the proxy.
-* For instance, if it will be available externally at "http://reverse.proxy/path/to/app", then you can set the context-path to "path/to/app" and it will run locally at "http://localhost:port/path/to/app".
-* The advantage is that you don't have to use the mod_proxy_html-module to rewrite every link and file path on all HTML pages.
-* After setting up the Apache2 with all necessary Proxy-Modules (especially you have to enable proxy and proxy_http), you'll have to create a VirtualHost-Configuration for your site. Here's a small example for that:
-
-```apache
-<VirtualHost *:80>  
-    ProxyRequests off  
-    ProxyPass /xcmailr/ http://localhost:8080/xcmailr/  
-    ProxyPassReverse /xcmailr/ http://localhost:8080/xcmailr/  
-        
-    <Proxy http://localhost:8080*>  
-        Order deny,allow  
-        allow from all  
-    </Proxy>  
-       
-    Redirect /xcmailr       /xcmailr/  
-</VirtualHost>  
+Build the entire project, run all tests, and package executable archives:
+```bash
+mvn clean package
 ```
-* We set the context path to "xcmailr" and our app then runs locally on "http://localhost:8080/xcmailr", externally it can be reached with this configuration at http://mydomain/xcmailr.
 
+To skip test execution during rapid packaging:
+```bash
+mvn clean package -DskipTests
+```
 
-## API Token
-XCMailr supports API token to access some XCMailr functionality without using e-mail and password to authenticate. An API token can be generated in the edit profile menu.
-[token](images/API_Token.png)
+## Running the Application
+### Option 1: Run Executable Jar (Production)
+```bash
+java -jar xcmailr-webapp/target/xcmailr-webapp-3.1.0.jar
+```
 
-You can create a new token or revoke an earlier generated token.
+### Option 2: Run via Maven (Development)
+```bash
+mvn spring-boot:run -pl xcmailr-webapp
+```
 
+Once started, access the web dashboard at:
+```
+http://localhost:8080/
+```
 
-## API
-An http based API was added to XCMailr containing the following functionality.
+## Administrator Account Management
 
-### Create a temporary email address
-Create a new temporary email address that will be associated with you already registered account. That temporary email address has a limited life span which can be defined with parameter validTime. The parameter is a natural number indicating how many minutes that temporary email will be active. The upper limit for the maximum allowed time span can be configured in application.conf (application.temporarymail.maximumvalidtime, default value is 30).
+### Initial Bootstrap & Configuration
+Upon application startup, XCMailr checks if administrator bootstrapping is configured:
+* **Configuration Properties**: `xcmailr.admin.address` and `xcmailr.admin.password`
+* **Environment Variables**: `ADMIN_ADDRESS` and `ADMIN_PASSWORD` (or `XCMAILR_ADMIN_ADDRESS` and `XCMAILR_ADMIN_PASSWORD`)
 
-The parameter mailAddress is the full address that is desired to claim. E.g. foo@bar.com provided that you configured XCMailr to serve email for bar.com
-The parameter token is the token that can be created in the edit profile menu.
+Default credentials for local development:
+* **Username**: `admin@xcmailr.test`
+* **Password**: `1234`
 
-http://xcmailrhost/create/temporaryMail/{token}/{mailAddress}/{validTime}
+If valid credentials are provided and the account does not yet exist in the database (e.g. during fresh deployment on an empty database), XCMailr automatically:
+1. Bootstraps the administrator user account with active status and admin privileges.
+2. Automatically seeds the domain part of the administrator email into the registered domain whitelist if not already present.
 
-e.g. http://xcmailrhost/create/temporaryMail/MyAccessToken/foo@bar.com/5
-Uses the token (here "MyAccessToken" for) to claim address foo@bar.com. The mail address can receive emails for 5 minutes before the address expires. An expired address can be reactivated by using the same call given that your account is associated with the desired address. In case another account claimed that address before a http error is thrown.
+> [!WARNING]
+> If the administrator account is bootstrapped with the default password (`1234`), a prominent security warning is logged at startup. In any production or publicly accessible environment, configure strong initial credentials or change the password immediately.
 
-In case of any error during temporary mail creation an http error is thrown, no further advice is given.
+### Non-Destructive Startup Guarantee
+XCMailr enforces a strictly non-destructive startup policy:
+* **No Database Lookups When Unconfigured**: If either `xcmailr.admin.address` or `xcmailr.admin.password` is omitted, `null`, empty, or whitespace-only, the initialization step exits immediately without issuing any database queries.
+* **Zero Overwrites of Existing Accounts**: If an account with the configured administrator email already exists in the database, XCMailr leaves it completely untouched. Configured passwords or environment variables will **never** overwrite passwords, roles, or states of existing accounts.
+* **Password Updates**: After the administrator account has been bootstrapped, all subsequent password changes must be performed through the web UI profile dashboard (`/profile`).
 
-### Access mailbox
-XCMailr behavior has changed recently. Emails sent to an active mail address will now be saved for a limited time (10 minutes, this can't be changed at the moment). The received emails can be accessed through the web interface. See "My Emails" once you are logged in.
+### Production Security Hardening
+In production environments, choose one of the following approaches:
+1. **Bootstrap with Strong Secrets**: Set `ADMIN_ADDRESS` and a strong, unique `ADMIN_PASSWORD` prior to the very first launch. After the initial start has initialized the database, you can safely remove or unset `ADMIN_PASSWORD`.
+2. **Explicitly Suppress Auto-Bootstrap**: Leaving `ADMIN_PASSWORD=""` or unset prevents any automatic administrator creation during startup.
 
-There is also an API functionality which allows to also filter received emails for a given mail address. In order to do so one can use the following URL and the following parameter.
-mailAddress is the full address that is claimed by the used account. The parameter token can be generated in the edit profile dialog
-http://xcmailrhost/mailbox/{mailAddress}/{token} 
+### Disaster Recovery
+If the primary administrator account is ever deleted accidentally or administrative access is lost:
+1. Ensure `ADMIN_ADDRESS` and a strong `ADMIN_PASSWORD` are supplied via environment variables.
+2. Restart the XCMailr application container or service.
+3. The system will detect the absence of the administrator account, safely recreate it with administrator privileges, and log the bootstrap event.
+4. Once restored, log in via the web dashboard and remove or unset `ADMIN_PASSWORD` if desired.
 
-URL parameter
+## User Registration & Email Confirmation
 
-* from: a regular expression to find in the address the mail was sent from
-* subject: a regular expression to find in the emails subject
-* textContent: a regular expression to find in the emails text content
-* htmlContent: a regular expression to find in the emails html content
-* ~~plainMail: a regular expression to find in the plain mails~~
+By default, self-service user registration requires email verification before an account can be used to log in:
 
-  mailHeader: a regular expression to find in the mail's header text
-* lastMatch: a parameter without value that limits the result set to one entry. This is the last filter that will be applied to result set.
-* ~~format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "json" and "plain". With format json the results will be returned as json formatted string. The format plain is used to retrieve the mail in the format the mail server received it. This contains also all email header and encoding fields. Also the plain format will automatically limit the results to one entry since multiple results could hardly distinguished in the response.~~
+1. A visitor registers via the `/register` web form.
+2. The user is created in an inactive state (`active = false`), an activation token is generated, and a verification email is dispatched via SMTP.
+3. The user clicks the link in the email (`/confirm/{token}`), which activates their account (`active = true`) and clears the token.
+4. The user is redirected to `/login?confirmed` and can log in with their credentials.
 
-  format: a string indicating the desired response format. If not defined then the result will be displayed as html. Valid values are "html", "json" and "header". With format json the results will be returned as json formatted string. The format header is used to retrieve the mail's header as XCMailr received it. This format will automatically limit the results to one entry since multiple results could hardly distinguished in the response.</ins>
+### Development & Offline Testing Mode
 
-Example: `http://xcmailrhost/mailbox/foo@bar.com/MyAccessToken?subject=`
+In local development, automated test pipelines, or environments without an active SMTP mail relay, you can disable email confirmation using the `APP_REQUIRE_CONFIRMATION` environment variable or configuration toggle:
 
+```bash
+# Run with automatic account activation upon registration
+APP_REQUIRE_CONFIRMATION=false mvn spring-boot:run -pl xcmailr-webapp
+```
 
-## Frameworks/Libraries/Code/etc. Provided by Others
-### AngularJS
-* http://angularjs.org
-* MIT-License: http://github.com/angular/angular.js/blob/master/LICENSE
+Or configure in `application.yml`:
 
-### AngularUI-Bootstrap
-* https://github.com/angular-ui/bootstrap
-* MIT-License: https://github.com/angular-ui/bootstrap/blob/master/LICENSE
+```yaml
+xcmailr:
+  app:
+    require-confirmation: false
+```
 
-### Avaje Ebean 
-* http://www.avaje.org/
-* LGPL: http://www.gnu.org/licenses/lgpl.html
+When `require-confirmation` is `false`:
+* Newly registered accounts are activated immediately (`active = true`).
+* No confirmation token is created, and no SMTP email is sent.
+* Upon registration, the user is redirected to `/login?ready` and can log in immediately.
 
-### Bootstrap Datetimepicker
-* https://github.com/Eonasdan/bootstrap-datetimepicker
-* MIT-License: https://github.com/Eonasdan/bootstrap-datetimepicker/blob/master/LICENSE
+### Security Guarantees
+* **Anti-Enumeration (CWE-204)**: During web login, credentials (email + password) are validated **before** checking account activation status. Attempting to log in with an unconfirmed email but an invalid password returns a generic error (`/login?error`) rather than an activation notice, preventing attackers from probing whether an email address is registered.
+* **Token Redaction (CWE-532)**: Confirmation tokens and activation URLs are strictly excluded from application logs to prevent bearer token leakage.
 
-### H2 Database Engine
-* http://www.h2database.com/
-* Dual licensed
- * H2 License, V1.0: http://www.h2database.com/html/license.html#h2_license
- * EPL: http://www.h2database.com/html/license.html#eclipse_license
+## REST API & Client SDK
+XCMailr provides a full REST API for programmatic mailbox generation and email assertion in test suites.
 
-### Icons by Glyphicons (shipped with Twitter Bootstrap)
-* Copyright Jan Kovařík
-* http://glyphicons.com/
-* Apache V2.0 License: https://github.com/twitter/bootstrap/wiki/License
+### Authentication
+Authenticate API requests using an API Token in the `Authorization` header:
+```http
+Authorization: Bearer <your-api-token>
+```
+API tokens can be generated and revoked in the user Profile dashboard.
 
-### JBCrypt - a Java BCrypt implementation 
-* Copyright (c) 2006 Damien Miller
-* http://www.mindrot.org/projects/jBCrypt/
-* ISC/BSD License: http://www.mindrot.org/files/jBCrypt/LICENSE
+### Modern REST API (`/api/v1`)
+* `GET /api/v1/mailboxes`: List all mailboxes owned by the authenticated user.
+* `POST /api/v1/mailboxes`: Create a new mailbox with address, expiration minutes, and forwarding flag.
+* `GET /api/v1/mailboxes/{address}`: Retrieve details for a specific mailbox.
+* `PUT /api/v1/mailboxes/{address}`: Update validity, active state, or forwarding rules.
+* `DELETE /api/v1/mailboxes/{address}`: Delete a mailbox and its messages.
+* `GET /api/v1/mails?mailboxAddress={address}`: Retrieve messages received by a mailbox.
+* `GET /api/v1/mails/{id}`: Fetch message headers, text content, and HTML body.
+* `GET /api/v1/mails/{id}/raw`: Download raw `.eml` RFC-822 message payload.
+* `GET /api/v1/mails/{id}/attachments/{index}`: Download binary message attachment.
+* `DELETE /api/v1/mails/{id}`: Delete an individual email.
 
-### Jetty 9
-* http://www.eclipse.org/jetty/
-* Apache V2.0 License: http://www.apache.org/licenses/LICENSE-2.0
+### Java Client Library (`xcmailr-client`)
+To use XCMailr in your Java test suite:
+```xml
+<dependency>
+    <groupId>com.xceptance</groupId>
+    <artifactId>xcmailr-client</artifactId>
+    <version>3.1.0</version>
+    <scope>test</scope>
+</dependency>
+```
 
-### JodaTime
-* http://joda-time.sourceforge.net
-* Apache V2.0 License: http://joda-time.sourceforge.net/license.html
+```java
+final XCMailrClient client = new XCMailrClient("http://localhost:8080", "my-api-token");
 
-### jQuery Tablesorter 2.0 plugin
-* http://tablesorter.com
-* Dual licensed 
- * MIT-License: http://www.opensource.org/licenses/mit-license.php
- * GPL: http://www.opensource.org/licenses/gpl-license.php
+// Create temporary mailbox valid for 10 minutes
+final Mailbox mailbox = client.mailboxes().createMailbox("user-test@xcmailr.test", 10, false);
 
-### Moment
-* https://github.com/moment/moment/ 
-* MIT-License: https://github.com/moment/moment/blob/develop/LICENSE
+// Wait for email arrival and assert subject
+final List<Mail> mails = client.mails().listMails(mailbox.address, null);
+assertEquals("Welcome to our service!", mails.get(0).subject);
 
-### NinjaFramework
-* http://www.ninjaframework.org/
-* Apache V2.0 License: https://github.com/reyez/ninja/blob/develop/license.txt
+// Fetch full message content
+final Mail fullMail = client.mails().getMail(mails.get(0).id);
+assertTrue(fullMail.textContent.contains("Your activation code is: 123456"));
 
-### Spymemcached
-* http://code.google.com/p/spymemcached/
-* MIT-License: http://www.opensource.org/licenses/mit-license.php
+// Clean up
+client.mailboxes().deleteMailbox(mailbox.address);
+```
 
-### Twitter Bootstrap
-* https://github.com/twbs/bootstrap
-* MIT-License: https://github.com/twbs/bootstrap/blob/master/LICENSE
+### Legacy REST API Compatibility
+Legacy XCMailr endpoint URLs remain fully supported for backward compatibility:
+* `GET /create/temporaryMail/{token}/{mailAddress}/{validTime}`
+* `GET /mailbox/{mailAddress}/{token}`
 
-### Twitter Bloodhound (as part of Typeahead)
-* https://github.com/twitter/typeahead.js
-* MIT-License: https://github.com/twitter/typeahead.js/blob/master/LICENSE
+## Production Deployment & SSL/TLS Configuration
+
+In production environments, both the Web Dashboard / REST API and the Inbound SMTP service should be secured with TLS certificates.
+
+### 1. Web UI & REST API Security (HTTPS)
+
+You have two primary architectural choices for securing the Web UI and REST API:
+
+#### Option A: Reverse Proxy TLS Termination (Recommended)
+Terminate TLS at an edge reverse proxy (such as Nginx, Caddy, HAProxy, or AWS ALB/Cloudflare) and forward unencrypted HTTP traffic to XCMailr on `localhost:8080`.
+
+Example Nginx configuration:
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name mail.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/mail.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mail.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+```
+
+#### Option B: Embedded Spring Boot HTTPS
+Directly configure Spring Boot's embedded web server with a PKCS12 keystore:
+```properties
+server.port=8443
+server.ssl.key-store=file:/etc/ssl/certs/xcmailr-web.p12
+server.ssl.key-store-password=your-web-password
+server.ssl.key-store-type=PKCS12
+```
+
+---
+
+### 2. Inbound SMTP SSL/TLS (STARTTLS) Configuration
+
+Unlike web traffic, inbound SMTP cannot be easily terminated behind standard HTTP reverse proxies; the embedded SubEthaSMTP engine terminates SMTP connections directly.
+
+#### Development Keystore
+For zero-config local development and testing, XCMailr includes a self-signed PKCS12 development keystore (`classpath:keystore.p12`, password `topsecret`, alias `localhost`, valid for 10 years).
+
+#### Production PKCS12 Keystore Conversion
+For production with a real CA-signed certificate (e.g. from Let's Encrypt / Certbot), convert standard PEM files into a PKCS12 keystore using OpenSSL:
+
+```bash
+openssl pkcs12 -export \
+  -in /etc/letsencrypt/live/mail.example.com/fullchain.pem \
+  -inkey /etc/letsencrypt/live/mail.example.com/privkey.pem \
+  -out /etc/xcmailr/smtp-keystore.p12 \
+  -name xcmailr \
+  -password pass:MyStrongKeystorePassword
+```
+Ensure the resulting keystore file is readable by the user running XCMailr (`chmod 600 /etc/xcmailr/smtp-keystore.p12`).
+
+#### Configuration Properties & Environment Variables
+Configure the inbound SMTP keystore in `application.yml` or via environment variables:
+
+| Property | Environment Variable | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `xcmailr.mbox.port` | `MBOX_PORT` | `25000` | Inbound SMTP listening port |
+| `xcmailr.mbox.enable-tls` | `MBOX_ENABLE_TLS` | `true` | Enables inbound SMTP STARTTLS negotiation |
+| `xcmailr.mbox.require-tls` | `MBOX_REQUIRE_TLS` | `false` | When true, rejects unencrypted commands with SMTP 530 |
+| `xcmailr.mbox.ssl.key-store` | `MBOX_SSL_KEY_STORE` | `classpath:keystore.p12` | Path to PKCS12 keystore (`classpath:` or `file:`) |
+| `xcmailr.mbox.ssl.key-store-password` | `MBOX_SSL_KEY_STORE_PASSWORD` | `topsecret` | Password for unlocking the keystore |
+| `xcmailr.mbox.ssl.key-store-type` | `MBOX_SSL_KEY_STORE_TYPE` | `PKCS12` | Keystore format type |
+| `xcmailr.mbox.ssl.key-alias` | `MBOX_SSL_KEY_ALIAS` | _(none)_ | Optional certificate alias |
+
+Example production execution command:
+```bash
+export MBOX_SSL_KEY_STORE="file:/etc/xcmailr/smtp-keystore.p12"
+export MBOX_SSL_KEY_STORE_PASSWORD="MyStrongKeystorePassword"
+export MBOX_PORT=25
+java -jar xcmailr-webapp.jar
+```
+
+#### Understanding `require-tls` (Opportunistic vs. Mandatory TLS)
+* **Opportunistic TLS (`require-tls=false`, Default)**: Advertises `STARTTLS` in `EHLO` response. Clients supporting TLS upgrade their connection and transmit encrypted data. Clients without TLS support can still send email in plaintext. **Recommended for public internet MX servers** to prevent legitimate emails from older MTAs from bouncing.
+* **Mandatory TLS (`require-tls=true`)**: Forces every SMTP client to issue `STARTTLS` before executing `MAIL FROM`, `RCPT TO`, or `DATA`. Any attempt to send without TLS is rejected with `530 5.7.0 Must issue a STARTTLS command first`. Recommended for high-security, internal test environments, or compliance zones (e.g., PCI-DSS, HIPAA).
+
+#### Binding Linux Privileged Port 25
+On Linux, standard SMTP operates on port 25, which is a privileged port (< 1024). Do **NOT** run XCMailr as `root`. Choose one of these standard methods:
+1. **Linux Capabilities (Recommended)**: Grant non-root Java process capability to bind privileged ports:
+   ```bash
+   sudo setcap 'cap_net_bind_service=+ep' $(readlink -f $(which java))
+   ```
+2. **`iptables` / `nftables` Port Forwarding**: Run XCMailr on port 25000 and forward port 25:
+   ```bash
+   sudo iptables -t nat -A PREROUTING -p tcp --dport 25 -j REDIRECT --to-port 25000
+   ```
+3. **`systemd` Socket Activation or Ambient Capabilities**: In the `xcmailr.service` systemd unit file:
+   ```ini
+   [Service]
+   User=xcmailr
+   AmbientCapabilities=CAP_NET_BIND_SERVICE
+   ExecStart=/usr/bin/java -jar /opt/xcmailr/xcmailr-webapp.jar
+   ```
+
+## Reverse Proxy Setup (Nginx)
+When deploying behind Nginx or Apache, configure proxy headers to pass client IP and scheme:
+```nginx
+server {
+    listen 80;
+    server_name mail.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+## Local Development & Email Testing
+For instructions on running XCMailr locally and testing the complete email pipeline (inbound receiving on port 25000 and outbound forwarding to a mock inbox via Mailpit), see:
+* **[Local Email Testing Guide](docs/local-testing-guide.md)**
+
+## Third-Party Libraries & Technologies
+* **Spring Boot & Spring Framework**: Apache 2.0 License
+* **Thymeleaf & Thymeleaf Extras Spring Security 6**: Apache 2.0 License
+* **HTMX**: Zero-Clause BSD / MIT License
+* **Bootstrap 5 & Bootstrap Icons**: MIT License
+* **SubEthaSMTP**: Apache 2.0 License
+* **OWASP Java HTML Sanitizer**: Apache 2.0 License
+* **Flyway**: Apache 2.0 License
+* **Hibernate ORM**: LGPL 2.1 License
+* **H2 Database**: MPL 2.0 / EPL 1.0 License
 
 ## License
 XCMailr is licensed under the Apache Version 2.0 license.
-See LICENSE file for full license text.
+See the [LICENSE](LICENSE) file for the full license text.
