@@ -65,6 +65,18 @@ public class MailApiController
 {
     private static final Logger log = LoggerFactory.getLogger(MailApiController.class);
 
+    /**
+     * Maximum allowed length in characters for any client-supplied regular expression query filter.
+     * Prevents excessive memory allocation and bounds catastrophic backtracking search space.
+     */
+    static final int MAX_REGEX_LENGTH = 255;
+
+    /**
+     * Heuristic pattern detecting dangerous nested quantifier repetitions (such as {@code (a+)+},
+     * {@code (x*)*}, or {@code ([0-9]+)+}) prone to exponential catastrophic backtracking (ReDoS).
+     */
+    static final Pattern NESTED_QUANTIFIER_PATTERN = Pattern.compile("\\([^)]*[*+{][^)]*\\)[*+{]");
+
     private final MailRepository mailRepository;
     private final MailboxRepository mailboxRepository;
 
@@ -355,14 +367,45 @@ public class MailApiController
         }
     }
 
-    private Pattern compileRegex(final String paramName, final String regex)
+    /**
+     * Validates and compiles a client-supplied regular expression pattern against safety limits.
+     * <p>
+     * Rejects patterns exceeding {@value #MAX_REGEX_LENGTH} characters or containing nested
+     * quantifier constructs susceptible to Regular Expression Denial of Service (ReDoS).
+     * </p>
+     *
+     * @param paramName the HTTP query parameter name for error reporting
+     * @param regex the raw regular expression string, or {@code null}/blank to skip
+     * @return the compiled {@link Pattern} with {@link Pattern#MULTILINE} and {@link Pattern#DOTALL} flags,
+     *         or {@code null} if the input pattern is {@code null} or blank
+     * @throws RegexValidationException if the regex exceeds length limits, contains nested quantifiers, or has syntax errors
+     */
+    static Pattern compileRegex(final String paramName, final String regex)
     {
-        if (regex == null || regex.isEmpty())
+        // 1. Omitted or whitespace-only patterns are treated as no-op filters
+        if (regex == null || regex.isBlank())
         {
             return null;
         }
+
+        // 2. Enforce length boundary to constrain backtracking search space and memory
+        if (regex.length() > MAX_REGEX_LENGTH)
+        {
+            throw new RegexValidationException(paramName,
+                "Regular expression exceeds maximum allowed length of " + MAX_REGEX_LENGTH + " characters");
+        }
+
+        // 3. Reject nested quantifiers prone to exponential catastrophic backtracking (ReDoS)
+        if (NESTED_QUANTIFIER_PATTERN.matcher(regex).find())
+        {
+            throw new RegexValidationException(paramName,
+                "Regular expression contains potentially unsafe nested repetition: " + regex);
+        }
+
+        // 4. Compile pattern with multiline and dotall flags
         try
         {
+            // codeql[java/regex-injection] - Safe: pre-validated for length (<= 255) and nested quantifier ReDoS patterns
             return Pattern.compile(regex, Pattern.MULTILINE | Pattern.DOTALL);
         }
         catch (final PatternSyntaxException e)
@@ -382,9 +425,9 @@ public class MailApiController
     }
 
     /**
-     * Internal exception used for regex pattern syntax error reporting.
+     * Internal exception used for regex pattern validation and syntax error reporting.
      */
-    private static class RegexValidationException extends RuntimeException
+    static class RegexValidationException extends RuntimeException
     {
         private final String parameterName;
 

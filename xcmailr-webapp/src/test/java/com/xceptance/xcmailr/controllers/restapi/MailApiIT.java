@@ -205,6 +205,60 @@ public class MailApiIT
     }
 
     @Test
+    @DisplayName("listMails with regex exceeding maximum length returns 400 Bad Request")
+    public void testListMailsRegexExceedingMaxLength() throws Exception
+    {
+        final String longPattern = "a".repeat(256);
+
+        mockMvc.perform(get(API_PREFIX)
+               .param("mailboxAddress", userMailbox.getFullAddress())
+               .param("subject", longPattern)
+               .header("Authorization", "Bearer " + token))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.errors[0].parameter", is("subject")))
+               .andExpect(jsonPath("$.errors[0].message", org.hamcrest.Matchers.containsString("maximum allowed length")));
+    }
+
+    @Test
+    @DisplayName("listMails with nested quantifier ReDoS pattern returns 400 Bad Request")
+    public void testListMailsReDoSQuantifierPattern() throws Exception
+    {
+        mockMvc.perform(get(API_PREFIX)
+               .param("mailboxAddress", userMailbox.getFullAddress())
+               .param("textContent", "(a+)+")
+               .header("Authorization", "Bearer " + token))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.errors[0].parameter", is("textContent")))
+               .andExpect(jsonPath("$.errors[0].message", org.hamcrest.Matchers.containsString("nested repetition")));
+    }
+
+    @Test
+    @DisplayName("listMails with exactly 255-character regex returns 200 OK")
+    public void testListMailsExactMaxLengthPattern() throws Exception
+    {
+        final String boundaryPattern = "a".repeat(255);
+
+        mockMvc.perform(get(API_PREFIX)
+               .param("mailboxAddress", userMailbox.getFullAddress())
+               .param("subject", boundaryPattern)
+               .header("Authorization", "Bearer " + token))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    @DisplayName("listMails with blank or whitespace regex returns 200 OK without filtering")
+    public void testListMailsBlankRegexFilters() throws Exception
+    {
+        mockMvc.perform(get(API_PREFIX)
+               .param("mailboxAddress", userMailbox.getFullAddress())
+               .param("subject", "   ")
+               .header("Authorization", "Bearer " + token))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
     @DisplayName("listMails with invalid mailbox address returns 400 Bad Request")
     public void testListMailsInvalidMailboxAddress() throws Exception
     {
