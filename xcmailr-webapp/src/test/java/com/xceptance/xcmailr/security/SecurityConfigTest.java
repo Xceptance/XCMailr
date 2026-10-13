@@ -15,9 +15,14 @@
  */
 package com.xceptance.xcmailr.security;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -128,5 +134,137 @@ public class SecurityConfigTest
     {
         mockMvc.perform(get("/login"))
                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Verify mutating REST API requests (POST, PUT, DELETE) with Bearer token succeed without CSRF token")
+    public void testApiMutatingRequestsExemptFromCsrf() throws Exception
+    {
+        final User user = new User("ApiHappy", "UserHappy", "api.happy@xcmailr.test", "hash123", "en");
+        user.setActive(true);
+        user.setApiToken("api-happy-token-111");
+        userRepository.save(user);
+
+        // POST /api/v1/mailboxes without CSRF token
+        mockMvc.perform(post("/api/v1/mailboxes")
+               .header("Authorization", "Bearer api-happy-token-111")
+               .contentType(MediaType.APPLICATION_JSON)
+               .content("{\"address\":\"api-test@xcmailr.test\"}"))
+               .andExpect(result -> {
+                   final int status = result.getResponse().getStatus();
+                   assertNotEquals(403, status, "Mutating API request must NOT be rejected with 403 Forbidden due to CSRF");
+               });
+
+        // PUT /api/v1/mailboxes/1 without CSRF token
+        mockMvc.perform(put("/api/v1/mailboxes/1")
+               .header("Authorization", "Bearer api-happy-token-111")
+               .contentType(MediaType.APPLICATION_JSON)
+               .content("{\"active\":true}"))
+               .andExpect(result -> {
+                   final int status = result.getResponse().getStatus();
+                   assertNotEquals(403, status, "Mutating API request must NOT be rejected with 403 Forbidden due to CSRF");
+               });
+
+        // DELETE /api/v1/mailboxes/1 without CSRF token
+        mockMvc.perform(delete("/api/v1/mailboxes/1")
+               .header("Authorization", "Bearer api-happy-token-111"))
+               .andExpect(result -> {
+                   final int status = result.getResponse().getStatus();
+                   assertNotEquals(403, status, "Mutating API request must NOT be rejected with 403 Forbidden due to CSRF");
+               });
+    }
+
+    @Test
+    @DisplayName("Verify web POST requests with valid CSRF token pass CSRF filter")
+    public void testWebPostWithValidCsrf() throws Exception
+    {
+        // When submitting form with valid CSRF token, request passes CSRF check (redirects on auth failure, not 403)
+        mockMvc.perform(post("/login")
+               .with(csrf())
+               .param("mail", "someone@xcmailr.test")
+               .param("password", "invalidpassword"))
+               .andExpect(result -> {
+                   final int status = result.getResponse().getStatus();
+                   assertNotEquals(403, status, "Web request with valid CSRF token must NOT return 403 Forbidden");
+               });
+    }
+
+    @Test
+    @DisplayName("Verify web POST requests missing CSRF token are rejected with 403 Forbidden")
+    public void testWebPostMissingCsrfRejected() throws Exception
+    {
+        mockMvc.perform(post("/login")
+               .param("mail", "someone@xcmailr.test")
+               .param("password", "invalidpassword"))
+               .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Verify web POST requests with invalid CSRF token are rejected with 403 Forbidden")
+    public void testWebPostInvalidCsrfRejected() throws Exception
+    {
+        mockMvc.perform(post("/login")
+               .with(csrf().useInvalidToken())
+               .param("mail", "someone@xcmailr.test")
+               .param("password", "invalidpassword"))
+               .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Verify mutating API requests without Bearer token are rejected with 401 Unauthorized")
+    public void testApiMutatingRequestUnauthorizedWithoutToken() throws Exception
+    {
+        // Missing Authorization header
+        mockMvc.perform(post("/api/v1/mailboxes")
+               .contentType(MediaType.APPLICATION_JSON)
+               .content("{\"address\":\"test@xcmailr.test\"}"))
+               .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(put("/api/v1/mailboxes/1")
+               .contentType(MediaType.APPLICATION_JSON)
+               .content("{\"active\":true}"))
+               .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(delete("/api/v1/mailboxes/1"))
+               .andExpect(status().isUnauthorized());
+
+        // Invalid Bearer token
+        mockMvc.perform(post("/api/v1/mailboxes")
+               .header("Authorization", "Bearer invalid-token-xyz")
+               .contentType(MediaType.APPLICATION_JSON)
+               .content("{\"address\":\"test@xcmailr.test\"}"))
+               .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Verify API endpoints ignore spurious or malformed CSRF headers when valid Bearer token is provided")
+    public void testApiIgnoresMalformedCsrfHeader() throws Exception
+    {
+        final User user = new User("ApiSpecial", "UserSpecial", "api.special@xcmailr.test", "hash123", "en");
+        user.setActive(true);
+        user.setApiToken("api-special-token-888");
+        userRepository.save(user);
+
+        // Sending invalid CSRF header to /api/** alongside valid Bearer token
+        mockMvc.perform(post("/api/v1/mailboxes")
+               .header("Authorization", "Bearer api-special-token-888")
+               .header("X-XSRF-TOKEN", "completely-bogus-csrf-token")
+               .contentType(MediaType.APPLICATION_JSON)
+               .content("{\"address\":\"test-bogus-csrf@xcmailr.test\"}"))
+               .andExpect(result -> {
+                   final int status = result.getResponse().getStatus();
+                   assertNotEquals(403, status, "API request with spurious CSRF header must NOT be rejected with 403 Forbidden");
+               });
+    }
+
+    @Test
+    @DisplayName("Verify non-API paths outside /api/** strictly enforce CSRF on mutating requests")
+    public void testNonApiPathEnforcesCsrf() throws Exception
+    {
+        // Mutating request to a path outside /api/** without CSRF token must be rejected with 403 Forbidden
+        mockMvc.perform(post("/register")
+               .param("mail", "newuser@xcmailr.test")
+               .param("password", "secret123"))
+               .andExpect(status().isForbidden());
     }
 }

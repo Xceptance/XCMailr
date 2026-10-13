@@ -23,7 +23,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DisabledException;
@@ -119,7 +118,7 @@ public class SecurityConfig
 
     /**
      * Security filter chain for REST API endpoints ({@code /api/**}).
-     * Uses stateless sessions, disables CSRF, and authenticates via Bearer API tokens.
+     * Uses stateless sessions, exempts API endpoints from CSRF verification, and authenticates via Bearer API tokens.
      *
      * @param http HTTP security builder
      * @param userRepository repository used by the token filter
@@ -132,7 +131,7 @@ public class SecurityConfig
                                                      final UserRepository userRepository) throws Exception
     {
         http.securityMatcher("/api/**")
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
             .addFilterBefore(new ApiTokenAuthenticationFilter(userRepository), UsernamePasswordAuthenticationFilter.class)
