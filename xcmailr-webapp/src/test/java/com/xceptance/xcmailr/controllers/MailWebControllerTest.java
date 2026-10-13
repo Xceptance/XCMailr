@@ -15,6 +15,9 @@
  */
 package com.xceptance.xcmailr.controllers;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -24,25 +27,38 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.thymeleaf.ITemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.context.WebContext;
+import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
 import com.xceptance.xcmailr.XcmailrApplication;
 import com.xceptance.xcmailr.repositories.DomainRepository;
@@ -86,6 +102,9 @@ public class MailWebControllerTest
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ITemplateEngine templateEngine;
 
     private User alice;
     private User bob;
@@ -156,7 +175,7 @@ public class MailWebControllerTest
     }
 
     @Test
-    @DisplayName("GET /mails should list all emails across mailboxes for authenticated user")
+    @DisplayName("GET /mails should render complete HTML page with message list, recipient badge, and viewer pane")
     public void testListAllMailsFullPage() throws Exception
     {
         mockMvc.perform(get("/mails")
@@ -164,18 +183,163 @@ public class MailWebControllerTest
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/all-mails"))
                .andExpect(model().attributeExists("mails"))
-               .andExpect(model().attributeExists("mailboxAddressMap"));
+               .andExpect(model().attributeExists("mailboxAddressMap"))
+               .andExpect(content().string(not(emptyOrNullString())))
+               .andExpect(content().string(containsString("All Mails")))
+               .andExpect(content().string(containsString("newsletter@sender.com")))
+               .andExpect(content().string(containsString("Weekly Digest")))
+               .andExpect(content().string(containsString("inbox@xcmailr.test")))
+               .andExpect(content().string(containsString("id=\"mail-viewer-pane\"")))
+               .andExpect(content().string(containsString("Select an email to view")));
     }
 
     @Test
-    @DisplayName("GET /mails with HX-Request should return all-mail-list fragment")
+    @DisplayName("GET /mails with HX-Request should return only mail-list fragment without outer layout tags")
     public void testListAllMailsFragment() throws Exception
     {
         mockMvc.perform(get("/mails")
                .header("HX-Request", "true")
                .with(user("alice@xcmailr.test").roles("USER")))
                .andExpect(status().isOk())
-               .andExpect(view().name("mailboxes/fragments/all-mail-list :: mailList"));
+               .andExpect(view().name("mailboxes/fragments/all-mail-list :: mailList"))
+               .andExpect(content().string(not(emptyOrNullString())))
+               .andExpect(content().string(containsString("id=\"mail-list-container\"")))
+               .andExpect(content().string(containsString("newsletter@sender.com")))
+               .andExpect(content().string(containsString("Weekly Digest")))
+               .andExpect(content().string(containsString("inbox@xcmailr.test")))
+               .andExpect(content().string(not(containsString("<html"))))
+               .andExpect(content().string(not(containsString("<nav"))));
+    }
+
+    @Test
+    @DisplayName("GET /mails should disambiguate emails across multiple mailboxes with respective badges")
+    public void testListAllMailsMultipleMailboxes() throws Exception
+    {
+        final MBox secondBox = new MBox("second", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, alice);
+        mailboxRepository.save(secondBox);
+
+        final Mail secondMail = new Mail();
+        secondMail.setSender("alerts@vendor.com");
+        secondMail.setSubject("Critical Alert");
+        secondMail.setReceiveTime(System.currentTimeMillis() + 1000L);
+        secondMail.setMessage("alert body".getBytes(StandardCharsets.UTF_8));
+        secondMail.setMailbox(secondBox);
+        mailRepository.save(secondMail);
+
+        mockMvc.perform(get("/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("inbox@xcmailr.test")))
+               .andExpect(content().string(containsString("second@xcmailr.test")))
+               .andExpect(content().string(containsString("Critical Alert")))
+               .andExpect(content().string(containsString("Weekly Digest")));
+    }
+
+    @Test
+    @DisplayName("GET /mails with zero emails should render empty state notice")
+    public void testListAllMailsEmptyInbox() throws Exception
+    {
+        mailRepository.deleteAll();
+
+        mockMvc.perform(get("/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("No messages received across your mailboxes yet.")))
+               .andExpect(content().string(not(containsString("Weekly Digest"))));
+    }
+
+    @Test
+    @DisplayName("mailboxes/fragments/all-mail-list handles unknown mailbox ID gracefully via fallback")
+    public void testListAllMailsMissingMailboxMapEntryFallback() throws Exception
+    {
+        final Mail orphanMail = new Mail();
+        orphanMail.setSender("orphan@external.com");
+        orphanMail.setSubject("Orphan Message");
+        orphanMail.setReceiveTime(System.currentTimeMillis());
+        orphanMail.setMessage("orphan body".getBytes(StandardCharsets.UTF_8));
+        orphanMail.setMailboxId(999999L);
+
+        final JakartaServletWebApplication servletApp = JakartaServletWebApplication.buildApplication(context.getServletContext());
+        final var webExchange = servletApp.buildExchange(new MockHttpServletRequest(), new MockHttpServletResponse());
+        final WebContext thymeleafContext = new WebContext(webExchange);
+        thymeleafContext.setVariable("mails", List.of(orphanMail));
+        thymeleafContext.setVariable("mailboxAddressMap", Map.of());
+        thymeleafContext.setVariable("dateFormatter", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()));
+
+        final String html = templateEngine.process("mailboxes/fragments/all-mail-list", thymeleafContext);
+        assertNotNull(html);
+        assertTrue(html.contains("Unknown Mailbox"));
+        assertTrue(html.contains("orphan@external.com"));
+        assertTrue(html.contains("Orphan Message"));
+    }
+
+    @Test
+    @DisplayName("GET /mails without authentication should redirect to login")
+    public void testListAllMailsUnauthenticatedRedirectsToLogin() throws Exception
+    {
+        mockMvc.perform(get("/mails"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrlPattern("/**/login"));
+    }
+
+    @Test
+    @DisplayName("GET /mails isolates user data and does not leak Bob's emails to Alice")
+    public void testListAllMailsUserIsolation() throws Exception
+    {
+        final MBox bobBox = new MBox("bobinbox", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, bob);
+        mailboxRepository.save(bobBox);
+
+        final Mail bobMail = new Mail();
+        bobMail.setSender("secret@bobsponsor.com");
+        bobMail.setSubject("Confidential For Bob Only");
+        bobMail.setReceiveTime(System.currentTimeMillis() + 500L);
+        bobMail.setMessage("secret content".getBytes(StandardCharsets.UTF_8));
+        bobMail.setMailbox(bobBox);
+        mailRepository.save(bobMail);
+
+        mockMvc.perform(get("/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("newsletter@sender.com")))
+               .andExpect(content().string(containsString("Weekly Digest")))
+               .andExpect(content().string(containsString("inbox@xcmailr.test")))
+               .andExpect(content().string(not(containsString("secret@bobsponsor.com"))))
+               .andExpect(content().string(not(containsString("Confidential For Bob Only"))))
+               .andExpect(content().string(not(containsString("bobinbox@xcmailr.test"))));
+    }
+
+    @Test
+    @DisplayName("POST/PUT/DELETE /mails should return HTTP 405 Method Not Allowed")
+    public void testListAllMailsDisallowedMethods() throws Exception
+    {
+        mockMvc.perform(post("/mails")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf()))
+               .andExpect(status().isMethodNotAllowed());
+
+        mockMvc.perform(put("/mails")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf()))
+               .andExpect(status().isMethodNotAllowed());
+
+        mockMvc.perform(delete("/mails")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf()))
+               .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    @DisplayName("GET /mails contains responsive layout grid classes and touch target elements")
+    public void testListAllMailsResponsiveMarkup() throws Exception
+    {
+        mockMvc.perform(get("/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("col-12 col-lg-5")))
+               .andExpect(content().string(containsString("col-12 col-lg-7")))
+               .andExpect(content().string(containsString("recipient-badge")))
+               .andExpect(content().string(containsString("btn-touch-target")))
+               .andExpect(content().string(containsString("table-responsive")));
     }
 
     @Test

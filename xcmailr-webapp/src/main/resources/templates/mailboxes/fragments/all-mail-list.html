@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="mailList" id="mail-list-container"
+     th:attr="hx-get=@{/mails},hx-trigger='mailListChanged from:body',hx-target='#mail-list-container',hx-swap='outerHTML'">
+    <div class="table-responsive bg-white rounded shadow-sm border">
+        <table class="table table-hover table-middle mb-0" id="mail-list-table">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" class="d-none d-md-table-cell" style="width: 140px;">Received</th>
+                    <th scope="col">Message &amp; Recipient</th>
+                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(mails)}">
+                    <td colspan="3" class="text-center text-muted py-5 empty-inbox-state">
+                        <i class="bi bi-envelope-open display-6 d-block mb-2 text-secondary opacity-50"></i>
+                        <em>No messages received across your mailboxes yet.</em>
+                    </td>
+                </tr>
+
+                <tr th:each="m : ${mails}" th:id="'mail-row-' + ${m.id}" style="cursor: pointer;"
+                    class="mail-row"
+                    th:attr="hx-get=@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}},hx-target='#mail-viewer-pane',hx-swap='innerHTML'">
+                    <td class="d-none d-md-table-cell text-nowrap text-muted small"
+                        th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">
+                        2026-10-01 12:00:00
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
+                            <span class="badge bg-light text-dark border recipient-badge"
+                                  th:text="${mailboxAddressMap != null and mailboxAddressMap.containsKey(m.mailboxId) ? mailboxAddressMap.get(m.mailboxId) : 'Unknown Mailbox'}">
+                                mailbox@example.com
+                            </span>
+                            <span class="small text-muted d-md-none ms-auto">
+                                <i class="bi bi-clock me-1"></i>
+                                <span th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">12:00</span>
+                            </span>
+                        </div>
+                        <div class="fw-semibold text-break mail-sender" th:text="${m.sender}">
+                            sender@example.com
+                        </div>
+                        <div class="small text-body-secondary text-break mail-subject" th:text="${m.subject}">
+                            Subject line
+                        </div>
+                    </td>
+                    <td class="text-end text-nowrap align-middle" onclick="event.stopPropagation();">
+                        <div class="btn-group btn-group-sm">
+                            <a th:href="@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}}"
+                               class="btn btn-outline-secondary btn-touch-target p-2" title="Open full view">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                            <button class="btn btn-outline-danger btn-touch-target p-2" type="button"
+                                    th:attr="hx-delete=@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}},hx-swap='none',hx-confirm='Delete this email?'"
+                                    title="Delete email">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
+
