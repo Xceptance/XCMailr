@@ -71,11 +71,6 @@ public class MailApiController
      */
     static final int MAX_REGEX_LENGTH = 255;
 
-    /**
-     * Heuristic pattern detecting dangerous nested quantifier repetitions (such as {@code (a+)+},
-     * {@code (x*)*}, or {@code ([0-9]+)+}) prone to exponential catastrophic backtracking (ReDoS).
-     */
-    static final Pattern NESTED_QUANTIFIER_PATTERN = Pattern.compile("\\([^)]*[*+{][^)]*\\)[*+{]");
 
     private final MailRepository mailRepository;
     private final MailboxRepository mailboxRepository;
@@ -395,8 +390,8 @@ public class MailApiController
                 "Regular expression exceeds maximum allowed length of " + MAX_REGEX_LENGTH + " characters");
         }
 
-        // 3. Reject nested quantifiers prone to exponential catastrophic backtracking (ReDoS)
-        if (NESTED_QUANTIFIER_PATTERN.matcher(regex).find())
+        // 3. Reject nested quantifiers prone to exponential catastrophic backtracking (ReDoS) via linear scanner
+        if (containsNestedQuantifier(regex))
         {
             throw new RegexValidationException(paramName,
                 "Regular expression contains potentially unsafe nested repetition: " + regex);
@@ -412,6 +407,116 @@ public class MailApiController
         {
             throw new RegexValidationException(paramName, "Invalid regular expression: " + regex);
         }
+    }
+
+    /**
+     * Inspects a client-supplied regular expression for nested quantifier repetition constructs
+     * prone to exponential catastrophic backtracking (ReDoS), such as {@code (a+)+}, {@code (x*)*},
+     * {@code ([0-9]+)+}, or {@code (a{2,}){2,}}.
+     * <p>
+     * Implemented as a single-pass character scanner with deterministic {@code O(n)} time complexity
+     * and zero backtracking, completely avoiding regular expression evaluation on untrusted input
+     * (mitigating CodeQL CWE-1333 / {@code java/polynomial-redos}).
+     * </p>
+     *
+     * @param regex the candidate regular expression string to inspect (must not be {@code null})
+     * @return {@code true} if a nested quantifier pattern is detected; {@code false} otherwise
+     */
+    static boolean containsNestedQuantifier(final String regex)
+    {
+        if (regex == null || regex.isEmpty())
+        {
+            return false;
+        }
+
+        final int length = regex.length();
+        // Track whether each nested parenthesis level contains an inner quantifier
+        final boolean[] groupHasQuantifier = new boolean[length + 1];
+        int groupDepth = 0;
+        boolean inEscape = false;
+        boolean inCharClass = false;
+
+        for (int i = 0; i < length; i++)
+        {
+            final char c = regex.charAt(i);
+
+            // 1. Handle backslash escaping (e.g. \( or \+)
+            if (inEscape)
+            {
+                inEscape = false;
+                continue;
+            }
+
+            if (c == '\\')
+            {
+                inEscape = true;
+                continue;
+            }
+
+            // 2. Handle character classes [...] where quantifiers are literal characters
+            if (inCharClass)
+            {
+                if (c == ']')
+                {
+                    inCharClass = false;
+                }
+                continue;
+            }
+
+            if (c == '[')
+            {
+                inCharClass = true;
+                continue;
+            }
+
+            // 3. Track grouping parenthesis
+            if (c == '(')
+            {
+                groupDepth++;
+                if (groupDepth < groupHasQuantifier.length)
+                {
+                    groupHasQuantifier[groupDepth] = false;
+                }
+                continue;
+            }
+
+            if (c == ')')
+            {
+                if (groupDepth > 0)
+                {
+                    final boolean innerHasQuantifier = groupDepth < groupHasQuantifier.length && groupHasQuantifier[groupDepth];
+                    groupDepth--;
+
+                    // Propagate quantifier presence to enclosing parent group if any
+                    if (innerHasQuantifier && groupDepth > 0 && groupDepth < groupHasQuantifier.length)
+                    {
+                        groupHasQuantifier[groupDepth] = true;
+                    }
+
+                    // If the closed group contained an inner quantifier, check if it is immediately followed by an outer quantifier
+                    if (innerHasQuantifier && (i + 1) < length)
+                    {
+                        final char next = regex.charAt(i + 1);
+                        if (next == '*' || next == '+' || next == '{')
+                        {
+                            return true;
+                        }
+                    }
+                }
+                continue;
+            }
+
+            // 4. Identify repetition quantifiers inside an active capturing or non-capturing group
+            if (c == '*' || c == '+' || c == '{')
+            {
+                if (groupDepth > 0 && groupDepth < groupHasQuantifier.length)
+                {
+                    groupHasQuantifier[groupDepth] = true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private boolean isValidEmail(final String address)

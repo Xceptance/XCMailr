@@ -49,8 +49,12 @@ The system SHALL provide REST endpoints under `/api/v1/mails` for querying recei
 - **THEN** the system rejects the request immediately with HTTP 400 Bad Request and an error identifying the invalid parameter
 
 #### Scenario: Reject Dangerous Catastrophic Backtracking Regex Pattern
-- **WHEN** an authenticated user supplies a regex filter containing nested repetition constructs (such as `(a+)+`, `(x*)*`, or `(a|aa)+`)
-- **THEN** the system aborts processing before compilation and returns HTTP 400 Bad Request indicating a potential ReDoS pattern
+- **WHEN** an authenticated user supplies a regex filter containing nested repetition constructs (such as `(a+)+`, `(x*)*`, or `([0-9]+)+`)
+- **THEN** the system aborts processing before compilation using a linear-time scanner and returns HTTP 400 Bad Request indicating a potential ReDoS pattern
+
+#### Scenario: Linear-Time Evaluation of Unclosed Parentheses Pattern
+- **WHEN** an authenticated user supplies a regex filter containing repeated unclosed parentheses (e.g. `((((((...`)
+- **THEN** the system validates the string in deterministic linear time $\mathcal{O}(n)$ without polynomial regex backtracking and rejects it with HTTP 400 Bad Request
 
 #### Scenario: Reject Syntax Invalid Regex Pattern
 - **WHEN** an authenticated user supplies a syntactically invalid regular expression (such as unclosed brackets or mismatched parentheses)

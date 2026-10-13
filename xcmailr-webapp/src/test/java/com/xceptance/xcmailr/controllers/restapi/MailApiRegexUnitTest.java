@@ -16,6 +16,7 @@
 package com.xceptance.xcmailr.controllers.restapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -198,6 +199,42 @@ public class MailApiRegexUnitTest
         }
 
         /**
+         * Verifies rejection of multi-level nested quantifiers such as {@code ((a+))+}.
+         */
+        @Test
+        @DisplayName("compileRegex rejects multi-level nested repetition ((a+))+")
+        public void testRejectMultiLevelNestedQuantifiers()
+        {
+            final RegexValidationException ex = assertThrows(RegexValidationException.class,
+                () -> MailApiController.compileRegex("subject", "((a+))+"),
+                "Should throw RegexValidationException for ((a+))+");
+
+            assertEquals("subject", ex.getParameterName(), "Exception should identify parameter name");
+            assertTrue(ex.getMessage().contains("nested repetition"),
+                "Exception message should indicate unsafe nested repetition");
+        }
+
+        /**
+         * Verifies rejection of nested quantifiers followed by possessive or reluctant outer quantifiers.
+         */
+        @Test
+        @DisplayName("compileRegex rejects nested quantifiers with possessive and reluctant modifiers")
+        public void testRejectNestedQuantifiersWithPossessiveOrReluctant()
+        {
+            final RegexValidationException exPossessive = assertThrows(RegexValidationException.class,
+                () -> MailApiController.compileRegex("subject", "(a+)++"),
+                "Should throw RegexValidationException for (a+)++");
+            assertEquals("subject", exPossessive.getParameterName());
+            assertTrue(exPossessive.getMessage().contains("nested repetition"));
+
+            final RegexValidationException exReluctant = assertThrows(RegexValidationException.class,
+                () -> MailApiController.compileRegex("subject", "(a+)+?"),
+                "Should throw RegexValidationException for (a+)+?");
+            assertEquals("subject", exReluctant.getParameterName());
+            assertTrue(exReluctant.getMessage().contains("nested repetition"));
+        }
+
+        /**
          * Verifies that syntactically malformed regular expressions are caught and reported.
          */
         @Test
@@ -291,6 +328,83 @@ public class MailApiRegexUnitTest
             assertNotNull(dotAllPattern, "Compiled pattern should not be null");
             assertTrue(dotAllPattern.matcher("Start\nMiddle\nEnd").matches(),
                 "Pattern should match across newlines using DOTALL flag");
+        }
+
+        /**
+         * Verifies that repeated unclosed parentheses (the exact trigger for CodeQL CWE-1333) execute
+         * in deterministic linear time and are rejected by syntax validation rather than hanging.
+         */
+        @Test
+        @DisplayName("compileRegex handles repeated unclosed parentheses in linear time without ReDoS")
+        public void testRepeatedUnclosedParenthesesLinearTime()
+        {
+            final String unclosedRepeated = "(".repeat(MailApiController.MAX_REGEX_LENGTH);
+            assertEquals(255, unclosedRepeated.length());
+
+            final long startTime = System.nanoTime();
+            final RegexValidationException ex = assertThrows(RegexValidationException.class,
+                () -> MailApiController.compileRegex("subject", unclosedRepeated),
+                "Should reject unclosed parentheses as invalid regex");
+            final long elapsedMs = (System.nanoTime() - startTime) / 1_000_000;
+
+            assertEquals("subject", ex.getParameterName());
+            assertTrue(ex.getMessage().contains("Invalid regular expression"),
+                "Exception should indicate syntax error for unclosed parentheses");
+            assertTrue(elapsedMs < 100, "Validation should execute in well under 100ms in linear time");
+        }
+
+        /**
+         * Verifies that escaped parentheses do not trigger false positive ReDoS detections.
+         */
+        @Test
+        @DisplayName("compileRegex allows escaped parentheses with quantifiers")
+        public void testEscapedParenthesesDoNotTriggerReDoS()
+        {
+            // \(a+\)+ matches literal (a+)+
+            final Pattern pattern = MailApiController.compileRegex("subject", "\\(a\\+\\)\\+");
+            assertNotNull(pattern);
+            assertTrue(pattern.matcher("(a+)+").matches(), "Should match escaped literal pattern");
+        }
+
+        /**
+         * Verifies that quantifier symbols inside character classes do not trigger false positive ReDoS detections.
+         */
+        @Test
+        @DisplayName("compileRegex allows repetition symbols inside character classes")
+        public void testCharacterClassWithQuantifiersDoesNotTriggerReDoS()
+        {
+            final Pattern pattern = MailApiController.compileRegex("subject", "[(+)]+");
+            assertNotNull(pattern);
+            assertTrue(pattern.matcher("(+)+++").matches(), "Should match character class content");
+        }
+
+        /**
+         * Directly verifies the behavior of containsNestedQuantifier across positive, negative, and edge cases.
+         */
+        @Test
+        @DisplayName("containsNestedQuantifier correctly detects ReDoS constructs and allows safe patterns")
+        public void testContainsNestedQuantifierDirectValidation()
+        {
+            // Null and empty
+            assertFalse(MailApiController.containsNestedQuantifier(null));
+            assertFalse(MailApiController.containsNestedQuantifier(""));
+            assertFalse(MailApiController.containsNestedQuantifier("   "));
+
+            // Dangerous ReDoS constructs
+            assertTrue(MailApiController.containsNestedQuantifier("(a+)+"));
+            assertTrue(MailApiController.containsNestedQuantifier("(x*)*"));
+            assertTrue(MailApiController.containsNestedQuantifier("([0-9]+)+"));
+            assertTrue(MailApiController.containsNestedQuantifier("(a{2,}){2,}"));
+            assertTrue(MailApiController.containsNestedQuantifier("((a+))+"));
+            assertTrue(MailApiController.containsNestedQuantifier("(a+)++"));
+            assertTrue(MailApiController.containsNestedQuantifier("(a+)+?"));
+
+            // Safe constructs
+            assertFalse(MailApiController.containsNestedQuantifier("^(user|admin)@[a-z]+$"));
+            assertFalse(MailApiController.containsNestedQuantifier(".*\\d{6}.*"));
+            assertFalse(MailApiController.containsNestedQuantifier("(".repeat(200)));
+            assertFalse(MailApiController.containsNestedQuantifier("\\(a+\\)+"));
+            assertFalse(MailApiController.containsNestedQuantifier("[(+)]+"));
         }
     }
 }
