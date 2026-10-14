@@ -91,27 +91,38 @@ The test suite is compiled against XLT version **8.6.0** (defined in `xcmailr-lo
    chmod +x ~/tools/xlt-8.6.0/bin/*.sh
    ```
 
-### Step 2: Build the Load Test Suite
+### Step 2: Build the Load Test Suite and Verify Configuration
 
-Build the test suite and copy runtime dependencies to `target/dependency` (required by XLT):
+1. **Verify Global Properties**:
+   The suite's target URL and admin API token are configured in `xcmailr-load-test-suite/config/project.properties`:
+   ```properties
+   xcmailr.host = localhost
+   xcmailr.baseUrl = http://${xcmailr.host}:8080
+   xcmailr.apiToken = xcmailr-admin-api-token-2026
+   ```
+   Ensure `xcmailr.apiToken` matches the admin token configured in `application.yml` (default: `xcmailr-admin-api-token-2026`).
 
-```bash
-cd /Users/rbaumgarten/checkouts/XCMailr
-mvn clean test-compile package -pl xcmailr-load-test-suite
-```
-
-Verify that `xcmailr-load-test-suite/target/test-classes` and `xcmailr-load-test-suite/target/dependency` are populated.
+2. **Build the Test Suite and Dependencies**:
+   Build the test suite and copy runtime dependencies to `target/dependency` (required by XLT):
+   ```bash
+   cd /Users/rbaumgarten/checkouts/XCMailr
+   mvn clean test-compile package -pl xcmailr-load-test-suite
+   ```
+   Verify that `xcmailr-load-test-suite/target/test-classes` and `xcmailr-load-test-suite/target/dependency` are populated.
 
 ---
 
 ## 4. Running the Entire Suite at Different Concurrency Levels
 
-To run the **entire suite**, pass all test cases in the `com.xceptance.xlt.loadtests` property:
-```bash
--Dcom.xceptance.xlt.loadtests="SendMail SendAndCheckMail CreateAndDeleteMailbox"
-```
+In XLT, test-run configurations and user allocations are managed through dedicated **profile properties files** in `xcmailr-load-test-suite/config/`. Select a profile using MasterController's `-testPropertiesFile <filename>` option:
 
-All three scenarios will execute concurrently in parallel threads against the application.
+| Profile File | Total Users | Measurement Period | Workload Allocation |
+| :--- | :--- | :--- | :--- |
+| **`test.properties`** / **`test-3users.properties`** | **3 Users** | 1 minute | 1 SendAndCheckMail, 1 SendMail, 1 CreateAndDeleteMailbox |
+| **`test-5users.properties`** | **5 Users** | 2 minutes | 2 SendAndCheckMail, 2 SendMail, 1 CreateAndDeleteMailbox |
+| **`test-10users.properties`** | **10 Users** | 5 minutes | 4 SendAndCheckMail, 4 SendMail, 2 CreateAndDeleteMailbox |
+
+All three scenarios (`SendMail`, `SendAndCheckMail`, `CreateAndDeleteMailbox`) execute concurrently in parallel threads against the application.
 
 ---
 
@@ -121,13 +132,9 @@ Runs 1 concurrent thread for each test case simultaneously (3 users total) for 1
 
 ```bash
 ~/tools/xlt-8.6.0/bin/mastercontroller.sh -embedded -auto -report \
-  -Dcom.xceptance.xlt.mastercontroller.testSuitePath=$(pwd)/xcmailr-load-test-suite \
-  -Dcom.xceptance.xlt.loadtests="SendMail SendAndCheckMail CreateAndDeleteMailbox" \
-  -Dcom.xceptance.xlt.loadtests.default.users=1 \
-  -Dcom.xceptance.xlt.loadtests.default.warmUpPeriod=5s \
-  -Dcom.xceptance.xlt.loadtests.default.measurementPeriod=1m \
-  -Dxcmailr.apiToken=xcmailr-admin-api-token-2026
+  -Dcom.xceptance.xlt.mastercontroller.testSuitePath=$(pwd)/xcmailr-load-test-suite
 ```
+*(By default, MasterController loads `config/test.properties`. You can also explicitly specify `-testPropertiesFile test-3users.properties`.)*
 
 ---
 
@@ -138,14 +145,7 @@ Allocates 2 users to `SendAndCheckMail`, 2 users to `SendMail`, and 1 user to `C
 ```bash
 ~/tools/xlt-8.6.0/bin/mastercontroller.sh -embedded -auto -report \
   -Dcom.xceptance.xlt.mastercontroller.testSuitePath=$(pwd)/xcmailr-load-test-suite \
-  -Dcom.xceptance.xlt.loadtests="SendMail SendAndCheckMail CreateAndDeleteMailbox" \
-  -Dcom.xceptance.xlt.loadtests.SendAndCheckMail.users=2 \
-  -Dcom.xceptance.xlt.loadtests.SendMail.users=2 \
-  -Dcom.xceptance.xlt.loadtests.CreateAndDeleteMailbox.users=1 \
-  -Dcom.xceptance.xlt.loadtests.default.warmUpPeriod=10s \
-  -Dcom.xceptance.xlt.loadtests.default.measurementPeriod=2m \
-  -Dcom.xceptance.xlt.loadtests.default.shutdownPeriod=10s \
-  -Dxcmailr.apiToken=xcmailr-admin-api-token-2026
+  -testPropertiesFile test-5users.properties
 ```
 
 ---
@@ -157,14 +157,7 @@ Allocates 4 users to `SendAndCheckMail`, 4 users to `SendMail`, and 2 users to `
 ```bash
 ~/tools/xlt-8.6.0/bin/mastercontroller.sh -embedded -auto -report \
   -Dcom.xceptance.xlt.mastercontroller.testSuitePath=$(pwd)/xcmailr-load-test-suite \
-  -Dcom.xceptance.xlt.loadtests="SendMail SendAndCheckMail CreateAndDeleteMailbox" \
-  -Dcom.xceptance.xlt.loadtests.SendAndCheckMail.users=4 \
-  -Dcom.xceptance.xlt.loadtests.SendMail.users=4 \
-  -Dcom.xceptance.xlt.loadtests.CreateAndDeleteMailbox.users=2 \
-  -Dcom.xceptance.xlt.loadtests.default.warmUpPeriod=15s \
-  -Dcom.xceptance.xlt.loadtests.default.measurementPeriod=5m \
-  -Dcom.xceptance.xlt.loadtests.default.shutdownPeriod=15s \
-  -Dxcmailr.apiToken=xcmailr-admin-api-token-2026
+  -testPropertiesFile test-10users.properties
 ```
 
 ---
@@ -176,32 +169,21 @@ If you prefer testing each scenario in the suite individually one after another 
 ```bash
 ~/tools/xlt-8.6.0/bin/mastercontroller.sh -embedded -sequential -report \
   -Dcom.xceptance.xlt.mastercontroller.testSuitePath=$(pwd)/xcmailr-load-test-suite \
-  -Dcom.xceptance.xlt.loadtests="SendMail SendAndCheckMail CreateAndDeleteMailbox" \
-  -Dcom.xceptance.xlt.loadtests.default.users=5 \
-  -Dcom.xceptance.xlt.loadtests.default.warmUpPeriod=10s \
-  -Dcom.xceptance.xlt.loadtests.default.measurementPeriod=2m \
-  -Dxcmailr.apiToken=xcmailr-admin-api-token-2026
+  -testPropertiesFile test-5users.properties
 ```
 
 ---
 
 ## 5. Command Options Reference
 
-| Option / Property | Description |
+| Option / Parameter | Description |
 | :--- | :--- |
-| `-embedded` | Runs the test agent embedded in the same JVM. No remote agents required. |
+| `-embedded` | Runs the test agent embedded in the same JVM environment. No remote agent daemons required. |
 | `-auto` | Non-interactive parallel mode: starts all scenarios simultaneously, collects results, and finishes. |
-| `-sequential` | Non-interactive sequential mode: runs each scenario in the suite one after the other. |
-| `-report` | Automatically generates the interactive HTML report immediately after completion. |
-| `-Dcom.xceptance.xlt.mastercontroller.testSuitePath` | Absolute path to `xcmailr-load-test-suite`. |
-| `-Dcom.xceptance.xlt.loadtests` | Test cases to include in the suite (space or comma-delimited). |
-| `-Dcom.xceptance.xlt.loadtests.default.users` | Fallback user concurrency applied to each test case. |
-| `-Dcom.xceptance.xlt.loadtests.<testCase>.users` | Granular user count allocated to a specific test case. |
-| `-Dcom.xceptance.xlt.loadtests.default.warmUpPeriod` | Period to run traffic before measurements start (e.g. `10s`). |
-| `-Dcom.xceptance.xlt.loadtests.default.measurementPeriod` | Duration of the active measurement window (e.g. `2m`, `5m`). |
-| `-Dcom.xceptance.xlt.loadtests.default.shutdownPeriod` | Grace period for threads to complete their active iteration (e.g. `10s`). |
-| `-Dxcmailr.apiToken` | Bearer API token used to authenticate against XCMailr REST endpoints. |
-| `-Dxcmailr.baseUrl` | Base URL of the target app (defaults to `http://localhost:8080`). |
+| `-sequential` | Non-interactive sequential mode: runs each scenario in the active profile one after the other. |
+| `-report` | Automatically generates the interactive HTML report immediately after test completion. |
+| `-testPropertiesFile <file>` | Loads a specific test profile from `xcmailr-load-test-suite/config/` (defaults to `test.properties`). |
+| `-Dcom.xceptance.xlt.mastercontroller.testSuitePath=<path>` | Absolute path to the test suite directory. |
 
 ---
 
@@ -257,7 +239,9 @@ While the load test executes, check the running XCMailr application:
 
 | Issue | Cause | Resolution |
 | :--- | :--- | :--- |
-| `HTTP 401 Unauthorized` | Invalid or missing API token | Verify `-Dxcmailr.apiToken=xcmailr-admin-api-token-2026` is passed. Check token in `application.yml`. |
+| `IllegalArgumentException: Parameter 'apiToken' must neither be null nor empty nor blank` | Missing API token in test configuration | Set `xcmailr.apiToken = xcmailr-admin-api-token-2026` in `xcmailr-load-test-suite/config/project.properties`. |
+| `Agent exited unexpectedly (exit code: 3)` or unexpected user count / duration | CLI `-D` flags ignored by MasterController | MasterController only reads `-D` for `mastercontroller.properties`. Configure profiles via `config/*.properties` and specify `-testPropertiesFile <file>`. |
+| `HTTP 401 Unauthorized` | API token mismatch | Verify `xcmailr.apiToken` in `project.properties` matches `xcmailr.admin.api-token` in `application.yml`. |
 | `Connection refused: connect` on port 25000 | Inbound SMTP server not running | Verify `xcmailr-webapp` is started and `mbox.port: 25000` is open. |
 | `Mailbox not found` / Transaction code 100 in `SendMail` | `jw@xcmailr.test` not created in DB | Pre-create `jw@xcmailr.test` via curl (see Prerequisites section). |
 | `FileNotFoundException: mastercontroller.properties` | Wrong working directory or invalid `XLT_HOME` | Use absolute paths when invoking `~/tools/xlt-8.6.0/bin/mastercontroller.sh`. |
