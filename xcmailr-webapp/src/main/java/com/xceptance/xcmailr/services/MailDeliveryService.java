@@ -164,8 +164,7 @@ public class MailDeliveryService implements SimpleMessageListener
         {
             LOG.info("Mailbox '{}' is inactive / expired", recipient);
             recordTransaction(200, from, recipient, forwardTarget);
-            mbox.increaseSuppressions();
-            mailboxRepository.save(mbox);
+            mailboxRepository.incrementSuppressions(mbox.getId());
             return;
         }
 
@@ -174,8 +173,7 @@ public class MailDeliveryService implements SimpleMessageListener
         {
             LOG.info("Owning user for mailbox '{}' is inactive", recipient);
             recordTransaction(600, from, recipient, forwardTarget);
-            mbox.increaseSuppressions();
-            mailboxRepository.save(mbox);
+            mailboxRepository.incrementSuppressions(mbox.getId());
             return;
         }
 
@@ -255,8 +253,7 @@ public class MailDeliveryService implements SimpleMessageListener
             outboundMailService.send(forwardMsg);
 
             // Update forward counters
-            mbox.increaseForwards();
-            mailboxRepository.save(mbox);
+            mailboxRepository.incrementForwards(mbox.getId());
             recordTransaction(300, from, recipient, forwardTarget);
             LOG.info("Successfully forwarded email to '{}'", forwardTarget);
         }

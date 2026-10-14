@@ -139,7 +139,7 @@ public class MailboxApiController
 
             // Reactivate existing mailbox owned by this user
             mailbox.setTs_Active(mailboxData.deactivationTime);
-            mailbox.setExpired(mailboxData.deactivationTime <= System.currentTimeMillis());
+            mailbox.setExpired(isExpired(mailboxData.deactivationTime));
             mailbox.setForwardEmails(mailboxData.forwardEnabled);
             mailboxRepository.save(mailbox);
 
@@ -149,7 +149,7 @@ public class MailboxApiController
         {
             // Create fresh mailbox
             final MBox mailbox = new MBox(localPart, domainPart, mailboxData.deactivationTime,
-                                          mailboxData.deactivationTime <= System.currentTimeMillis(),
+                                          isExpired(mailboxData.deactivationTime),
                                           principal.getUser());
             mailbox.setForwardEmails(mailboxData.forwardEnabled);
             mailboxRepository.save(mailbox);
@@ -253,7 +253,7 @@ public class MailboxApiController
         mailbox.setAddress(newLocal);
         mailbox.setDomain(newDomain);
         mailbox.setTs_Active(mailboxData.deactivationTime);
-        mailbox.setExpired(mailboxData.deactivationTime <= System.currentTimeMillis());
+        mailbox.setExpired(isExpired(mailboxData.deactivationTime));
         mailbox.setForwardEmails(mailboxData.forwardEnabled);
         mailboxRepository.save(mailbox);
 
@@ -328,5 +328,17 @@ public class MailboxApiController
         }
         final String[] parts = HelperUtils.splitMailAddress(address);
         return parts != null && parts.length == 2 && !parts[0].isBlank() && !parts[1].isBlank() && parts[1].contains(".");
+    }
+
+    /**
+     * Determines whether a mailbox should be considered expired given a deactivation timestamp.
+     * In XCMailr's domain model, 0 or non-positive indicates an unlimited / permanent mailbox that never expires.
+     *
+     * @param deactivationTime epoch millisecond expiration timestamp
+     * @return true if the timestamp is positive and already elapsed in the past
+     */
+    private boolean isExpired(final long deactivationTime)
+    {
+        return deactivationTime > 0 && deactivationTime <= System.currentTimeMillis();
     }
 }

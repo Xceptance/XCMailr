@@ -63,12 +63,42 @@ The suite located in `xcmailr-load-test-suite` contains three distinct scenarios
    * Inbound SMTP: `localhost:25000` (STARTTLS enabled)
    * Default Admin API Token: `xcmailr-admin-api-token-2026` (bootstrapped automatically from `application.yml`)
 4. **Pre-Create the `jw@xcmailr.test` Mailbox (Optional but Recommended)**:
-   The `SendMail` scenario targets `jw@xcmailr.test`. To ensure emails sent by `SendMail` exercise full MIME parsing and database persistence (rather than being dropped with transaction code 100 "Mailbox not found"), create it once before testing:
+   The `SendMail` scenario targets `jw@xcmailr.test`. To ensure emails sent by `SendMail` exercise full MIME parsing and database persistence (rather than being dropped with transaction code 100 "Mailbox not found"), create it once before testing.
+
+   #### Mailbox Creation Payload & Expiration Semantics (`/api/v1/mailboxes`)
+   Mailboxes are managed via the REST API at `POST /api/v1/mailboxes`. The request body supports the following JSON fields:
+   * `address` (String, required): The target email address (e.g. `jw@xcmailr.test`). The domain must be registered in the domain whitelist.
+   * `deactivationTime` (Long / Number, optional, default: `0`):
+     * **`0` (Permanent / Unlimited)**: In XCMailr, a value of `0` designates a permanent mailbox that never expires (`expired = false`, `ts_Active = 0`). Omitting `deactivationTime` from the request JSON defaults to `0` and creates an active, permanent mailbox.
+     * **Future epoch timestamp in ms** (`> System.currentTimeMillis()`): Creates a temporary mailbox that remains active until the specified expiration deadline, after which background tasks deactivate it.
+     * **Past epoch timestamp in ms** (`> 0` and `<= System.currentTimeMillis()`): Creates the mailbox in an already expired state (`expired = true`).
+   * `forward` (Boolean, optional, default: `false`): Enables or disables email forwarding to the owning user's primary email address.
+
+   **Example: Create a Permanent Mailbox (`deactivationTime: 0` or omitted)**:
    ```bash
    curl -X POST http://localhost:8080/api/v1/mailboxes \
      -H "Authorization: Bearer xcmailr-admin-api-token-2026" \
      -H "Content-Type: application/json" \
-     -d '{"address":"jw@xcmailr.test"}'
+     -d '{
+       "address": "jw@xcmailr.test",
+       "deactivationTime": 0,
+       "forward": false
+     }'
+   ```
+
+   **Example: Create a Temporary Mailbox (e.g., expires in 2 hours)**:
+   ```bash
+   # Calculate epoch timestamp in milliseconds for 2 hours in the future
+   EXPIRATION_TS=$(($(date +%s) * 1000 + 7200000))
+
+   curl -X POST http://localhost:8080/api/v1/mailboxes \
+     -H "Authorization: Bearer xcmailr-admin-api-token-2026" \
+     -H "Content-Type: application/json" \
+     -d "{
+       \"address\": \"temp-loadtest@xcmailr.test\",
+       \"deactivationTime\": ${EXPIRATION_TS},
+       \"forward\": false
+     }"
    ```
 
 ---
@@ -245,4 +275,6 @@ While the load test executes, check the running XCMailr application:
 | `HTTP 401 Unauthorized` | API token mismatch | Verify `xcmailr.apiToken` in `project.properties` matches `xcmailr.admin.api-token` in `application.yml`. |
 | `Connection refused: connect` on port 25000 | Inbound SMTP server not running | Verify `xcmailr-webapp` is started and `mbox.port: 25000` is open. |
 | `Mailbox not found` / Transaction code 100 in `SendMail` | `jw@xcmailr.test` not created in DB | Pre-create `jw@xcmailr.test` via curl (see Prerequisites section). |
+| `Mailbox is inactive / expired` / Transaction code 200 | Mailbox created with past expiration timestamp or expired | Create mailbox with `"deactivationTime": 0` (or omit) for permanent mailboxes, or update via `PUT /api/v1/mailboxes/{address}`. |
+| `SMTP 421 4.3.0 Mail system failure` / `ObjectOptimisticLockingFailureException` | Concurrent deliveries colliding on JPA `@Version` counters | Solved: counter increments are handled atomically at the database layer without entity version contention. |
 | `FileNotFoundException: mastercontroller.properties` | Wrong working directory or invalid `XLT_HOME` | Use absolute paths when invoking `~/tools/xlt-8.6.0/bin/mastercontroller.sh`. |

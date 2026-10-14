@@ -212,9 +212,9 @@ public class MailDeliveryServiceTest
         // Verify mail is NOT persisted
         verify(mailRepository, never()).save(any(Mail.class));
 
-        // Verify suppressions incremented and mailbox updated
-        assertEquals(1, inactiveBox.getSuppressions(), "Suppressions counter must be incremented");
-        verify(mailboxRepository).save(inactiveBox);
+        // Verify suppressions incremented atomically via repository
+        verify(mailboxRepository).incrementSuppressions(inactiveBox.getId());
+        verify(mailboxRepository, never()).save(inactiveBox);
 
         // Verify transaction status 200 (mailbox inactive) recorded
         final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
@@ -244,9 +244,9 @@ public class MailDeliveryServiceTest
         // Verify mail is NOT persisted
         verify(mailRepository, never()).save(any(Mail.class));
 
-        // Verify suppressions incremented and mailbox updated
-        assertEquals(1, activeBox.getSuppressions(), "Suppressions counter must be incremented");
-        verify(mailboxRepository).save(activeBox);
+        // Verify suppressions incremented atomically via repository
+        verify(mailboxRepository).incrementSuppressions(activeBox.getId());
+        verify(mailboxRepository, never()).save(activeBox);
 
         // Verify transaction status 600 (user inactive) recorded
         final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
@@ -348,9 +348,9 @@ public class MailDeliveryServiceTest
         final MimeMessage forwardedMsg = msgCaptor.getValue();
         assertEquals("forward_destination@realdomain.org", forwardedMsg.getRecipients(Message.RecipientType.TO)[0].toString());
 
-        // Verify forward count incremented
-        assertEquals(1, mbox.getForwards());
-        verify(mailboxRepository).save(mbox);
+        // Verify forward count incremented atomically via repository
+        verify(mailboxRepository).incrementForwards(mbox.getId());
+        verify(mailboxRepository, never()).save(mbox);
 
         // Verify transaction status 300 (forwarded) recorded
         final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);

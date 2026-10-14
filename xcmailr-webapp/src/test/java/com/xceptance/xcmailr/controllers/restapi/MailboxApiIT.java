@@ -18,6 +18,7 @@ package com.xceptance.xcmailr.controllers.restapi;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -362,5 +363,94 @@ public class MailboxApiIT
                .header("Authorization", "Bearer " + token))
                .andExpect(status().isForbidden())
                .andExpect(jsonPath("$.errors[0].parameter", is("mailboxAddress")));
+    }
+
+    @Test
+    @DisplayName("createMailbox with zero deactivationTime creates active permanent mailbox")
+    public void testCreateMailboxZeroDeactivationTimeIsActive() throws Exception
+    {
+        final MailboxData data = new MailboxData();
+        data.address = "permanentzero@xcmailr.test";
+        data.deactivationTime = 0L;
+        data.forwardEnabled = false;
+
+        mockMvc.perform(post(API_PREFIX)
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(data)))
+               .andExpect(status().isCreated())
+               .andExpect(jsonPath("$.address", is("permanentzero@xcmailr.test")))
+               .andExpect(jsonPath("$.deactivationTime", is(0)));
+
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("permanentzero", "xcmailr.test").orElseThrow();
+        assertFalse(box.isExpired(), "Mailbox with deactivationTime: 0 must not be expired");
+        assertTrue(box.isActive(), "Mailbox with deactivationTime: 0 must be active");
+        assertEquals(0L, box.getTs_Active());
+    }
+
+    @Test
+    @DisplayName("createMailbox with omitted deactivationTime creates active permanent mailbox")
+    public void testCreateMailboxOmittedDeactivationTimeIsActive() throws Exception
+    {
+        final String json = "{\"address\":\"permanentiomitted@xcmailr.test\"}";
+
+        mockMvc.perform(post(API_PREFIX)
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(json))
+               .andExpect(status().isCreated())
+               .andExpect(jsonPath("$.address", is("permanentiomitted@xcmailr.test")))
+               .andExpect(jsonPath("$.deactivationTime", is(0)));
+
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("permanentiomitted", "xcmailr.test").orElseThrow();
+        assertFalse(box.isExpired(), "Mailbox with omitted deactivationTime must not be expired");
+        assertTrue(box.isActive(), "Mailbox with omitted deactivationTime must be active");
+        assertEquals(0L, box.getTs_Active());
+    }
+
+    @Test
+    @DisplayName("createMailbox with past positive deactivationTime marks mailbox as expired")
+    public void testCreateMailboxPastDeactivationTimeIsExpired() throws Exception
+    {
+        final MailboxData data = new MailboxData();
+        data.address = "pastexpired@xcmailr.test";
+        data.deactivationTime = System.currentTimeMillis() - 60000;
+        data.forwardEnabled = false;
+
+        mockMvc.perform(post(API_PREFIX)
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(data)))
+               .andExpect(status().isCreated())
+               .andExpect(jsonPath("$.address", is("pastexpired@xcmailr.test")));
+
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("pastexpired", "xcmailr.test").orElseThrow();
+        assertTrue(box.isExpired(), "Mailbox with past deactivationTime must be expired");
+        assertFalse(box.isActive(), "Mailbox with past deactivationTime must not be active");
+    }
+
+    @Test
+    @DisplayName("updateMailbox with zero deactivationTime reactivates and sets permanent")
+    public void testUpdateMailboxToPermanentWithZeroDeactivationTime() throws Exception
+    {
+        final MBox expiredBox = new MBox("expiredtoreactivate", "xcmailr.test", System.currentTimeMillis() - 10000, true, testUser);
+        mailboxRepository.save(expiredBox);
+
+        final MailboxData update = new MailboxData();
+        update.address = "expiredtoreactivate@xcmailr.test";
+        update.deactivationTime = 0L;
+        update.forwardEnabled = true;
+
+        mockMvc.perform(put(API_PREFIX + "/expiredtoreactivate@xcmailr.test")
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(update)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.deactivationTime", is(0)));
+
+        final MBox updated = mailboxRepository.findById(expiredBox.getId()).orElseThrow();
+        assertFalse(updated.isExpired(), "Mailbox updated with deactivationTime: 0 must not be expired");
+        assertTrue(updated.isActive(), "Mailbox updated with deactivationTime: 0 must be active");
+        assertEquals(0L, updated.getTs_Active());
     }
 }
