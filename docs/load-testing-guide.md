@@ -83,7 +83,7 @@ The test suite is compiled against XLT version **8.6.0** (defined in `xcmailr-lo
    ```bash
    mkdir -p ~/tools
    cd ~/tools
-   curl -L -O https://github.com/Xceptance/XLT/releases/download/v8.6.0/xlt-8.6.0.zip
+   curl -O https://lab.xceptance.de/releases/xlt/8.6.0/xlt-8.6.0.zip
    unzip xlt-8.6.0.zip
    ```
 2. Ensure shell scripts have execute permissions:
