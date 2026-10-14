@@ -15,3 +15,5 @@ xcmailr_testsuite/results
 xcmailr-webapp/conf/application.conf
 log/
 **/log/
+patches/
+**/patches/

@@ -103,12 +103,12 @@ The test suite is compiled against XLT version **8.6.0** (defined in `xcmailr-lo
    Ensure `xcmailr.apiToken` matches the admin token configured in `application.yml` (default: `xcmailr-admin-api-token-2026`).
 
 2. **Build the Test Suite and Dependencies**:
-   Build the test suite and copy runtime dependencies to `target/dependency` (required by XLT):
+   Build the test suite and copy runtime dependencies to `target/dependency` and agent classpath overrides to `patches/lib` (required by XLT):
    ```bash
    cd /Users/rbaumgarten/checkouts/XCMailr
    mvn clean test-compile package -pl xcmailr-load-test-suite
    ```
-   Verify that `xcmailr-load-test-suite/target/test-classes` and `xcmailr-load-test-suite/target/dependency` are populated.
+   Verify that `xcmailr-load-test-suite/target/test-classes`, `xcmailr-load-test-suite/target/dependency`, and `xcmailr-load-test-suite/patches/lib` are populated.
 
 ---
 
@@ -240,6 +240,7 @@ While the load test executes, check the running XCMailr application:
 | Issue | Cause | Resolution |
 | :--- | :--- | :--- |
 | `IllegalArgumentException: Parameter 'apiToken' must neither be null nor empty nor blank` | Missing API token in test configuration | Set `xcmailr.apiToken = xcmailr-admin-api-token-2026` in `xcmailr-load-test-suite/config/project.properties`. |
+| `IllegalAccessError: failed to access class LogSupport from class MailcapCommandMap` | Classpath conflict between XLT 8.6.0's `javax.activation-api` and package-private `angus-activation` | Rebuild the suite with `mvn clean package -pl xcmailr-load-test-suite` so `jakarta.activation` is copied to `patches/lib/`. |
 | `Agent exited unexpectedly (exit code: 3)` or unexpected user count / duration | CLI `-D` flags ignored by MasterController | MasterController only reads `-D` for `mastercontroller.properties`. Configure profiles via `config/*.properties` and specify `-testPropertiesFile <file>`. |
 | `HTTP 401 Unauthorized` | API token mismatch | Verify `xcmailr.apiToken` in `project.properties` matches `xcmailr.admin.api-token` in `application.yml`. |
 | `Connection refused: connect` on port 25000 | Inbound SMTP server not running | Verify `xcmailr-webapp` is started and `mbox.port: 25000` is open. |

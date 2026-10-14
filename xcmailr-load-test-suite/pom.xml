@@ -26,13 +26,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.8.1</version>
-                <configuration>
-                    <excludeScope>provided</excludeScope>
-                </configuration>
                 <executions>
                     <!-- Automatically copy all non-provided dependencies to "target/dependency" when compiling. This ensures that 
                         they are present when the test suite is about to be uploaded to the agent machines. -->
                     <execution>
+                        <id>copy-dependencies</id>
                         <phase>package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
@@ -41,7 +39,32 @@
                             <excludeScope>provided</excludeScope>
                         </configuration>
                     </execution>
+                    <!-- Copy jakarta.activation to patches/lib so it takes precedence over XLT's conflicting javax.activation-api / angus-activation combination on the agent classpath -->
+                    <execution>
+                        <id>copy-patches</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeArtifactIds>jakarta.activation</includeArtifactIds>
+                            <outputDirectory>${project.basedir}/patches/lib</outputDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/patches</directory>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -63,11 +86,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>1.6.2</version>
-        </dependency>
         <dependency>
             <groupId>com.xceptance</groupId>
             <artifactId>xlt</artifactId>
