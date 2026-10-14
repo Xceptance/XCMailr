@@ -63,9 +63,9 @@ The suite located in `xcmailr-load-test-suite` contains three distinct scenarios
    * Inbound SMTP: `localhost:25000` (STARTTLS enabled)
    * Default Admin API Token: `xcmailr-admin-api-token-2026` (bootstrapped automatically from `application.yml`)
 4. **Pre-Create the `jw@xcmailr.test` Mailbox (Optional but Recommended)**:
-   The `SendMail` scenario targets `jw@xcmailr.test`. To ensure emails sent by `SendMail` are stored and indexed in the database (rather than dropped with transaction code 100 "Mailbox not found"), create it once before testing:
+   The `SendMail` scenario targets `jw@xcmailr.test`. To ensure emails sent by `SendMail` exercise full MIME parsing and database persistence (rather than being dropped with transaction code 100 "Mailbox not found"), create it once before testing:
    ```bash
-   curl -X POST http://localhost:8080/api/v1/boxes \
+   curl -X POST http://localhost:8080/api/v1/mailboxes \
      -H "Authorization: Bearer xcmailr-admin-api-token-2026" \
      -H "Content-Type: application/json" \
      -d '{"address":"jw@xcmailr.test"}'
