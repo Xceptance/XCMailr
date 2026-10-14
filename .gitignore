@@ -13,3 +13,5 @@ xcmailr_testsuite/results
 .idea/
 *.iml
 xcmailr-webapp/conf/application.conf
+log/
+**/log/

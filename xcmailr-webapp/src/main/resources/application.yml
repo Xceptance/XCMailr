@@ -42,6 +42,19 @@ spring:
     mode: HTML
     encoding: UTF-8
 
+logging:
+  file:
+    name: ${LOG_FILE:log/xcmailr.log}
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36}:%line - %msg%n"
+  logback:
+    rollingpolicy:
+      file-name-pattern: ${LOG_FILE:log/xcmailr.log}.%d{yyyy-MM-dd}.%i
+      max-file-size: 10MB
+      max-history: 10
+      total-size-cap: 100MB
+      clean-history-on-start: false
+
 xcmailr:
   app:
     name: XCMailr
