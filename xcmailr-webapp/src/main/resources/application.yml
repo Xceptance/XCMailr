@@ -104,8 +104,8 @@ xcmailr:
     port: ${SMTP_PORT:25}
     user: ${SMTP_USER:}
     password: ${SMTP_PASS:}
-    auth: true
-    tls: true
-    starttls: false
-    debug: true
-    msg-rewrite: false
+    auth: ${SMTP_AUTH:true}
+    tls: ${SMTP_TLS:true}
+    starttls: ${SMTP_STARTTLS:false}
+    debug: ${SMTP_DEBUG:true}
+    msg-rewrite: ${SMTP_MSG_REWRITE:false}

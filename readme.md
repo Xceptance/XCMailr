@@ -88,6 +88,28 @@ java -jar xcmailr-webapp/target/xcmailr-webapp-3.1.0.jar
 mvn spring-boot:run -pl xcmailr-webapp
 ```
 
+### Option 3: Run via Docker & Docker Compose
+#### Standalone Container
+```bash
+docker run -d \
+  --name xcmailr \
+  -p 8080:8080 \
+  -p 25000:25000 \
+  -v xcmailr-data:/data \
+  ghcr.io/xceptance/xcmailr:latest
+```
+
+#### Test Environment Stack (XCMailr + Mailpit Relay)
+Run XCMailr together with Mailpit to capture and inspect all forwarded emails via a web UI:
+```bash
+docker compose -f docker-compose.test.yml up -d
+```
+* **Web UI & REST API**: `http://localhost:8080/`
+* **Inbound SMTP Server**: `localhost:25000` (or custom port via `MBOX_PORT=2525`)
+* **Mailpit Outbound Email Viewer**: `http://localhost:8025/`
+
+For cloud VM deployment, custom firewall ports, and running high-volume XLT load tests, see the [Cloud Test Deployment Guide](docs/cloud-test-deployment-guide.md).
+
 Once started, access the web dashboard at:
 ```
 http://localhost:8080/
@@ -341,9 +363,11 @@ server {
 }
 ```
 
-## Local Development & Email Testing
-For instructions on running XCMailr locally and testing the complete email pipeline (inbound receiving on port 25000 and outbound forwarding to a mock inbox via Mailpit), see:
-* **[Local Email Testing Guide](docs/local-testing-guide.md)**
+## Development & Testing Guides
+* **[Local Email Testing Guide](docs/local-testing-guide.md)**: Running XCMailr locally and testing with Mailpit.
+* **[Cloud Test Deployment Guide](docs/cloud-test-deployment-guide.md)**: Ephemeral cloud VM setup, Docker Compose with Mailpit, and teardown.
+* **[Load Testing Guide](docs/load-testing-guide.md)**: Running the XLT load test suite in embedded mode.
+* **[Production Deployment & Migration Guide](docs/production-deployment-guide.md)**: Production setup and bare-metal service deployment.
 
 ## Third-Party Libraries & Technologies
 * **Spring Boot & Spring Framework**: Apache 2.0 License
