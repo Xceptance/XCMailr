@@ -102,6 +102,15 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
+> [!TIP]
+> **Container Registry Access (`ghcr.io`)**
+> 
+> * **Public Package (Recommended)**: Once an organization owner sets package visibility to **Public** in GitHub Packages, any cloud machine can pull the image without authentication.
+> * **Private Package**: If the image is private, authenticate Docker on the VM once using a GitHub Personal Access Token (with `read:packages` permission):
+>   ```bash
+>   echo "$GITHUB_PAT" | docker login ghcr.io -u <YOUR_GITHUB_USERNAME> --password-stdin
+>   ```
+
 ### Option A: Standalone Container via `docker run`
 
 Run XCMailr directly using the official GHCR image. This option uses custom inbound SMTP port `2525` to avoid cloud port 25 restrictions:
