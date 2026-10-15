@@ -1,7 +1,7 @@
 # XCMailr
 ## Summary
 * Name: XCMailr
-* Version: 3.1.0
+* Version: 4.0.0
 * Release: October 2026
 * License: Apache V2.0
 * License URI: http://www.apache.org/licenses/LICENSE-2.0.txt
@@ -17,6 +17,39 @@ XCMailr was built to aid software and automated test engineering. Testing often 
 Commercial or public temporary mail services often block or throttle automated test accounts and discard emails. Additionally, transmitting sensitive test emails (e.g., account activation tokens, password reset links) through third-party services poses privacy and compliance risks.
 
 XCMailr allows you to host your own disposable email testing service. You control security, availability, domains, and data retention. Incoming test emails can be inspected via an interactive web dashboard, forwarded to configured destination addresses, or queried via standard REST APIs.
+
+## Container Quickstart
+
+Get up and running in seconds using the official pre-built container from GitHub Container Registry (`ghcr.io/xceptance/xcmailr`):
+
+```bash
+docker run -d \
+  --name xcmailr \
+  -p 8080:8080 \
+  -p 25000:25000 \
+  -v xcmailr-data:/data \
+  ghcr.io/xceptance/xcmailr:latest
+```
+
+Or spin up the complete test environment stack with **Mailpit** mock relay:
+```bash
+docker compose -f docker-compose.test.yml up -d
+```
+
+### Key Ports & Endpoints
+| Port / Endpoint | Protocol / Service | Description |
+| :--- | :--- | :--- |
+| `http://localhost:8080` | HTTP | Web UI and REST API |
+| `localhost:25000` (or `2525`) | SMTP | Inbound SMTP mail receiver (send test emails here) |
+| `http://localhost:8025` | HTTP (Mailpit) | Outbound forwarded email inspector (in test Compose stack) |
+
+### Default Credentials & API Tokens
+* **Web UI Administrator**: `admin@xcmailr.test` / `1234`
+* **Admin REST API Token**: `xcmailr-admin-api-token-2026` (Bearer token)
+
+### Deployment Documentation
+* 📖 [Cloud & Test Deployment Guide](docs/cloud-test-deployment-guide.md) — Production/test cloud VM hosting, firewall configuration (mapping port 25000 to standard 25 or 2525), and load testing.
+* 📖 [Production Deployment Guide](docs/production-deployment-guide.md) — Dedicated production setup with external PostgreSQL/MySQL and systemd.
 
 ## Key Features & Modern Stack
 * **Java 25 & Spring Boot 4.1.1**: High throughput and modern language features with Project Loom Virtual Threads enabled for all HTTP requests and background tasks.
@@ -80,7 +113,7 @@ mvn clean package -DskipTests
 ## Running the Application
 ### Option 1: Run Executable Jar (Production)
 ```bash
-java -jar xcmailr-webapp/target/xcmailr-webapp-3.1.0.jar
+java -jar xcmailr-webapp/target/xcmailr-webapp-4.0.0.jar
 ```
 
 ### Option 2: Run via Maven (Development)
@@ -214,7 +247,7 @@ To use XCMailr in your Java test suite:
 <dependency>
     <groupId>com.xceptance</groupId>
     <artifactId>xcmailr-client</artifactId>
-    <version>3.1.0</version>
+    <version>4.0.0</version>
     <scope>test</scope>
 </dependency>
 ```

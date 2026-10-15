@@ -48,7 +48,7 @@ mvn clean package -DskipTests
 
 The resulting executable fat jar will be located at:
 ```text
-xcmailr-webapp/target/xcmailr-webapp-3.1.0.jar
+xcmailr-webapp/target/xcmailr-webapp-4.0.0.jar
 ```
 
 Copy this jar file to the target production server (e.g. `/opt/xcmailr/xcmailr-webapp.jar`).

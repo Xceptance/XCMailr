@@ -1,3 +1,5 @@
+name: xcmailr-test-environment
+
 services:
   mailpit:
     image: axllent/mailpit:latest
