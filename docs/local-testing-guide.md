@@ -1,6 +1,6 @@
 # Local Email Testing & Delivery Guide
 
-This guide describes how to run and verify the entire end-to-end email pipeline in XCMailr locally without external dependencies or sending real emails, using **Mailpit** and the unified **`dev`** Spring Boot profile.
+This guide describes how to run and verify the entire end-to-end email pipeline in XCMailr locally without external dependencies or sending real emails, using **Mailpit** either via the local **`dev`** Spring Boot profile or the containerized **Docker Compose** test stack.
 
 ---
 
@@ -30,15 +30,21 @@ XCMailr manages two distinct email flows:
    - Mails are stored in the database and visible in the webmail dashboard.
 2. **Outbound Mail Service (Port 1025 via Mailpit)**:
    - Jakarta Mail service dispatching user registration confirmation links, password resets, and forwarded mailbox emails.
-   - When running locally under the `dev` profile, outbound emails route to **Mailpit** running on `localhost:1025`.
+   - When running locally under the `dev` profile or test compose stack, outbound emails route to **Mailpit** running on port 1025.
 
 ---
 
-## 2. Quickstart: Starting the Local Environment
+## 2. Starting the Local Environment
 
-### Step 1: Start Mailpit (Mock SMTP Server)
+Choose the workflow that matches your needs:
 
-Use the provided Docker Compose file:
+### Option A: Local Development Mode (Maven + Mailpit)
+
+Best for active code development, debugging in an IDE, or rapid template edits:
+
+#### Step 1: Start Mailpit (Mock SMTP Server)
+
+Use the development Docker Compose file:
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d
@@ -53,7 +59,7 @@ docker run -d --name xcmailr-mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit:l
 - **SMTP Server**: `localhost:1025`
 - **Web UI**: `http://localhost:8025`
 
-### Step 2: Start XCMailr with the `dev` Profile
+#### Step 2: Start XCMailr with the `dev` Profile
 
 Run the web application with the `dev` profile active:
 
@@ -65,6 +71,67 @@ The `dev` profile (`application-dev.yml`) automatically configures:
 - Outbound SMTP targeting `localhost:1025` without authentication or TLS.
 - `require-confirmation: true` so registration emails are sent and can be tested.
 - Detailed debug logging for controller actions and email dispatch.
+
+---
+
+### Option B: Fully Containerized Test Stack (`docker-compose.test.yml`)
+
+Best for validating the container image, testing cloud parity, or pre-verifying before remote load testing:
+
+#### Step 1: Launch the Stack
+
+```bash
+docker compose -f docker-compose.test.yml up -d --build
+```
+*(Adding `--build` ensures Docker builds the local container if the GitHub Container Registry image is private or unauthenticated).*
+
+- **XCMailr Web UI & REST API**: `http://localhost:8080/`
+- **Inbound SMTP Server**: `localhost:25000` (SubEthaSMTP)
+- **Mailpit Web UI**: `http://localhost:8025/` (mock outbound relay)
+
+#### Step 2: Check Container Health
+
+Verify both services are running:
+```bash
+docker compose -f docker-compose.test.yml ps
+```
+
+#### Step 3: Pre-Flight Smoke Test (API & Inbound SMTP)
+
+```bash
+# 1. Pre-create test mailbox via admin API
+curl -X POST "http://localhost:8080/api/v1/mailboxes" \
+  -H "Authorization: Bearer xcmailr-admin-api-token-2026" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "address": "testbox@xcmailr.test",
+    "deactivationTime": 0,
+    "forward": true,
+    "forwardAddress": "colleague@xceptance.com"
+  }'
+
+# 2. Send test email to inbound SMTP on port 25000
+curl --url 'smtp://localhost:25000' \
+  --mail-from 'sender@external.com' \
+  --mail-rcpt 'testbox@xcmailr.test' \
+  --upload-file - <<EOF
+From: sender@external.com
+To: testbox@xcmailr.test
+Subject: Docker Smoke Test
+
+Testing containerized email reception.
+EOF
+```
+
+#### Step 4: Verify in Browser
+- Check stored mail in XCMailr: `http://localhost:8080/mailboxes`
+- Check forwarded mail in Mailpit: `http://localhost:8025/`
+
+#### Step 5: Teardown
+When finished testing:
+```bash
+docker compose -f docker-compose.test.yml down -v
+```
 
 ---
 
