@@ -2,7 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<div th:fragment="table" id="user-table-container">
+<div th:fragment="table" id="user-table-container"
+     hx-get="/admin/users"
+     hx-trigger="userListChanged from:body"
+     hx-target="#user-table-container"
+     hx-swap="outerHTML"
+     hx-include="[name='search']">
     <div class="table-responsive bg-white rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">
@@ -51,7 +56,7 @@
                         <div class="btn-group btn-group-sm" th:if="${u.id != currentAdmin.id}">
                             <!-- Toggle Active Status -->
                             <button class="btn btn-outline-secondary" type="button"
-                                    th:attr="hx-post=@{'/admin/users/' + ${u.id} + '/toggle-active'},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                    th:attr="hx-post=@{'/admin/users/' + ${u.id} + '/toggle-active'},hx-swap='none'"
                                     th:title="${u.active ? 'Deactivate user' : 'Activate user'}">
                                 <span th:if="${u.active}">Deactivate</span>
                                 <span th:unless="${u.active}">Activate</span>
@@ -59,7 +64,7 @@
 
                             <!-- Toggle Admin Role -->
                             <button class="btn btn-outline-secondary" type="button"
-                                    th:attr="hx-post=@{'/admin/users/' + ${u.id} + '/toggle-admin'},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                    th:attr="hx-post=@{'/admin/users/' + ${u.id} + '/toggle-admin'},hx-swap='none'"
                                     th:title="${u.admin ? 'Revoke admin privileges' : 'Grant admin privileges'}">
                                 <span th:if="${u.admin}">Demote</span>
                                 <span th:unless="${u.admin}">Promote</span>
@@ -67,7 +72,7 @@
 
                             <!-- Delete User -->
                             <button class="btn btn-outline-danger" type="button"
-                                    th:attr="hx-delete=@{'/admin/users/' + ${u.id}},hx-target='#user-table-container',hx-swap='outerHTML',hx-confirm='Are you sure you want to delete user ' + ${u.mail} + ' and all their mailboxes and emails?'"
+                                    th:attr="hx-delete=@{'/admin/users/' + ${u.id}},hx-swap='none',hx-confirm='Are you sure you want to delete user ' + ${u.mail} + ' and all their mailboxes and emails?'"
                                     title="Delete user account">
                                 <i class="bi bi-trash"></i>
                             </button>

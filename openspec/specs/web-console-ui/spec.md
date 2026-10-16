@@ -68,6 +68,18 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **WHEN** the user clicks to edit, delete, or extend expiration on an existing mailbox
 - **THEN** HTMX loads the corresponding modal fragment dynamically into the shared modal host and updates the table upon successful submission
 
+#### Scenario: Mailbox Deletion UI Refresh
+- **WHEN** the user confirms deletion of a mailbox from the mailbox actions menu
+- **THEN** the mailbox and associated emails are deleted on the server, and the mailbox table automatically refreshes via HTMX without blanking out the page or removing the table container element from the DOM, displaying remaining mailboxes or the empty state if none remain
+
+#### Scenario: Inline Row Action UI Refresh
+- **WHEN** the user triggers an inline or dropdown action on a mailbox row (such as enable/disable toggle, +24h validity extension, or counter reset)
+- **THEN** the action is processed and the mailbox table refreshes smoothly via HTMX without removing the table container or causing page content to disappear
+
+#### Scenario: Preservation of Filter and Search on Table Refresh
+- **WHEN** a mailbox action (create, edit, delete, toggle, extend, or reset) triggers an automatic table refresh
+- **THEN** the refreshed table retains the currently active search query and status filter selection
+
 #### Scenario: Responsive Mobile Table Viewport
 - **WHEN** a user views the mailbox table on a mobile viewport narrower than 768px
 - **THEN** the table hides secondary columns (forwards, suppressed, and expiration) to prevent horizontal scrolling and displays essential expiration and forwarding status as a subline beneath the primary email address

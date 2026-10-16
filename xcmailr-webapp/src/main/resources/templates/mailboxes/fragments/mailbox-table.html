@@ -6,7 +6,8 @@
      hx-get="/mailboxes"
      hx-trigger="mailboxChanged from:body"
      hx-target="#mailbox-table-container"
-     hx-swap="outerHTML">
+     hx-swap="outerHTML"
+     hx-include="[name='search'], #statusFilterSelect">
     <div class="table-responsive bg-white rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">
@@ -93,7 +94,7 @@
                         <div class="btn-group btn-group-sm" role="group">
                             <!-- Toggle Active/Inactive (Visible on md and up: >= 768px) -->
                             <button class="btn btn-outline-secondary d-none d-md-inline-block" type="button"
-                                    th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/toggle'},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                                    th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/toggle'},hx-swap='none'"
                                     th:title="${box.active ? 'Deactivate mailbox' : 'Activate mailbox'}">
                                 <span th:if="${box.active}">Disable</span>
                                 <span th:unless="${box.active}">Enable</span>
@@ -101,7 +102,7 @@
 
                             <!-- Quick Extend 24h (Visible on md and up: >= 768px) -->
                             <button class="btn btn-outline-secondary d-none d-md-inline-block" type="button"
-                                    th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=24'},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                                    th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=24'},hx-swap='none'"
                                     title="Extend validity by 24 hours">
                                 +24h
                             </button>
@@ -115,14 +116,14 @@
                                     <!-- Mobile-only quick items: Toggle & Extend -->
                                     <li class="d-md-none">
                                         <button class="dropdown-item" type="button"
-                                                th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/toggle'},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                                                th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/toggle'},hx-swap='none'">
                                             <i class="bi bi-power me-2"></i>
                                             <span th:text="${box.active ? 'Disable Mailbox' : 'Enable Mailbox'}">Disable</span>
                                         </button>
                                     </li>
                                     <li class="d-md-none">
                                         <button class="dropdown-item" type="button"
-                                                th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=24'},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                                                th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=24'},hx-swap='none'">
                                             <i class="bi bi-clock-history me-2"></i> Extend 24 Hours
                                         </button>
                                     </li>
@@ -143,14 +144,14 @@
                                     </li>
                                     <li>
                                         <button class="dropdown-item" type="button"
-                                                th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/reset-counters'},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                                                th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/reset-counters'},hx-swap='none'">
                                             <i class="bi bi-arrow-counterclockwise me-2"></i> Reset Counters
                                         </button>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <button class="dropdown-item text-danger" type="button"
-                                                th:attr="hx-delete=@{'/mailboxes/' + ${box.id}},hx-target='#mailbox-table-container',hx-swap='outerHTML',hx-confirm='Are you sure you want to delete ' + ${box.fullAddress} + ' and all its stored emails?'">
+                                                th:attr="hx-delete=@{'/mailboxes/' + ${box.id}},hx-swap='none',hx-confirm='Are you sure you want to delete ' + ${box.fullAddress} + ' and all its stored emails?'">
                                             <i class="bi bi-trash me-2"></i> Delete Mailbox
                                         </button>
                                     </li>
