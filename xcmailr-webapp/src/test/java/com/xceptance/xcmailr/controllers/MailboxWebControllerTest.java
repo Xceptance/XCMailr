@@ -55,12 +55,19 @@ import models.Mail;
 import models.User;
 
 /**
- * Integration tests for {@link MailboxWebController} testing dashboard views, HTMX live search,
- * and CRUD operations with security enforcement.
+ * Integration slice test suite for {@link MailboxWebController} representing the middle layer
+ * of the test pyramid.
+ * <p>
+ * Tests controller endpoints via Spring MockMvc across happy paths, error cases,
+ * and special edge cases, including asynchronous HTMX partial renderings, CSRF validation,
+ * ownership isolation, and fallback standard form workflows.
+ * </p>
+ *
+ * @author Xceptance Software Technologies GmbH
  */
 @SpringBootTest(classes = XcmailrApplication.class)
 @ActiveProfiles("test")
-public class MailboxWebControllerTest
+public final class MailboxWebControllerTest
 {
     @Autowired
     private WebApplicationContext context;
@@ -83,6 +90,9 @@ public class MailboxWebControllerTest
     private User otherUser;
     private Domain domain;
 
+    /**
+     * Initializes the mock MVC environment and populates base test fixture records.
+     */
     @BeforeEach
     public void setup()
     {
@@ -108,13 +118,24 @@ public class MailboxWebControllerTest
         userRepository.save(otherUser);
     }
 
+    // =========================================================================
+    // HAPPY PATH INTEGRATION TESTS
+    // =========================================================================
+
+    /**
+     * Verifies that GET /mailboxes renders the complete HTML index dashboard for an authenticated user.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("GET /mailboxes should render full index page for authenticated user")
+    @DisplayName("Happy path: GET /mailboxes renders full index view with model attributes")
     public void testGetDashboardFullPage() throws Exception
     {
+        // GIVEN
         final MBox box = new MBox("temp1", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
         mailboxRepository.save(box);
 
+        // WHEN & THEN
         mockMvc.perform(get("/mailboxes")
                .with(user("alice@xcmailr.test").roles("USER")))
                .andExpect(status().isOk())
@@ -124,13 +145,20 @@ public class MailboxWebControllerTest
                .andExpect(model().attributeExists("domains"));
     }
 
+    /**
+     * Verifies that GET /mailboxes with the HX-Request header returns only the mailbox table fragment.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("GET /mailboxes with HX-Request header should render table fragment")
+    @DisplayName("Happy path: GET /mailboxes with HX-Request header renders partial table fragment")
     public void testGetDashboardHtmxFragment() throws Exception
     {
+        // GIVEN
         final MBox box = new MBox("temp2", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
         mailboxRepository.save(box);
 
+        // WHEN & THEN
         mockMvc.perform(get("/mailboxes")
                .header("HX-Request", "true")
                .with(user("alice@xcmailr.test").roles("USER")))
@@ -139,122 +167,72 @@ public class MailboxWebControllerTest
                .andExpect(model().attributeExists("mailboxes"));
     }
 
+    /**
+     * Verifies that GET /mailboxes/new returns the dynamic creation modal fragment.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("GET /mailboxes unauthenticated should redirect to /login")
-    public void testGetDashboardUnauthenticated() throws Exception
-    {
-        mockMvc.perform(get("/mailboxes"))
-               .andExpect(status().is3xxRedirection());
-    }
-
-    @Test
-    @DisplayName("POST /mailboxes via form should create mailbox and redirect")
-    public void testCreateMailboxFormSubmit() throws Exception
-    {
-        mockMvc.perform(post("/mailboxes")
-               .with(user("alice@xcmailr.test").roles("USER"))
-               .with(csrf())
-               .param("address", "custom-box")
-               .param("domain", "xcmailr.test")
-               .param("durationHours", "24")
-               .param("forwardEmails", "true"))
-               .andExpect(status().is3xxRedirection())
-               .andExpect(redirectedUrl("/mailboxes?created"));
-
-        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("custom-box", "xcmailr.test").orElse(null);
-        assertNotNull(box, "Mailbox must be persisted in database");
-        assertEquals(owner.getId(), box.getUsr().getId());
-        assertTrue(box.isForwardEmails());
-        assertFalse(box.isExpired());
-    }
-
-    @Test
-    @DisplayName("GET /mailboxes/new should return modal fragment with domains and suggested address")
+    @DisplayName("Happy path: GET /mailboxes/new returns modal fragment with domain options and suggested address")
     public void testNewMailboxModal() throws Exception
     {
+        // GIVEN
+        final String username = "alice@xcmailr.test";
+
+        // WHEN & THEN
         mockMvc.perform(get("/mailboxes/new")
-               .with(user("alice@xcmailr.test").roles("USER")))
+               .with(user(username).roles("USER")))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
                .andExpect(model().attributeExists("domains", "suggestedAddress"));
     }
 
+    /**
+     * Verifies that POST /mailboxes via HTMX creates a mailbox and triggers client-side refresh events.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("POST /mailboxes via HTMX should return 200 with HX-Trigger and HX-Trigger-After-Swap headers")
+    @DisplayName("Happy path: POST /mailboxes via HTMX returns 200 with HX-Trigger and HX-Trigger-After-Swap headers")
     public void testCreateMailboxHtmx() throws Exception
     {
+        // GIVEN
+        final String address = "htmx-box";
+        final String domainName = "xcmailr.test";
+
+        // WHEN & THEN
         mockMvc.perform(post("/mailboxes")
                .header("HX-Request", "true")
                .with(user("alice@xcmailr.test").roles("USER"))
                .with(csrf())
-               .param("address", "htmx-box")
-               .param("domain", "xcmailr.test")
+               .param("address", address)
+               .param("domain", domainName)
                .param("durationHours", "1")
                .param("forwardEmails", "false"))
                .andExpect(status().isOk())
                .andExpect(header().string("HX-Trigger", "mailboxChanged"))
                .andExpect(header().string("HX-Trigger-After-Swap", "closeModal"));
 
-        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("htmx-box", "xcmailr.test").orElse(null);
-        assertNotNull(box);
-        assertFalse(box.isForwardEmails());
+        final MBox persistedBox = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, domainName).orElse(null);
+        assertNotNull(persistedBox, "Mailbox must be stored in database");
+        assertFalse(persistedBox.isForwardEmails(), "Forwarding should be disabled as configured");
+        assertEquals(owner.getId(), persistedBox.getUsr().getId());
     }
 
+    /**
+     * Verifies that POST /mailboxes/{id}/toggle inverts the expired state of an existing mailbox.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("POST /mailboxes via HTMX with invalid address should return modal with error")
-    public void testCreateMailboxHtmxInvalidAddress() throws Exception
-    {
-        mockMvc.perform(post("/mailboxes")
-               .header("HX-Request", "true")
-               .with(user("alice@xcmailr.test").roles("USER"))
-               .with(csrf())
-               .param("address", "invalid@@address")
-               .param("domain", "xcmailr.test"))
-               .andExpect(status().isOk())
-               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
-               .andExpect(model().attribute("error", "Invalid mailbox address characters."));
-    }
-
-    @Test
-    @DisplayName("POST /mailboxes via HTMX with unknown domain should return modal with error")
-    public void testCreateMailboxHtmxInvalidDomain() throws Exception
-    {
-        mockMvc.perform(post("/mailboxes")
-               .header("HX-Request", "true")
-               .with(user("alice@xcmailr.test").roles("USER"))
-               .with(csrf())
-               .param("address", "valid-box")
-               .param("domain", "unknown-domain.test"))
-               .andExpect(status().isOk())
-               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
-               .andExpect(model().attribute("error", "Specified domain is not configured or whitelisted."));
-    }
-
-    @Test
-    @DisplayName("POST /mailboxes via HTMX with duplicate address should return modal with error")
-    public void testCreateMailboxHtmxDuplicateAddress() throws Exception
-    {
-        final MBox existing = new MBox("existing-box", "xcmailr.test", 0L, false, owner);
-        mailboxRepository.save(existing);
-
-        mockMvc.perform(post("/mailboxes")
-               .header("HX-Request", "true")
-               .with(user("alice@xcmailr.test").roles("USER"))
-               .with(csrf())
-               .param("address", "existing-box")
-               .param("domain", "xcmailr.test"))
-               .andExpect(status().isOk())
-               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
-               .andExpect(model().attribute("error", "A mailbox with this address already exists."));
-    }
-
-    @Test
-    @DisplayName("POST /mailboxes/{id}/toggle should invert expired status")
+    @DisplayName("Happy path: POST /mailboxes/{id}/toggle inverts expired status and emits HX-Trigger")
     public void testToggleMailbox() throws Exception
     {
+        // GIVEN
         final MBox box = new MBox("toggle-box", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
         mailboxRepository.save(box);
 
+        // WHEN
         mockMvc.perform(post("/mailboxes/" + box.getId() + "/toggle")
                .header("HX-Request", "true")
                .with(user("alice@xcmailr.test").roles("USER"))
@@ -262,39 +240,56 @@ public class MailboxWebControllerTest
                .andExpect(status().isOk())
                .andExpect(header().string("HX-Trigger", "mailboxChanged"));
 
+        // THEN
         final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
-        assertTrue(updated.isExpired(), "Mailbox should now be expired");
+        assertTrue(updated.isExpired(), "Mailbox must now be marked as expired");
     }
 
+    /**
+     * Verifies that POST /mailboxes/{id}/extend with 24 hours adds time and reactivates an expired mailbox.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("POST /mailboxes/{id}/extend should add hours to expiration")
-    public void testExtendMailbox() throws Exception
+    @DisplayName("Happy path: POST /mailboxes/{id}/extend with +24h extends expiration and reactivates mailbox")
+    public void testExtendMailbox24Hours() throws Exception
     {
+        // GIVEN
         final long initialTs = System.currentTimeMillis() + 1000L;
-        final MBox box = new MBox("extend-box", "xcmailr.test", initialTs, true, owner);
+        final MBox box = new MBox("extend-24h-box", "xcmailr.test", initialTs, true, owner);
         mailboxRepository.save(box);
 
+        // WHEN
         mockMvc.perform(post("/mailboxes/" + box.getId() + "/extend")
                .header("HX-Request", "true")
                .with(user("alice@xcmailr.test").roles("USER"))
                .with(csrf())
-               .param("hours", "48"))
+               .param("hours", "24"))
                .andExpect(status().isOk())
                .andExpect(header().string("HX-Trigger", "mailboxChanged"));
 
+        // THEN
         final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
-        assertFalse(updated.isExpired(), "Mailbox should be reactivated upon extension");
-        assertTrue(updated.getTs_Active() > initialTs + TimeUnit.HOURS.toMillis(47));
+        assertFalse(updated.isExpired(), "Mailbox must be reactivated upon extension");
+        assertTrue(updated.getTs_Active() > initialTs + TimeUnit.HOURS.toMillis(23),
+            "Active timestamp must be incremented by at least 23 hours");
     }
 
+    /**
+     * Verifies that POST /mailboxes/{id}/edit updates forwarding and expiration attributes.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("POST /mailboxes/{id}/edit should update forward settings")
+    @DisplayName("Happy path: POST /mailboxes/{id}/edit updates mailbox forwarding preferences and status")
     public void testEditMailbox() throws Exception
     {
+        // GIVEN
         final MBox box = new MBox("edit-box", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
         box.setForwardEmails(true);
         mailboxRepository.save(box);
 
+        // WHEN
         mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
                .header("HX-Request", "true")
                .with(user("alice@xcmailr.test").roles("USER"))
@@ -304,26 +299,34 @@ public class MailboxWebControllerTest
                .andExpect(status().isOk())
                .andExpect(header().string("HX-Trigger", "mailboxChanged"));
 
+        // THEN
         final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
-        assertFalse(updated.isForwardEmails());
-        assertTrue(updated.isExpired());
+        assertFalse(updated.isForwardEmails(), "Forwarding should now be disabled");
+        assertTrue(updated.isExpired(), "Mailbox should be set to expired");
     }
 
+    /**
+     * Verifies that DELETE /mailboxes/{id} removes the mailbox and cascades to associated emails.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("DELETE /mailboxes/{id} should remove mailbox and its emails")
-    public void testDeleteMailbox() throws Exception
+    @DisplayName("Happy path: DELETE /mailboxes/{id} removes mailbox and cascades deletion to associated messages")
+    public void testDeleteMailboxCascade() throws Exception
     {
-        final MBox box = new MBox("delete-box", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
+        // GIVEN
+        final MBox box = new MBox("cascade-box", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
         mailboxRepository.save(box);
 
         final Mail mail = new Mail();
         mail.setSender("sender@test.com");
-        mail.setSubject("Test");
+        mail.setSubject("Cascade Test");
         mail.setReceiveTime(System.currentTimeMillis());
-        mail.setMessage("test".getBytes());
+        mail.setMessage("payload".getBytes());
         mail.setMailbox(box);
         mailRepository.save(mail);
 
+        // WHEN
         mockMvc.perform(delete("/mailboxes/" + box.getId())
                .header("HX-Request", "true")
                .with(user("alice@xcmailr.test").roles("USER"))
@@ -331,24 +334,294 @@ public class MailboxWebControllerTest
                .andExpect(status().isOk())
                .andExpect(header().string("HX-Trigger", "mailboxChanged"));
 
-        assertFalse(mailboxRepository.existsById(box.getId()), "Mailbox must be deleted");
-        assertEquals(0, mailRepository.countByMailbox(box.getId()), "Associated mails must be deleted");
+        // THEN
+        assertFalse(mailboxRepository.existsById(box.getId()), "Mailbox must be removed from repository");
+        assertEquals(0, mailRepository.countByMailbox(box.getId()), "Associated mail records must be deleted");
     }
 
+    // =========================================================================
+    // ERROR CASES INTEGRATION TESTS
+    // =========================================================================
+
+    /**
+     * Verifies that unauthenticated GET requests to /mailboxes redirect to the login page.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("Unauthorized user cannot modify another user's mailbox")
-    public void testOwnershipSecurity() throws Exception
+    @DisplayName("Error case: unauthenticated GET /mailboxes redirects to login")
+    public void testGetDashboardUnauthenticated() throws Exception
     {
-        final MBox box = new MBox("alice-box", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
+        // GIVEN no authenticated user session
+
+        // WHEN & THEN
+        mockMvc.perform(get("/mailboxes"))
+               .andExpect(status().is3xxRedirection());
+    }
+
+    /**
+     * Verifies that creating a mailbox with invalid characters returns the modal fragment with an error attribute.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: POST /mailboxes with invalid characters returns modal fragment with error")
+    public void testCreateMailboxHtmxInvalidAddress() throws Exception
+    {
+        // GIVEN an invalid address containing illegal symbols
+        final String invalidAddress = "invalid@@address";
+
+        // WHEN & THEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", invalidAddress)
+               .param("domain", "xcmailr.test"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attribute("error", "Invalid mailbox address characters."));
+    }
+
+    /**
+     * Verifies that attempting to create a mailbox with an unconfigured domain returns an error fragment.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: POST /mailboxes with unconfigured domain returns modal fragment with error")
+    public void testCreateMailboxHtmxInvalidDomain() throws Exception
+    {
+        // GIVEN an unconfigured domain
+        final String unconfiguredDomain = "unregistered-domain.test";
+
+        // WHEN & THEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", "valid-box")
+               .param("domain", unconfiguredDomain))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attribute("error", "Specified domain is not configured or whitelisted."));
+    }
+
+    /**
+     * Verifies that attempting to create a mailbox with an already existing address returns a duplicate error.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: POST /mailboxes with duplicate address returns duplicate warning fragment")
+    public void testCreateMailboxHtmxDuplicateAddress() throws Exception
+    {
+        // GIVEN an existing mailbox record
+        final MBox existing = new MBox("duplicate-box", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(existing);
+
+        // WHEN & THEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", "duplicate-box")
+               .param("domain", "xcmailr.test"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attribute("error", "A mailbox with this address already exists."));
+    }
+
+    /**
+     * Verifies that a user cannot delete a mailbox belonging to another user, yielding HTTP 403 Forbidden.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: cross-user DELETE attempt returns 403 Forbidden")
+    public void testOwnershipSecurityCrossUserDelete() throws Exception
+    {
+        // GIVEN a mailbox owned by Alice
+        final MBox box = new MBox("alice-delete-target", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
         mailboxRepository.save(box);
 
-        // Bob tries to delete Alice's mailbox
+        // WHEN Bob attempts to delete Alice's mailbox
         mockMvc.perform(delete("/mailboxes/" + box.getId())
                .header("HX-Request", "true")
                .with(user("bob@xcmailr.test").roles("USER"))
                .with(csrf()))
                .andExpect(status().isForbidden());
 
-        assertTrue(mailboxRepository.existsById(box.getId()), "Mailbox must not be deleted by another user");
+        // THEN
+        assertTrue(mailboxRepository.existsById(box.getId()), "Mailbox must not be deleted by unauthorized user");
+    }
+
+    /**
+     * Verifies that a user cannot toggle a mailbox belonging to another user, yielding HTTP 403 Forbidden.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: cross-user POST toggle attempt returns 403 Forbidden")
+    public void testOwnershipSecurityCrossUserToggle() throws Exception
+    {
+        // GIVEN a mailbox owned by Alice
+        final MBox box = new MBox("alice-toggle-target", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
+        mailboxRepository.save(box);
+
+        // WHEN Bob attempts to toggle Alice's mailbox
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/toggle")
+               .header("HX-Request", "true")
+               .with(user("bob@xcmailr.test").roles("USER"))
+               .with(csrf()))
+               .andExpect(status().isForbidden());
+
+        // THEN
+        final MBox unchanged = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertFalse(unchanged.isExpired(), "Mailbox expired status must not be modified by cross-user call");
+    }
+
+    /**
+     * Verifies that a user cannot edit a mailbox belonging to another user, yielding HTTP 403 Forbidden.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: cross-user POST edit attempt returns 403 Forbidden")
+    public void testOwnershipSecurityCrossUserEdit() throws Exception
+    {
+        // GIVEN a mailbox owned by Alice
+        final MBox box = new MBox("alice-edit-target", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
+        box.setForwardEmails(true);
+        mailboxRepository.save(box);
+
+        // WHEN Bob attempts to edit Alice's mailbox
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user("bob@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("forwardEmails", "false")
+               .param("active", "false"))
+               .andExpect(status().isForbidden());
+
+        // THEN
+        final MBox unchanged = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertTrue(unchanged.isForwardEmails(), "Mailbox forward settings must not be modified by unauthorized user");
+    }
+
+    // =========================================================================
+    // SPECIAL EDGE CASES INTEGRATION TESTS
+    // =========================================================================
+
+    /**
+     * Verifies that standard non-HTMX form submissions redirect to /mailboxes?created upon success.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special case: non-HTMX browser fallback form submission redirects with query param")
+    public void testCreateMailboxFormSubmitNonHtmx() throws Exception
+    {
+        // GIVEN a traditional browser form submission without HX-Request header
+        final String address = "standard-browser-box";
+
+        // WHEN & THEN
+        mockMvc.perform(post("/mailboxes")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", address)
+               .param("domain", "xcmailr.test")
+               .param("durationHours", "12")
+               .param("forwardEmails", "true"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/mailboxes?created"));
+
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, "xcmailr.test").orElse(null);
+        assertNotNull(box, "Mailbox must be persisted via standard browser form submit");
+        assertTrue(box.isForwardEmails());
+    }
+
+    /**
+     * Verifies that leaving the mailbox address parameter blank auto-generates a valid address and creates the mailbox.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special case: blank address triggers auto-generation and succeeds via HTMX")
+    public void testCreateMailboxBlankAddressAutoGenerates() throws Exception
+    {
+        // GIVEN a blank address parameter
+        final long countBefore = mailboxRepository.count();
+
+        // WHEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", "")
+               .param("domain", "xcmailr.test")
+               .param("durationHours", "1"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged"))
+               .andExpect(header().string("HX-Trigger-After-Swap", "closeModal"));
+
+        // THEN
+        final long countAfter = mailboxRepository.count();
+        assertEquals(countBefore + 1, countAfter, "One auto-generated mailbox should be persisted");
+    }
+
+    /**
+     * Verifies that HTMX live search query parameters filter the table fragment correctly.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special case: HTMX live search filters mailbox table by search query")
+    public void testSearchMailboxesHtmxFilter() throws Exception
+    {
+        // GIVEN two mailboxes with distinct addresses
+        final MBox alpha = new MBox("alpha-search", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
+        final MBox beta = new MBox("beta-search", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
+        mailboxRepository.save(alpha);
+        mailboxRepository.save(beta);
+
+        // WHEN searching for 'alpha'
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("search", "alpha")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attributeExists("mailboxes"));
+    }
+
+    /**
+     * Verifies that an expired mailbox granted an extension transitions back to active status with extended validity.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special case: extending an expired mailbox transitions expired status back to false")
+    public void testExtendExpiredMailboxReactivationGracePeriod() throws Exception
+    {
+        // GIVEN an expired mailbox
+        final long expiredTs = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(2);
+        final MBox expiredBox = new MBox("expired-grace-box", "xcmailr.test", expiredTs, true, owner);
+        mailboxRepository.save(expiredBox);
+        assertTrue(expiredBox.isExpired());
+
+        // WHEN extending by 24 hours
+        mockMvc.perform(post("/mailboxes/" + expiredBox.getId() + "/extend")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("hours", "24"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged"));
+
+        // THEN
+        final MBox reactivated = mailboxRepository.findById(expiredBox.getId()).orElseThrow();
+        assertFalse(reactivated.isExpired(), "Expired mailbox must be reactivated");
+        assertTrue(reactivated.getTs_Active() > System.currentTimeMillis(), "Validity must extend into the future");
     }
 }

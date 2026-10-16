@@ -10,6 +10,8 @@
     <!-- CSRF Tokens for HTMX and AJAX -->
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    <!-- HTMX 4 Configuration -->
+    <meta name="htmx-config" content='{"implicitInheritance": true, "noSwap": [204, 304, "4xx", "5xx"]}'>
     <title th:text="${pageTitle != null ? pageTitle + ' - XCMailr' : 'XCMailr'}">XCMailr</title>
 
     <!-- Theme Preference Initialization (Prevents Flash of Incorrect Theme - FOIT) -->
@@ -256,7 +258,7 @@
 
 <!-- Scripts: Bootstrap 5 & HTMX -->
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
-<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}"></script>
+<script th:src="@{/webjars/htmx.org/4.0.0/dist/htmx.min.js}"></script>
 
 <!-- Global Theme Switcher & HTMX CSRF Handler -->
 <script>
@@ -328,14 +330,29 @@
             }
         });
 
-        // Global HTMX CSRF Header Handler
-        document.body.addEventListener('htmx:configRequest', function (evt) {
+        // Configure HTMX 4 compatibility settings
+        if (window.htmx) {
+            htmx.config.implicitInheritance = true;
+            htmx.config.noSwap = [204, 304, '4xx', '5xx'];
+        }
+
+        // Global HTMX CSRF Header Handler (compatible with HTMX 4 and HTMX 2)
+        function handleCsrf(evt) {
             const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
             const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
             if (token && header) {
-                evt.detail.headers[header] = token;
+                if (evt.detail) {
+                    if (evt.detail.headers) {
+                        evt.detail.headers[header] = token;
+                    }
+                    if (evt.detail.ctx && evt.detail.ctx.request && evt.detail.ctx.request.headers) {
+                        evt.detail.ctx.request.headers[header] = token;
+                    }
+                }
             }
-        });
+        }
+        document.body.addEventListener('htmx:config:request', handleCsrf);
+        document.body.addEventListener('htmx:configRequest', handleCsrf);
 
         // Global HTMX closeModal event listener to dismiss actionModal
         document.body.addEventListener('closeModal', function () {
