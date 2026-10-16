@@ -44,7 +44,7 @@ Running heavy load tests on the same host running the application causes CPU and
 
 ### 2.1 Recommended Hardware Specifications
 
-- **Machine Type**: `e2-standard-4` (4 vCPUs, 16 GB RAM) or `c2-standard-4` for compute-optimized testing.
+- **Machine Type**: `e2-standard-4` / `c2-standard-4` (x86_64) or `t2a-standard-4` (ARM64 / Ampere) — both AMD64 and ARM64 architectures are natively supported by the container image.
 - **Operating System**: Debian 12 / Ubuntu 24.04 LTS.
 - **Disk**: 30 GB standard persistent disk.
 
@@ -103,8 +103,9 @@ newgrp docker
 ```
 
 > [!TIP]
-> **Container Registry Access (`ghcr.io`)**
+> **Container Registry Access & Architecture Support (`ghcr.io`)**
 > 
+> * **Multi-Architecture Support**: The container image published at `ghcr.io/xceptance/xcmailr:latest` is built for both `linux/amd64` (Intel/AMD) and `linux/arm64` (ARM / Apple Silicon / AWS Graviton / GCP Tau) as a multi-arch manifest list, running natively on both x86 and ARM cloud VMs.
 > * **Public Package (Recommended)**: Once an organization owner sets package visibility to **Public** in GitHub Packages, any cloud machine can pull the image without authentication.
 > * **Private Package**: If the image is private, authenticate Docker on the VM once using a GitHub Personal Access Token (with `read:packages` permission):
 >   ```bash

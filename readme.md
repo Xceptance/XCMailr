@@ -20,7 +20,7 @@ XCMailr allows you to host your own disposable email testing service. You contro
 
 ## Container Quickstart
 
-Get up and running in seconds using the official pre-built container from GitHub Container Registry (`ghcr.io/xceptance/xcmailr`):
+Get up and running in seconds using the official pre-built container from GitHub Container Registry (`ghcr.io/xceptance/xcmailr`). Container images are published as multi-architecture manifest lists supporting both `linux/amd64` and `linux/arm64` natively (Intel, AMD, and Apple Silicon / ARM platforms):
 
 ```bash
 docker run -d \
@@ -122,6 +122,8 @@ mvn spring-boot:run -pl xcmailr-webapp
 ```
 
 ### Option 3: Run via Docker & Docker Compose
+The published container image is multi-platform (`linux/amd64` and `linux/arm64`), running natively across Intel/AMD and Apple Silicon / ARM hosts.
+
 #### Standalone Container
 ```bash
 docker run -d \
