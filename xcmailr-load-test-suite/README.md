@@ -60,7 +60,7 @@ You can run individual test scenarios against a running XCMailr instance using M
 #### 1. Test Inbound SMTP Mail Submission (`SendMail`)
 Sends an email over SMTP to `jw@xcmailr.test` with optional STARTTLS negotiation. This is a **pure SMTP throughput benchmark**:
 ```bash
-mvn test -pl xcmailr-load-test-suite \
+mvn test -pl xcmailr-load-test-suite -am \
   -Dtest=SendMail \
   -Dxcmailr.host=localhost \
   -Dxcmailr.apiToken=dummy \
@@ -80,7 +80,7 @@ mvn test -pl xcmailr-load-test-suite \
 #### 2. Test Mailbox Creation and Deletion (`CreateAndDeleteMailbox`)
 Runs a single pass of `CreateAndDeleteMailbox` via the REST API (requires a valid user API token):
 ```bash
-mvn test -pl xcmailr-load-test-suite \
+mvn test -pl xcmailr-load-test-suite -am \
   -Dtest=CreateAndDeleteMailbox \
   -Dxcmailr.baseUrl=http://localhost:8080 \
   -Dxcmailr.apiToken=<YOUR_VALID_API_TOKEN>
@@ -89,7 +89,7 @@ mvn test -pl xcmailr-load-test-suite \
 #### 3. Test Full SMTP + REST Verification Roundtrip (`SendAndCheckMail`)
 Creates a temporary mailbox via the REST API, delivers an email over SMTP with STARTTLS, polls the REST API until the mail arrives, asserts subject and body contents, and cleans up the mailbox. This scenario verifies both protocol layers and requires a valid API token:
 ```bash
-mvn test -pl xcmailr-load-test-suite \
+mvn test -pl xcmailr-load-test-suite -am \
   -Dtest=SendAndCheckMail \
   -Dxcmailr.baseUrl=http://localhost:8080 \
   -Dxcmailr.apiToken=<YOUR_VALID_API_TOKEN> \
