@@ -72,6 +72,27 @@ The `dev` profile (`application-dev.yml`) automatically configures:
 - `require-confirmation: true` so registration emails are sent and can be tested.
 - Detailed debug logging for controller actions and email dispatch.
 
+#### Starting with a Fresh or Empty Database (Local Reset)
+
+By default, XCMailr persists its embedded H2 database in your user home directory at `~/xcmailrDB.mv.db`. To start a test run with a completely clean, empty database:
+
+1. **Delete Existing Database Files**:
+   ```bash
+   rm -f ~/xcmailrDB.*
+   ```
+2. **Start the Application**:
+   ```bash
+   mvn spring-boot:run -pl xcmailr-webapp -Dspring-boot.run.profiles=dev
+   ```
+
+> [!TIP]
+> **Transient In-Memory Database**:
+> If you prefer not writing database files to disk at all, override the JDBC URL with an in-memory database that resets automatically whenever the application process terminates:
+> ```bash
+> SPRING_DATASOURCE_URL="jdbc:h2:mem:xcmailrDB;DB_CLOSE_DELAY=-1" \
+> mvn spring-boot:run -pl xcmailr-webapp -Dspring-boot.run.profiles=dev
+> ```
+
 ---
 
 ### Option B: Fully Containerized Test Stack (`docker-compose.test.yml`)
@@ -88,6 +109,25 @@ docker compose -f docker-compose.test.yml up -d --build
 - **XCMailr Web UI & REST API**: `http://localhost:8080/`
 - **Inbound SMTP Server**: `localhost:25000` (SubEthaSMTP)
 - **Mailpit Web UI**: `http://localhost:8025/` (mock outbound relay)
+
+#### Starting with a Fresh or Empty Database (Clean Volume)
+
+The container stack persists its database in a named Docker volume (`xcmailr-test-data`). If you have previously run tests and want to start with a completely clean, empty database:
+
+```bash
+# Tear down running containers and purge the data volume (-v)
+docker compose -f docker-compose.test.yml down -v
+
+# Launch the fresh stack
+docker compose -f docker-compose.test.yml up -d --build
+```
+
+> [!NOTE]
+> **Automatic Bootstrapping on an Empty Database**:
+> Whenever XCMailr boots against a fresh or empty database, Flyway automatically runs all database migrations, and the system bootstraps the default test environment:
+> - **Web Console Administrator**: `admin@xcmailr.test` / `1234`
+> - **REST API Bearer Token**: `xcmailr-admin-api-token-2026`
+> - **Default Whitelist Domain**: `xcmailr.test`
 
 #### Step 2: Check Container Health
 
