@@ -15,32 +15,23 @@
  */
 package etc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Map;
+import java.util.Random;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Maps;
-
-@RunWith(MockitoJUnitRunner.class)
 public class HelperUtilsTest
 {
-    Map<String, String> returnedData = Maps.newHashMap();
-
-    String result;
-
     @Test
     public void testHasCorrectFormat()
     {
@@ -133,10 +124,12 @@ public class HelperUtilsTest
         assertTrue(HelperUtils.checkEmailAddressValidness(mailParts, domainList));
     }
 
-    @Test(expected = SizeLimitExceededException.class)
+    @Test
     public void testReadRawContent_LimitExceeded() throws Exception
     {
-        final InputStream is = new ByteArrayInputStream(RandomUtils.nextBytes(30));
-        HelperUtils.readLimitedAmount(is, 25);
+        final byte[] bytes = new byte[30];
+        new Random().nextBytes(bytes);
+        final InputStream is = new ByteArrayInputStream(bytes);
+        assertThrows(SizeLimitExceededException.class, () -> HelperUtils.readLimitedAmount(is, 25));
     }
 }

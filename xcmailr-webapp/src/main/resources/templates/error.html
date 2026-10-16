@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::content})}">
+<body>
+
+<div th:fragment="content" class="py-5">
+    <div class="row justify-content-center text-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="error-container p-4 p-md-5 rounded-4 shadow-sm bg-body">
+                <div class="error-badge mb-3">
+                    <span class="badge rounded-pill bg-light text-primary border px-3 py-2 fs-6">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        <span th:text="'HTTP ' + ${status ?: 'Error'}">HTTP Error</span>
+                    </span>
+                </div>
+                <h1 class="display-4 fw-bold text-body-emphasis mb-3" th:text="${error ?: 'An Error Occurred'}">An Error Occurred</h1>
+                <p class="lead text-secondary mb-4">
+                    The application encountered an unexpected issue while processing your request.
+                </p>
+                <div th:if="${path}" class="text-muted small font-monospace bg-body-tertiary p-2 rounded mb-4 text-break">
+                    <span class="fw-semibold">Requested path:</span> <span th:text="${path}">/example</span>
+                </div>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a th:href="@{/}" class="btn btn-primary px-4 py-2">
+                        <i class="bi bi-house me-1"></i> Return to Dashboard
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" onclick="window.history.back()">
+                        <i class="bi bi-arrow-left me-1"></i> Go Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

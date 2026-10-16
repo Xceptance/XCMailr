@@ -17,7 +17,7 @@ package controllers.restapi;
 
 import java.io.IOException;
 
-import javax.activation.DataSource;
+import jakarta.activation.DataSource;
 
 /**
  * The data object that represents the details of a mail attachment.

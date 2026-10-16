@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(content)"
+      lang="en"
+      data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSRF Tokens for HTMX and AJAX -->
+    <meta name="_csrf" th:content="${_csrf?.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
+    <title th:text="${pageTitle != null ? pageTitle + ' - XCMailr' : 'XCMailr'}">XCMailr</title>
+
+    <!-- Theme Preference Initialization (Prevents Flash of Incorrect Theme - FOIT) -->
+    <script>
+        (() => {
+            const storedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const activeTheme = storedTheme ? storedTheme : (systemPrefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-bs-theme', activeTheme);
+        })();
+    </script>
+
+    <!-- Bootstrap 5 & Bootstrap Icons CSS via WebJars -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css}">
+
+    <!-- Xceptance Corporate Theme Stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/xceptance-theme.css}">
+    <link rel="shortcut icon" th:href="@{/assets/ico/favicon.ico}">
+</head>
+<body>
+
+<!-- Navigation Bar (Corporate Sticky Header) -->
+<nav class="navbar navbar-expand-lg navbar-xceptance sticky-top">
+    <div class="container">
+        <!-- Brand Logo & Title -->
+        <a class="navbar-brand" th:href="@{/}">
+            <i class="bi bi-envelope-at text-primary"></i>
+            <span>XCMailr</span>
+        </a>
+
+        <!-- Mobile Controls: Theme Switcher & Offcanvas Hamburger Button -->
+        <div class="d-flex align-items-center d-lg-none gap-2">
+            <button class="theme-toggle-btn" type="button" aria-label="Toggle color theme" title="Toggle theme">
+                <i class="bi bi-moon-stars theme-toggle-icon"></i>
+            </button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvas"
+                    aria-controls="navbarOffcanvas" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+
+        <!-- Desktop Navigation Bar (Visible on Viewports >= 992px) -->
+        <div class="collapse navbar-collapse d-none d-lg-flex" id="desktopNavbarContent">
+            <!-- Left-aligned Desktop Links -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/}">
+                        <i class="bi bi-mailbox me-1"></i> Mailboxes
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/mails}">
+                        <i class="bi bi-inbox me-1"></i> All Mails
+                    </a>
+                </li>
+                <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
+                    <!--/* Admin Tools Dropdown */-->
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-shield-lock me-1"></i> Administration
+                    </a>
+                    <ul class="dropdown-menu shadow-sm" aria-labelledby="adminDropdown">
+                        <li><a class="dropdown-item" th:href="@{/admin/users}"><i class="bi bi-people me-2"></i> User Management</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/domains}"><i class="bi bi-globe me-2"></i> Domain Whitelist</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/transactions}"><i class="bi bi-journal-text me-2"></i> Audit Log (Transactions)</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/statistics}"><i class="bi bi-bar-chart me-2"></i> Email Statistics</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <!-- Right-aligned Desktop Controls -->
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                <!-- Theme Mode Toggle Button -->
+                <li class="nav-item me-2">
+                    <button class="theme-toggle-btn" id="themeToggle" type="button" aria-label="Toggle color theme" title="Toggle theme">
+                        <i class="bi bi-moon-stars theme-toggle-icon"></i>
+                    </button>
+                </li>
+
+                <!-- Anonymous Visitor Links -->
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="nav-link" th:href="@{/login}">Login</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="btn btn-primary btn-sm ms-lg-2" th:href="@{/register}">Register</a>
+                </li>
+
+                <!-- Authenticated User Dropdown -->
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i>
+                        <span sec:authentication="name">User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-sliders me-2"></i> Profile & API Tokens</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="px-2 py-1">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                    <i class="bi bi-box-arrow-right me-1"></i> Log Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Mobile Offcanvas Drawer (Activated on Viewports < 992px) -->
+        <div class="offcanvas offcanvas-end offcanvas-navbar d-lg-none" tabindex="-1" id="navbarOffcanvas" aria-labelledby="navbarOffcanvasLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title fw-bold" id="navbarOffcanvasLabel">
+                    <i class="bi bi-envelope-at text-primary me-1"></i> XCMailr
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <!--/* Section: Navigation */-->
+                <div sec:authorize="isAuthenticated()">
+                    <div class="offcanvas-section-title">Navigation</div>
+                    <ul class="offcanvas-nav-list">
+                        <li>
+                            <a class="nav-link" th:href="@{/}" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-mailbox text-primary"></i> Mailboxes
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" th:href="@{/mails}" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-inbox text-primary"></i> All Mails
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!--/* Section: Administration (Admins only) */-->
+                <div sec:authorize="hasRole('ADMIN')">
+                    <div class="offcanvas-section-title">Administration</div>
+                    <ul class="offcanvas-nav-list">
+                        <li>
+                            <a class="nav-link" th:href="@{/admin/users}" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-people text-primary"></i> User Management
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" th:href="@{/admin/domains}" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-globe text-primary"></i> Domain Whitelist
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" th:href="@{/admin/transactions}" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-journal-text text-primary"></i> Audit Log
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" th:href="@{/admin/statistics}" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-bar-chart text-primary"></i> Statistics
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Section: Account Controls -->
+                <div>
+                    <div class="offcanvas-section-title">Account</div>
+                    <!-- Anonymous Guest Options -->
+                    <ul class="offcanvas-nav-list" sec:authorize="isAnonymous()">
+                        <li>
+                            <a class="nav-link" th:href="@{/login}" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-box-arrow-in-right text-primary"></i> Login
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" th:href="@{/register}" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-person-plus text-primary"></i> Register
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Authenticated User Profile & Logout -->
+                    <div sec:authorize="isAuthenticated()">
+                        <div class="d-flex align-items-center gap-2 px-2 py-2 mb-2 text-muted small border-bottom">
+                            <i class="bi bi-person-circle fs-5"></i>
+                            <span sec:authentication="name" class="fw-semibold text-truncate">User</span>
+                        </div>
+                        <ul class="offcanvas-nav-list">
+                            <li>
+                                <a class="nav-link" th:href="@{/profile}" data-bs-dismiss="offcanvas">
+                                    <i class="bi bi-sliders text-primary"></i> Profile & API Tokens
+                                </a>
+                            </li>
+                            <li class="mt-2">
+                                <form th:action="@{/logout}" method="post" class="w-100">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="bi bi-box-arrow-right me-1"></i> Log Out
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Page Content -->
+<main class="container my-4">
+    <!-- Flash Messages & Alerts -->
+    <div th:if="${successMessage != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}">Operation successful</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}">An error occurred</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${infoMessage != null}" class="alert alert-info alert-dismissible fade show" role="alert">
+        <span th:text="${infoMessage}">Information notice</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Target content injected here -->
+    <div th:replace="${content}">
+        <p>Default content placeholder.</p>
+    </div>
+</main>
+
+<!-- Corporate Footer -->
+<footer class="footer-xceptance text-center">
+    <div class="container">
+        <p class="mb-1">&copy; 2013-2026 <a href="https://www.xceptance.com" target="_blank">Xceptance Software Technologies GmbH</a>. All rights reserved.</p>
+        <p class="small mb-0">XCMailr Modernized &bull; Java 25 &bull; Spring Boot 4.x &bull; HTMX</p>
+    </div>
+</footer>
+
+<!-- Generic Action Modal Host for dynamic HTMX dialogs -->
+<div class="modal fade" id="actionModal" tabindex="-1" aria-labelledby="actionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" id="modal-container">
+        <!-- Modal content loaded here dynamically via HTMX -->
+    </div>
+</div>
+
+<!-- Scripts: Bootstrap 5 & HTMX -->
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}"></script>
+
+<!-- Global Theme Switcher & HTMX CSRF Handler -->
+<script>
+    (function () {
+        'use strict';
+
+        /**
+         * Resolves the active theme based on localStorage and OS prefers-color-scheme.
+         */
+        function getPreferredTheme() {
+            const storedTheme = localStorage.getItem('theme');
+            if (storedTheme === 'dark' || storedTheme === 'light') {
+                return storedTheme;
+            }
+            return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+
+        /**
+         * Sets the application color theme on the root document element.
+         */
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            try {
+                localStorage.setItem('theme', theme);
+            } catch (e) {
+                // Ignore storage errors in restricted contexts
+            }
+            updateThemeIcons(theme);
+        }
+
+        /**
+         * Synchronizes theme switcher icon states across desktop and mobile controls.
+         */
+        function updateThemeIcons(theme) {
+            const icons = document.querySelectorAll('.theme-toggle-icon');
+            icons.forEach(function (icon) {
+                if (theme === 'dark') {
+                    icon.classList.remove('bi-moon-stars');
+                    icon.classList.add('bi-sun');
+                } else {
+                    icon.classList.remove('bi-sun');
+                    icon.classList.add('bi-moon-stars');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Synchronize icon with initial theme
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme') || getPreferredTheme();
+            updateThemeIcons(currentTheme);
+
+            // Bind click handlers to theme toggle buttons
+            const toggleButtons = document.querySelectorAll('.theme-toggle-btn');
+            toggleButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    setTheme(next);
+                });
+            });
+
+            // Listen for system color scheme changes if user has not explicitly chosen
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+                    if (!localStorage.getItem('theme')) {
+                        setTheme(e.matches ? 'dark' : 'light');
+                    }
+                });
+            }
+        });
+
+        // Global HTMX CSRF Header Handler
+        document.body.addEventListener('htmx:configRequest', function (evt) {
+            const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+            const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+            if (token && header) {
+                evt.detail.headers[header] = token;
+            }
+        });
+
+        // Global HTMX closeModal event listener to dismiss actionModal
+        document.body.addEventListener('closeModal', function () {
+            const modalEl = document.getElementById('actionModal');
+            if (modalEl) {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            }
+        });
+    })();
+</script>
+
+</body>
+</html>

@@ -18,24 +18,13 @@ package etc;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import ninja.Context;
-import ninja.Result;
-import ninja.i18n.Messages;
 
 /**
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
@@ -120,86 +109,7 @@ public final class HelperUtils
         return PATTERN_DATEFORMAT.matcher(input).matches();
     }
 
-    /**
-     * Parses the page number given as request parameter "no" as integer and puts it into the session cookie.
-     * 
-     * @param context
-     *            the context
-     * @param defaultNo
-     *            the default page number
-     */
-    public static void parseEntryValue(Context context, Integer defaultNo)
-    {
-        final String no = context.getParameter("no");
-        final String defaultNoStr = defaultNo.toString();
-        String value;
-        if (no == null)
-        {// no number-param was delivered
 
-            if (context.getSession().get("no") != null)
-            { // return with no action, because there is already a value set
-                return;
-            }
-            else
-            { // set the default-value if no param was set and theres no value in the cookie
-                value = defaultNoStr;
-            }
-        }
-        else
-        { // there's a parameter with the key "no"
-
-            if (no.equals("all"))
-            { // all entries should be shown
-                value = "0";
-            }
-            else
-            {
-                if (no.matches("^0|[1-9]\\d*$"))
-                {
-                    value = no;
-                }
-                else
-                { // set to default if its not an integer
-                    value = defaultNoStr;
-                }
-            }
-        }
-        // set the number to the session-cookie
-        context.getSession().put("no", value);
-    }
-
-    /**
-     * Creates a List which contains a string-array with the abbreviated language first and the long form as second item
-     * translated to the language which is given primary by the result (or the context, if e.g. the result is null)
-     * 
-     * @param availableLanguages
-     *            the short form of all languages (e.g. "en", "de")
-     * @param context
-     *            the current user-context
-     * @param result
-     *            the result-page
-     * @param msg
-     *            the Messages-object
-     * @return a List of String[] with the key "available_langs" and a String[]-object containing the localized long
-     *         form of all languages
-     */
-    public static List<String[]> getLanguageList(String[] availableLanguages, Context context, Result result,
-                                                 Messages msg)
-    {
-        String languageTranslation;
-        Optional<Result> optionalResult = Optional.of(result);
-        List<String[]> availableLanguageList = new ArrayList<String[]>();
-        for (String abbreviatedLanguageCode : availableLanguages)
-        {
-            languageTranslation = msg.get("lang_" + abbreviatedLanguageCode, context, optionalResult)
-                                     .orElse(abbreviatedLanguageCode);
-            availableLanguageList.add(new String[]
-                {
-                  abbreviatedLanguageCode, languageTranslation
-                });
-        }
-        return availableLanguageList;
-    }
 
     /**
      * Check the given mail address to match format "localpart@domain". Also checks if domain is configured in XCMailr
@@ -247,25 +157,7 @@ public final class HelperUtils
         return null;
     }
 
-    public static String getHeaderText(final MimeMessage message) throws MessagingException
-    {
-        final StringBuilder sb = new StringBuilder();
-        @SuppressWarnings("unchecked")
-        final Enumeration<String> e = message.getAllHeaderLines();
 
-        boolean first = true;
-        while (e.hasMoreElements())
-        {
-            if (!first)
-            {
-                sb.append("\r\n");
-            }
-            first = false;
-            sb.append(e.nextElement());
-        }
-
-        return sb.toString();
-    }
 
     /**
      * Reads up to maxSize bytes from data input stream. If the limit is exceeded an {@link SizeLimitExceededException}

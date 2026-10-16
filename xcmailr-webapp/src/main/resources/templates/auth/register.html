@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::content})}">
+<head>
+    <title>Register - XCMailr</title>
+</head>
+<body>
+<div th:fragment="content" class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold">Create Account</h2>
+                    <p class="text-muted">Register for free to create and manage test mailboxes</p>
+                </div>
+
+                <div th:if="${errorMessage != null}" class="alert alert-danger" role="alert" th:text="${errorMessage}">
+                    Registration error
+                </div>
+
+                <form th:action="@{/register}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label for="forename" class="form-label fw-semibold">First Name</label>
+                            <input type="text" class="form-control" id="forename" name="forename" th:value="${forename}" required placeholder="Jane">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="surname" class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control" id="surname" name="surname" th:value="${surname}" required placeholder="Doe">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="mail" class="form-label fw-semibold">Target Email Address</label>
+                        <input type="email" class="form-control" id="mail" name="mail" th:value="${mail}" required placeholder="forward-target@yourdomain.com">
+                        <div class="form-text">Emails received by your temporary mailboxes will be forwarded to this address.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required placeholder="Minimum 6 characters">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label fw-semibold">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required placeholder="Repeat password">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="language" class="form-label fw-semibold">Language</label>
+                        <select class="form-select" id="language" name="language">
+                            <option value="en" selected>English</option>
+                            <option value="de">Deutsch</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 mt-3 fw-semibold">Register Account</button>
+                </form>
+
+                <div class="text-center mt-4 pt-2 border-top">
+                    <p class="text-muted small mb-0">
+                        Already have an account? <a th:href="@{/login}" class="text-decoration-none fw-semibold">Log in here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

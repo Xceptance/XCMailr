@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) 2013-2026 Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,44 @@
  */
 package models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToOne;
-
-import io.ebean.annotation.Sql;
+import java.io.Serializable;
 
 /**
- * An aggregate Model for the Mailtransactions
- * 
+ * Aggregate projection data transfer object representing mail transaction status distribution.
+ *
  * @author Patrick Thum, Xceptance Software Technologies GmbH, Germany
  */
-@Entity
-@Sql
-public class Status
+public class Status implements Serializable
 {
-    @OneToOne
+    private static final long serialVersionUID = 1L;
+
     public MailTransaction mtx;
 
     public int statuscode;
 
-    public int count;
+    public long count;
 
     /**
-     * @return the Status-code of this status-object
+     * Default constructor for serialization and reflection.
+     */
+    public Status()
+    {
+    }
+
+    /**
+     * Parameterized constructor for JPQL projection queries.
+     *
+     * @param statuscode the HTTP / SMTP transaction status code
+     * @param count the aggregate count of transactions for this status code
+     */
+    public Status(final int statuscode, final long count)
+    {
+        this.statuscode = statuscode;
+        this.count = count;
+    }
+
+    /**
+     * @return the status code of this status object
      */
     public int getStatuscode()
     {
@@ -45,33 +60,31 @@ public class Status
     }
 
     /**
-     * @param statuscode
-     *            the Status-code of this status-object to set
+     * @param statuscode the status code to set
      */
-    public void setStatuscode(int statuscode)
+    public void setStatuscode(final int statuscode)
     {
         this.statuscode = statuscode;
     }
 
     /**
-     * @return the number of occurences of this status
+     * @return the number of occurrences of this status
      */
-    public int getCount()
+    public long getCount()
     {
         return count;
     }
 
     /**
-     * @param count
-     *            the number of occurences of this status
+     * @param count the number of occurrences to set
      */
-    public void setCount(int count)
+    public void setCount(final long count)
     {
         this.count = count;
     }
 
     /**
-     * @return the Mailtransaction to which this belongs
+     * @return the associated MailTransaction or null
      */
     public MailTransaction getMtx()
     {
@@ -79,12 +92,10 @@ public class Status
     }
 
     /**
-     * @param mtx
-     *            the Mailtransaction to which this belongs
+     * @param mtx the associated MailTransaction to set
      */
-    public void setMtx(MailTransaction mtx)
+    public void setMtx(final MailTransaction mtx)
     {
         this.mtx = mtx;
     }
-
 }

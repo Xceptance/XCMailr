@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="detail" class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 border-bottom">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h4 class="fw-bold mb-1" th:text="${mail.subject}">Email Subject</h4>
+                <div class="text-muted small">
+                    <strong>From:</strong> <span th:text="${mail.sender}">sender@example.com</span>
+                    <span class="mx-2">&bull;</span>
+                    <strong>Date:</strong> <span th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mail.receiveTime))}">2026-10-01 12:00:00</span>
+                </div>
+            </div>
+            <div class="btn-group btn-group-sm">
+                <a th:href="@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${mail.id} + '/raw'}"
+                   class="btn btn-outline-secondary" download>
+                    Download .eml
+                </a>
+                <button class="btn btn-outline-danger" type="button"
+                        th:attr="hx-delete=@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${mail.id}},hx-target='#mail-viewer-pane',hx-swap='innerHTML',hx-confirm='Delete this email?'"
+                        onclick="const row = document.getElementById('mail-row-[[${mail.id}]]'); if(row) row.remove();">
+                    Delete
+                </button>
+            </div>
+        </div>
+
+        <!-- Attachments bar if any -->
+        <div th:if="${not #lists.isEmpty(attachments)}" class="mt-3 pt-2 border-top">
+            <span class="text-muted small fw-semibold me-2">Attachments:</span>
+            <div class="d-inline-flex flex-wrap gap-2">
+                <a th:each="att : ${attachments}"
+                   th:href="@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${mail.id} + '/attachments/' + ${att.index}}"
+                   class="badge bg-light text-dark border text-decoration-none py-2 px-3"
+                   download>
+                    📎 <span th:text="${att.name}">file.pdf</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        <!-- Nav tabs for Content types (Sanitized HTML / Plain Text / Headers) -->
+        <ul class="nav nav-tabs px-3 pt-2 bg-light border-bottom" role="tablist">
+            <li class="nav-item" role="presentation" th:if="${sanitizedHtml != null}">
+                <button class="nav-link active" id="html-tab" data-bs-toggle="tab" data-bs-target="#html-pane" type="button" role="tab">
+                    HTML
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" th:classappend="${sanitizedHtml == null ? 'active' : ''}"
+                        id="plain-tab" data-bs-toggle="tab" data-bs-target="#plain-pane" type="button" role="tab">
+                    Plain Text
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="headers-tab" data-bs-toggle="tab" data-bs-target="#headers-pane" type="button" role="tab">
+                    Headers
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content p-4">
+            <!-- Sanitized HTML Body tab (rendered safely via OWASP-sanitized HTML) -->
+            <div th:if="${sanitizedHtml != null}" class="tab-pane fade show active" id="html-pane" role="tabpanel">
+                <div class="email-html-body" th:utext="${sanitizedHtml}">
+                    Sanitized HTML content renders here.
+                </div>
+            </div>
+
+            <!-- Plain Text Body tab -->
+            <div class="tab-pane fade" th:classappend="${sanitizedHtml == null ? 'show active' : ''}"
+                 id="plain-pane" role="tabpanel">
+                <pre class="bg-light p-3 rounded border text-break mb-0" style="white-space: pre-wrap; font-family: monospace; font-size: 0.95rem;"
+                     th:text="${plainText != null ? plainText : '(No plain text body)'}"></pre>
+            </div>
+
+            <!-- Headers tab -->
+            <div class="tab-pane fade" id="headers-pane" role="tabpanel">
+                <pre class="bg-light p-3 rounded border text-break mb-0" style="white-space: pre-wrap; font-size: 0.85rem; font-family: monospace;"
+                     th:text="${headers}"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

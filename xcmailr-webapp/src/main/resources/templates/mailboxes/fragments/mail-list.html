@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="mailList" id="mail-list-container"
+     th:attr="hx-get=@{'/mailboxes/' + ${mailbox.id} + '/mails'},hx-trigger='mailListChanged from:body',hx-target='#mail-list-container',hx-swap='outerHTML'">
+    <div class="table-responsive bg-white rounded shadow-sm border">
+        <table class="table table-hover table-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" class="d-none d-sm-table-cell" style="width: 140px;">Received</th>
+                    <th scope="col">Email</th>
+                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(mails)}">
+                    <td colspan="3" class="text-center text-muted py-5">
+                        <em>No emails received in this mailbox yet.</em>
+                    </td>
+                </tr>
+
+                <tr th:each="m : ${mails}" th:id="'mail-row-' + ${m.id}" style="cursor: pointer;"
+                    th:attr="hx-get=@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${m.id}},hx-target='#mail-viewer-pane',hx-swap='innerHTML'">
+                    <td class="d-none d-sm-table-cell text-nowrap text-muted small" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">
+                        2026-10-01 12:00:00
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-break" th:text="${m.sender}">
+                            sender@example.com
+                        </div>
+                        <div class="small text-body-secondary text-break" th:text="${m.subject}">
+                            Subject line
+                        </div>
+                        <div class="small text-muted d-sm-none mt-1">
+                            <i class="bi bi-clock me-1"></i>
+                            <span th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">2026-10-01 12:00</span>
+                        </div>
+                    </td>
+                    <td class="text-end text-nowrap" onclick="event.stopPropagation();">
+                        <div class="btn-group btn-group-sm">
+                            <a th:href="@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${m.id}}"
+                               class="btn btn-outline-secondary" title="Open full view">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                            <button class="btn btn-outline-danger" type="button"
+                                    th:attr="hx-delete=@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${m.id}},hx-swap='none',hx-confirm='Delete this email?'"
+                                    title="Delete email">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

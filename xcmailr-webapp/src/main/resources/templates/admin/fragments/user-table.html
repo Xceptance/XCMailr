@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="table" id="user-table-container">
+    <div class="table-responsive bg-white rounded shadow-sm border">
+        <table class="table table-hover table-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Email</th>
+                    <th scope="col" class="d-none d-md-table-cell">Name</th>
+                    <th scope="col" style="width: 110px;">Status</th>
+                    <th scope="col" class="d-none d-sm-table-cell" style="width: 90px;">Role</th>
+                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(users)}">
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <em>No user accounts found.</em>
+                    </td>
+                </tr>
+
+                <tr th:each="u : ${users}" th:id="'user-row-' + ${u.id}">
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="fw-semibold text-break" th:text="${u.mail}">user@example.com</span>
+                            <span th:if="${u.id == currentAdmin.id}" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-2">You</span>
+                        </div>
+                        <div class="small text-muted d-md-none mt-1">
+                            <span th:text="${u.forename + ' ' + u.surname}">John Doe</span>
+                            <span class="d-sm-none ms-1">
+                                &bull; <span th:text="${u.admin ? 'Admin' : 'User'}">User</span>
+                            </span>
+                        </div>
+                    </td>
+                    <td class="d-none d-md-table-cell" th:text="${u.forename + ' ' + u.surname}">John Doe</td>
+                    <td>
+                        <span th:if="${u.active}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill">
+                            <span class="status-dot status-dot-active"></span>Active
+                        </span>
+                        <span th:unless="${u.active}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">
+                            <span class="status-dot status-dot-inactive"></span>Inactive
+                        </span>
+                    </td>
+                    <td class="d-none d-sm-table-cell">
+                        <span th:if="${u.admin}" class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle rounded-pill">Admin</span>
+                        <span th:unless="${u.admin}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">User</span>
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <div class="btn-group btn-group-sm" th:if="${u.id != currentAdmin.id}">
+                            <!-- Toggle Active Status -->
+                            <button class="btn btn-outline-secondary" type="button"
+                                    th:attr="hx-post=@{'/admin/users/' + ${u.id} + '/toggle-active'},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                    th:title="${u.active ? 'Deactivate user' : 'Activate user'}">
+                                <span th:if="${u.active}">Deactivate</span>
+                                <span th:unless="${u.active}">Activate</span>
+                            </button>
+
+                            <!-- Toggle Admin Role -->
+                            <button class="btn btn-outline-secondary" type="button"
+                                    th:attr="hx-post=@{'/admin/users/' + ${u.id} + '/toggle-admin'},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                    th:title="${u.admin ? 'Revoke admin privileges' : 'Grant admin privileges'}">
+                                <span th:if="${u.admin}">Demote</span>
+                                <span th:unless="${u.admin}">Promote</span>
+                            </button>
+
+                            <!-- Delete User -->
+                            <button class="btn btn-outline-danger" type="button"
+                                    th:attr="hx-delete=@{'/admin/users/' + ${u.id}},hx-target='#user-table-container',hx-swap='outerHTML',hx-confirm='Are you sure you want to delete user ' + ${u.mail} + ' and all their mailboxes and emails?'"
+                                    title="Delete user account">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <span th:if="${u.id == currentAdmin.id}" class="text-muted small">Current Account</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center mt-3" th:if="${page.totalPages > 1}">
+        <span class="text-muted small">
+            Page <strong th:text="${page.number + 1}">1</strong> of <strong th:text="${page.totalPages}">1</strong>
+            (<span th:text="${page.totalElements}">0</span> total users)
+        </span>
+
+        <nav aria-label="User pagination">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
+                    <button class="page-link" type="button"
+                            th:attr="hx-get=@{/admin/users(page=${page.number - 1}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                        Previous
+                    </button>
+                </li>
+                <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+                    class="page-item" th:classappend="${i == page.number ? 'active' : ''}">
+                    <button class="page-link" type="button" th:text="${i + 1}"
+                            th:attr="hx-get=@{/admin/users(page=${i}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                        1
+                    </button>
+                </li>
+                <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
+                    <button class="page-link" type="button"
+                            th:attr="hx-get=@{/admin/users(page=${page.number + 1}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                        Next
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+</body>
+</html>
