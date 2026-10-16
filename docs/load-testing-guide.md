@@ -72,7 +72,7 @@ The suite located in `xcmailr-load-test-suite` contains three distinct scenarios
      * **`0` (Permanent / Unlimited)**: In XCMailr, a value of `0` designates a permanent mailbox that never expires (`expired = false`, `ts_Active = 0`). Omitting `deactivationTime` from the request JSON defaults to `0` and creates an active, permanent mailbox.
      * **Future epoch timestamp in ms** (`> System.currentTimeMillis()`): Creates a temporary mailbox that remains active until the specified expiration deadline, after which background tasks deactivate it.
      * **Past epoch timestamp in ms** (`> 0` and `<= System.currentTimeMillis()`): Creates the mailbox in an already expired state (`expired = true`).
-   * `forward` (Boolean, optional, default: `false`): Enables or disables email forwarding to the owning user's primary email address.
+   * `forwardEnabled` (Boolean, optional, default: `false`): Enables or disables email forwarding to the owning user's primary email address.
 
    **Example: Create a Permanent Mailbox (`deactivationTime: 0` or omitted)**:
    ```bash
@@ -82,7 +82,7 @@ The suite located in `xcmailr-load-test-suite` contains three distinct scenarios
      -d '{
        "address": "jw@xcmailr.test",
        "deactivationTime": 0,
-       "forward": false
+       "forwardEnabled": false
      }'
    ```
 
@@ -97,7 +97,7 @@ The suite located in `xcmailr-load-test-suite` contains three distinct scenarios
      -d "{
        \"address\": \"temp-loadtest@xcmailr.test\",
        \"deactivationTime\": ${EXPIRATION_TS},
-       \"forward\": false
+       \"forwardEnabled\": false
      }"
    ```
 

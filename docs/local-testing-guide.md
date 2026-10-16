@@ -106,8 +106,7 @@ curl -X POST "http://localhost:8080/api/v1/mailboxes" \
   -d '{
     "address": "testbox@xcmailr.test",
     "deactivationTime": 0,
-    "forward": true,
-    "forwardAddress": "colleague@xceptance.com"
+    "forwardEnabled": true
   }'
 
 # 2. Send test email to inbound SMTP on port 25000
@@ -124,8 +123,8 @@ EOF
 ```
 
 #### Step 4: Verify in Browser
-- Check stored mail in XCMailr: `http://localhost:8080/mailboxes`
-- Check forwarded mail in Mailpit: `http://localhost:8025/`
+- Check stored mail in XCMailr: `http://localhost:8080/mailboxes` (forwarding will display as enabled, and the test email will be stored).
+- Check forwarded mail in Mailpit: `http://localhost:8025/` (XCMailr forwards to the registered email address of the mailbox owner; for mailboxes created with the admin API token, the forwarded message is delivered to `admin@xcmailr.test` with header `X-FORWARDED-FROM: sender@external.com`).
 
 #### Step 5: Teardown
 When finished testing:

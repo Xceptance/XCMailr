@@ -9,7 +9,7 @@
 * Contributors:
   * Patrick Thum, Xceptance Software Technologies GmbH
   * Patrick Hähnlein, Xceptance Software Technologies GmbH
-  * René Baumgarten, Xceptance Software Technologies GmbH
+  * Robert Baumgarten, Xceptance Software Technologies GmbH
 
 ## Description
 XCMailr was built to aid software and automated test engineering. Testing often requires disposable email addresses to create test accounts, validate complex email validation flows, and conduct large-scale load and performance testing without bounce-backs overwhelming sending systems.

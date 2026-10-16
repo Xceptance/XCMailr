@@ -175,7 +175,7 @@ curl -X POST "http://${VM_IP}:8080/api/v1/mailboxes" \
   -d '{
     "address": "jw@xcmailr.test",
     "deactivationTime": 0,
-    "forward": false
+    "forwardEnabled": false
   }'
 ```
 
@@ -229,8 +229,8 @@ http://<EXTERNAL_VM_IP>:8025
 
 ### 6.2 Load Test vs Functional Test Isolation
 
-- **During Load Testing**: Mailboxes created by the test suite specify `"forward": false`. XCMailr retains messages in the database and bypasses outbound delivery. Mailpit remains completely idle, consuming ~15 MB RAM, 0% CPU, and causing zero disk I/O.
-- **During Functional / QA Testing**: Set `"forward": true` to inspect the full mail forwarding flow.
+- **During Load Testing**: Mailboxes created by the test suite specify `"forwardEnabled": false`. XCMailr retains messages in the database and bypasses outbound delivery. Mailpit remains completely idle, consuming ~15 MB RAM, 0% CPU, and causing zero disk I/O.
+- **During Functional / QA Testing**: Set `"forwardEnabled": true` to inspect the full mail forwarding flow.
 
 ### 6.3 Test Forwarding Flow
 
@@ -242,8 +242,7 @@ http://<EXTERNAL_VM_IP>:8025
      -d '{
        "address": "forward-test@xcmailr.test",
        "deactivationTime": 60,
-       "forward": true,
-       "forwardAddress": "qa-team@example.com"
+       "forwardEnabled": true
      }'
    ```
 
@@ -256,7 +255,7 @@ http://<EXTERNAL_VM_IP>:8025
          --body "Hello Mailpit Forwarding Test"
    ```
 
-3. Open `http://${VM_IP}:8025` in your browser. The message forwarded to `qa-team@example.com` appears immediately in the Mailpit inbox with full headers, body preview, and raw MIME view.
+3. Open `http://${VM_IP}:8025` in your browser. XCMailr forwards messages to the registered address of the mailbox owner (`admin@xcmailr.test` when using the default admin API token). The forwarded message appears immediately in the Mailpit inbox addressed to `admin@xcmailr.test` with header `X-FORWARDED-FROM: tester@external.com`, full headers, body preview, and raw MIME view.
 
 ### 6.4 Connecting to a Real External Relay (Optional)
 
