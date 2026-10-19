@@ -285,6 +285,9 @@ public class MailDeliveryService implements SimpleMessageListener
             forwardMsg.addHeader(LOOP_HEADER_NAME, LOOP_HEADER_VALUE_PREFIX + recipient);
             forwardMsg.addHeader("Auto-Submitted", "auto-forwarded");
 
+            // Normalize top-level MIME headers (MIME-Version and charset) for outbound delivery
+            normalizeForwardMimeHeaders(forwardMsg);
+
             // Dispatch outbound email
             outboundMailService.send(forwardMsg);
 
@@ -398,6 +401,45 @@ public class MailDeliveryService implements SimpleMessageListener
         {
             final MailTransaction mtx = new MailTransaction(status, source, relay, target);
             mailTransactionRepository.save(mtx);
+        }
+    }
+
+    /**
+     * Normalizes top-level MIME headers on outgoing forwarded messages to guarantee
+     * reliable character decoding in downstream MTAs and email clients.
+     * <p>
+     * Ensures {@code MIME-Version: 1.0} is declared, sets {@code Content-Type: text/plain; charset=UTF-8}
+     * for untyped messages lacking a Content-Type header, and appends {@code ; charset=UTF-8} to
+     * single-part text messages lacking an explicit charset parameter. Explicit legacy charsets
+     * (e.g. {@code ISO-8859-1}) and multipart messages ({@code multipart/*}) are preserved unmodified.
+     * </p>
+     *
+     * @param forwardMsg the MIME message being prepared for outbound forwarding
+     * @throws MessagingException if header inspection or modification fails
+     */
+    private void normalizeForwardMimeHeaders(final MimeMessage forwardMsg) throws MessagingException
+    {
+        // 1. Ensure MIME-Version header is present
+        if (forwardMsg.getHeader("MIME-Version") == null)
+        {
+            forwardMsg.setHeader("MIME-Version", "1.0");
+        }
+
+        // 2. Normalize MIME Content-Type and charset for untyped or missing-charset single-part messages
+        final String contentType = forwardMsg.getHeader("Content-Type", null);
+        if (contentType == null)
+        {
+            forwardMsg.setHeader("Content-Type", "text/plain; charset=UTF-8");
+        }
+        else
+        {
+            final String lowerContentType = contentType.toLowerCase();
+            if (!lowerContentType.contains("multipart/") && !lowerContentType.contains("charset="))
+            {
+                final String trimmed = contentType.trim();
+                final String normalized = trimmed.endsWith(";") ? trimmed + " charset=UTF-8" : trimmed + "; charset=UTF-8";
+                forwardMsg.setHeader("Content-Type", normalized);
+            }
         }
     }
 }

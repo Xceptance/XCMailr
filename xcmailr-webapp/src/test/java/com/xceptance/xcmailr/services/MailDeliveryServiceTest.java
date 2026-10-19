@@ -19,9 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -561,6 +563,284 @@ public class MailDeliveryServiceTest
 
         assertEquals("", savedMail.getSubject());
         assertEquals("envelope-sender@external.com", savedMail.getSender());
+    }
+
+    // =========================================================================
+    // Group 2.5: Forwarding MIME header normalization tests (Test Pyramid)
+    // =========================================================================
+
+    // --- Happy Path Tests ---
+
+    @Test
+    @DisplayName("forward untyped single-part UTF-8 email normalizes MIME-Version and Content-Type to text/plain; charset=UTF-8")
+    public void testForwardUntypedSinglePartUtf8EmailNormalizesMimeHeaders() throws Exception
+    {
+        final User user = new User("Happy", "User", "forward_happy@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("untypedbox", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(true);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("untypedbox", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+        when(outboundMailService.createSession())
+            .thenReturn(Session.getInstance(JakartaMimeMessageParser.getDefaultSessionProperties()));
+
+        final String rawEmail = "From: sender@external.com\r\n"
+            + "To: untypedbox@xcmailr.test\r\n"
+            + "Subject: Docker Smoke Test ü\r\n\r\n"
+            + "üüü Testing containerized email reception.";
+
+        final byte[] rawBytes = rawEmail.getBytes(StandardCharsets.UTF_8);
+        deliveryService.deliver("sender@external.com", "untypedbox@xcmailr.test", new ByteArrayInputStream(rawBytes));
+
+        final ArgumentCaptor<MimeMessage> msgCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(outboundMailService).send(msgCaptor.capture());
+        final MimeMessage forwardedMsg = msgCaptor.getValue();
+
+        assertEquals("1.0", forwardedMsg.getHeader("MIME-Version", null), "Forwarded message must declare MIME-Version: 1.0");
+        assertEquals("text/plain; charset=UTF-8", forwardedMsg.getHeader("Content-Type", null),
+                     "Untyped message must declare text/plain; charset=UTF-8");
+        assertEquals("Docker Smoke Test ü", forwardedMsg.getSubject(), "Subject must preserve UTF-8 umlaut");
+        assertEquals("forward_happy@realdomain.org", forwardedMsg.getRecipients(Message.RecipientType.TO)[0].toString());
+        verify(mailboxRepository).incrementForwards(mbox.getId());
+    }
+
+    @Test
+    @DisplayName("forward single-part text/html email lacking charset parameter appends charset=UTF-8 and ensures MIME-Version")
+    public void testForwardSinglePartTextHtmlWithoutCharsetNormalizesContentType() throws Exception
+    {
+        final User user = new User("Html", "User", "forward_html@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("htmlbox", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(true);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("htmlbox", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+        when(outboundMailService.createSession())
+            .thenReturn(Session.getInstance(JakartaMimeMessageParser.getDefaultSessionProperties()));
+
+        final String rawEmail = "From: sender@external.com\r\n"
+            + "To: htmlbox@xcmailr.test\r\n"
+            + "Subject: HTML Status Report\r\n"
+            + "Content-Type: text/html\r\n\r\n"
+            + "<html><body><p>Status: OK üüü</p></body></html>";
+
+        final byte[] rawBytes = rawEmail.getBytes(StandardCharsets.UTF_8);
+        deliveryService.deliver("sender@external.com", "htmlbox@xcmailr.test", new ByteArrayInputStream(rawBytes));
+
+        final ArgumentCaptor<MimeMessage> msgCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(outboundMailService).send(msgCaptor.capture());
+        final MimeMessage forwardedMsg = msgCaptor.getValue();
+
+        assertEquals("1.0", forwardedMsg.getHeader("MIME-Version", null), "Forwarded message must declare MIME-Version: 1.0");
+        assertEquals("text/html; charset=UTF-8", forwardedMsg.getHeader("Content-Type", null),
+                     "Single-part text/html lacking charset must append charset=UTF-8");
+        verify(mailboxRepository).incrementForwards(mbox.getId());
+    }
+
+    // --- Error and Edge Case Tests ---
+
+    @Test
+    @DisplayName("forwarding is suppressed and no outbound email sent when recipient mailbox is inactive")
+    public void testForwardingSuppressedWhenMailboxInactive() throws Exception
+    {
+        final User user = new User("Inactive", "User", "forward_target@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("inactiveforward", "xcmailr.test", 0L, false, user);
+        mbox.setActive(false);
+        mbox.setForwardEmails(true);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("inactiveforward", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+
+        final String rawEmail = "From: sender@external.com\r\nTo: inactiveforward@xcmailr.test\r\nSubject: Test\r\n\r\nBody";
+        deliveryService.deliver("sender@external.com", "inactiveforward@xcmailr.test",
+                               new ByteArrayInputStream(rawEmail.getBytes(StandardCharsets.UTF_8)));
+
+        // Verify outbound send was never called
+        verify(outboundMailService, never()).send(any(MimeMessage.class));
+        verify(mailboxRepository, never()).incrementForwards(anyLong());
+
+        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
+        verify(mailTransactionRepository).save(captor.capture());
+        assertEquals(200, captor.getValue().getStatus(), "Transaction status 200 (inactive mailbox) must be recorded");
+    }
+
+    @Test
+    @DisplayName("forwarding is suppressed and no outbound email sent when recipient mailbox does not exist")
+    public void testForwardingSuppressedWhenMailboxDoesNotExist() throws Exception
+    {
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("missingforward", "xcmailr.test"))
+            .thenReturn(Optional.empty());
+
+        final String rawEmail = "From: sender@external.com\r\nTo: missingforward@xcmailr.test\r\nSubject: Test\r\n\r\nBody";
+        deliveryService.deliver("sender@external.com", "missingforward@xcmailr.test",
+                               new ByteArrayInputStream(rawEmail.getBytes(StandardCharsets.UTF_8)));
+
+        // Verify outbound send was never called
+        verify(outboundMailService, never()).send(any(MimeMessage.class));
+        verify(mailboxRepository, never()).incrementForwards(anyLong());
+
+        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
+        verify(mailTransactionRepository).save(captor.capture());
+        assertEquals(100, captor.getValue().getStatus(), "Transaction status 100 (mailbox not found) must be recorded");
+    }
+
+    @Test
+    @DisplayName("forwarding handles minimal headers and empty body without errors")
+    public void testForwardMinimalHeadersAndEmptyBody() throws Exception
+    {
+        final User user = new User("Minimal", "Forward", "forward_minimal@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("minimalforward", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(true);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("minimalforward", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+        when(outboundMailService.createSession())
+            .thenReturn(Session.getInstance(JakartaMimeMessageParser.getDefaultSessionProperties()));
+
+        final String rawEmail = "To: minimalforward@xcmailr.test\r\n\r\n";
+        deliveryService.deliver("sender@external.com", "minimalforward@xcmailr.test",
+                               new ByteArrayInputStream(rawEmail.getBytes(StandardCharsets.UTF_8)));
+
+        final ArgumentCaptor<MimeMessage> msgCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(outboundMailService).send(msgCaptor.capture());
+        final MimeMessage forwardedMsg = msgCaptor.getValue();
+
+        assertEquals("1.0", forwardedMsg.getHeader("MIME-Version", null));
+        assertEquals("text/plain; charset=UTF-8", forwardedMsg.getHeader("Content-Type", null));
+        assertNull(forwardedMsg.getSubject());
+        verify(mailboxRepository).incrementForwards(mbox.getId());
+    }
+
+    // --- Special Case Tests ---
+
+    @Test
+    @DisplayName("forwarding email with explicit ISO-8859-1 charset preserves Content-Type header untouched")
+    public void testForwardExplicitIso88591CharsetPreservedUnmodified() throws Exception
+    {
+        final User user = new User("Iso", "User", "forward_iso@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("isobox", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(true);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("isobox", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+        when(outboundMailService.createSession())
+            .thenReturn(Session.getInstance(JakartaMimeMessageParser.getDefaultSessionProperties()));
+
+        final String originalContentType = "text/plain; charset=ISO-8859-1";
+        final String rawEmail = "From: sender@external.com\r\n"
+            + "To: isobox@xcmailr.test\r\n"
+            + "Subject: ISO Message\r\n"
+            + "Content-Type: " + originalContentType + "\r\n\r\n"
+            + "Legacy body content";
+
+        deliveryService.deliver("sender@external.com", "isobox@xcmailr.test",
+                               new ByteArrayInputStream(rawEmail.getBytes(StandardCharsets.ISO_8859_1)));
+
+        final ArgumentCaptor<MimeMessage> msgCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(outboundMailService).send(msgCaptor.capture());
+        final MimeMessage forwardedMsg = msgCaptor.getValue();
+
+        assertEquals("1.0", forwardedMsg.getHeader("MIME-Version", null));
+        assertEquals(originalContentType, forwardedMsg.getHeader("Content-Type", null),
+                     "Explicit ISO-8859-1 charset must be preserved without alteration");
+        verify(mailboxRepository).incrementForwards(mbox.getId());
+    }
+
+    @Test
+    @DisplayName("forwarding email with explicit UTF-8 charset preserves Content-Type header untouched")
+    public void testForwardExplicitUtf8CharsetPreservedUnmodified() throws Exception
+    {
+        final User user = new User("Utf8", "User", "forward_utf8@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("utf8explicitbox", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(true);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("utf8explicitbox", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+        when(outboundMailService.createSession())
+            .thenReturn(Session.getInstance(JakartaMimeMessageParser.getDefaultSessionProperties()));
+
+        final String originalContentType = "text/plain; charset=UTF-8; format=flowed";
+        final String rawEmail = "From: sender@external.com\r\n"
+            + "To: utf8explicitbox@xcmailr.test\r\n"
+            + "Subject: Explicit UTF-8 Message\r\n"
+            + "Content-Type: " + originalContentType + "\r\n\r\n"
+            + "UTF-8 body content üüü";
+
+        deliveryService.deliver("sender@external.com", "utf8explicitbox@xcmailr.test",
+                               new ByteArrayInputStream(rawEmail.getBytes(StandardCharsets.UTF_8)));
+
+        final ArgumentCaptor<MimeMessage> msgCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(outboundMailService).send(msgCaptor.capture());
+        final MimeMessage forwardedMsg = msgCaptor.getValue();
+
+        assertEquals("1.0", forwardedMsg.getHeader("MIME-Version", null));
+        assertEquals(originalContentType, forwardedMsg.getHeader("Content-Type", null),
+                     "Explicit UTF-8 charset with parameters must be preserved untouched");
+        verify(mailboxRepository).incrementForwards(mbox.getId());
+    }
+
+    @Test
+    @DisplayName("forwarding multipart email preserves top-level multipart Content-Type header and boundaries unmodified")
+    public void testForwardMultipartEmailPreservedUnmodified() throws Exception
+    {
+        final User user = new User("Multi", "User", "forward_multi@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("multibox", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(true);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("multibox", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+        when(outboundMailService.createSession())
+            .thenReturn(Session.getInstance(JakartaMimeMessageParser.getDefaultSessionProperties()));
+
+        final String boundary = "----=_Part_123_456";
+        final String originalContentType = "multipart/alternative; boundary=\"" + boundary + "\"";
+        final String rawEmail = "From: sender@external.com\r\n"
+            + "To: multibox@xcmailr.test\r\n"
+            + "Subject: Multipart Message\r\n"
+            + "MIME-Version: 1.0\r\n"
+            + "Content-Type: " + originalContentType + "\r\n\r\n"
+            + "--" + boundary + "\r\n"
+            + "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+            + "Plain text part üüü\r\n"
+            + "--" + boundary + "\r\n"
+            + "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+            + "<b>HTML part üüü</b>\r\n"
+            + "--" + boundary + "--\r\n";
+
+        deliveryService.deliver("sender@external.com", "multibox@xcmailr.test",
+                               new ByteArrayInputStream(rawEmail.getBytes(StandardCharsets.UTF_8)));
+
+        final ArgumentCaptor<MimeMessage> msgCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(outboundMailService).send(msgCaptor.capture());
+        final MimeMessage forwardedMsg = msgCaptor.getValue();
+
+        assertEquals("1.0", forwardedMsg.getHeader("MIME-Version", null));
+        final String forwardedContentType = forwardedMsg.getHeader("Content-Type", null);
+        assertNotNull(forwardedContentType);
+        assertTrue(forwardedContentType.contains("multipart/alternative"), "Multipart subtype must be preserved");
+        assertTrue(forwardedContentType.contains(boundary), "Boundary parameter must be preserved");
+        assertFalse(forwardedContentType.toLowerCase().contains("charset="),
+                    "Top-level multipart Content-Type must not have charset appended");
+        verify(mailboxRepository).incrementForwards(mbox.getId());
     }
 
     // =========================================================================
