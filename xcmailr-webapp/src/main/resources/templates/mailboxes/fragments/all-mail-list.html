@@ -23,6 +23,7 @@
 
                 <tr th:each="m : ${mails}" th:id="'mail-row-' + ${m.id}" style="cursor: pointer;"
                     class="mail-row"
+                    hx-trigger="click"
                     th:attr="hx-get=@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}},hx-target='#mail-viewer-pane',hx-swap='innerHTML'">
                     <td class="d-none d-md-table-cell text-nowrap text-muted small"
                         th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">

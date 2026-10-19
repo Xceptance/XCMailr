@@ -199,6 +199,12 @@ The system SHALL provide an interactive, unified inbox view at `/mails` displayi
 - **THEN** HTMX requests `/mails` with header `HX-Request: true`
 - **AND** the system responds with only the `mailList` fragment markup containing the updated email items, without the full page layout shell
 
+#### Scenario: Email Row Selection and Detail Preview Loading (Happy Path)
+- **WHEN** an authenticated user clicks an email row within the unified inbox message list
+- **THEN** HTMX issues an asynchronous GET request for the email detail fragment (`/mailboxes/{mailboxId}/mails/{mailId}`)
+- **AND** the system responds with the email preview fragment (`mailboxes/fragments/mail-detail :: detail`)
+- **AND** HTMX swaps the detail markup into `#mail-viewer-pane` without reloading the page
+
 #### Scenario: Multi-Mailbox Disambiguation (Happy Path)
 - **WHEN** an authenticated user owns multiple distinct mailboxes and receives emails to each
 - **THEN** the unified inbox renders every email with a badge explicitly reflecting the corresponding destination mailbox address
@@ -229,7 +235,7 @@ The system SHALL provide an interactive, unified inbox view at `/mails` displayi
 - **THEN** the system rejects the request with HTTP 405 Method Not Allowed
 
 ### Requirement: Hypermedia Request Security and Asynchronous Event Handling
-The system SHALL secure all asynchronous client hypermedia operations against cross-site request forgery by attaching valid CSRF tokens to mutating requests and enforcing strict token validation and error response handling.
+The system SHALL secure all asynchronous client hypermedia operations against cross-site request forgery by attaching valid CSRF tokens to mutating requests, enforcing strict token validation, suppressing automatic error swaps, and operating under standard explicit inheritance without unintended trigger leakage.
 
 #### Scenario: Asynchronous Request With Valid CSRF Token
 - **WHEN** an authenticated user triggers an asynchronous hypermedia mutation (POST, PUT, or DELETE) through the web console
@@ -247,3 +253,21 @@ The system SHALL secure all asynchronous client hypermedia operations against cr
 #### Scenario: Asynchronous Error Response Handling
 - **WHEN** an asynchronous hypermedia request receives a 4xx or 5xx error status code from the server
 - **THEN** the client hypermedia engine suppresses automatic DOM replacement of target elements with unformatted error bodies, preserving existing UI context
+
+#### Scenario: Standard Explicit Inheritance Without Trigger Leakage
+- **WHEN** an asynchronous hypermedia interaction occurs on any view containing nested containers with event triggers (such as `mailListChanged from:body`)
+- **THEN** the client hypermedia engine operates under standard explicit inheritance (`implicitInheritance` disabled)
+- **AND** child interactive elements do not inadvertently inherit ancestor triggers, retaining their default or explicitly declared triggers (such as `click`)
+
+### Requirement: Mailbox Email Inspection View
+The system SHALL provide an interactive email inspection view for individual mailboxes at `/mailboxes/{id}/mails`, listing received messages and loading message previews asynchronously into `#mail-viewer-pane` upon row selection.
+
+#### Scenario: Mailbox Email List Full Page Load (Happy Path)
+- **WHEN** an authenticated user navigates to `/mailboxes/{id}/mails` for a mailbox they own
+- **THEN** the system renders the email list table, breadcrumbs, search/filter controls, and the `#mail-viewer-pane` placeholder
+
+#### Scenario: Mailbox Email Row Selection and Preview Loading (Happy Path)
+- **WHEN** an authenticated user clicks an email row in the mailbox email list
+- **THEN** HTMX issues an asynchronous GET request with `HX-Request: true` to `/mailboxes/{id}/mails/{mailId}`
+- **AND** the system responds with the email preview fragment (`mailboxes/fragments/mail-detail :: detail`)
+- **AND** HTMX swaps the preview markup into `#mail-viewer-pane` without reloading the page

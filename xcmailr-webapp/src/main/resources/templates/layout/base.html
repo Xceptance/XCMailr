@@ -11,7 +11,7 @@
     <meta name="_csrf" th:content="${_csrf?.token}"/>
     <meta name="_csrf_header" th:content="${_csrf?.headerName}"/>
     <!-- HTMX 4 Configuration -->
-    <meta name="htmx-config" content='{"implicitInheritance": true, "noSwap": [204, 304, "4xx", "5xx"]}'>
+    <meta name="htmx-config" content='{"noSwap": [204, 304, "4xx", "5xx"]}'>
     <title th:text="${pageTitle != null ? pageTitle + ' - XCMailr' : 'XCMailr'}">XCMailr</title>
 
     <!-- Theme Preference Initialization (Prevents Flash of Incorrect Theme - FOIT) -->
@@ -330,9 +330,8 @@
             }
         });
 
-        // Configure HTMX 4 compatibility settings
+        // Configure HTMX 4 settings
         if (window.htmx) {
-            htmx.config.implicitInheritance = true;
             htmx.config.noSwap = [204, 304, '4xx', '5xx'];
         }
 

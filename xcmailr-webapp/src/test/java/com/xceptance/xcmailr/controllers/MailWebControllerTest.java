@@ -365,6 +365,80 @@ public class MailWebControllerTest
                .andExpect(view().name("mailboxes/fragments/mail-list :: mailList"));
     }
 
+    /**
+     * Verifies that requesting email details with an HX-Request header returns the partial
+     * detail fragment for inline display in the email viewer pane.
+     *
+     * @throws Exception if an error occurs during request execution
+     */
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails/{mailId} with HX-Request should return detail fragment")
+    public void testViewMailDetailFragmentWithHtmx() throws Exception
+    {
+        // GIVEN: an existing mailbox and email belonging to the authenticated user alice
+        final String requestUrl = "/mailboxes/" + aliceBox.getId() + "/mails/" + testMail.getId();
+
+        // WHEN: requesting the email details with the HTMX request header
+        final MvcResult result = mockMvc.perform(get(requestUrl)
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               // THEN: response status is 200 OK and renders the email detail fragment
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mail-detail :: detail"))
+               .andExpect(model().attributeExists("mail"))
+               .andExpect(model().attributeExists("mailbox"))
+               .andExpect(model().attributeExists("sanitizedHtml"))
+               .andExpect(model().attributeExists("headers"))
+               .andExpect(model().attributeExists("attachments"))
+               .andExpect(model().attributeExists("dateFormatter"))
+               .andReturn();
+
+        final Mail returnedMail = (Mail) result.getModelAndView().getModel().get("mail");
+        assertNotNull(returnedMail);
+        assertEquals(testMail.getId(), returnedMail.getId());
+    }
+
+    /**
+     * Verifies that requesting a non-existent email with an HX-Request header returns 404 Not Found.
+     *
+     * @throws Exception if an error occurs during request execution
+     */
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails/{mailId} with non-existent mailId returns 404 Not Found")
+    public void testViewMailNotFoundWithHtmx() throws Exception
+    {
+        // GIVEN: a non-existent mail identifier
+        final long nonExistentMailId = 999_999L;
+        final String requestUrl = "/mailboxes/" + aliceBox.getId() + "/mails/" + nonExistentMailId;
+
+        // WHEN: requesting non-existent mail with HX-Request header
+        // THEN: response status is 404 Not Found
+        mockMvc.perform(get(requestUrl)
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Verifies that a user cannot retrieve email details from another user's mailbox via HTMX.
+     *
+     * @throws Exception if an error occurs during request execution
+     */
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails/{mailId} for another user's mailbox returns 403 Forbidden")
+    public void testViewMailForbiddenForOtherUserWithHtmx() throws Exception
+    {
+        // GIVEN: an email belonging to alice
+        final String requestUrl = "/mailboxes/" + aliceBox.getId() + "/mails/" + testMail.getId();
+
+        // WHEN: bob attempts to request alice's email with HX-Request header
+        // THEN: response status is 403 Forbidden
+        mockMvc.perform(get(requestUrl)
+               .header("HX-Request", "true")
+               .with(user("bob@xcmailr.test").roles("USER")))
+               .andExpect(status().isForbidden());
+    }
+
     @Test
     @DisplayName("GET /mailboxes/{boxId}/mails/{mailId} should sanitize HTML")
     public void testViewMailSanitizedHtml() throws Exception

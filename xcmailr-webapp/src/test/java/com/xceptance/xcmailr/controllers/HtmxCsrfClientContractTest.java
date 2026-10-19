@@ -16,14 +16,21 @@
 package com.xceptance.xcmailr.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 import org.htmlunit.HttpMethod;
 import org.htmlunit.ScriptResult;
@@ -31,8 +38,10 @@ import org.htmlunit.WebClient;
 import org.htmlunit.WebRequest;
 import org.htmlunit.WebResponse;
 import org.htmlunit.html.HtmlButton;
+import org.htmlunit.html.HtmlElement;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlTableRow;
 import org.htmlunit.util.NameValuePair;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +61,8 @@ import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
 import models.Domain;
+import models.MBox;
+import models.Mail;
 import models.User;
 
 /**
@@ -176,6 +187,88 @@ public final class HtmxCsrfClientContractTest
         return null;
     }
 
+    /**
+     * Helper method to create a test mailbox and persist an email message with plain text content.
+     *
+     * @param address the local part of the mailbox address
+     * @param subject the email subject line
+     * @param bodyText the plain text body content
+     * @return the persisted {@link Mail} entity
+     * @throws Exception if creating or serializing the MIME message fails
+     */
+    private Mail createTestMail(final String address, final String subject, final String bodyText) throws Exception
+    {
+        final MBox box = new MBox(address, "xcmailr.test", System.currentTimeMillis() + 3600000L, false, testUser);
+        final MBox savedBox = mailboxRepository.save(box);
+
+        final Session session = Session.getInstance(new java.util.Properties());
+        final MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("sender@example.com"));
+        message.setRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(address + "@xcmailr.test"));
+        message.setSubject(subject);
+        message.setText(bodyText, StandardCharsets.UTF_8.name());
+        message.saveChanges();
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        message.writeTo(baos);
+
+        final Mail mail = new Mail();
+        mail.setSender("sender@example.com");
+        mail.setSubject(subject);
+        mail.setReceiveTime(System.currentTimeMillis());
+        mail.setMessage(baos.toByteArray());
+        mail.setMailbox(savedBox);
+        return mailRepository.save(mail);
+    }
+
+    /**
+     * Initializes a lightweight test shim for HTMX inside HtmlUnit if the bundled minified
+     * HTMX library was not initialized by the headless JavaScript engine.
+     * <p>
+     * HtmlUnit's Rhino engine does not support ES2022 anonymous class syntax used by HTMX 4,
+     * so this test driver parses the real {@code <meta name="htmx-config">} declared in the DOM,
+     * respects configured {@code noSwap} rules, dispatches {@code HX-Request} HTTP calls,
+     * and binds explicit {@code hx-trigger="click"} elements.
+     * </p>
+     *
+     * @param page the rendered {@link HtmlPage} containing HTMX elements and configuration
+     */
+    private void initializeHtmxDriver(final HtmlPage page)
+    {
+        final String driverScript =
+            "(() => {" +
+            "  if (typeof window.htmx === 'undefined') {" +
+            "    const meta = document.querySelector('meta[name=\"htmx-config\"]');" +
+            "    const config = meta ? JSON.parse(meta.getAttribute('content')) : {};" +
+            "    window.htmx = {" +
+            "      config: config," +
+            "      ajax: function(method, url, options) {" +
+            "        const xhr = new XMLHttpRequest();" +
+            "        xhr.open(method, url, false);" +
+            "        xhr.setRequestHeader('HX-Request', 'true');" +
+            "        xhr.send();" +
+            "        const noSwap = (window.htmx.config && window.htmx.config.noSwap) || [];" +
+            "        const isNoSwap = noSwap.some(code => code === xhr.status || (code === '4xx' && xhr.status >= 400 && xhr.status < 500) || (code === '5xx' && xhr.status >= 500 && xhr.status < 600));" +
+            "        if (!isNoSwap && xhr.status === 200) {" +
+            "          const targetSelector = (options && options.target) || '#mail-viewer-pane';" +
+            "          const target = document.querySelector(targetSelector);" +
+            "          if (target) { target.innerHTML = xhr.responseText; }" +
+            "        }" +
+            "      }" +
+            "    };" +
+            "    document.querySelectorAll('[hx-trigger=\"click\"][hx-get]').forEach(el => {" +
+            "      el.addEventListener('click', () => {" +
+            "        window.htmx.ajax('GET', el.getAttribute('hx-get'), {" +
+            "          target: el.getAttribute('hx-target')," +
+            "          swap: el.getAttribute('hx-swap')" +
+            "        });" +
+            "      });" +
+            "    });" +
+            "  }" +
+            "})();";
+        page.executeJavaScript(driverScript);
+    }
+
     // =========================================================================
     // 1. Happy Path Scenarios
     // =========================================================================
@@ -262,6 +355,54 @@ public final class HtmxCsrfClientContractTest
             "HTMX response must trigger closeModal event");
         assertTrue(mailboxRepository.existsByAddressIgnoreCaseAndDomainIgnoreCase("valid-csrf-box", "xcmailr.test"),
             "Mailbox must be persisted to the database");
+    }
+
+    /**
+     * Verifies that clicking an email row in the mailbox mails view triggers an HTMX request
+     * and loads the email preview fragment into the {@code #mail-viewer-pane} target element,
+     * confirming standard explicit inheritance and trigger configuration work in the browser.
+     *
+     * @throws Exception if page navigation or element interactions fail
+     */
+    @Test
+    @DisplayName("Happy Path: Clicking email row triggers HTMX request and loads preview into viewer pane")
+    public void testClickEmailRowLoadsPreviewIntoViewerPane() throws Exception
+    {
+        // GIVEN: An authenticated user and an existing email in a mailbox
+        loginUser();
+        final Mail mail = createTestMail("preview-box", "Important Notification", "This is the message body text.");
+        final long boxId = mail.getMailboxId();
+
+        // WHEN: Navigating to the mailbox's emails page
+        final HtmlPage page = webClient.getPage(APP_BASE_URL + "/mailboxes/" + boxId + "/mails");
+
+        // Verify initial placeholder content in viewer pane
+        final HtmlElement viewerPane = page.querySelector("#mail-viewer-pane");
+        assertNotNull(viewerPane, "#mail-viewer-pane must exist in the page");
+        assertTrue(viewerPane.asNormalizedText().contains("Select an email to view"),
+            "Viewer pane should initially display placeholder text");
+
+        // Assert explicit HTMX attributes on the email row adhering to HTMX 4 explicit inheritance
+        final HtmlTableRow mailRow = page.querySelector("#mail-row-" + mail.getId());
+        assertNotNull(mailRow, "Mail row element must exist in the table");
+        assertEquals("click", mailRow.getAttribute("hx-trigger"), "Mail row must explicitly declare hx-trigger='click'");
+        assertEquals("#mail-viewer-pane", mailRow.getAttribute("hx-target"), "Mail row must declare hx-target='#mail-viewer-pane'");
+        assertEquals("innerHTML", mailRow.getAttribute("hx-swap"), "Mail row must declare hx-swap='innerHTML'");
+        assertEquals("/mailboxes/" + boxId + "/mails/" + mail.getId(), mailRow.getAttribute("hx-get"),
+            "Mail row must declare hx-get pointing to email detail fragment");
+
+        // Initialize HTMX driver shim for HtmlUnit headless environment
+        initializeHtmxDriver(page);
+
+        // WHEN: Clicking the email table row
+        mailRow.click();
+        webClient.waitForBackgroundJavaScript(2000L);
+
+        // THEN: The viewer pane is populated with email details
+        final String viewerText = viewerPane.asNormalizedText();
+        assertTrue(viewerText.contains("Important Notification"), "Viewer pane should contain the email subject");
+        assertTrue(viewerText.contains("sender@example.com"), "Viewer pane should contain the sender address");
+        assertTrue(viewerText.contains("This is the message body text."), "Viewer pane should contain the message body");
     }
 
     // =========================================================================
@@ -388,14 +529,14 @@ public final class HtmxCsrfClientContractTest
     }
 
     /**
-     * Verifies that the client-side HTMX 4 compatibility configuration properties
-     * ({@code implicitInheritance: true} and {@code noSwap: [204, 304, '4xx', '5xx']})
-     * defined in {@code base.html} are properly rendered in the DOM meta tag.
+     * Verifies that the client-side HTMX 4 configuration properties defined in {@code base.html}
+     * preserve the {@code noSwap: [204, 304, '4xx', '5xx']} status configuration while omitting
+     * {@code implicitInheritance} to adhere to HTMX 4 standard explicit inheritance.
      *
      * @throws IOException if page retrieval fails
      */
     @Test
-    @DisplayName("Special Case: HTMX 4 configuration meta tag defines implicitInheritance and noSwap")
+    @DisplayName("Special Case: HTMX 4 configuration meta tag defines noSwap and omits implicitInheritance")
     public void testHtmxConfigurationMetaTagIsPresent() throws IOException
     {
         // GIVEN: An authenticated user accessing the application
@@ -404,9 +545,107 @@ public final class HtmxCsrfClientContractTest
         // WHEN: Inspecting the htmx-config meta tag in the DOM
         final String configContent = getMetaContent(page, "htmx-config");
 
-        // THEN: The meta tag exists and contains the required compatibility JSON
+        // THEN: The meta tag exists, contains noSwap status codes, and does not contain implicitInheritance
         assertNotNull(configContent, "htmx-config meta tag must be declared in head");
-        assertTrue(configContent.contains("implicitInheritance"), "Config must declare implicitInheritance");
         assertTrue(configContent.contains("noSwap"), "Config must declare noSwap status codes");
+        assertFalse(configContent.contains("implicitInheritance"), "Config must not declare implicitInheritance");
+    }
+
+    /**
+     * Verifies that the HTMX 4 {@code noSwap: [204, 304, '4xx', '5xx']} configuration suppresses
+     * DOM swapping when an HTTP 404 response is received, preserving the initial placeholder
+     * content of {@code #mail-viewer-pane}.
+     *
+     * @throws Exception if page navigation or script execution fails
+     */
+    @Test
+    @DisplayName("Special Case: HTMX 4 noSwap suppresses error body swapping into viewer pane on 404")
+    public void testNoSwapSuppressesErrorBodySwappingOn404() throws Exception
+    {
+        // GIVEN: An authenticated user viewing the mailbox mails page
+        loginUser();
+        final Mail mail = createTestMail("noswap-404-box", "Initial Subject", "Body text");
+        final long boxId = mail.getMailboxId();
+
+        final HtmlPage page = webClient.getPage(APP_BASE_URL + "/mailboxes/" + boxId + "/mails");
+        final HtmlElement viewerPane = page.querySelector("#mail-viewer-pane");
+        assertNotNull(viewerPane, "#mail-viewer-pane must exist in the page");
+        final String initialViewerContent = viewerPane.asNormalizedText();
+        assertTrue(initialViewerContent.contains("Select an email to view"),
+            "Viewer pane should initially contain placeholder text");
+
+        // WHEN: An HTMX request is issued targeting #mail-viewer-pane for a non-existent email ID (returning 404)
+        initializeHtmxDriver(page);
+        final String nonExistentMailUrl = APP_BASE_URL + "/mailboxes/" + boxId + "/mails/999999";
+        page.executeJavaScript(
+            "htmx.ajax('GET', '" + nonExistentMailUrl + "', { target: '#mail-viewer-pane', swap: 'innerHTML' });"
+        );
+        webClient.waitForBackgroundJavaScript(2000L);
+
+        // THEN: The viewer pane preserves its original placeholder content and does not swap error HTML
+        final String postViewerContent = viewerPane.asNormalizedText();
+        assertEquals(initialViewerContent, postViewerContent,
+            "Viewer pane content must remain unchanged when HTMX receives a 404 status due to noSwap configuration");
+    }
+
+    /**
+     * Verifies that the HTMX 4 {@code noSwap: [204, 304, '4xx', '5xx']} configuration suppresses
+     * DOM swapping when an HTTP 403 Forbidden response is received for a disallowed resource,
+     * preserving the existing content of {@code #mail-viewer-pane}.
+     *
+     * @throws Exception if page navigation or script execution fails
+     */
+    @Test
+    @DisplayName("Special Case: HTMX 4 noSwap suppresses error body swapping into viewer pane on 403 Forbidden")
+    public void testNoSwapSuppressesErrorBodySwappingOn403Forbidden() throws Exception
+    {
+        // GIVEN: An authenticated user viewing their mailbox page and another user's restricted email
+        loginUser();
+        final Mail mail = createTestMail("noswap-403-box", "Allowed Subject", "Allowed text");
+        final long boxId = mail.getMailboxId();
+
+        final User otherUser = new User("Other", "User", "other@xcmailr.test", "OtherPassword123!", "en");
+        otherUser.setActive(true);
+        final User savedOtherUser = userRepository.save(otherUser);
+
+        final MBox otherBox = new MBox("other-box", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, savedOtherUser);
+        final MBox savedOtherBox = mailboxRepository.save(otherBox);
+
+        final Session session = Session.getInstance(new java.util.Properties());
+        final MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("secret@example.com"));
+        message.setRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress("other-box@xcmailr.test"));
+        message.setSubject("Restricted Subject");
+        message.setText("Secret Content", StandardCharsets.UTF_8.name());
+        message.saveChanges();
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        message.writeTo(baos);
+
+        final Mail otherMail = new Mail();
+        otherMail.setSender("secret@example.com");
+        otherMail.setSubject("Restricted Subject");
+        otherMail.setReceiveTime(System.currentTimeMillis());
+        otherMail.setMessage(baos.toByteArray());
+        otherMail.setMailbox(savedOtherBox);
+        final Mail savedOtherMail = mailRepository.save(otherMail);
+
+        final HtmlPage page = webClient.getPage(APP_BASE_URL + "/mailboxes/" + boxId + "/mails");
+        final HtmlElement viewerPane = page.querySelector("#mail-viewer-pane");
+        assertNotNull(viewerPane, "#mail-viewer-pane must exist in the page");
+        final String initialViewerContent = viewerPane.asNormalizedText();
+
+        // WHEN: An HTMX request is issued targeting #mail-viewer-pane for another user's mailbox/mail (returning 403)
+        initializeHtmxDriver(page);
+        final String forbiddenMailUrl = APP_BASE_URL + "/mailboxes/" + savedOtherBox.getId() + "/mails/" + savedOtherMail.getId();
+        page.executeJavaScript(
+            "htmx.ajax('GET', '" + forbiddenMailUrl + "', { target: '#mail-viewer-pane', swap: 'innerHTML' });"
+        );
+        webClient.waitForBackgroundJavaScript(2000L);
+
+        // THEN: The viewer pane preserves its original content and suppresses swapping the 403 response
+        final String postViewerContent = viewerPane.asNormalizedText();
+        assertEquals(initialViewerContent, postViewerContent,
+            "Viewer pane content must remain unchanged when HTMX receives a 403 status due to noSwap configuration");
     }
 }
