@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.mail.Address;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -197,10 +198,45 @@ public class MailDeliveryService implements SimpleMessageListener
         try
         {
             mimeMessage = JakartaMimeMessageParser.createMimeMessage(rawBytes);
-            subject = (mimeMessage.getSubject() != null) ? mimeMessage.getSubject() : "";
-            originator = (mimeMessage.getFrom() != null && mimeMessage.getFrom().length > 0)
-                ? mimeMessage.getFrom()[0].toString()
-                : from;
+
+            String parsedSubject = "";
+            try
+            {
+                parsedSubject = mimeMessage.getSubject();
+                if (parsedSubject == null)
+                {
+                    parsedSubject = "";
+                }
+            }
+            catch (final Exception e)
+            {
+                LOG.warn("Failed to decode Subject header for mail '{} => {}': {}", from, recipient, e.getMessage());
+                parsedSubject = "";
+            }
+            subject = parsedSubject;
+
+            String parsedOriginator = null;
+            try
+            {
+                final Address[] fromAddresses = mimeMessage.getFrom();
+                if (fromAddresses != null && fromAddresses.length > 0 && fromAddresses[0] != null)
+                {
+                    final Address addr = fromAddresses[0];
+                    if (addr instanceof InternetAddress internetAddress)
+                    {
+                        parsedOriginator = internetAddress.toUnicodeString();
+                    }
+                    if (parsedOriginator == null || parsedOriginator.isBlank())
+                    {
+                        parsedOriginator = addr.toString();
+                    }
+                }
+            }
+            catch (final Exception e)
+            {
+                LOG.warn("Failed to parse From header for mail '{} => {}': {}", from, recipient, e.getMessage());
+            }
+            originator = (parsedOriginator != null && !parsedOriginator.isBlank()) ? parsedOriginator : from;
         }
         catch (final Exception e)
         {

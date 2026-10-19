@@ -48,6 +48,23 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConfigurationPropertiesScan(basePackages = "com.xceptance.xcmailr.config")
 public class XcmailrApplication
 {
+    static
+    {
+        configureMailSystemProperties();
+    }
+
+    /**
+     * Configures JVM-wide Jakarta Mail system properties to ensure full UTF-8 compliance
+     * for raw 8-bit headers (SMTPUTF8 / 8BITMIME), international filenames, and encoded words.
+     */
+    public static void configureMailSystemProperties()
+    {
+        System.setProperty("mail.mime.allowutf8", "true");
+        System.setProperty("mail.mime.charset", "UTF-8");
+        System.setProperty("mail.mime.decodefilename", "true");
+        System.setProperty("mail.mime.decodetext.strict", "false");
+    }
+
     /**
      * Application bootstrapping method.
      *
@@ -55,6 +72,7 @@ public class XcmailrApplication
      */
     public static void main(final String[] args)
     {
+        configureMailSystemProperties();
         SpringApplication.run(XcmailrApplication.class, args);
     }
 }

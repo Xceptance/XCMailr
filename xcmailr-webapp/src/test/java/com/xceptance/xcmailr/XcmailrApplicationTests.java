@@ -58,5 +58,11 @@ public class XcmailrApplicationTests
         assertNotNull(properties, "XcmailrProperties must be bound");
         assertNotNull(properties.getApp(), "App properties must be configured");
         assertNotNull(properties.getApp().getName(), "Application name must be configured");
+
+        // Assert Jakarta Mail UTF-8 system properties are initialized
+        assertTrue("true".equalsIgnoreCase(System.getProperty("mail.mime.allowutf8")), "mail.mime.allowutf8 must be true");
+        assertTrue("UTF-8".equalsIgnoreCase(System.getProperty("mail.mime.charset")), "mail.mime.charset must be UTF-8");
+        assertTrue("true".equalsIgnoreCase(System.getProperty("mail.mime.decodefilename")), "mail.mime.decodefilename must be true");
+        assertTrue("false".equalsIgnoreCase(System.getProperty("mail.mime.decodetext.strict")), "mail.mime.decodetext.strict must be false");
     }
 }

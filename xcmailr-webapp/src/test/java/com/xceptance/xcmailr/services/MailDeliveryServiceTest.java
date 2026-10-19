@@ -15,6 +15,7 @@
  */
 package com.xceptance.xcmailr.services;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,6 +41,7 @@ import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,6 +56,7 @@ import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
+import com.xceptance.xcmailr.util.JakartaMimeMessageParser;
 
 import models.MBox;
 import models.Mail;
@@ -88,9 +91,12 @@ public class MailDeliveryServiceTest
 
     private MailDeliveryService deliveryService;
 
-    /**
-     * Initializes test dependencies and configures baseline application properties.
-     */
+    @BeforeAll
+    public static void beforeAll()
+    {
+        com.xceptance.xcmailr.XcmailrApplication.configureMailSystemProperties();
+    }
+
     @BeforeEach
     public void setUp()
     {
@@ -389,6 +395,172 @@ public class MailDeliveryServiceTest
 
         // Verify forward counter was NOT incremented
         assertEquals(0, mbox.getForwards());
+    }
+
+    // =========================================================================
+    // Group 2.4: deliver(...) UTF-8 and internationalized header handling
+    // =========================================================================
+
+    @Test
+    @DisplayName("deliver raw 8-bit UTF-8 email persists unmangled Unicode subject and sender in mail entity")
+    public void testDeliverRawUtf8SubjectAndSender() throws Exception
+    {
+        final User user = new User("Unicode", "User", "unicode@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("unicodetest", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(false);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("unicodetest", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+
+        final String rawEmail = "From: \"Jürgen Schmidt\" <sender@external.com>\r\n"
+            + "To: unicodetest@xcmailr.test\r\n"
+            + "Subject: Docker Smoke Test ü\r\n"
+            + "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+            + "Testing containerized email reception.";
+
+        final byte[] rawBytes = rawEmail.getBytes(StandardCharsets.UTF_8);
+        deliveryService.deliver("sender@external.com", "unicodetest@xcmailr.test", new ByteArrayInputStream(rawBytes));
+
+        final ArgumentCaptor<Mail> mailCaptor = ArgumentCaptor.forClass(Mail.class);
+        verify(mailRepository).save(mailCaptor.capture());
+        final Mail savedMail = mailCaptor.getValue();
+
+        assertEquals("Docker Smoke Test ü", savedMail.getSubject());
+        assertEquals("Jürgen Schmidt <sender@external.com>", savedMail.getSender());
+        assertArrayEquals(rawBytes, savedMail.getMessage());
+    }
+
+    @Test
+    @DisplayName("deliver raw 8-bit UTF-8 email forwards to outbound recipients with intact UTF-8 headers")
+    public void testDeliverRawUtf8WithForwardingPreservesUtf8Headers() throws Exception
+    {
+        final User user = new User("Forward", "User", "forward_target@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("utf8forward", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(true);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("utf8forward", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+        when(outboundMailService.createSession()).thenReturn(Session.getInstance(JakartaMimeMessageParser.getDefaultSessionProperties()));
+
+        final String rawEmail = "From: \"Élodie & 太郎\" <sender@external.com>\r\n"
+            + "To: utf8forward@xcmailr.test\r\n"
+            + "Subject: Internationalized 🚀 Forwarding\r\n"
+            + "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+            + "Body with emojis and accents";
+
+        final byte[] rawBytes = rawEmail.getBytes(StandardCharsets.UTF_8);
+        deliveryService.deliver("sender@external.com", "utf8forward@xcmailr.test", new ByteArrayInputStream(rawBytes));
+
+        // Verify mail persisted locally with proper subject
+        final ArgumentCaptor<Mail> mailCaptor = ArgumentCaptor.forClass(Mail.class);
+        verify(mailRepository).save(mailCaptor.capture());
+        assertEquals("Internationalized 🚀 Forwarding", mailCaptor.getValue().getSubject());
+
+        // Verify outbound forwarded message has preserved UTF-8 subject and recipient
+        final ArgumentCaptor<MimeMessage> msgCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(outboundMailService).send(msgCaptor.capture());
+        final MimeMessage forwardedMsg = msgCaptor.getValue();
+        assertEquals("Internationalized 🚀 Forwarding", forwardedMsg.getSubject());
+        assertEquals("forward_target@realdomain.org", forwardedMsg.getRecipients(Message.RecipientType.TO)[0].toString());
+        verify(mailboxRepository).incrementForwards(mbox.getId());
+    }
+
+    @Test
+    @DisplayName("deliver RFC 2047 encoded subject and sender display name decodes properly into entity")
+    public void testDeliverRfc2047EncodedSubjectAndSender() throws Exception
+    {
+        final User user = new User("Rfc", "User", "rfc@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("rfcbox", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(false);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("rfcbox", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+
+        final String rawEmail = "From: =?UTF-8?B?SsO8cmdlbiBTY2htaWR0?= <sender@external.com>\r\n"
+            + "To: rfcbox@xcmailr.test\r\n"
+            + "Subject: =?UTF-8?Q?Docker_Smoke_Test_=C3=BC?=\r\n"
+            + "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+            + "RFC 2047 test content";
+
+        deliveryService.deliver("sender@external.com", "rfcbox@xcmailr.test",
+                               new ByteArrayInputStream(rawEmail.getBytes(StandardCharsets.UTF_8)));
+
+        final ArgumentCaptor<Mail> mailCaptor = ArgumentCaptor.forClass(Mail.class);
+        verify(mailRepository).save(mailCaptor.capture());
+        final Mail savedMail = mailCaptor.getValue();
+
+        assertEquals("Docker Smoke Test ü", savedMail.getSubject());
+        assertTrue(savedMail.getSender().contains("Jürgen Schmidt"));
+    }
+
+    @Test
+    @DisplayName("deliver email with malformed UTF-8 header octets does not crash delivery and preserves raw payload")
+    public void testDeliverMalformedUtf8OctetsDoesNotCrash() throws Exception
+    {
+        final User user = new User("Malformed", "User", "malformed@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("malformedbox", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(false);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("malformedbox", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+
+        // Construct raw bytes with invalid UTF-8 sequence (0xC3 followed by 0x28 instead of continuation byte)
+        final byte[] headerPrefix = "From: sender@external.com\r\nTo: malformedbox@xcmailr.test\r\nSubject: Broken ".getBytes(StandardCharsets.US_ASCII);
+        final byte[] invalidBytes = new byte[] { (byte) 0xC3, 0x28 };
+        final byte[] body = "\r\n\r\nPayload body".getBytes(StandardCharsets.US_ASCII);
+
+        final byte[] rawBytes = new byte[headerPrefix.length + invalidBytes.length + body.length];
+        System.arraycopy(headerPrefix, 0, rawBytes, 0, headerPrefix.length);
+        System.arraycopy(invalidBytes, 0, rawBytes, headerPrefix.length, invalidBytes.length);
+        System.arraycopy(body, 0, rawBytes, headerPrefix.length + invalidBytes.length, body.length);
+
+        deliveryService.deliver("sender@external.com", "malformedbox@xcmailr.test", new ByteArrayInputStream(rawBytes));
+
+        // Delivery should still succeed and persist entity
+        final ArgumentCaptor<Mail> mailCaptor = ArgumentCaptor.forClass(Mail.class);
+        verify(mailRepository).save(mailCaptor.capture());
+        final Mail savedMail = mailCaptor.getValue();
+
+        assertNotNull(savedMail.getSubject());
+        assertArrayEquals(rawBytes, savedMail.getMessage());
+    }
+
+    @Test
+    @DisplayName("deliver email missing Subject and From headers uses safe defaults")
+    public void testDeliverMissingSubjectAndFromHeaders() throws Exception
+    {
+        final User user = new User("Minimal", "User", "minimal@realdomain.org", "hash", "en");
+        user.setActive(true);
+
+        final MBox mbox = new MBox("minimalbox", "xcmailr.test", 0L, false, user);
+        mbox.setActive(true);
+        mbox.setForwardEmails(false);
+
+        when(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("minimalbox", "xcmailr.test"))
+            .thenReturn(Optional.of(mbox));
+
+        final String rawEmail = "To: minimalbox@xcmailr.test\r\n\r\nBody without headers";
+        deliveryService.deliver("envelope-sender@external.com", "minimalbox@xcmailr.test",
+                               new ByteArrayInputStream(rawEmail.getBytes(StandardCharsets.UTF_8)));
+
+        final ArgumentCaptor<Mail> mailCaptor = ArgumentCaptor.forClass(Mail.class);
+        verify(mailRepository).save(mailCaptor.capture());
+        final Mail savedMail = mailCaptor.getValue();
+
+        assertEquals("", savedMail.getSubject());
+        assertEquals("envelope-sender@external.com", savedMail.getSender());
     }
 
     // =========================================================================

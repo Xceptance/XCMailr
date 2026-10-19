@@ -16,6 +16,7 @@
 package com.xceptance.xcmailr.controllers;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -264,9 +266,13 @@ public class MailWebController
             final InputStream in = ds.getInputStream();
             final InputStreamResource resource = new InputStreamResource(in);
 
+            final ContentDisposition contentDisposition = ContentDisposition.attachment()
+                                                                            .filename(fileName, StandardCharsets.UTF_8)
+                                                                            .build();
+
             return ResponseEntity.ok()
                                  .contentType(MediaType.parseMediaType(ds.getContentType()))
-                                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                                  .body(resource);
         }
         catch (final ResponseStatusException rse)

@@ -336,6 +336,95 @@ public class SmtpDeliveryIT
         }
     }
 
+    @Test
+    @DisplayName("Should accept and deliver email with raw 8-bit UTF-8 headers over socket and persist unmangled Unicode")
+    public void testInboundDeliveryRawUtf8Socket() throws Exception
+    {
+        final int port = smtpServerService.getPort();
+        assertTrue(port > 0, "SMTP server port should be bound");
+
+        final MBox activeBox = new MBox("utf8box", "xcmailr.test", 0L, false, testUser);
+        activeBox.setActive(true);
+        mailboxRepository.save(activeBox);
+
+        final String rawEmail = "From: \"Jürgen Schmidt\" <sender@external.com>\r\n"
+            + "To: utf8box@xcmailr.test\r\n"
+            + "Subject: Docker Smoke Test ü\r\n"
+            + "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+            + "Testing containerized email reception with emojis 🚀 and umlauts ü.\r\n";
+
+        sendRawSmtpEmail(port, "sender@external.com", "utf8box@xcmailr.test", rawEmail.getBytes(StandardCharsets.UTF_8));
+
+        // Verify Mail entity saved and correctly decoded in database
+        final List<Mail> mails = mailRepository.findByMailboxOrderByReceiveTimeAsc(activeBox.getId());
+        assertEquals(1, mails.size(), "Email should be stored in database");
+        final Mail savedMail = mails.get(0);
+        assertEquals("Docker Smoke Test ü", savedMail.getSubject());
+        assertEquals("Jürgen Schmidt <sender@external.com>", savedMail.getSender());
+        final String savedBody = new String(savedMail.getMessage(), StandardCharsets.UTF_8);
+        assertTrue(savedBody.contains("Testing containerized email reception with emojis 🚀 and umlauts ü."));
+        assertFalse(savedMail.getSubject().contains("Ã¼"), "Subject must not suffer from mojibake");
+    }
+
+    /**
+     * Helper to send an email via raw SMTP socket to the specified port.
+     */
+    private void sendRawSmtpEmail(final int port, final String from, final String to, final byte[] messageBytes) throws Exception
+    {
+        try (final java.net.Socket socket = new java.net.Socket("127.0.0.1", port);
+             final java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream(), StandardCharsets.US_ASCII));
+             final java.io.OutputStream out = socket.getOutputStream())
+        {
+            // Read 220 banner
+            String line = reader.readLine();
+            assertTrue(line != null && line.startsWith("220"), "Expected 220 banner: " + line);
+
+            // Send EHLO
+            out.write("EHLO localhost\r\n".getBytes(StandardCharsets.US_ASCII));
+            out.flush();
+            while ((line = reader.readLine()) != null)
+            {
+                if (line.startsWith("250 "))
+                {
+                    break;
+                }
+            }
+
+            // Send MAIL FROM
+            out.write(("MAIL FROM:<" + from + ">\r\n").getBytes(StandardCharsets.US_ASCII));
+            out.flush();
+            line = reader.readLine();
+            assertTrue(line != null && line.startsWith("250"), "Expected 250 OK: " + line);
+
+            // Send RCPT TO
+            out.write(("RCPT TO:<" + to + ">\r\n").getBytes(StandardCharsets.US_ASCII));
+            out.flush();
+            line = reader.readLine();
+            assertTrue(line != null && line.startsWith("250"), "Expected 250 OK: " + line);
+
+            // Send DATA
+            out.write("DATA\r\n".getBytes(StandardCharsets.US_ASCII));
+            out.flush();
+            line = reader.readLine();
+            assertTrue(line != null && line.startsWith("354"), "Expected 354 Start Mail: " + line);
+
+            // Send raw message bytes ending with \r\n.\r\n
+            out.write(messageBytes);
+            if (!new String(messageBytes, StandardCharsets.UTF_8).endsWith("\r\n"))
+            {
+                out.write("\r\n".getBytes(StandardCharsets.US_ASCII));
+            }
+            out.write(".\r\n".getBytes(StandardCharsets.US_ASCII));
+            out.flush();
+            line = reader.readLine();
+            assertTrue(line != null && line.startsWith("250"), "Expected 250 OK: " + line);
+
+            // Send QUIT
+            out.write("QUIT\r\n".getBytes(StandardCharsets.US_ASCII));
+            out.flush();
+        }
+    }
+
     /**
      * Helper to send an email via raw SMTP to the specified port.
      */

@@ -64,6 +64,22 @@ public final class JakartaMimeMessageParser
     }
 
     /**
+     * Returns default {@link Properties} configured for comprehensive UTF-8 header decoding,
+     * attachment filename resolution, and resilient encoded-word parsing.
+     *
+     * @return populated mail session properties
+     */
+    public static Properties getDefaultSessionProperties()
+    {
+        final Properties props = new Properties();
+        props.put("mail.mime.allowutf8", "true");
+        props.put("mail.mime.charset", "UTF-8");
+        props.put("mail.mime.decodefilename", "true");
+        props.put("mail.mime.decodetext.strict", "false");
+        return props;
+    }
+
+    /**
      * Creates a {@link MimeMessage} from raw bytes.
      *
      * @param rawContent raw email byte stream
@@ -72,7 +88,7 @@ public final class JakartaMimeMessageParser
      */
     public static MimeMessage createMimeMessage(final byte[] rawContent) throws Exception
     {
-        final Session session = Session.getInstance(new Properties());
+        final Session session = Session.getInstance(getDefaultSessionProperties());
         try (final InputStream in = new ByteArrayInputStream(rawContent))
         {
             return new MimeMessage(session, in);

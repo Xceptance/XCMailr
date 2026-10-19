@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.xceptance.xcmailr.config.XcmailrProperties;
+import com.xceptance.xcmailr.util.JakartaMimeMessageParser;
 
 /**
  * Service responsible for outbound email delivery (account confirmation, password reset,
@@ -70,7 +71,7 @@ public class OutboundMailService
      */
     public Session createSession()
     {
-        final Properties props = new Properties();
+        final Properties props = JakartaMimeMessageParser.getDefaultSessionProperties();
         final XcmailrProperties.OutboundSmtpProperties smtp = properties.getOutboundSmtp();
 
         final String host = (smtp != null && smtp.getHost() != null && !smtp.getHost().isBlank())

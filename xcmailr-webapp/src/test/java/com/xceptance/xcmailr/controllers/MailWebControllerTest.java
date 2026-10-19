@@ -464,7 +464,7 @@ public class MailWebControllerTest
         mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + testMail.getId() + "/attachments/0")
                .with(user("alice@xcmailr.test").roles("USER")))
                .andExpect(status().isOk())
-               .andExpect(header().string("Content-Disposition", "attachment; filename=\"invoice.pdf\""))
+               .andExpect(header().string("Content-Disposition", containsString("filename=\"invoice.pdf\"")))
                .andExpect(content().string("invoice-binary-data"));
     }
 
@@ -513,5 +513,141 @@ public class MailWebControllerTest
         mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + testMail.getId())
                .with(user("bob@xcmailr.test").roles("USER")))
                .andExpect(status().isForbidden());
+    }
+
+    // =========================================================================
+    // UTF-8 Email Rendering & Attachment Tests (Pyramid Top Tier)
+    // =========================================================================
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails renders unmangled UTF-8 subject and sender without mojibake")
+    public void testListMailsUtf8Rendering() throws Exception
+    {
+        final String rawEmail = "From: \"Jürgen Schmidt\" <juergen@external.com>\r\n"
+            + "To: inbox@xcmailr.test\r\n"
+            + "Subject: Docker Smoke Test ü\r\n"
+            + "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+            + "Testing UTF-8 reception with ü and 🚀.";
+
+        final Mail utf8Mail = new Mail();
+        utf8Mail.setSender("\"Jürgen Schmidt\" <juergen@external.com>");
+        utf8Mail.setSubject("Docker Smoke Test ü");
+        utf8Mail.setReceiveTime(System.currentTimeMillis() + 5000L);
+        utf8Mail.setMessage(rawEmail.getBytes(StandardCharsets.UTF_8));
+        utf8Mail.setMailbox(aliceBox);
+        mailRepository.save(utf8Mail);
+
+        // Verify full-page rendering
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Docker Smoke Test ü")))
+               .andExpect(content().string(containsString("Jürgen Schmidt")))
+               .andExpect(content().string(not(containsString("Docker Smoke Test Ã¼"))));
+
+        // Verify HTMX partial list rendering
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Docker Smoke Test ü")))
+               .andExpect(content().string(containsString("Jürgen Schmidt")))
+               .andExpect(content().string(not(containsString("Docker Smoke Test Ã¼"))));
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails/{mailId} renders UTF-8 subject, sender, body, and raw headers")
+    public void testViewMailDetailAndHeadersUtf8Rendering() throws Exception
+    {
+        final String rawEmail = "From: \"Élodie & 太郎\" <elodie@external.com>\r\n"
+            + "To: inbox@xcmailr.test\r\n"
+            + "Subject: Internationalized 🚀 Subject\r\n"
+            + "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+            + "Body with emojis 🚀 and accents: é, à, ç.";
+
+        final Mail utf8Mail = new Mail();
+        utf8Mail.setSender("\"Élodie & 太郎\" <elodie@external.com>");
+        utf8Mail.setSubject("Internationalized 🚀 Subject");
+        utf8Mail.setReceiveTime(System.currentTimeMillis() + 5000L);
+        utf8Mail.setMessage(rawEmail.getBytes(StandardCharsets.UTF_8));
+        utf8Mail.setMailbox(aliceBox);
+        mailRepository.save(utf8Mail);
+
+        final MvcResult result = mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + utf8Mail.getId())
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mail-detail :: detail"))
+               .andExpect(model().attributeExists("headers"))
+               .andExpect(model().attributeExists("plainText"))
+               .andReturn();
+
+        final String headers = (String) result.getModelAndView().getModel().get("headers");
+        assertNotNull(headers);
+        assertTrue(headers.contains("Subject: Internationalized 🚀 Subject"));
+        assertTrue(headers.contains("From: \"Élodie & 太郎\" <elodie@external.com>"));
+
+        final String plainText = (String) result.getModelAndView().getModel().get("plainText");
+        assertNotNull(plainText);
+        assertTrue(plainText.contains("Body with emojis 🚀 and accents: é, à, ç."));
+
+        final String htmlResponse = result.getResponse().getContentAsString();
+        assertTrue(htmlResponse.contains("Internationalized 🚀 Subject"));
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails/{mailId}/attachments/{index} formats Content-Disposition for UTF-8 filenames")
+    public void testDownloadAttachmentWithUtf8Filename() throws Exception
+    {
+        final Session session = Session.getInstance(new java.util.Properties());
+        final MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("sender@external.com"));
+        message.setRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress("inbox@xcmailr.test"));
+        message.setSubject("UTF-8 Attachment Test");
+
+        final MimeMultipart multipart = new MimeMultipart("mixed");
+
+        final MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText("Message with German attachment name");
+        multipart.addBodyPart(textPart);
+
+        final MimeBodyPart attachPart = new MimeBodyPart();
+        final ByteArrayDataSource ds = new ByteArrayDataSource("pdf-payload-bytes".getBytes(StandardCharsets.UTF_8), "application/pdf");
+        attachPart.setDataHandler(new DataHandler(ds));
+        attachPart.setFileName("prüfbericht.pdf");
+        multipart.addBodyPart(attachPart);
+
+        message.setContent(multipart);
+        message.saveChanges();
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        message.writeTo(baos);
+
+        final Mail mail = new Mail();
+        mail.setSender("sender@external.com");
+        mail.setSubject("UTF-8 Attachment Test");
+        mail.setReceiveTime(System.currentTimeMillis() + 6000L);
+        mail.setMessage(baos.toByteArray());
+        mail.setMailbox(aliceBox);
+        mailRepository.save(mail);
+
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + mail.getId() + "/attachments/0")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(header().string("Content-Disposition", containsString("filename*=UTF-8''pr%C3%BCfbericht.pdf")))
+               .andExpect(content().string("pdf-payload-bytes"));
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails/{mailId}/attachments/{index} returns 404 for out of bounds index")
+    public void testDownloadAttachmentOutOfBoundsIndexReturnsNotFound() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + testMail.getId() + "/attachments/99")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + testMail.getId() + "/attachments/-1")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isNotFound());
     }
 }
