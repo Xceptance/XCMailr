@@ -29,7 +29,7 @@ The system SHALL reject any inbound email addressed to a recipient domain not pr
 - **THEN** the SMTP server rejects the recipient (`553 Relaying denied`)
 
 ### Requirement: Email Storage and Retention
-The system SHALL persist incoming emails, extract metadata and attachments, and purge expired messages according to retention policies, correctly handling UTF-8 and internationalized header text, sender display names, and attachment filenames.
+The system SHALL persist incoming emails, extract metadata, plain and HTML bodies, and attachments, and purge expired messages according to retention policies, correctly handling UTF-8 and internationalized header text, sender display names, attachment filenames, and untyped or raw UTF-8 email bodies.
 
 #### Scenario: Store Incoming Message with Attachments
 - **WHEN** an email is delivered to a valid mailbox configured for storage
@@ -50,6 +50,18 @@ The system SHALL persist incoming emails, extract metadata and attachments, and 
 #### Scenario: Store Incoming Message with Malformed or Partial UTF-8 Header Sequences
 - **WHEN** an incoming email contains invalid or truncated multi-byte UTF-8 sequences in its headers
 - **THEN** the system ingests the email without unhandled exceptions, persists the raw message payload, and stores a resilient fallback string for the affected metadata
+
+#### Scenario: Store and Parse Incoming Message with Untyped UTF-8 Body
+- **WHEN** an incoming email contains raw 8-bit UTF-8 text in its body and omits a Content-Type header or omits an explicit charset parameter
+- **THEN** the system parses and extracts the plain text and HTML bodies as valid UTF-8 without mojibake or character corruption
+
+#### Scenario: Store and Parse Incoming Message with Explicit Legacy Charset Body
+- **WHEN** an incoming email specifies an explicit legacy charset (such as ISO-8859-1 or Windows-1252) in its Content-Type header
+- **THEN** the system decodes the body using the declared legacy charset preserving the original character encoding
+
+#### Scenario: Store and Parse Incoming Message with Malformed UTF-8 Body Sequences
+- **WHEN** an incoming email body contains invalid or truncated multi-byte UTF-8 sequences without an explicit charset
+- **THEN** the system falls back gracefully to ISO-8859-1 decoding without throwing an unhandled exception or failing the parser
 
 #### Scenario: Retention Expiration Cleanup
 - **WHEN** the background expiration job executes

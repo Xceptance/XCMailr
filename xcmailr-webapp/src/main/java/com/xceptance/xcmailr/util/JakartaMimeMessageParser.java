@@ -17,6 +17,12 @@ package com.xceptance.xcmailr.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +32,7 @@ import jakarta.activation.DataSource;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
 import jakarta.mail.Session;
+import jakarta.mail.internet.ContentType;
 import jakarta.mail.internet.MimeMessage;
 
 /**
@@ -117,14 +124,14 @@ public final class JakartaMimeMessageParser
         {
             if (plainContent == null)
             {
-                plainContent = (String) part.getContent();
+                plainContent = extractTextContent(part);
             }
         }
         else if (part.isMimeType("text/html"))
         {
             if (htmlContent == null)
             {
-                htmlContent = (String) part.getContent();
+                htmlContent = extractTextContent(part);
             }
         }
         else if (part.isMimeType("multipart/*"))
@@ -136,6 +143,68 @@ public final class JakartaMimeMessageParser
                 {
                     parsePart(multipart.getBodyPart(i));
                 }
+            }
+        }
+    }
+
+    private String extractTextContent(final Part part)
+    {
+        try
+        {
+            String declaredCharset = null;
+            final String[] contentTypes = part.getHeader("Content-Type");
+            if (contentTypes != null && contentTypes.length > 0 && contentTypes[0] != null)
+            {
+                try
+                {
+                    final ContentType ct = new ContentType(contentTypes[0]);
+                    declaredCharset = ct.getParameter("charset");
+                }
+                catch (final Exception ignored)
+                {
+                    // Ignore unparseable Content-Type header
+                }
+            }
+
+            try (final InputStream in = part.getInputStream())
+            {
+                final byte[] bytes = in.readAllBytes();
+                if (declaredCharset != null && !declaredCharset.isBlank() && !"us-ascii".equalsIgnoreCase(declaredCharset.trim()))
+                {
+                    try
+                    {
+                        final Charset charset = Charset.forName(declaredCharset.trim());
+                        return new String(bytes, charset);
+                    }
+                    catch (final Exception ignored)
+                    {
+                        // Fall back to UTF-8 / ISO-8859-1 decoding below
+                    }
+                }
+
+                try
+                {
+                    final CharsetDecoder utf8Decoder = StandardCharsets.UTF_8.newDecoder()
+                        .onMalformedInput(CodingErrorAction.REPORT)
+                        .onUnmappableCharacter(CodingErrorAction.REPORT);
+                    return utf8Decoder.decode(ByteBuffer.wrap(bytes)).toString();
+                }
+                catch (final CharacterCodingException e)
+                {
+                    return new String(bytes, StandardCharsets.ISO_8859_1);
+                }
+            }
+        }
+        catch (final Exception e)
+        {
+            try
+            {
+                final Object content = part.getContent();
+                return content != null ? content.toString() : null;
+            }
+            catch (final Exception ignored)
+            {
+                return null;
             }
         }
     }

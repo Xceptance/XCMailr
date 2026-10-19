@@ -221,6 +221,99 @@ public class JakartaMimeMessageParserTest
             assertEquals(1, attachments.size());
             assertEquals("prüfbericht.pdf", attachments.get(0).getName());
         }
+
+        @Test
+        @DisplayName("Extract raw 8-bit UTF-8 plain text body without Content-Type header (umlauts, accents, non-Latin, emojis)")
+        public void testRawUtf8BodyWithoutContentType() throws Exception
+        {
+            final String raw = """
+                From: sender@external.com\r
+                To: recipient@xcmailr.test\r
+                Subject: Untyped body test\r
+                \r
+                üüü Testing containerized email reception. ä ö ß é à ç\r
+                Привет мир / こんにちは世界 / مرحبا\r
+                Deployment Success 🚀🎉📧✨\r
+                """;
+            final MimeMessage msg = JakartaMimeMessageParser.createMimeMessage(raw.getBytes(StandardCharsets.UTF_8));
+            final JakartaMimeMessageParser parser = new JakartaMimeMessageParser(msg).parse();
+            final String body = parser.getPlainContent();
+            assertNotNull(body);
+            assertTrue(body.contains("üüü Testing containerized email reception. ä ö ß é à ç"));
+            assertTrue(body.contains("Привет мир / こんにちは世界 / مرحبا"));
+            assertTrue(body.contains("Deployment Success 🚀🎉📧✨"));
+        }
+
+        @Test
+        @DisplayName("Extract MIME text/plain body without charset parameter")
+        public void testTextPlainBodyWithoutCharset() throws Exception
+        {
+            final String raw = """
+                From: sender@external.com\r
+                To: recipient@xcmailr.test\r
+                Subject: Plain without charset\r
+                Content-Type: text/plain\r
+                \r
+                MIME text/plain without explicit charset: ä ö ü ß é à ç 🚀\r
+                """;
+            final MimeMessage msg = JakartaMimeMessageParser.createMimeMessage(raw.getBytes(StandardCharsets.UTF_8));
+            final JakartaMimeMessageParser parser = new JakartaMimeMessageParser(msg).parse();
+            final String body = parser.getPlainContent();
+            assertNotNull(body);
+            assertEquals("MIME text/plain without explicit charset: ä ö ü ß é à ç 🚀", body.trim());
+        }
+
+        @Test
+        @DisplayName("Extract MIME text/html body without charset parameter")
+        public void testTextHtmlBodyWithoutCharset() throws Exception
+        {
+            final String raw = """
+                From: sender@external.com\r
+                To: recipient@xcmailr.test\r
+                Subject: HTML without charset\r
+                Content-Type: text/html\r
+                \r
+                <html><body><p>HTML body without charset: üüü äöß 🚀</p></body></html>\r
+                """;
+            final MimeMessage msg = JakartaMimeMessageParser.createMimeMessage(raw.getBytes(StandardCharsets.UTF_8));
+            final JakartaMimeMessageParser parser = new JakartaMimeMessageParser(msg).parse();
+            final String html = parser.getHtmlContent();
+            assertNotNull(html);
+            assertEquals("<html><body><p>HTML body without charset: üüü äöß 🚀</p></body></html>", html.trim());
+        }
+
+        @Test
+        @DisplayName("Extract bodies with transfer encodings (base64 and quoted-printable) without explicit charset")
+        public void testTransferEncodingsWithoutExplicitCharset() throws Exception
+        {
+            // Base64 text/plain without charset
+            final String rawB64 = """
+                From: sender@external.com\r
+                To: recipient@xcmailr.test\r
+                Subject: Base64 body\r
+                Content-Type: text/plain\r
+                Content-Transfer-Encoding: base64\r
+                \r
+                w7zDvMO8IFRlc3RpbmcgYmFzZTY0IPCfmoA=\r
+                """;
+            final MimeMessage msgB64 = JakartaMimeMessageParser.createMimeMessage(rawB64.getBytes(StandardCharsets.UTF_8));
+            final JakartaMimeMessageParser parserB64 = new JakartaMimeMessageParser(msgB64).parse();
+            assertEquals("üüü Testing base64 🚀", parserB64.getPlainContent().trim());
+
+            // Quoted-Printable text/plain without charset
+            final String rawQP = """
+                From: sender@external.com\r
+                To: recipient@xcmailr.test\r
+                Subject: QP body\r
+                Content-Type: text/plain\r
+                Content-Transfer-Encoding: quoted-printable\r
+                \r
+                =C3=BC=C3=BC=C3=BC Testing quoted-printable =C3=A4=C3=B6=C3=9F\r
+                """;
+            final MimeMessage msgQP = JakartaMimeMessageParser.createMimeMessage(rawQP.getBytes(StandardCharsets.UTF_8));
+            final JakartaMimeMessageParser parserQP = new JakartaMimeMessageParser(msgQP).parse();
+            assertEquals("üüü Testing quoted-printable äöß", parserQP.getPlainContent().trim());
+        }
     }
 
     @Nested
@@ -313,6 +406,93 @@ public class JakartaMimeMessageParserTest
             assertNotNull(subject);
             assertTrue(subject.contains("üöä"), "Subject should contain umlauts: " + subject);
             assertTrue(subject.contains("🚀🎉"), "Subject should contain emojis: " + subject);
+        }
+
+        @Test
+        @DisplayName("Fall back to ISO-8859-1 when untyped body contains malformed UTF-8 sequences")
+        public void testMalformedUtf8BodyFallbackToIso88591() throws Exception
+        {
+            // Untyped email with 0xFC (Latin-1 'ü') which is invalid multi-byte UTF-8 lead byte
+            final byte[] raw = ("From: sender@external.com\r\n"
+                              + "To: recipient@xcmailr.test\r\n"
+                              + "Subject: Malformed UTF-8 body\r\n"
+                              + "\r\n"
+                              + "Legacy Latin-1 body: \u00FC\u00E4\u00F6\r\n").getBytes(StandardCharsets.ISO_8859_1);
+
+            final MimeMessage msg = JakartaMimeMessageParser.createMimeMessage(raw);
+            final JakartaMimeMessageParser parser = new JakartaMimeMessageParser(msg).parse();
+            final String body = parser.getPlainContent();
+            assertNotNull(body);
+            assertEquals("Legacy Latin-1 body: üäö", body.trim());
+        }
+
+        @Test
+        @DisplayName("Fall back safely when Content-Type declares an unsupported charset name")
+        public void testUnsupportedCharsetNameFallback() throws Exception
+        {
+            final String raw = """
+                From: sender@external.com\r
+                To: recipient@xcmailr.test\r
+                Subject: Unsupported charset\r
+                Content-Type: text/plain; charset=UNKNOWN_OR_UNSUPPORTED_XYZ\r
+                \r
+                Testing unsupported charset fallback: üüü äöß\r
+                """;
+            final MimeMessage msg = JakartaMimeMessageParser.createMimeMessage(raw.getBytes(StandardCharsets.UTF_8));
+            final JakartaMimeMessageParser parser = new JakartaMimeMessageParser(msg).parse();
+            final String body = parser.getPlainContent();
+            assertNotNull(body);
+            assertEquals("Testing unsupported charset fallback: üüü äöß", body.trim());
+        }
+    }
+
+    @Nested
+    @DisplayName("Legacy Compatibility and Special Cases")
+    class LegacyCompatibilityAndSpecialCases
+    {
+        @Test
+        @DisplayName("Retain explicit ISO-8859-1 charset without UTF-8 corruption")
+        public void testExplicitIso88591Retention() throws Exception
+        {
+            // In ISO-8859-1, 'ü' is single byte 0xFC (252), 'ä' is 0xE4, 'ö' is 0xF6
+            final byte[] raw = ("From: sender@external.com\r\n"
+                              + "To: recipient@xcmailr.test\r\n"
+                              + "Subject: ISO-8859-1 test\r\n"
+                              + "Content-Type: text/plain; charset=ISO-8859-1\r\n"
+                              + "\r\n"
+                              + "Testing ISO-8859-1: \u00FC\u00E4\u00F6\r\n").getBytes(StandardCharsets.ISO_8859_1);
+
+            final MimeMessage msg = JakartaMimeMessageParser.createMimeMessage(raw);
+            final JakartaMimeMessageParser parser = new JakartaMimeMessageParser(msg).parse();
+            assertEquals("Testing ISO-8859-1: üäö", parser.getPlainContent().trim());
+        }
+
+        @Test
+        @DisplayName("Handle empty and whitespace-only bodies gracefully")
+        public void testEmptyAndWhitespaceBodies() throws Exception
+        {
+            final String rawEmpty = """
+                From: sender@external.com\r
+                To: recipient@xcmailr.test\r
+                Subject: Empty body\r
+                \r
+                """;
+            final MimeMessage msgEmpty = JakartaMimeMessageParser.createMimeMessage(rawEmpty.getBytes(StandardCharsets.UTF_8));
+            final JakartaMimeMessageParser parserEmpty = new JakartaMimeMessageParser(msgEmpty).parse();
+            assertTrue(parserEmpty.getPlainContent() == null || parserEmpty.getPlainContent().isEmpty());
+
+            final String rawWhitespace = """
+                From: sender@external.com\r
+                To: recipient@xcmailr.test\r
+                Subject: Whitespace body\r
+                \r
+                  \t  \r
+                \t\t\r
+                """;
+            final MimeMessage msgWhitespace = JakartaMimeMessageParser.createMimeMessage(rawWhitespace.getBytes(StandardCharsets.UTF_8));
+            final JakartaMimeMessageParser parserWhitespace = new JakartaMimeMessageParser(msgWhitespace).parse();
+            assertNotNull(parserWhitespace.getPlainContent());
+            assertTrue(parserWhitespace.getPlainContent().trim().isEmpty());
         }
     }
 }

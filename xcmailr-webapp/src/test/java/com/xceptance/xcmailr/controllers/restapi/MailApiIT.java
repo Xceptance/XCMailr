@@ -17,6 +17,7 @@ package com.xceptance.xcmailr.controllers.restapi;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import com.xceptance.xcmailr.util.JakartaMimeMessageParser;
@@ -413,5 +415,54 @@ public class MailApiIT
                .header("Authorization", "Bearer " + token))
                .andExpect(status().isForbidden())
                .andExpect(jsonPath("$.errors[0].parameter", is("mailId")));
+    }
+
+    @Test
+    @DisplayName("getMail preserves untyped UTF-8 plain text and HTML bodies without mojibake")
+    public void testGetMailUntypedUtf8Bodies() throws Exception
+    {
+        // 1. Untyped plain text email (no Content-Type header)
+        final String rawUntypedPlain = "From: sender@external.com\r\n"
+            + "To: " + userMailbox.getFullAddress() + "\r\n"
+            + "Subject: Docker Smoke Test ü\r\n"
+            + "\r\n"
+            + "üüü Testing containerized email reception. ä ö ß é à ç 🚀";
+
+        final Mail plainMail = new Mail();
+        plainMail.setSender("sender@external.com");
+        plainMail.setSubject("Docker Smoke Test ü");
+        plainMail.setReceiveTime(System.currentTimeMillis() + 3000L);
+        plainMail.setMessage(rawUntypedPlain.getBytes(StandardCharsets.UTF_8));
+        plainMail.setMailbox(userMailbox);
+        mailRepository.save(plainMail);
+
+        mockMvc.perform(get(API_PREFIX + "/" + plainMail.getId())
+               .header("Authorization", "Bearer " + token))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.subject", is("Docker Smoke Test ü")))
+               .andExpect(jsonPath("$.textContent", is("üüü Testing containerized email reception. ä ö ß é à ç 🚀")))
+               .andExpect(jsonPath("$.textContent", not(org.hamcrest.Matchers.containsString("Ã¼Ã¼Ã¼"))));
+
+        // 2. Untyped HTML email (Content-Type: text/html without charset)
+        final String rawUntypedHtml = "From: sender@external.com\r\n"
+            + "To: " + userMailbox.getFullAddress() + "\r\n"
+            + "Subject: Untyped HTML Test\r\n"
+            + "Content-Type: text/html\r\n"
+            + "\r\n"
+            + "<html><body><p>üüü HTML reception äöß 🚀</p></body></html>";
+
+        final Mail htmlMail = new Mail();
+        htmlMail.setSender("sender@external.com");
+        htmlMail.setSubject("Untyped HTML Test");
+        htmlMail.setReceiveTime(System.currentTimeMillis() + 4000L);
+        htmlMail.setMessage(rawUntypedHtml.getBytes(StandardCharsets.UTF_8));
+        htmlMail.setMailbox(userMailbox);
+        mailRepository.save(htmlMail);
+
+        mockMvc.perform(get(API_PREFIX + "/" + htmlMail.getId())
+               .header("Authorization", "Bearer " + token))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.htmlContent", org.hamcrest.Matchers.containsString("üüü HTML reception äöß 🚀")))
+               .andExpect(jsonPath("$.htmlContent", not(org.hamcrest.Matchers.containsString("Ã¼Ã¼Ã¼"))));
     }
 }

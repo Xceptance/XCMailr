@@ -650,4 +650,58 @@ public class MailWebControllerTest
                .with(user("alice@xcmailr.test").roles("USER")))
                .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails/{mailId} with HX-Request renders untyped UTF-8 plain text and HTML bodies without mojibake")
+    public void testViewUntypedUtf8MailBodiesWithHtmx() throws Exception
+    {
+        // 1. Plain text email without Content-Type header
+        final String rawUntypedPlain = "From: sender@external.com\r\n"
+            + "To: inbox@xcmailr.test\r\n"
+            + "Subject: Docker Smoke Test ü\r\n"
+            + "\r\n"
+            + "üüü Testing containerized email reception. ä ö ß é à ç 🚀";
+
+        final Mail plainMail = new Mail();
+        plainMail.setSender("sender@external.com");
+        plainMail.setSubject("Docker Smoke Test ü");
+        plainMail.setReceiveTime(System.currentTimeMillis() + 1000L);
+        plainMail.setMessage(rawUntypedPlain.getBytes(StandardCharsets.UTF_8));
+        plainMail.setMailbox(aliceBox);
+        mailRepository.save(plainMail);
+
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + plainMail.getId())
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mail-detail :: detail"))
+               .andExpect(model().attribute("plainText", containsString("üüü Testing containerized email reception. ä ö ß é à ç 🚀")))
+               .andExpect(content().string(containsString("üüü Testing containerized email reception. ä ö ß é à ç 🚀")))
+               .andExpect(content().string(not(containsString("Ã¼Ã¼Ã¼"))));
+
+        // 2. HTML email with Content-Type: text/html but without charset parameter
+        final String rawUntypedHtml = "From: sender@external.com\r\n"
+            + "To: inbox@xcmailr.test\r\n"
+            + "Subject: Untyped HTML\r\n"
+            + "Content-Type: text/html\r\n"
+            + "\r\n"
+            + "<p>üüü Untyped HTML reception: äöß 🚀</p>";
+
+        final Mail htmlMail = new Mail();
+        htmlMail.setSender("sender@external.com");
+        htmlMail.setSubject("Untyped HTML");
+        htmlMail.setReceiveTime(System.currentTimeMillis() + 2000L);
+        htmlMail.setMessage(rawUntypedHtml.getBytes(StandardCharsets.UTF_8));
+        htmlMail.setMailbox(aliceBox);
+        mailRepository.save(htmlMail);
+
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + htmlMail.getId())
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mail-detail :: detail"))
+               .andExpect(model().attribute("sanitizedHtml", containsString("üüü Untyped HTML reception: äöß")))
+               .andExpect(content().string(containsString("üüü Untyped HTML reception: äöß")))
+               .andExpect(content().string(not(containsString("Ã¼Ã¼Ã¼"))));
+    }
 }

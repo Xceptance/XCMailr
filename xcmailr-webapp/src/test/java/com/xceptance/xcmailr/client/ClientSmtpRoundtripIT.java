@@ -20,6 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
 
@@ -258,5 +263,121 @@ public class ClientSmtpRoundtripIT
         message.saveChanges();
 
         Transport.send(message);
+    }
+
+    /**
+     * Verifies end-to-end SMTP delivery and REST retrieval of an untyped UTF-8 email
+     * without Content-Type or charset headers (simulating curl plain-text delivery).
+     *
+     * @throws Exception on error
+     */
+    @Test
+    @DisplayName("Verify end-to-end SMTP delivery and REST retrieval of untyped UTF-8 email without Content-Type header")
+    public void testUntypedUtf8EmailSmtpRoundtrip() throws Exception
+    {
+        final MailboxApi mailboxApi = this.client.mailboxes();
+        final MailApi mailApi = this.client.mails();
+
+        final String mailboxAddress = "untyped-utf8@" + DOMAIN;
+        final String senderAddress = "sender@external.com";
+        final String subject = "Docker Smoke Test ü";
+        final String body = "üüü Testing containerized email reception. ä ö ß é à ç 🚀";
+
+        final Mailbox createdBox = mailboxApi.createMailbox(mailboxAddress, 60, false);
+        assertNotNull(createdBox);
+
+        final int smtpPort = this.smtpServerService.getPort();
+        assertTrue(smtpPort > 0);
+
+        final String rawEmail = "From: " + senderAddress + "\r\n"
+            + "To: " + mailboxAddress + "\r\n"
+            + "Subject: " + subject + "\r\n"
+            + "\r\n"
+            + body;
+
+        sendRawSmtpEmail(smtpPort, senderAddress, mailboxAddress, rawEmail.getBytes(StandardCharsets.UTF_8));
+
+        // Poll REST API until message arrives
+        final long timeoutMillis = 10_000L;
+        final long pollIntervalMillis = 250L;
+        final long startTime = System.currentTimeMillis();
+
+        List<xcmailr.client.Mail> receivedMails = List.of();
+        while (System.currentTimeMillis() - startTime < timeoutMillis)
+        {
+            receivedMails = mailApi.listMails(mailboxAddress, null);
+            if (!receivedMails.isEmpty())
+            {
+                break;
+            }
+            Thread.sleep(pollIntervalMillis);
+        }
+
+        assertFalse(receivedMails.isEmpty(), "Email should be retrieved via REST client within timeout");
+        assertEquals(1, receivedMails.size());
+
+        final xcmailr.client.Mail mailSummary = receivedMails.get(0);
+        assertEquals(senderAddress, mailSummary.sender);
+        assertEquals(subject, mailSummary.subject);
+
+        // Fetch full mail detail
+        final xcmailr.client.Mail fullMail = mailApi.getMail(mailSummary.id);
+        assertNotNull(fullMail);
+        assertNotNull(fullMail.textContent);
+        assertTrue(fullMail.textContent.contains(body), "Expected body: " + body + " but got: " + fullMail.textContent);
+        assertFalse(fullMail.textContent.contains("Ã¼Ã¼Ã¼"), "Body should not contain mojibake");
+
+        // Clean up
+        mailApi.deleteMail(fullMail.id);
+        mailboxApi.deleteMailbox(mailboxAddress);
+    }
+
+    private void sendRawSmtpEmail(final int port,
+                                  final String from,
+                                  final String to,
+                                  final byte[] rawEmailBytes) throws Exception
+    {
+        try (final Socket socket = new Socket("127.0.0.1", port);
+             final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+             final OutputStream out = socket.getOutputStream())
+        {
+            readSmtpResponse(reader); // 220 greeting
+
+            sendSmtpCommand(out, "HELO localhost\r\n");
+            readSmtpResponse(reader); // 250
+
+            sendSmtpCommand(out, "MAIL FROM:<" + from + ">\r\n");
+            readSmtpResponse(reader); // 250
+
+            sendSmtpCommand(out, "RCPT TO:<" + to + ">\r\n");
+            readSmtpResponse(reader); // 250
+
+            sendSmtpCommand(out, "DATA\r\n");
+            readSmtpResponse(reader); // 354
+
+            out.write(rawEmailBytes);
+            out.write("\r\n.\r\n".getBytes(StandardCharsets.UTF_8));
+            out.flush();
+            readSmtpResponse(reader); // 250
+
+            sendSmtpCommand(out, "QUIT\r\n");
+            readSmtpResponse(reader); // 221
+        }
+    }
+
+    private void sendSmtpCommand(final OutputStream out, final String cmd) throws Exception
+    {
+        out.write(cmd.getBytes(StandardCharsets.UTF_8));
+        out.flush();
+    }
+
+    private String readSmtpResponse(final BufferedReader reader) throws Exception
+    {
+        String line = reader.readLine();
+        while (line != null && line.length() >= 4 && line.charAt(3) == '-')
+        {
+            line = reader.readLine();
+        }
+        return line;
     }
 }
