@@ -96,6 +96,10 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **WHEN** the mailbox page is displayed on a mobile viewport
 - **THEN** the search input expands to full width and the status filter select element stacks cleanly underneath without horizontal clipping or misaligned margins
 
+#### Scenario: Mailbox Action Dropdown Visibility and Overflow Prevention
+- **WHEN** the user opens the action dropdown menu for any mailbox row in a table container with overflow or few rows
+- **THEN** the dropdown menu is positioned using a fixed viewport boundary strategy so that it renders completely visible without being clipped or hidden by table responsive overflow boundaries
+
 ### Requirement: Admin Management Console
 The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist.
 

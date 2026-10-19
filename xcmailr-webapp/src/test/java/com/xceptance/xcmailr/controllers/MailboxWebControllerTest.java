@@ -15,6 +15,7 @@
  */
 package com.xceptance.xcmailr.controllers;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -25,6 +26,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -624,4 +626,30 @@ public final class MailboxWebControllerTest
         assertFalse(reactivated.isExpired(), "Expired mailbox must be reactivated");
         assertTrue(reactivated.getTs_Active() > System.currentTimeMillis(), "Validity must extend into the future");
     }
+
+    /**
+     * Verifies that the rendered mailbox table outputs dropdown action toggles configured with
+     * Popper viewport boundary and fixed positioning strategy to prevent overflow clipping
+     * in responsive table containers.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special case: mailbox action dropdown toggle includes fixed popper and viewport boundary attributes")
+    public void testMailboxActionDropdownPopperConfiguration() throws Exception
+    {
+        // GIVEN a persisted mailbox for the user
+        final MBox box = new MBox("dropdown-test", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
+        mailboxRepository.save(box);
+
+        // WHEN requesting the mailbox table fragment
+        // THEN the dropdown toggle button must define viewport boundary and fixed Popper strategy
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("data-bs-boundary=\"viewport\"")))
+               .andExpect(content().string(containsString("data-bs-popper-config='{\"strategy\":\"fixed\"}'")));
+    }
 }
+
