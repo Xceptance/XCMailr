@@ -24,6 +24,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -82,14 +84,16 @@ public class ProfileControllerTest
     }
 
     @Test
-    @DisplayName("GET /profile should display profile view for authenticated user")
+    @DisplayName("GET /profile should display profile view for authenticated user with password policy guidance")
     public void testGetProfileAuthenticated() throws Exception
     {
         mockMvc.perform(get("/profile")
                .with(user("john.doe@xcmailr.test").roles("USER")))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attributeExists("user"));
+               .andExpect(model().attributeExists("user"))
+               .andExpect(content().string(containsString("minlength=\"10\"")))
+               .andExpect(content().string(containsString("Password requirements:")));
     }
 
     @Test
@@ -148,7 +152,83 @@ public class ProfileControllerTest
                .param("confirmNewPassword", "NewSecurePassword456!"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attributeExists("errorMessage"));
+               .andExpect(model().attribute("errorMessage", "Current password does not match."));
+    }
+
+    @Test
+    @DisplayName("POST /profile/change-password with mismatched new passwords should return error")
+    public void testChangePasswordMismatchedPasswords() throws Exception
+    {
+        mockMvc.perform(post("/profile/change-password")
+               .with(user("john.doe@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123")
+               .param("newPassword", "NewSecurePassword456!")
+               .param("confirmNewPassword", "DifferentPassword456!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "New passwords do not match."));
+    }
+
+    @Test
+    @DisplayName("POST /profile/change-password with new password shorter than 10 chars should reject")
+    public void testChangePasswordTooShort() throws Exception
+    {
+        mockMvc.perform(post("/profile/change-password")
+               .with(user("john.doe@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123")
+               .param("newPassword", "Short9!")
+               .param("confirmNewPassword", "Short9!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Password must be at least 10 characters long."));
+    }
+
+    @Test
+    @DisplayName("POST /profile/change-password with new password exceeding 128 chars should reject")
+    public void testChangePasswordTooLong() throws Exception
+    {
+        final String longPassword = "B".repeat(129);
+        mockMvc.perform(post("/profile/change-password")
+               .with(user("john.doe@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123")
+               .param("newPassword", longPassword)
+               .param("confirmNewPassword", longPassword))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Password must not exceed 128 characters."));
+    }
+
+    @Test
+    @DisplayName("POST /profile/change-password with new password containing username should reject")
+    public void testChangePasswordContainsUserName() throws Exception
+    {
+        mockMvc.perform(post("/profile/change-password")
+               .with(user("john.doe@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123")
+               .param("newPassword", "SecretJohnDoe2026!")
+               .param("confirmNewPassword", "SecretJohnDoe2026!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+    }
+
+    @Test
+    @DisplayName("POST /profile/change-password with single repeated character should reject")
+    public void testChangePasswordRepetition() throws Exception
+    {
+        mockMvc.perform(post("/profile/change-password")
+               .with(user("john.doe@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123")
+               .param("newPassword", "zzzzzzzzzzzz")
+               .param("confirmNewPassword", "zzzzzzzzzzzz"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Password cannot consist of a single repeated character."));
     }
 
     @Test

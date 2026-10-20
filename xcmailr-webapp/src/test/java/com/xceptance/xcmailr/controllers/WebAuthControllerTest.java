@@ -19,9 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -88,12 +90,33 @@ public class WebAuthControllerTest
     }
 
     @Test
-    @DisplayName("GET /register should display registration view")
+    @DisplayName("GET /register should display registration view with password requirements")
     public void testRegisterPage() throws Exception
     {
         mockMvc.perform(get("/register"))
                .andExpect(status().isOk())
-               .andExpect(view().name("auth/register"));
+               .andExpect(view().name("auth/register"))
+               .andExpect(content().string(containsString("minlength=\"10\"")))
+               .andExpect(content().string(containsString("maxlength=\"128\"")))
+               .andExpect(content().string(containsString("Password requirements:")));
+    }
+
+    @Test
+    @DisplayName("GET /pwreset/{token} with valid token should display reset password view with requirements")
+    public void testResetPasswordPage() throws Exception
+    {
+        final User user = new User("Token", "User", "token.user@xcmailr.test", passwordEncoder.encode("secret1234"), "en");
+        user.setActive(true);
+        user.setConfirmation("view-test-token");
+        user.setTs_confirm(System.currentTimeMillis() + 86_400_000L);
+        userRepository.save(user);
+
+        mockMvc.perform(get("/pwreset/view-test-token"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(content().string(containsString("minlength=\"10\"")))
+               .andExpect(content().string(containsString("maxlength=\"128\"")))
+               .andExpect(content().string(containsString("Password requirements:")));
     }
 
     @Test
@@ -234,8 +257,8 @@ public class WebAuthControllerTest
                .param("forename", "Hans")
                .param("surname", "Kanns")
                .param("mail", "hans.kanns@varmail.de")
-               .param("password", "123456")
-               .param("confirmPassword", "123456"))
+               .param("password", "ValidSecret123!")
+               .param("confirmPassword", "ValidSecret123!"))
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/login?registered"));
 
@@ -249,7 +272,7 @@ public class WebAuthControllerTest
         mockMvc.perform(post("/login")
                .with(csrf())
                .param("mail", "hans.kanns@varmail.de")
-               .param("password", "123456"))
+               .param("password", "ValidSecret123!"))
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/login?unconfirmed"));
 
@@ -267,7 +290,7 @@ public class WebAuthControllerTest
         mockMvc.perform(post("/login")
                .with(csrf())
                .param("mail", "hans.kanns@varmail.de")
-               .param("password", "123456"))
+               .param("password", "ValidSecret123!"))
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/"));
     }
@@ -331,7 +354,7 @@ public class WebAuthControllerTest
     }
 
     @Test
-    @DisplayName("POST /register with password shorter than 6 characters should reject")
+    @DisplayName("POST /register with password shorter than 10 characters should reject")
     public void testRegisterShortPassword() throws Exception
     {
         mockMvc.perform(post("/register")
@@ -339,11 +362,168 @@ public class WebAuthControllerTest
                .param("forename", "Short")
                .param("surname", "Pass")
                .param("mail", "shortpass@xcmailr.test")
-               .param("password", "12345")
-               .param("confirmPassword", "12345"))
+               .param("password", "Short9!")
+               .param("confirmPassword", "Short9!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password must be at least 6 characters long."));
+               .andExpect(model().attribute("errorMessage", "Password must be at least 10 characters long."));
+    }
+
+    @Test
+    @DisplayName("POST /register with password exceeding 128 characters should reject")
+    public void testRegisterPasswordTooLong() throws Exception
+    {
+        final String longPassword = "A".repeat(129);
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Long")
+               .param("surname", "Pass")
+               .param("mail", "longpass@xcmailr.test")
+               .param("password", longPassword)
+               .param("confirmPassword", longPassword))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Password must not exceed 128 characters."));
+    }
+
+    @Test
+    @DisplayName("POST /register with password containing forename should reject")
+    public void testRegisterPasswordContainsForename() throws Exception
+    {
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Alexander")
+               .param("surname", "Hamilton")
+               .param("mail", "ah@xcmailr.test")
+               .param("password", "MyAlexanderPass!")
+               .param("confirmPassword", "MyAlexanderPass!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+    }
+
+    @Test
+    @DisplayName("POST /register with password containing surname should reject")
+    public void testRegisterPasswordContainsSurname() throws Exception
+    {
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Alexander")
+               .param("surname", "Hamilton")
+               .param("mail", "ah@xcmailr.test")
+               .param("password", "MyHamiltonPass!")
+               .param("confirmPassword", "MyHamiltonPass!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+    }
+
+    @Test
+    @DisplayName("POST /register with password containing mail local-part should reject")
+    public void testRegisterPasswordContainsMailLocalPart() throws Exception
+    {
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Alexander")
+               .param("surname", "Hamilton")
+               .param("mail", "alex.hamilton@xcmailr.test")
+               .param("password", "alex.hamilton2026!")
+               .param("confirmPassword", "alex.hamilton2026!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+    }
+
+    @Test
+    @DisplayName("POST /register with single repeating character should reject")
+    public void testRegisterPasswordRepetition() throws Exception
+    {
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Trivial")
+               .param("surname", "Pass")
+               .param("mail", "trivial@xcmailr.test")
+               .param("password", "aaaaaaaaaaaa")
+               .param("confirmPassword", "aaaaaaaaaaaa"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Password cannot consist of a single repeated character."));
+    }
+
+    @Test
+    @DisplayName("POST /pwreset/{token} with password shorter than 10 characters should reject")
+    public void testResetPasswordShortPassword() throws Exception
+    {
+        final User user = new User("Grace", "Hopper", "grace@xcmailr.test", passwordEncoder.encode("oldPassword123!"), "en");
+        user.setActive(true);
+        user.setConfirmation("reset-token-grace");
+        user.setTs_confirm(System.currentTimeMillis() + 86_400_000L);
+        userRepository.save(user);
+
+        mockMvc.perform(post("/pwreset/reset-token-grace")
+               .with(csrf())
+               .param("password", "Short9!")
+               .param("confirmPassword", "Short9!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(model().attribute("errorMessage", "Password must be at least 10 characters long."));
+    }
+
+    @Test
+    @DisplayName("POST /pwreset/{token} with password containing user context should reject")
+    public void testResetPasswordContainsUserName() throws Exception
+    {
+        final User user = new User("Grace", "Hopper", "grace.hopper@xcmailr.test", passwordEncoder.encode("oldPassword123!"), "en");
+        user.setActive(true);
+        user.setConfirmation("reset-token-grace2");
+        user.setTs_confirm(System.currentTimeMillis() + 86_400_000L);
+        userRepository.save(user);
+
+        mockMvc.perform(post("/pwreset/reset-token-grace2")
+               .with(csrf())
+               .param("password", "NewHopperSecret2026!")
+               .param("confirmPassword", "NewHopperSecret2026!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+    }
+
+    @Test
+    @DisplayName("POST /pwreset/{token} with mismatched passwords should reject")
+    public void testResetPasswordMismatchedPasswords() throws Exception
+    {
+        final User user = new User("Grace", "Hopper", "grace.hopper2@xcmailr.test", passwordEncoder.encode("oldPassword123!"), "en");
+        user.setActive(true);
+        user.setConfirmation("reset-token-grace3");
+        user.setTs_confirm(System.currentTimeMillis() + 86_400_000L);
+        userRepository.save(user);
+
+        mockMvc.perform(post("/pwreset/reset-token-grace3")
+               .with(csrf())
+               .param("password", "ValidSecretPassword123!")
+               .param("confirmPassword", "DifferentPassword123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(model().attribute("errorMessage", "Passwords do not match."));
+    }
+
+    @Test
+    @DisplayName("POST /pwreset/{token} with single repeating character should reject")
+    public void testResetPasswordRepetition() throws Exception
+    {
+        final User user = new User("Grace", "Hopper", "grace.hopper3@xcmailr.test", passwordEncoder.encode("oldPassword123!"), "en");
+        user.setActive(true);
+        user.setConfirmation("reset-token-grace4");
+        user.setTs_confirm(System.currentTimeMillis() + 86_400_000L);
+        userRepository.save(user);
+
+        mockMvc.perform(post("/pwreset/reset-token-grace4")
+               .with(csrf())
+               .param("password", "111111111111")
+               .param("confirmPassword", "111111111111"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(model().attribute("errorMessage", "Password cannot consist of a single repeated character."));
     }
 
     @Test

@@ -15,6 +15,7 @@
  */
 package com.xceptance.xcmailr.controllers;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.xceptance.xcmailr.config.XcmailrProperties;
 import com.xceptance.xcmailr.repositories.UserRepository;
+import com.xceptance.xcmailr.security.PasswordContext;
+import com.xceptance.xcmailr.security.PasswordValidationResult;
+import com.xceptance.xcmailr.security.PasswordValidator;
 import com.xceptance.xcmailr.services.OutboundMailService;
 
 import models.User;
@@ -50,16 +54,19 @@ public class WebAuthController
     private final PasswordEncoder passwordEncoder;
     private final OutboundMailService outboundMailService;
     private final XcmailrProperties properties;
+    private final PasswordValidator passwordValidator;
 
     public WebAuthController(final UserRepository userRepository,
                              final PasswordEncoder passwordEncoder,
                              final OutboundMailService outboundMailService,
-                             final XcmailrProperties properties)
+                             final XcmailrProperties properties,
+                             final PasswordValidator passwordValidator)
     {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.outboundMailService = outboundMailService;
         this.properties = properties;
+        this.passwordValidator = passwordValidator;
     }
 
     /**
@@ -113,16 +120,18 @@ public class WebAuthController
                                  @RequestParam(value = "language", defaultValue = "en") final String language,
                                  final Model model)
     {
-        if (password == null || password.length() < 6)
+        if (!Objects.equals(password, confirmPassword))
         {
-            model.addAttribute("errorMessage", "Password must be at least 6 characters long.");
+            model.addAttribute("errorMessage", "Passwords do not match.");
             populateForm(model, forename, surname, mail);
             return "auth/register";
         }
 
-        if (!password.equals(confirmPassword))
+        final PasswordContext passwordContext = PasswordContext.of(forename, surname, mail);
+        final PasswordValidationResult validationResult = passwordValidator.validate(password, passwordContext);
+        if (!validationResult.isValid())
         {
-            model.addAttribute("errorMessage", "Passwords do not match.");
+            model.addAttribute("errorMessage", validationResult.errorMessage());
             populateForm(model, forename, surname, mail);
             return "auth/register";
         }
@@ -304,16 +313,18 @@ public class WebAuthController
         }
 
         final User user = userOpt.get();
-        if (password == null || password.length() < 6)
+        if (!Objects.equals(password, confirmPassword))
         {
-            model.addAttribute("errorMessage", "Password must be at least 6 characters long.");
+            model.addAttribute("errorMessage", "Passwords do not match.");
             model.addAttribute("token", token);
             return "auth/reset-password";
         }
 
-        if (!password.equals(confirmPassword))
+        final PasswordContext passwordContext = PasswordContext.fromUser(user);
+        final PasswordValidationResult validationResult = passwordValidator.validate(password, passwordContext);
+        if (!validationResult.isValid())
         {
-            model.addAttribute("errorMessage", "Passwords do not match.");
+            model.addAttribute("errorMessage", validationResult.errorMessage());
             model.addAttribute("token", token);
             return "auth/reset-password";
         }

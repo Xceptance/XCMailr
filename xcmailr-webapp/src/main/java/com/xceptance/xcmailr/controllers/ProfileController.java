@@ -19,6 +19,7 @@ import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -32,6 +33,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.xceptance.xcmailr.repositories.UserRepository;
+import com.xceptance.xcmailr.security.PasswordContext;
+import com.xceptance.xcmailr.security.PasswordValidationResult;
+import com.xceptance.xcmailr.security.PasswordValidator;
 
 import models.User;
 
@@ -50,12 +54,15 @@ public class ProfileController
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordValidator passwordValidator;
 
     public ProfileController(final UserRepository userRepository,
-                             final PasswordEncoder passwordEncoder)
+                             final PasswordEncoder passwordEncoder,
+                             final PasswordValidator passwordValidator)
     {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.passwordValidator = passwordValidator;
     }
 
     /**
@@ -69,14 +76,7 @@ public class ProfileController
     public String showProfile(final Principal principal, final Model model)
     {
         final User user = getUser(principal);
-        model.addAttribute("user", user);
-
-        if (user.getApiTokenCreationTimestamp() > 0)
-        {
-            final String formatted = DATE_FORMATTER.format(Instant.ofEpochMilli(user.getApiTokenCreationTimestamp()));
-            model.addAttribute("tokenCreationDate", formatted);
-        }
-
+        populateProfileModel(model, user);
         return "user/profile";
     }
 
@@ -106,10 +106,11 @@ public class ProfileController
     }
 
     /**
-     * Changes user account password after validating old password.
+     * Changes user account password after validating old password against stored hash and new password against
+     * modern OWASP ASVS v4.0 and NIST SP 800-63B guidelines.
      *
      * @param currentPassword current plaintext password
-     * @param newPassword new password
+     * @param newPassword new password candidate
      * @param confirmNewPassword new password confirmation
      * @param principal authenticated user principal
      * @param model template model
@@ -126,22 +127,24 @@ public class ProfileController
 
         if (!passwordEncoder.matches(currentPassword, user.getPasswd()))
         {
-            model.addAttribute("user", user);
+            populateProfileModel(model, user);
             model.addAttribute("errorMessage", "Current password does not match.");
             return "user/profile";
         }
 
-        if (newPassword == null || newPassword.length() < 6)
+        if (!Objects.equals(newPassword, confirmNewPassword))
         {
-            model.addAttribute("user", user);
-            model.addAttribute("errorMessage", "New password must be at least 6 characters long.");
+            populateProfileModel(model, user);
+            model.addAttribute("errorMessage", "New passwords do not match.");
             return "user/profile";
         }
 
-        if (!newPassword.equals(confirmNewPassword))
+        final PasswordContext passwordContext = PasswordContext.fromUser(user);
+        final PasswordValidationResult validationResult = passwordValidator.validate(newPassword, passwordContext);
+        if (!validationResult.isValid())
         {
-            model.addAttribute("user", user);
-            model.addAttribute("errorMessage", "New passwords do not match.");
+            populateProfileModel(model, user);
+            model.addAttribute("errorMessage", validationResult.errorMessage());
             return "user/profile";
         }
 
@@ -150,6 +153,16 @@ public class ProfileController
 
         LOG.info("Password successfully changed for user {}", user.getMail());
         return "redirect:/profile?passwordChanged";
+    }
+
+    private void populateProfileModel(final Model model, final User user)
+    {
+        model.addAttribute("user", user);
+        if (user.getApiTokenCreationTimestamp() > 0)
+        {
+            final String formatted = DATE_FORMATTER.format(Instant.ofEpochMilli(user.getApiTokenCreationTimestamp()));
+            model.addAttribute("tokenCreationDate", formatted);
+        }
     }
 
     /**

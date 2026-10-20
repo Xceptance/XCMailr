@@ -40,12 +40,23 @@
 
                     <div class="mb-3">
                         <label for="password" class="form-label fw-semibold">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required placeholder="Minimum 6 characters">
+                        <input type="password" class="form-control" id="password" name="password" minlength="10" maxlength="128" required placeholder="At least 10 characters">
+                        <div class="form-text text-muted mt-1">
+                            <small>
+                                Password requirements:
+                                <ul class="ps-3 mb-0">
+                                    <li>At least 10 characters (up to 128)</li>
+                                    <li>Must not contain your name or email address</li>
+                                    <li>Must not consist of a single repeated character</li>
+                                    <li>Spaces, numbers, symbols, and Unicode characters are allowed</li>
+                                </ul>
+                            </small>
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="confirmPassword" class="form-label fw-semibold">Confirm Password</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required placeholder="Repeat password">
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" minlength="10" maxlength="128" required placeholder="Repeat password">
                     </div>
 
                     <div class="mb-3">
