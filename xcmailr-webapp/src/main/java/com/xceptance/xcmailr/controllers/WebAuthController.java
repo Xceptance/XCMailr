@@ -148,7 +148,19 @@ public class WebAuthController
         user.setForename(forename.trim());
         user.setSurname(surname.trim());
         user.setMail(cleanMail);
-        user.setPasswd(passwordEncoder.encode(password));
+
+        try
+        {
+            user.setPasswd(passwordEncoder.encode(password));
+        }
+        catch (final IllegalArgumentException e)
+        {
+            LOG.warn("Failed to encode password during registration for {}: {}", cleanMail, e.getMessage());
+            model.addAttribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits).");
+            populateForm(model, forename, surname, cleanMail);
+            return "auth/register";
+        }
+
         user.setLanguage(language);
 
         final boolean requireConfirmation = properties.getApp().isRequireConfirmation();
@@ -329,7 +341,18 @@ public class WebAuthController
             return "auth/reset-password";
         }
 
-        user.setPasswd(passwordEncoder.encode(password));
+        try
+        {
+            user.setPasswd(passwordEncoder.encode(password));
+        }
+        catch (final IllegalArgumentException e)
+        {
+            LOG.warn("Failed to encode password during password reset for {}: {}", user.getMail(), e.getMessage());
+            model.addAttribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits).");
+            model.addAttribute("token", token);
+            return "auth/reset-password";
+        }
+
         user.setConfirmation(null);
         user.setTs_confirm(null);
         userRepository.save(user);

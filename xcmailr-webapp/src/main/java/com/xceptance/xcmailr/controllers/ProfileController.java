@@ -148,7 +148,18 @@ public class ProfileController
             return "user/profile";
         }
 
-        user.setPasswd(passwordEncoder.encode(newPassword));
+        try
+        {
+            user.setPasswd(passwordEncoder.encode(newPassword));
+        }
+        catch (final IllegalArgumentException e)
+        {
+            LOG.warn("Failed to encode password during password change for {}: {}", user.getMail(), e.getMessage());
+            populateProfileModel(model, user);
+            model.addAttribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits).");
+            return "user/profile";
+        }
+
         userRepository.save(user);
 
         LOG.info("Password successfully changed for user {}", user.getMail());

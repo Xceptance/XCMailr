@@ -84,6 +84,24 @@ class PasswordValidatorTest
             assertTrue(result.isValid());
             assertNull(result.errorMessage());
         }
+        @Test
+        @DisplayName("Accepts password of exactly 10 characters (boundary min length)")
+        void acceptsTenCharacters()
+        {
+            final PasswordValidationResult result = validator.validate("1234567890");
+            assertTrue(result.isValid());
+            assertNull(result.errorMessage());
+        }
+
+        @Test
+        @DisplayName("Accepts password of exactly 72 characters (boundary max length)")
+        void acceptsSeventyTwoCharacters()
+        {
+            final String maxPassword = "A".repeat(36) + "B".repeat(36);
+            final PasswordValidationResult result = validator.validate(maxPassword);
+            assertTrue(result.isValid());
+            assertNull(result.errorMessage());
+        }
     }
 
     @Nested
@@ -120,32 +138,55 @@ class PasswordValidatorTest
         }
 
         @Test
-        @DisplayName("Accepts password of exactly 10 characters (boundary min length)")
-        void acceptsTenCharacters()
+        @DisplayName("Rejects password of 73 characters (boundary exceeding max length)")
+        void rejectsSeventyThreeCharacters()
         {
-            final PasswordValidationResult result = validator.validate("1234567890");
-            assertTrue(result.isValid());
-            assertNull(result.errorMessage());
-        }
-
-        @Test
-        @DisplayName("Accepts password of exactly 128 characters (boundary max length)")
-        void acceptsOneHundredTwentyEightCharacters()
-        {
-            final String maxPassword = "A".repeat(64) + "B".repeat(64);
-            final PasswordValidationResult result = validator.validate(maxPassword);
-            assertTrue(result.isValid());
-            assertNull(result.errorMessage());
-        }
-
-        @Test
-        @DisplayName("Rejects password of 129 characters (boundary exceeding max length)")
-        void rejectsOneHundredTwentyNineCharacters()
-        {
-            final String tooLongPassword = "A".repeat(64) + "B".repeat(65);
+            final String tooLongPassword = "A".repeat(36) + "B".repeat(37);
             final PasswordValidationResult result = validator.validate(tooLongPassword);
             assertFalse(result.isValid());
-            assertTrue(result.errorMessage().contains("not exceed 128 characters"));
+            assertTrue(result.errorMessage().contains("cannot exceed 72 characters"));
+        }
+
+        @Test
+        @DisplayName("Rejects user manual test case of 128 characters")
+        void rejectsManualTest128Characters()
+        {
+            final String userPass128 = "RfYfJm8wVe3jJzOVTwsL0ibnuyWmJthLPhNYe42pJmvdxL4mAY59AofqPCnTp0RDQt1rwI0hYOBrjueAGlYm1Nnsmc98vQH19mt93jyY5zJzU1MRAieuJVdUeu5X2cmN";
+            final PasswordValidationResult result = validator.validate(userPass128);
+            assertFalse(result.isValid());
+            assertTrue(result.errorMessage().contains("cannot exceed 72 characters"));
+        }
+
+        @Test
+        @DisplayName("Rejects user manual test case of 129 characters")
+        void rejectsManualTest129Characters()
+        {
+            final String userPass129 = "RfYfJm8wVe3jJzOVTwsL0ibnuyWmJthLPhNYe42pJmvdxL4mAY59AofqPCnTp0RDQt1rwI0hYOBrjueAGlYm1Nnsmc98vQH19mt93jyY5zJzU1MRAieuJVdUeu5X2cmNQ";
+            final PasswordValidationResult result = validator.validate(userPass129);
+            assertFalse(result.isValid());
+            assertTrue(result.errorMessage().contains("cannot exceed 72 characters"));
+        }
+
+        @Test
+        @DisplayName("Rejects multibyte emojis exceeding 72 bytes even when character count is small")
+        void rejectsMultibyteEmojisExceedingByteLimit()
+        {
+            // 25 emojis = 25 characters, but 25 * 4 bytes = 100 bytes (> 72 bytes)
+            final String emojiPass = "🚀".repeat(25);
+            final PasswordValidationResult result = validator.validate(emojiPass);
+            assertFalse(result.isValid());
+            assertTrue(result.errorMessage().contains("cannot exceed 72 bytes"));
+        }
+
+        @Test
+        @DisplayName("Rejects multibyte umlauts exceeding 72 bytes even when character count is below 72")
+        void rejectsMultibyteUmlautsExceedingByteLimit()
+        {
+            // 40 umlauts = 40 characters (< 72), but 40 * 2 bytes = 80 bytes (> 72 bytes)
+            final String umlautPass = "ä".repeat(40);
+            final PasswordValidationResult result = validator.validate(umlautPass);
+            assertFalse(result.isValid());
+            assertTrue(result.errorMessage().contains("cannot exceed 72 bytes"));
         }
 
         @Test

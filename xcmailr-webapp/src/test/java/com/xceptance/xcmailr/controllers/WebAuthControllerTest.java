@@ -70,6 +70,12 @@ public class WebAuthControllerTest
     @Autowired
     private XcmailrProperties properties;
 
+    @Autowired
+    private com.xceptance.xcmailr.services.OutboundMailService outboundMailService;
+
+    @Autowired
+    private com.xceptance.xcmailr.security.PasswordValidator passwordValidator;
+
     @BeforeEach
     public void setup()
     {
@@ -97,7 +103,8 @@ public class WebAuthControllerTest
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
                .andExpect(content().string(containsString("minlength=\"10\"")))
-               .andExpect(content().string(containsString("maxlength=\"128\"")))
+               .andExpect(content().string(containsString("maxlength=\"72\"")))
+               .andExpect(content().string(containsString("At least 10 characters (up to 72)")))
                .andExpect(content().string(containsString("Password requirements:")));
     }
 
@@ -115,7 +122,8 @@ public class WebAuthControllerTest
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
                .andExpect(content().string(containsString("minlength=\"10\"")))
-               .andExpect(content().string(containsString("maxlength=\"128\"")))
+               .andExpect(content().string(containsString("maxlength=\"72\"")))
+               .andExpect(content().string(containsString("At least 10 characters (up to 72)")))
                .andExpect(content().string(containsString("Password requirements:")));
     }
 
@@ -245,6 +253,33 @@ public class WebAuthControllerTest
                .andExpect(redirectedUrl("/login?error"));
     }
 
+    /**
+     * Verifies backward compatibility: ensures existing database user credentials hashed with
+     * standard BCrypt (prior to password policy alignment) continue to authenticate cleanly via /login.
+     */
+    @Test
+    @DisplayName("POST /login with pre-existing legacy BCrypt hash in database should authenticate successfully")
+    public void testLegacyBcryptHashLoginSuccess() throws Exception
+    {
+        // Simulate an existing database user created before password policy alignment
+        final User user = new User();
+        user.setForename("Legacy");
+        user.setSurname("User");
+        user.setMail("legacy.user@xcmailr.test");
+        // Explicitly set a standard BCrypt hash in the database
+        user.setPasswd(passwordEncoder.encode("LegacySecret123!"));
+        user.setActive(true);
+        userRepository.save(user);
+
+        // Verify successful authentication and redirection to dashboard root
+        mockMvc.perform(post("/login")
+               .with(csrf())
+               .param("mail", "legacy.user@xcmailr.test")
+               .param("password", "LegacySecret123!"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/"));
+    }
+
     @Test
     @DisplayName("Roundtrip: Email confirmation flow (register -> login blocked with ?unconfirmed -> confirm token -> login succeeds)")
     public void testEmailConfirmationRoundtrip() throws Exception
@@ -370,20 +405,112 @@ public class WebAuthControllerTest
     }
 
     @Test
-    @DisplayName("POST /register with password exceeding 128 characters should reject")
-    public void testRegisterPasswordTooLong() throws Exception
+    @DisplayName("POST /register with valid 72-character password should succeed and encode without error")
+    public void testRegisterPasswordMaxBoundary72Chars() throws Exception
     {
-        final String longPassword = "A".repeat(129);
+        final String boundary72 = "SecureLimitPassword72---" + "a".repeat(40) + "-End72!";
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Boundary")
+               .param("surname", "User")
+               .param("mail", "boundary72@xcmailr.test")
+               .param("password", boundary72)
+               .param("confirmPassword", boundary72))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?registered"));
+
+        final User user = userRepository.findByMailIgnoreCase("boundary72@xcmailr.test").orElseThrow();
+        assertTrue(passwordEncoder.matches(boundary72, user.getPasswd()), "72-char password must be encoded and match");
+    }
+
+    @Test
+    @DisplayName("POST /register with password exceeding 72 characters should reject")
+    public void testRegisterPasswordExceeding72Chars() throws Exception
+    {
+        final String password73 = "A".repeat(73);
         mockMvc.perform(post("/register")
                .with(csrf())
                .param("forename", "Long")
                .param("surname", "Pass")
-               .param("mail", "longpass@xcmailr.test")
-               .param("password", longPassword)
-               .param("confirmPassword", longPassword))
+               .param("mail", "longpass73@xcmailr.test")
+               .param("password", password73)
+               .param("confirmPassword", password73))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password must not exceed 128 characters."));
+               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+    }
+
+    @Test
+    @DisplayName("POST /register with 128-character password should reject cleanly without HTTP 500")
+    public void testRegisterPassword128Chars() throws Exception
+    {
+        final String password128 = "RfYfJm8wVe3jJzOVTwsL0ibnuyWmJthLPhNYe42pJmvdxL4mAY59AofqPCnTp0RDQt1rwI0hYOBrjueAGlYm1Nnsmc98vQH19mt93jyY5zJzU1MRAieuJVdUeu5X2cmN";
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Manual")
+               .param("surname", "Case128")
+               .param("mail", "case128@xcmailr.test")
+               .param("password", password128)
+               .param("confirmPassword", password128))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+    }
+
+    @Test
+    @DisplayName("POST /register with 129-character password should reject cleanly without HTTP 500")
+    public void testRegisterPassword129Chars() throws Exception
+    {
+        final String password129 = "RfYfJm8wVe3jJzOVTwsL0ibnuyWmJthLPhNYe42pJmvdxL4mAY59AofqPCnTp0RDQt1rwI0hYOBrjueAGlYm1Nnsmc98vQH19mt93jyY5zJzU1MRAieuJVdUeu5X2cmNQ";
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Manual")
+               .param("surname", "Case129")
+               .param("mail", "case129@xcmailr.test")
+               .param("password", password129)
+               .param("confirmPassword", password129))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+    }
+
+    @Test
+    @DisplayName("POST /register with multibyte password exceeding 72 bytes should reject")
+    public void testRegisterPasswordMultibyteByteOverflow() throws Exception
+    {
+        final String emojiPassword = "🚀".repeat(25); // 25 characters, 100 UTF-8 bytes
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Emoji")
+               .param("surname", "User")
+               .param("mail", "emoji@xcmailr.test")
+               .param("password", emojiPassword)
+               .param("confirmPassword", emojiPassword))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 bytes (special or non-Latin characters use multiple bytes)."));
+    }
+
+    @Test
+    @DisplayName("POST /register should catch unexpected IllegalArgumentException from encoder and return error view")
+    public void testRegisterDefensiveEncoderCatch() throws Exception
+    {
+        final PasswordEncoder failingEncoder = org.mockito.Mockito.mock(PasswordEncoder.class);
+        org.mockito.Mockito.when(failingEncoder.encode(org.mockito.ArgumentMatchers.anyString()))
+                           .thenThrow(new IllegalArgumentException("password cannot be more than 72 bytes"));
+
+        final WebAuthController defensiveController = new WebAuthController(userRepository, failingEncoder, outboundMailService, properties, passwordValidator);
+        final MockMvc defensiveMockMvc = MockMvcBuilders.standaloneSetup(defensiveController).build();
+
+        defensiveMockMvc.perform(post("/register")
+                        .param("forename", "Defensive")
+                        .param("surname", "User")
+                        .param("mail", "defensive@xcmailr.test")
+                        .param("password", "ValidSecretPassword123!")
+                        .param("confirmPassword", "ValidSecretPassword123!"))
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("auth/register"))
+                        .andExpect(model().attribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits)."));
     }
 
     @Test
@@ -524,6 +651,93 @@ public class WebAuthControllerTest
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
                .andExpect(model().attribute("errorMessage", "Password cannot consist of a single repeated character."));
+    }
+
+    @Test
+    @DisplayName("POST /pwreset/{token} with valid 72-character password should succeed and encode without error")
+    public void testResetPasswordMaxBoundary72Chars() throws Exception
+    {
+        final User user = new User("Boundary", "Reset", "boundary.reset@xcmailr.test", passwordEncoder.encode("oldPassword123!"), "en");
+        user.setActive(true);
+        user.setConfirmation("reset-token-72chars");
+        user.setTs_confirm(System.currentTimeMillis() + 86_400_000L);
+        userRepository.save(user);
+
+        final String boundary72 = "SecureLimitPassword72---" + "a".repeat(40) + "-End72!";
+        mockMvc.perform(post("/pwreset/reset-token-72chars")
+               .with(csrf())
+               .param("password", boundary72)
+               .param("confirmPassword", boundary72))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?passwordReset"));
+
+        final User updated = userRepository.findById(user.getId()).orElseThrow();
+        assertTrue(passwordEncoder.matches(boundary72, updated.getPasswd()), "72-char reset password must be encoded and match");
+    }
+
+    @Test
+    @DisplayName("POST /pwreset/{token} with 128-character password should reject cleanly")
+    public void testResetPassword128Chars() throws Exception
+    {
+        final User user = new User("Grace", "Hopper", "grace.hopper128@xcmailr.test", passwordEncoder.encode("oldPassword123!"), "en");
+        user.setActive(true);
+        user.setConfirmation("reset-token-128");
+        user.setTs_confirm(System.currentTimeMillis() + 86_400_000L);
+        userRepository.save(user);
+
+        final String password128 = "RfYfJm8wVe3jJzOVTwsL0ibnuyWmJthLPhNYe42pJmvdxL4mAY59AofqPCnTp0RDQt1rwI0hYOBrjueAGlYm1Nnsmc98vQH19mt93jyY5zJzU1MRAieuJVdUeu5X2cmN";
+        mockMvc.perform(post("/pwreset/reset-token-128")
+               .with(csrf())
+               .param("password", password128)
+               .param("confirmPassword", password128))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+    }
+
+    @Test
+    @DisplayName("POST /pwreset/{token} with 129-character password should reject cleanly")
+    public void testResetPassword129Chars() throws Exception
+    {
+        final User user = new User("Grace", "Hopper", "grace.hopper129@xcmailr.test", passwordEncoder.encode("oldPassword123!"), "en");
+        user.setActive(true);
+        user.setConfirmation("reset-token-129");
+        user.setTs_confirm(System.currentTimeMillis() + 86_400_000L);
+        userRepository.save(user);
+
+        final String password129 = "RfYfJm8wVe3jJzOVTwsL0ibnuyWmJthLPhNYe42pJmvdxL4mAY59AofqPCnTp0RDQt1rwI0hYOBrjueAGlYm1Nnsmc98vQH19mt93jyY5zJzU1MRAieuJVdUeu5X2cmNQ";
+        mockMvc.perform(post("/pwreset/reset-token-129")
+               .with(csrf())
+               .param("password", password129)
+               .param("confirmPassword", password129))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+    }
+
+    @Test
+    @DisplayName("POST /pwreset/{token} should catch unexpected IllegalArgumentException from encoder and return error view")
+    public void testResetPasswordDefensiveEncoderCatch() throws Exception
+    {
+        final User user = new User("Defensive", "Reset", "defensive.reset@xcmailr.test", "oldPass12345", "en");
+        user.setActive(true);
+        user.setConfirmation("defensive-token-123");
+        user.setTs_confirm(System.currentTimeMillis() + 86_400_000L);
+        userRepository.save(user);
+
+        final PasswordEncoder failingEncoder = org.mockito.Mockito.mock(PasswordEncoder.class);
+        org.mockito.Mockito.when(failingEncoder.encode(org.mockito.ArgumentMatchers.anyString()))
+                           .thenThrow(new IllegalArgumentException("password cannot be more than 72 bytes"));
+
+        final WebAuthController defensiveController = new WebAuthController(userRepository, failingEncoder, outboundMailService, properties, passwordValidator);
+        final MockMvc defensiveMockMvc = MockMvcBuilders.standaloneSetup(defensiveController).build();
+
+        defensiveMockMvc.perform(post("/pwreset/defensive-token-123")
+                        .param("password", "ValidSecretPassword123!")
+                        .param("confirmPassword", "ValidSecretPassword123!"))
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("auth/reset-password"))
+                        .andExpect(model().attribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits)."));
     }
 
     @Test

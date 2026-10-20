@@ -15,6 +15,7 @@
  */
 package com.xceptance.xcmailr.security;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -22,7 +23,8 @@ import java.util.Locale;
 import org.springframework.stereotype.Component;
 
 /**
- * Validates candidate passwords against modern OWASP ASVS v4.0 and NIST SP 800-63B guidelines.
+ * Validates candidate passwords against modern OWASP ASVS v4.0 and NIST SP 800-63B guidelines
+ * aligned with Spring Security's BCrypt cryptographic key schedule.
  * <p>
  * This validator enforces policy checks solely upon new credential creation and updates
  * (registration, password reset, and profile password changes) while leaving authentication
@@ -32,8 +34,8 @@ import org.springframework.stereotype.Component;
  * Enforced security controls:
  * <ul>
  *   <li><b>Minimum Length:</b> At least 10 characters to provide sufficient entropy.</li>
- *   <li><b>Maximum Length:</b> At most 128 characters to prevent Denial-of-Service (DoS)
- *       during cryptographic hashing while generously supporting multi-word passphrases.</li>
+ *   <li><b>Maximum Length:</b> At most 72 characters aligned with BCrypt Blowfish key schedule.</li>
+ *   <li><b>Maximum Byte Count:</b> At most 72 bytes in UTF-8 encoding to prevent runtime exceptions in BCrypt.</li>
  *   <li><b>Context Exclusion:</b> Rejection of passwords containing personal identity values
  *       (forename, surname, or email username/local part) case-insensitively.</li>
  *   <li><b>Repetition Defense:</b> Rejection of trivial passwords consisting of a single repeated character.</li>
@@ -53,9 +55,14 @@ public class PasswordValidator
     public static final int MIN_LENGTH = 10;
 
     /**
-     * Maximum allowed password length to mitigate Denial-of-Service (DoS) against hashing algorithms.
+     * Maximum allowed password length aligned with BCrypt's 72-byte key schedule limit.
      */
-    public static final int MAX_LENGTH = 128;
+    public static final int MAX_LENGTH = 72;
+
+    /**
+     * Maximum allowed UTF-8 byte count supported by the BCrypt Blowfish key derivation algorithm.
+     */
+    public static final int MAX_BYTES = 72;
 
     /**
      * Minimum character length of contextual identity terms (forename, surname, email local-part)
@@ -95,13 +102,20 @@ public class PasswordValidator
             return PasswordValidationResult.invalid("Password must be at least " + MIN_LENGTH + " characters long.");
         }
 
-        // 3. Maximum length check: 128 characters prevents hash CPU exhaustion DoS
+        // 3. Maximum character length check: 72 characters aligned with BCrypt key schedule
         if (password.length() > MAX_LENGTH)
         {
-            return PasswordValidationResult.invalid("Password must not exceed " + MAX_LENGTH + " characters.");
+            return PasswordValidationResult.invalid("Password cannot exceed " + MAX_LENGTH + " characters.");
         }
 
-        // 4. Repetition defense: reject trivial passwords consisting of only one repeating character
+        // 4. Maximum UTF-8 byte length check: BCrypt strictly rejects inputs exceeding 72 bytes
+        final byte[] passwordBytes = password.getBytes(StandardCharsets.UTF_8);
+        if (passwordBytes.length > MAX_BYTES)
+        {
+            return PasswordValidationResult.invalid("Password cannot exceed " + MAX_BYTES + " bytes (special or non-Latin characters use multiple bytes).");
+        }
+
+        // 5. Repetition defense: reject trivial passwords consisting of only one repeating character
         if (isSingleRepeatedCharacter(password))
         {
             return PasswordValidationResult.invalid("Password cannot consist of a single repeated character.");
