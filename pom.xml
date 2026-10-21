@@ -32,7 +32,7 @@
         <maven.compiler.release>25</maven.compiler.release>
         <spring-boot.version>4.1.1</spring-boot.version>
         <tomcat.version>11.0.25</tomcat.version>
-        <copyright>Copyright (c) ${project.inceptionYear}-2023 ${project.organization.name}</copyright>
+        <copyright>Copyright (c) ${project.organization.name}</copyright>
         <license.skipFormat>true</license.skipFormat>
         <gpg.skip>true</gpg.skip>
     </properties>
