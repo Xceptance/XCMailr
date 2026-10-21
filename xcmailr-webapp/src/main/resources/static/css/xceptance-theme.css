@@ -321,4 +321,71 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     letter-spacing: 0.025em;
 }
 
+/* ==========================================================================
+   Floating Batch Bar (Contextual Selection Pill)
+   ========================================================================== */
 
+.floating-batch-bar {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1040;
+    background-color: var(--xc-bg-surface);
+    border: 1px solid var(--xc-border-color);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.15);
+    border-radius: 50rem;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: calc(100vw - 2rem);
+    overflow-x: auto;
+    white-space: nowrap;
+    animation: batchBarSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes batchBarSlideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 1rem);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+[data-bs-theme="dark"] .floating-batch-bar {
+    background-color: #1e293b;
+    border-color: #475569;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+.floating-batch-bar .btn {
+    font-weight: 500;
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.floating-batch-bar .btn:hover {
+    background-color: rgba(0, 70, 130, 0.08);
+}
+
+[data-bs-theme="dark"] .floating-batch-bar .btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.floating-batch-bar .btn-outline-danger:hover {
+    background-color: var(--bs-danger) !important;
+    color: #fff !important;
+}
+
+.floating-batch-bar .btn-outline-success:hover {
+    background-color: var(--bs-success) !important;
+    color: #fff !important;
+}
+
+/* Kebab dropdown toggle without default caret indicator */
+.dropdown-toggle-no-caret::after {
+    display: none !important;
+}

@@ -144,4 +144,35 @@ public interface MailboxRepository extends JpaRepository<MBox, Long>
     @Transactional
     @Query("UPDATE MBox b SET b.suppressions = b.suppressions + 1 WHERE b.id = :id")
     void incrementSuppressions(@Param("id") final long id);
+
+    /**
+     * Finds all mailboxes owned by the specified user whose IDs are in the provided collection.
+     *
+     * @param usr owning user
+     * @param ids collection of mailbox IDs
+     * @return list of matching mailboxes belonging to the user
+     */
+    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.id IN :ids")
+    List<MBox> findByUsrAndIdIn(@Param("usr") final User usr, @Param("ids") final List<Long> ids);
+
+    /**
+     * Resets forward and suppression counters to zero for the specified mailboxes owned by the user.
+     *
+     * @param usr owning user
+     * @param ids list of mailbox IDs to reset
+     * @return number of affected rows
+     */
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE MBox b SET b.forwards = 0, b.suppressions = 0 WHERE b.usr = :usr AND b.id IN :ids")
+    int resetCountersByUsrAndIds(@Param("usr") final User usr, @Param("ids") final List<Long> ids);
+
+    /**
+     * Retrieves all mailboxes owned by the user with the specified expiration status.
+     *
+     * @param usr owning user
+     * @param expired expiration status (false for active, true for expired)
+     * @return list of matching mailboxes
+     */
+    List<MBox> findByUsrAndExpired(final User usr, final boolean expired);
 }

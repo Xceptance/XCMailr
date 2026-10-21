@@ -10,7 +10,26 @@
             <h2 class="fw-bold mb-1">Mailboxes</h2>
             <p class="text-muted mb-0">Manage your temporary email addresses, forwarding, and expiration policies.</p>
         </div>
-        <div>
+        <div class="d-flex align-items-center gap-2">
+            <!-- Export dropdown: All / Active -->
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Export mailbox addresses">
+                    <i class="bi bi-download me-1"></i> Export
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li>
+                        <a class="dropdown-item" th:href="@{/mailboxes/export/all}" target="_blank">
+                            <i class="bi bi-file-earmark-text me-2"></i> All Mailboxes (.txt)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" th:href="@{/mailboxes/export/active}" target="_blank">
+                            <i class="bi bi-file-earmark-check me-2"></i> Active Mailboxes (.txt)
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
             <button class="btn btn-primary" type="button"
                     th:attr="hx-get=@{/mailboxes/new},hx-target='#modal-container',hx-swap='innerHTML'"
                     data-bs-toggle="modal" data-bs-target="#actionModal">
@@ -67,8 +86,139 @@
                 </div>
             </div>
         </div>
+    </div>
+
     <!-- Mailbox Table Container (Updated dynamically via HTMX) -->
     <div th:replace="~{mailboxes/fragments/mailbox-table :: table}"></div>
+
+    <!-- Client-side Selection Synchronization & Bulk Actions Script -->
+    <script>
+        (function () {
+            'use strict';
+
+            /**
+             * Recalculates selection count, updates the master checkbox (checked / indeterminate),
+             * and shows or hides the floating batch bar.
+             */
+            function updateSelectionState() {
+                const rowCheckboxes = document.querySelectorAll('input.mailbox-select');
+                const checkedCheckboxes = document.querySelectorAll('input.mailbox-select:checked');
+                const masterCheckbox = document.getElementById('selectAllMailboxes');
+                const floatingBar = document.getElementById('floatingBatchBar');
+                const countSpan = document.getElementById('bulkSelectionCount');
+
+                const totalCount = rowCheckboxes.length;
+                const checkedCount = checkedCheckboxes.length;
+
+                // Update master checkbox state
+                if (masterCheckbox) {
+                    if (checkedCount === 0 || totalCount === 0) {
+                        masterCheckbox.checked = false;
+                        masterCheckbox.indeterminate = false;
+                    } else if (checkedCount === totalCount) {
+                        masterCheckbox.checked = true;
+                        masterCheckbox.indeterminate = false;
+                    } else {
+                        masterCheckbox.checked = false;
+                        masterCheckbox.indeterminate = true;
+                    }
+                }
+
+                // Update floating batch bar visibility and counter
+                if (floatingBar) {
+                    if (checkedCount > 0) {
+                        if (countSpan) {
+                            countSpan.textContent = checkedCount;
+                        }
+                        floatingBar.classList.remove('d-none');
+                    } else {
+                        floatingBar.classList.add('d-none');
+                    }
+                }
+            }
+
+            /**
+             * Deselects all mailboxes and hides the floating batch bar.
+             */
+            function deselectAll() {
+                const rowCheckboxes = document.querySelectorAll('input.mailbox-select');
+                rowCheckboxes.forEach(function (cb) {
+                    cb.checked = false;
+                });
+                const masterCheckbox = document.getElementById('selectAllMailboxes');
+                if (masterCheckbox) {
+                    masterCheckbox.checked = false;
+                    masterCheckbox.indeterminate = false;
+                }
+                const floatingBar = document.getElementById('floatingBatchBar');
+                if (floatingBar) {
+                    floatingBar.classList.add('d-none');
+                }
+            }
+
+            // Master and row checkbox change handlers using document-level event delegation
+            document.addEventListener('change', function (e) {
+                if (e.target && e.target.id === 'selectAllMailboxes') {
+                    const isChecked = e.target.checked;
+                    const rowCheckboxes = document.querySelectorAll('input.mailbox-select');
+                    rowCheckboxes.forEach(function (cb) {
+                        cb.checked = isChecked;
+                    });
+                    updateSelectionState();
+                } else if (e.target && e.target.classList.contains('mailbox-select')) {
+                    updateSelectionState();
+                }
+            });
+
+            // Click handlers for deselect all button and bulk export form submission
+            document.addEventListener('click', function (e) {
+                if (e.target && e.target.closest('#bulkDeselectBtn')) {
+                    deselectAll();
+                } else if (e.target && e.target.closest('#bulkExportBtn')) {
+                    const checkedBoxes = document.querySelectorAll('input.mailbox-select:checked');
+                    const form = document.getElementById('bulkExportForm');
+                    if (form && checkedBoxes.length > 0) {
+                        form.querySelectorAll('input[data-dynamic-id="true"]').forEach(function (el) {
+                            el.remove();
+                        });
+                        checkedBoxes.forEach(function (cb) {
+                            const hidden = document.createElement('input');
+                            hidden.type = 'hidden';
+                            hidden.name = 'mailboxIds';
+                            hidden.value = cb.value;
+                            hidden.setAttribute('data-dynamic-id', 'true');
+                            form.appendChild(hidden);
+                        });
+                        form.submit();
+                    }
+                }
+            });
+
+            // HTMX after-swap listener: re-synchronize selection when table container updates
+            document.addEventListener('htmx:afterSwap', function (e) {
+                if (e.detail && e.detail.target && (e.detail.target.id === 'mailbox-table-container' || e.detail.target.closest('#mailbox-table-container'))) {
+                    updateSelectionState();
+                    if (window.bootstrap && bootstrap.Tooltip) {
+                        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                            new bootstrap.Tooltip(tooltipTriggerEl);
+                        });
+                    }
+                }
+            });
+
+            // Initial state calculation and tooltip initialization on page load
+            document.addEventListener('DOMContentLoaded', function () {
+                updateSelectionState();
+                if (window.bootstrap && bootstrap.Tooltip) {
+                    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                        new bootstrap.Tooltip(tooltipTriggerEl);
+                    });
+                }
+            });
+        })();
+    </script>
 </div>
 
 </body>

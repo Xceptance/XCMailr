@@ -12,6 +12,9 @@
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">
                 <tr>
+                    <th scope="col" style="width: 40px;" class="text-center">
+                        <input type="checkbox" id="selectAllMailboxes" class="form-check-input" aria-label="Select all mailboxes">
+                    </th>
                     <th scope="col">Address</th>
                     <th scope="col" class="d-none d-sm-table-cell" style="width: 105px;">Status</th>
                     <th scope="col" class="d-none d-lg-table-cell" style="width: 150px;">Expires</th>
@@ -23,12 +26,15 @@
             </thead>
             <tbody id="mailbox-rows">
                 <tr th:if="${#lists.isEmpty(mailboxes)}">
-                    <td colspan="7" class="text-center text-muted py-4">
+                    <td colspan="8" class="text-center text-muted py-4">
                         <em>No mailboxes found matching the criteria.</em>
                     </td>
                 </tr>
 
                 <tr th:each="box : ${mailboxes}" th:id="'mailbox-row-' + ${box.id}">
+                    <td class="text-center align-middle">
+                        <input type="checkbox" name="mailboxIds" th:value="${box.id}" class="form-check-input mailbox-select" aria-label="Select mailbox">
+                    </td>
                     <td>
                         <div class="d-flex align-items-center">
                             <a th:href="@{'/mailboxes/' + ${box.id} + '/mails'}" class="mailbox-address-link text-break"
@@ -92,28 +98,32 @@
 
                     <td class="text-end text-nowrap">
                         <div class="btn-group btn-group-sm" role="group">
-                            <!-- Toggle Active/Inactive (Visible on md and up: >= 768px) -->
-                            <button class="btn btn-outline-secondary d-none d-md-inline-block" type="button"
+                            <!-- Toggle Active/Inactive (Compact icon button visible on md and up: >= 768px) -->
+                            <button class="btn btn-outline-secondary d-none d-md-inline-flex align-items-center" type="button"
                                     th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/toggle'},hx-swap='none'"
-                                    th:title="${box.active ? 'Deactivate mailbox' : 'Activate mailbox'}">
-                                <span th:if="${box.active}">Disable</span>
-                                <span th:unless="${box.active}">Enable</span>
+                                    th:title="${box.active ? 'Disable mailbox' : 'Enable mailbox'}"
+                                    th:aria-label="${box.active ? 'Disable mailbox' : 'Enable mailbox'}"
+                                    data-bs-toggle="tooltip">
+                                <i th:if="${box.active}" class="bi bi-power"></i>
+                                <i th:unless="${box.active}" class="bi bi-play-fill"></i>
                             </button>
 
-                            <!-- Quick Extend 24h (Visible on md and up: >= 768px) -->
-                            <button class="btn btn-outline-secondary d-none d-md-inline-block" type="button"
+                            <!-- Quick Extend 24h (Compact +1d button visible on md and up: >= 768px) -->
+                            <button class="btn btn-outline-secondary d-none d-md-inline-flex align-items-center fw-semibold small" type="button"
                                     th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=24'},hx-swap='none'"
-                                    title="Extend validity by 24 hours">
-                                +24h
+                                    title="Extend validity by 24 hours (+1d)"
+                                    aria-label="Extend validity by 24 hours (+1d)"
+                                    data-bs-toggle="tooltip">
+                                +1d
                             </button>
 
-                            <!-- Dropdown for more actions (Always visible, serves as main action button on mobile) -->
+                            <!-- Dropdown for more actions (Always visible; serves as kebab menu on desktop and consolidated action menu on mobile) -->
                             <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="More actions">
-                                    <span class="d-inline d-md-none me-1">Actions</span>
+                                <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="More actions" aria-label="More actions">
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow">
-                                    <!-- Mobile-only quick items: Toggle & Extend -->
+                                    <!-- Mobile-only quick items: Toggle & Extend (visible when standalone buttons are collapsed on < 768px) -->
                                     <li class="d-md-none">
                                         <button class="dropdown-item" type="button"
                                                 th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/toggle'},hx-swap='none'">
@@ -124,7 +134,7 @@
                                     <li class="d-md-none">
                                         <button class="dropdown-item" type="button"
                                                 th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=24'},hx-swap='none'">
-                                            <i class="bi bi-clock-history me-2"></i> Extend 24 Hours
+                                            <i class="bi bi-clock-history me-2"></i> Extend 24 Hours (+1d)
                                         </button>
                                     </li>
                                     <li class="d-md-none"><hr class="dropdown-divider"></li>
@@ -196,6 +206,74 @@
                 </li>
             </ul>
         </nav>
+    </div>
+
+    <!-- Contextual Floating Bottom Batch Bar -->
+    <div id="floatingBatchBar" class="floating-batch-bar d-none" role="toolbar" aria-label="Bulk mailbox actions">
+        <div class="d-flex align-items-center gap-2 pe-2 border-end border-secondary-subtle">
+            <span class="badge bg-primary text-white rounded-pill px-2 py-1">
+                <span id="bulkSelectionCount">0</span> selected
+            </span>
+            <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" id="bulkDeselectBtn" title="Deselect all mailboxes" aria-label="Deselect all">
+                <i class="bi bi-x-circle-fill"></i>
+            </button>
+        </div>
+
+        <div class="d-flex align-items-center gap-1">
+            <!-- Bulk Enable -->
+            <button type="button" class="btn btn-sm btn-outline-success border-0" id="bulkEnableBtn"
+                    hx-post="/mailboxes/bulk/enable"
+                    hx-include="input.mailbox-select:checked"
+                    hx-swap="none"
+                    title="Enable selected mailboxes">
+                <i class="bi bi-play-fill me-1"></i> Enable
+            </button>
+
+            <!-- Bulk Disable -->
+            <button type="button" class="btn btn-sm btn-outline-secondary border-0" id="bulkDisableBtn"
+                    hx-post="/mailboxes/bulk/disable"
+                    hx-include="input.mailbox-select:checked"
+                    hx-swap="none"
+                    title="Disable selected mailboxes">
+                <i class="bi bi-power me-1"></i> Disable
+            </button>
+
+            <!-- Bulk Extend (+24h) -->
+            <button type="button" class="btn btn-sm btn-outline-primary border-0" id="bulkExtendBtn"
+                    hx-post="/mailboxes/bulk/extend?hours=24"
+                    hx-include="input.mailbox-select:checked"
+                    hx-swap="none"
+                    title="Extend validity by 24 hours (+1d)">
+                <i class="bi bi-clock-history me-1"></i> +24h
+            </button>
+
+            <!-- Bulk Reset Counters -->
+            <button type="button" class="btn btn-sm btn-outline-secondary border-0" id="bulkResetBtn"
+                    hx-post="/mailboxes/bulk/reset-counters"
+                    hx-include="input.mailbox-select:checked"
+                    hx-swap="none"
+                    title="Reset forwards and suppressions counters">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+            </button>
+
+            <!-- Bulk Text Export -->
+            <form id="bulkExportForm" method="post" th:action="@{/mailboxes/bulk/export}" class="d-inline mb-0">
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="button" class="btn btn-sm btn-outline-secondary border-0" id="bulkExportBtn" title="Export selected addresses as plain text file">
+                    <i class="bi bi-download me-1"></i> Export
+                </button>
+            </form>
+
+            <!-- Bulk Delete -->
+            <button type="button" class="btn btn-sm btn-outline-danger border-0" id="bulkDeleteBtn"
+                    hx-delete="/mailboxes/bulk"
+                    hx-include="input.mailbox-select:checked"
+                    hx-confirm="Are you sure you want to delete the selected mailboxes and all their emails?"
+                    hx-swap="none"
+                    title="Delete selected mailboxes">
+                <i class="bi bi-trash me-1"></i> Delete
+            </button>
+        </div>
     </div>
 </div>
 

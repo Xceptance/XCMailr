@@ -19,7 +19,10 @@ import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +37,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -44,6 +48,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
@@ -67,6 +74,7 @@ public class MailboxWebController
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~.-]+$");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                                                                              .withZone(ZoneId.systemDefault());
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final MailboxRepository mailboxRepository;
     private final DomainRepository domainRepository;
@@ -463,6 +471,310 @@ public class MailboxWebController
         }
 
         return "redirect:/mailboxes?deleted";
+    }
+
+    /**
+     * Bulk enables the selected mailboxes owned by the authenticated user.
+     *
+     * @param mailboxIds list of mailbox IDs to enable
+     * @param hxRequest header indicating HTMX request
+     * @param principal authenticated user
+     * @return redirect or HTMX response
+     */
+    @PostMapping("/mailboxes/bulk/enable")
+    public Object bulkEnableMailboxes(@RequestParam(value = "mailboxIds", required = false) final List<Long> mailboxIds,
+                                      @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
+                                      final Principal principal)
+    {
+        final User user = getUser(principal);
+        if (mailboxIds != null && !mailboxIds.isEmpty())
+        {
+            final List<MBox> boxes = mailboxRepository.findByUsrAndIdIn(user, mailboxIds);
+            final long now = System.currentTimeMillis();
+            for (final MBox box : boxes)
+            {
+                box.setExpired(false);
+                if (box.getTs_Active() > 0 && box.getTs_Active() < now)
+                {
+                    box.setTs_Active(now + TimeUnit.HOURS.toMillis(1));
+                }
+            }
+            mailboxRepository.saveAll(boxes);
+            LOG.info("Bulk enabled {} mailboxes for user {}", boxes.size(), user.getMail());
+        }
+
+        if ("true".equalsIgnoreCase(hxRequest))
+        {
+            final HttpHeaders headers = new HttpHeaders();
+            headers.add("HX-Trigger", "mailboxChanged");
+            return ResponseEntity.ok().headers(headers).body("");
+        }
+
+        return "redirect:/mailboxes?bulkEnabled";
+    }
+
+    /**
+     * Bulk disables the selected mailboxes owned by the authenticated user.
+     *
+     * @param mailboxIds list of mailbox IDs to disable
+     * @param hxRequest header indicating HTMX request
+     * @param principal authenticated user
+     * @return redirect or HTMX response
+     */
+    @PostMapping("/mailboxes/bulk/disable")
+    public Object bulkDisableMailboxes(@RequestParam(value = "mailboxIds", required = false) final List<Long> mailboxIds,
+                                       @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
+                                       final Principal principal)
+    {
+        final User user = getUser(principal);
+        if (mailboxIds != null && !mailboxIds.isEmpty())
+        {
+            final List<MBox> boxes = mailboxRepository.findByUsrAndIdIn(user, mailboxIds);
+            for (final MBox box : boxes)
+            {
+                box.setExpired(true);
+            }
+            mailboxRepository.saveAll(boxes);
+            LOG.info("Bulk disabled {} mailboxes for user {}", boxes.size(), user.getMail());
+        }
+
+        if ("true".equalsIgnoreCase(hxRequest))
+        {
+            final HttpHeaders headers = new HttpHeaders();
+            headers.add("HX-Trigger", "mailboxChanged");
+            return ResponseEntity.ok().headers(headers).body("");
+        }
+
+        return "redirect:/mailboxes?bulkDisabled";
+    }
+
+    /**
+     * Bulk extends the validity period of the selected mailboxes owned by the authenticated user.
+     *
+     * @param mailboxIds list of mailbox IDs to extend
+     * @param hours number of hours to add (defaults to 24)
+     * @param hxRequest header indicating HTMX request
+     * @param principal authenticated user
+     * @return redirect or HTMX response
+     */
+    @PostMapping("/mailboxes/bulk/extend")
+    public Object bulkExtendMailboxes(@RequestParam(value = "mailboxIds", required = false) final List<Long> mailboxIds,
+                                      @RequestParam(value = "hours", defaultValue = "24") final int hours,
+                                      @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
+                                      final Principal principal)
+    {
+        final User user = getUser(principal);
+        if (mailboxIds != null && !mailboxIds.isEmpty())
+        {
+            final List<MBox> boxes = mailboxRepository.findByUsrAndIdIn(user, mailboxIds);
+            final long now = System.currentTimeMillis();
+            for (final MBox box : boxes)
+            {
+                if (box.getTs_Active() > 0)
+                {
+                    final long base = Math.max(now, box.getTs_Active());
+                    box.setTs_Active(base + TimeUnit.HOURS.toMillis(hours));
+                }
+                box.setExpired(false);
+            }
+            mailboxRepository.saveAll(boxes);
+            LOG.info("Bulk extended {} mailboxes by {} hours for user {}", boxes.size(), hours, user.getMail());
+        }
+
+        if ("true".equalsIgnoreCase(hxRequest))
+        {
+            final HttpHeaders headers = new HttpHeaders();
+            headers.add("HX-Trigger", "mailboxChanged");
+            return ResponseEntity.ok().headers(headers).body("");
+        }
+
+        return "redirect:/mailboxes?bulkExtended";
+    }
+
+    /**
+     * Bulk resets forward and suppression counters for the selected mailboxes owned by the authenticated user.
+     *
+     * @param mailboxIds list of mailbox IDs to reset
+     * @param hxRequest header indicating HTMX request
+     * @param principal authenticated user
+     * @return redirect or HTMX response
+     */
+    @PostMapping("/mailboxes/bulk/reset-counters")
+    public Object bulkResetCounters(@RequestParam(value = "mailboxIds", required = false) final List<Long> mailboxIds,
+                                    @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
+                                    final Principal principal)
+    {
+        final User user = getUser(principal);
+        if (mailboxIds != null && !mailboxIds.isEmpty())
+        {
+            final int updatedCount = mailboxRepository.resetCountersByUsrAndIds(user, mailboxIds);
+            LOG.info("Bulk reset counters on {} mailboxes for user {}", updatedCount, user.getMail());
+        }
+
+        if ("true".equalsIgnoreCase(hxRequest))
+        {
+            final HttpHeaders headers = new HttpHeaders();
+            headers.add("HX-Trigger", "mailboxChanged");
+            return ResponseEntity.ok().headers(headers).body("");
+        }
+
+        return "redirect:/mailboxes?bulkReset";
+    }
+
+    /**
+     * Bulk deletes the selected mailboxes and their associated emails.
+     *
+     * @param mailboxIds list of mailbox IDs to delete
+     * @param hxRequest header indicating HTMX request
+     * @param principal authenticated user
+     * @return redirect or HTMX response
+     */
+    @DeleteMapping("/mailboxes/bulk")
+    @PostMapping("/mailboxes/bulk/delete")
+    public Object bulkDeleteMailboxes(@RequestParam(value = "mailboxIds", required = false) final List<Long> mailboxIds,
+                                      @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
+                                      final Principal principal)
+    {
+        final User user = getUser(principal);
+        if (mailboxIds != null && !mailboxIds.isEmpty())
+        {
+            final List<MBox> boxes = mailboxRepository.findByUsrAndIdIn(user, mailboxIds);
+            for (final MBox box : boxes)
+            {
+                mailRepository.deleteByMailbox(box.getId());
+                mailboxRepository.delete(box);
+            }
+            LOG.info("Bulk deleted {} mailboxes for user {}", boxes.size(), user.getMail());
+        }
+
+        if ("true".equalsIgnoreCase(hxRequest))
+        {
+            final HttpHeaders headers = new HttpHeaders();
+            headers.add("HX-Trigger", "mailboxChanged");
+            return ResponseEntity.ok().headers(headers).body("");
+        }
+
+        return "redirect:/mailboxes?bulkDeleted";
+    }
+
+    /**
+     * Exports all mailbox addresses owned by the authenticated user as a plain text list.
+     *
+     * @param principal authenticated user
+     * @return plain text response with one address per line
+     */
+    @GetMapping({"/mailboxes/export/all", "/mail/mymaillist.txt"})
+    public ResponseEntity<String> exportAllMailboxes(final Principal principal)
+    {
+        final User user = getUser(principal);
+        final List<MBox> boxes = mailboxRepository.findByUsr(user);
+        return renderAddressTextList(boxes);
+    }
+
+    /**
+     * Exports all active mailbox addresses owned by the authenticated user as a plain text list.
+     *
+     * @param principal authenticated user
+     * @return plain text response with one address per line
+     */
+    @GetMapping({"/mailboxes/export/active", "/mail/myactivemaillist.txt"})
+    public ResponseEntity<String> exportActiveMailboxes(final Principal principal)
+    {
+        final User user = getUser(principal);
+        final List<MBox> boxes = mailboxRepository.findByUsrAndExpired(user, false);
+        return renderAddressTextList(boxes);
+    }
+
+    /**
+     * Exports selected mailbox addresses owned by the authenticated user as a plain text list.
+     * Supports both list parameter binding and legacy JSON object payload.
+     *
+     * @param mailboxIds list of selected mailbox IDs
+     * @param jsonObj legacy JSON map or array of mailbox IDs
+     * @param principal authenticated user
+     * @return plain text response with one address per line
+     */
+    @PostMapping({"/mailboxes/bulk/export", "/mail/myselectedmaillist.txt"})
+    @GetMapping({"/mailboxes/bulk/export", "/mail/myselectedmaillist.txt"})
+    public ResponseEntity<String> exportSelectedMailboxes(@RequestParam(value = "mailboxIds", required = false) final List<Long> mailboxIds,
+                                                          @RequestParam(value = "jsonObj", required = false) final String jsonObj,
+                                                          final Principal principal)
+    {
+        final User user = getUser(principal);
+        final List<Long> targetIds = resolveMailboxIds(mailboxIds, jsonObj);
+        if (targetIds.isEmpty())
+        {
+            return renderAddressTextList(Collections.emptyList());
+        }
+        final List<MBox> boxes = mailboxRepository.findByUsrAndIdIn(user, targetIds);
+        return renderAddressTextList(boxes);
+    }
+
+    /**
+     * Resolves mailbox IDs from either standard parameter list or legacy JSON payload.
+     *
+     * @param mailboxIds direct list of IDs
+     * @param jsonObj legacy JSON string
+     * @return resolved list of IDs
+     */
+    private List<Long> resolveMailboxIds(final List<Long> mailboxIds, final String jsonObj)
+    {
+        if (mailboxIds != null && !mailboxIds.isEmpty())
+        {
+            return mailboxIds;
+        }
+        if (jsonObj != null && !jsonObj.isBlank())
+        {
+            try
+            {
+                final JsonNode node = OBJECT_MAPPER.readTree(jsonObj);
+                final List<Long> ids = new ArrayList<>();
+                if (node.isArray())
+                {
+                    for (final JsonNode item : node)
+                    {
+                        ids.add(item.asLong());
+                    }
+                    return ids;
+                }
+                else if (node.isObject())
+                {
+                    final Iterator<String> fieldNames = node.fieldNames();
+                    while (fieldNames.hasNext())
+                    {
+                        final String key = fieldNames.next();
+                        if (node.get(key).asBoolean(false))
+                        {
+                            ids.add(Long.parseLong(key));
+                        }
+                    }
+                    return ids;
+                }
+            }
+            catch (final Exception e)
+            {
+                LOG.warn("Failed to parse jsonObj for bulk export: {}", e.getMessage());
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Formats a list of mailboxes into a plain text address response.
+     *
+     * @param mailboxes list of mailboxes
+     * @return plain text HTTP response
+     */
+    private ResponseEntity<String> renderAddressTextList(final List<MBox> mailboxes)
+    {
+        final StringBuilder sb = new StringBuilder();
+        for (final MBox mailbox : mailboxes)
+        {
+            sb.append(mailbox.getFullAddress()).append("\n");
+        }
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return new ResponseEntity<>(sb.toString(), headers, HttpStatus.OK);
     }
 
     /**
