@@ -35,6 +35,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -658,41 +659,41 @@ public class MailboxWebController
     }
 
     /**
-     * Exports all mailbox addresses owned by the authenticated user as a plain text list.
+     * Exports all mailbox addresses owned by the authenticated user as a plain text attachment.
      *
      * @param principal authenticated user
-     * @return plain text response with one address per line
+     * @return plain text download response with one address per line
      */
     @GetMapping({"/mailboxes/export/all", "/mail/mymaillist.txt"})
     public ResponseEntity<String> exportAllMailboxes(final Principal principal)
     {
         final User user = getUser(principal);
         final List<MBox> boxes = mailboxRepository.findByUsr(user);
-        return renderAddressTextList(boxes);
+        return renderAddressTextList(boxes, "mailboxes.txt");
     }
 
     /**
-     * Exports all active mailbox addresses owned by the authenticated user as a plain text list.
+     * Exports all active mailbox addresses owned by the authenticated user as a plain text attachment.
      *
      * @param principal authenticated user
-     * @return plain text response with one address per line
+     * @return plain text download response with one address per line
      */
     @GetMapping({"/mailboxes/export/active", "/mail/myactivemaillist.txt"})
     public ResponseEntity<String> exportActiveMailboxes(final Principal principal)
     {
         final User user = getUser(principal);
         final List<MBox> boxes = mailboxRepository.findByUsrAndExpired(user, false);
-        return renderAddressTextList(boxes);
+        return renderAddressTextList(boxes, "mailboxes-active.txt");
     }
 
     /**
-     * Exports selected mailbox addresses owned by the authenticated user as a plain text list.
+     * Exports selected mailbox addresses owned by the authenticated user as a plain text attachment.
      * Supports both list parameter binding and legacy JSON object payload.
      *
      * @param mailboxIds list of selected mailbox IDs
      * @param jsonObj legacy JSON map or array of mailbox IDs
      * @param principal authenticated user
-     * @return plain text response with one address per line
+     * @return plain text download response with one address per line
      */
     @PostMapping({"/mailboxes/bulk/export", "/mail/myselectedmaillist.txt"})
     @GetMapping({"/mailboxes/bulk/export", "/mail/myselectedmaillist.txt"})
@@ -704,10 +705,10 @@ public class MailboxWebController
         final List<Long> targetIds = resolveMailboxIds(mailboxIds, jsonObj);
         if (targetIds.isEmpty())
         {
-            return renderAddressTextList(Collections.emptyList());
+            return renderAddressTextList(Collections.emptyList(), "mailboxes-selected.txt");
         }
         final List<MBox> boxes = mailboxRepository.findByUsrAndIdIn(user, targetIds);
-        return renderAddressTextList(boxes);
+        return renderAddressTextList(boxes, "mailboxes-selected.txt");
     }
 
     /**
@@ -760,12 +761,13 @@ public class MailboxWebController
     }
 
     /**
-     * Formats a list of mailboxes into a plain text address response.
+     * Formats a list of mailboxes into a plain text address response with Content-Disposition attachment header.
      *
      * @param mailboxes list of mailboxes
-     * @return plain text HTTP response
+     * @param filename  download filename
+     * @return plain text HTTP response configured as a file attachment
      */
-    private ResponseEntity<String> renderAddressTextList(final List<MBox> mailboxes)
+    private ResponseEntity<String> renderAddressTextList(final List<MBox> mailboxes, final String filename)
     {
         final StringBuilder sb = new StringBuilder();
         for (final MBox mailbox : mailboxes)
@@ -774,6 +776,7 @@ public class MailboxWebController
         }
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_PLAIN);
+        headers.setContentDisposition(ContentDisposition.attachment().filename(filename).build());
         return new ResponseEntity<>(sb.toString(), headers, HttpStatus.OK);
     }
 

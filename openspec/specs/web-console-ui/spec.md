@@ -74,11 +74,19 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 
 #### Scenario: Inline Row Action UI Refresh
 - **WHEN** the user triggers an inline or dropdown action on a mailbox row (such as the compact status toggle icon button, +1d extension badge button, or counter reset from the overflow menu)
-- **THEN** the action is processed and the mailbox table refreshes smoothly via HTMX without removing the table container or causing page content to disappear
+- **THEN** the action is processed and the mailbox table refreshes smoothly via HTMX without removing the table container or causing page content to disappear, and row button tooltips use native HTML title attributes so that no orphaned tooltip elements remain visible after the click or DOM swap
 
 #### Scenario: Preservation of Filter and Search on Table Refresh
 - **WHEN** a mailbox action (create, edit, delete, toggle, extend, or reset) triggers an automatic table refresh
 - **THEN** the refreshed table retains the currently active search query and status filter selection
+
+#### Scenario: Dashboard Header Primary Action Exclusivity
+- **WHEN** the mailbox dashboard page header is rendered
+- **THEN** the top header action area presents solely the primary creation action ("New Mailbox"), omitting secondary export dropdown controls to maintain visual hierarchy and prevent action clutter
+
+#### Scenario: Table Footer Utility Export Links
+- **WHEN** the mailbox table is rendered
+- **THEN** subtle secondary text export links ("All (.txt)" and "Active (.txt)") are rendered within the table footer utility and pagination area below the table, remaining accessible without competing with primary page actions
 
 #### Scenario: Responsive Mobile Table Viewport
 - **WHEN** a user views the mailbox table on a mobile viewport narrower than 768px
@@ -132,8 +140,8 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **WHEN** confirmed, the system deletes the selected mailboxes and their stored messages and refreshes the mailbox table via HTMX
 
 #### Scenario: Bulk Plain Text Address Export
-- **WHEN** the user requests a text export of selected mailboxes or all owned mailboxes
-- **THEN** the system generates and streams a plain text file (`text/plain`) containing the requested mailbox addresses formatted one per line
+- **WHEN** the user requests a text export of selected mailboxes, all owned mailboxes, or active mailboxes
+- **THEN** the system generates and streams a plain text response (`text/plain`) with `Content-Disposition: attachment; filename="..."` containing the requested mailbox addresses formatted one per line, prompting the browser to trigger a genuine file download
 
 #### Scenario: Cross-Tenant Bulk Action Security Isolation
 - **WHEN** an authenticated user submits a bulk action containing IDs belonging to another user

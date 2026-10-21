@@ -299,6 +299,7 @@ public final class MailboxBulkActionsWebTest
                 .with(csrf())
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"mailboxes-selected.txt\""))
             .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
             .andExpect(content().string(containsString("alpha@xcmailr.test\n")))
             .andExpect(content().string(containsString("gamma@xcmailr.test\n")))
@@ -320,6 +321,7 @@ public final class MailboxBulkActionsWebTest
                 .with(csrf())
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"mailboxes-selected.txt\""))
             .andExpect(content().string(containsString("alpha@xcmailr.test\n")))
             .andExpect(content().string(not(containsString("beta@xcmailr.test"))));
 
@@ -330,6 +332,7 @@ public final class MailboxBulkActionsWebTest
                 .with(csrf())
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"mailboxes-selected.txt\""))
             .andExpect(content().string(containsString("alpha@xcmailr.test\n")))
             .andExpect(content().string(containsString("beta@xcmailr.test\n")));
     }
@@ -346,6 +349,7 @@ public final class MailboxBulkActionsWebTest
         mockMvc.perform(get("/mailboxes/export/all")
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"mailboxes.txt\""))
             .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
             .andExpect(content().string(containsString("active@xcmailr.test\n")))
             .andExpect(content().string(containsString("expired@xcmailr.test\n")));
@@ -354,6 +358,7 @@ public final class MailboxBulkActionsWebTest
         mockMvc.perform(get("/mail/mymaillist.txt")
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"mailboxes.txt\""))
             .andExpect(content().string(containsString("active@xcmailr.test\n")))
             .andExpect(content().string(containsString("expired@xcmailr.test\n")));
     }
@@ -369,6 +374,7 @@ public final class MailboxBulkActionsWebTest
         mockMvc.perform(get("/mailboxes/export/active")
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"mailboxes-active.txt\""))
             .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
             .andExpect(content().string(containsString("active@xcmailr.test\n")))
             .andExpect(content().string(not(containsString("expired@xcmailr.test"))));
@@ -376,6 +382,7 @@ public final class MailboxBulkActionsWebTest
         mockMvc.perform(get("/mail/myactivemaillist.txt")
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"mailboxes-active.txt\""))
             .andExpect(content().string(containsString("active@xcmailr.test\n")))
             .andExpect(content().string(not(containsString("expired@xcmailr.test"))));
     }
@@ -409,6 +416,7 @@ public final class MailboxBulkActionsWebTest
                 .with(csrf())
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"mailboxes-selected.txt\""))
             .andExpect(content().string(""));
     }
 
@@ -511,12 +519,14 @@ public final class MailboxBulkActionsWebTest
                 .with(csrf())
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=\"mailboxes-selected.txt\""))
             .andExpect(content().string(""));
     }
 
     /**
      * Verifies that the asynchronous mailbox table HTMX fragment renders the master checkbox,
-     * per-row checkboxes, compact hybrid icon controls (toggle, +1d, kebab), and the floating batch bar.
+     * per-row checkboxes, compact hybrid icon controls (toggle, +1d, kebab), and the floating batch bar,
+     * while omitting Bootstrap data-bs-toggle tooltip attributes from action buttons.
      */
     @Test
     @DisplayName("Table fragment renders master checkbox, row checkboxes, compact icon controls, and floating batch bar")
@@ -542,6 +552,7 @@ public final class MailboxBulkActionsWebTest
             .andExpect(content().string(containsString("+1d")))
             .andExpect(content().string(containsString("bi bi-three-dots-vertical")))
             .andExpect(content().string(containsString("dropdown-toggle-no-caret")))
+            .andExpect(content().string(not(containsString("data-bs-toggle=\"tooltip\""))))
             // Floating bottom batch bar elements
             .andExpect(content().string(containsString("id=\"floatingBatchBar\"")))
             .andExpect(content().string(containsString("id=\"bulkSelectionCount\"")))
@@ -561,19 +572,23 @@ public final class MailboxBulkActionsWebTest
     }
 
     /**
-     * Verifies that the full mailboxes index page renders the header export dropdown and client-side
-     * selection synchronization script.
+     * Verifies that the full mailboxes index page renders the New Mailbox action, the table footer export utility
+     * links, and client-side selection synchronization script, while omitting the header export dropdown.
      */
     @Test
-    @DisplayName("Index page renders export dropdown and selection synchronization script")
-    public void testMailboxIndexPageRenderingWithExportDropdownAndClientScript() throws Exception
+    @DisplayName("Index page renders New Mailbox header, footer export links, and selection synchronization script")
+    public void testMailboxIndexPageRenderingWithFooterExportLinksAndClientScript() throws Exception
     {
         createMailbox(owner, "index-test", domain, 1, false, 0, 0);
 
         mockMvc.perform(get("/mailboxes")
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
-            // Header export links for All and Active mailboxes
+            // Header New Mailbox button present and prominent Export dropdown omitted
+            .andExpect(content().string(containsString("New Mailbox")))
+            .andExpect(content().string(not(containsString("title=\"Export mailbox addresses\""))))
+            // Table footer export links for All and Active mailboxes
+            .andExpect(content().string(containsString("Export:")))
             .andExpect(content().string(containsString("/mailboxes/export/all")))
             .andExpect(content().string(containsString("/mailboxes/export/active")))
             // Client script selection synchronization logic

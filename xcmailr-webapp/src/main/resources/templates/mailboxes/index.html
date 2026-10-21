@@ -10,26 +10,7 @@
             <h2 class="fw-bold mb-1">Mailboxes</h2>
             <p class="text-muted mb-0">Manage your temporary email addresses, forwarding, and expiration policies.</p>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <!-- Export dropdown: All / Active -->
-            <div class="btn-group">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Export mailbox addresses">
-                    <i class="bi bi-download me-1"></i> Export
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                    <li>
-                        <a class="dropdown-item" th:href="@{/mailboxes/export/all}" target="_blank">
-                            <i class="bi bi-file-earmark-text me-2"></i> All Mailboxes (.txt)
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" th:href="@{/mailboxes/export/active}" target="_blank">
-                            <i class="bi bi-file-earmark-check me-2"></i> Active Mailboxes (.txt)
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
+        <div>
             <button class="btn btn-primary" type="button"
                     th:attr="hx-get=@{/mailboxes/new},hx-target='#modal-container',hx-swap='innerHTML'"
                     data-bs-toggle="modal" data-bs-target="#actionModal">
@@ -198,24 +179,12 @@
             document.addEventListener('htmx:afterSwap', function (e) {
                 if (e.detail && e.detail.target && (e.detail.target.id === 'mailbox-table-container' || e.detail.target.closest('#mailbox-table-container'))) {
                     updateSelectionState();
-                    if (window.bootstrap && bootstrap.Tooltip) {
-                        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-                            new bootstrap.Tooltip(tooltipTriggerEl);
-                        });
-                    }
                 }
             });
 
-            // Initial state calculation and tooltip initialization on page load
+            // Initial state calculation on page load
             document.addEventListener('DOMContentLoaded', function () {
                 updateSelectionState();
-                if (window.bootstrap && bootstrap.Tooltip) {
-                    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-                        new bootstrap.Tooltip(tooltipTriggerEl);
-                    });
-                }
             });
         })();
     </script>
