@@ -75,6 +75,7 @@ public class MailboxWebController
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~.-]+$");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                                                                              .withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_INSTANT;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final MailboxRepository mailboxRepository;
@@ -158,6 +159,7 @@ public class MailboxWebController
         model.addAttribute("search", trimmedSearch);
         model.addAttribute("status", status.toUpperCase());
         model.addAttribute("dateFormatter", DATE_FORMATTER);
+        model.addAttribute("isoFormatter", ISO_FORMATTER);
 
         if ("true".equalsIgnoreCase(hxRequest))
         {
@@ -204,7 +206,7 @@ public class MailboxWebController
     public Object createMailbox(@RequestParam(value = "address", required = false) final String address,
                                 @RequestParam("domain") final String domain,
                                 @RequestParam(value = "durationHours", defaultValue = "1") final int durationHours,
-                                @RequestParam(value = "forwardEmails", defaultValue = "true") final boolean forwardEmails,
+                                @RequestParam(value = "forwardEmails", defaultValue = "false") final boolean forwardEmails,
                                 @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
                                 final Principal principal,
                                 final Model model)
@@ -294,6 +296,7 @@ public class MailboxWebController
 
         model.addAttribute("mailbox", mailbox);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
+        model.addAttribute("isoFormatter", ISO_FORMATTER);
         return "mailboxes/fragments/modal-edit :: modal";
     }
 

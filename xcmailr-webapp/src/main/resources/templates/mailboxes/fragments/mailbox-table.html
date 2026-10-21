@@ -57,7 +57,7 @@
                             <span class="d-inline d-lg-none me-2">
                                 <i class="bi bi-clock me-1"></i>
                                 <span th:if="${box.ts_Active == 0}">Unlimited</span>
-                                <span th:unless="${box.ts_Active == 0}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}">2026-10-01 12:00</span>
+                                <time th:unless="${box.ts_Active == 0}" class="local-time" th:datetime="${isoFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}">2026-10-01 12:00</time>
                                 &bull;
                             </span>
                             <!-- Forwarding indicator -->
@@ -81,7 +81,7 @@
 
                     <td class="d-none d-lg-table-cell text-nowrap">
                         <span th:if="${box.ts_Active == 0}" class="text-success-emphasis fw-medium">Unlimited</span>
-                        <span th:unless="${box.ts_Active == 0}" class="text-body-secondary" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}">2026-10-01 12:00</span>
+                        <time th:unless="${box.ts_Active == 0}" class="local-time text-body-secondary" th:datetime="${isoFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}">2026-10-01 12:00</time>
                     </td>
 
                     <td class="text-center d-none d-md-table-cell text-muted" th:text="${box.forwards}">0</td>

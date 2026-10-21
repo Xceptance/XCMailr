@@ -46,7 +46,7 @@ The system SHALL provide web views for user registration, email verification, se
 - **THEN** the system normalizes the email casing and successfully authenticates the user
 
 ### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette.
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, honoring forwarding preferences on creation and rendering timestamps localized to the client browser's timezone.
 
 #### Scenario: Live Search and Filter
 - **WHEN** the user types into the mailbox filter input
@@ -59,6 +59,18 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 #### Scenario: Successful Mailbox Creation and Table Refresh
 - **WHEN** the user submits the new mailbox form with valid parameters
 - **THEN** the modal dialog closes and its backdrop is cleanly removed from the DOM, restoring normal viewport brightness and interactivity, the newly created mailbox appears in the dashboard table, and the table container markup is retained intact
+
+#### Scenario: Mailbox Creation Forwarding Switch Disabled
+- **WHEN** the user unchecks the "Forward incoming emails" switch in the creation modal and submits the form
+- **THEN** the system persists the mailbox with forwarding disabled (`forwardEmails = false`), and the resulting dashboard row reflects inactive forwarding ("forwarding off") rather than active forwarding
+
+#### Scenario: Mailbox Creation Forwarding Switch Enabled
+- **WHEN** the user submits the creation modal with the "Forward incoming emails" switch enabled
+- **THEN** the system persists the mailbox with forwarding enabled (`forwardEmails = true`), and the resulting dashboard row reflects active forwarding ("-> forwards")
+
+#### Scenario: Standard Client-Side Localized Timestamps
+- **WHEN** the mailbox table, modals, or mail views render expiration or activity timestamps
+- **THEN** the server outputs standard HTML5 `<time class="local-time">` elements with an ISO-8601 UTC `datetime` attribute and UTC fallback text, and client-side execution formats the displayed text into the user's local timezone matching their system clock using `Intl.DateTimeFormat` on both initial load and subsequent HTMX DOM swaps
 
 #### Scenario: Creation Validation Feedback
 - **WHEN** the user submits the new mailbox form with missing, malformed, or unauthorized domain data

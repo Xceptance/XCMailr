@@ -25,9 +25,8 @@
                     class="mail-row"
                     hx-trigger="click"
                     th:attr="hx-get=@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}},hx-target='#mail-viewer-pane',hx-swap='innerHTML'">
-                    <td class="d-none d-md-table-cell text-nowrap text-muted small"
-                        th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">
-                        2026-10-01 12:00:00
+                    <td class="d-none d-md-table-cell text-nowrap text-muted small">
+                        <time class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime)) : T(java.time.Instant).ofEpochMilli(m.receiveTime).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">2026-10-01 12:00:00</time>
                     </td>
                     <td>
                         <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
@@ -37,7 +36,7 @@
                             </span>
                             <span class="small text-muted d-md-none ms-auto">
                                 <i class="bi bi-clock me-1"></i>
-                                <span th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">12:00</span>
+                                <time class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime)) : T(java.time.Instant).ofEpochMilli(m.receiveTime).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">12:00</time>
                             </span>
                         </div>
                         <div class="fw-semibold text-break mail-sender" th:text="${m.sender}">

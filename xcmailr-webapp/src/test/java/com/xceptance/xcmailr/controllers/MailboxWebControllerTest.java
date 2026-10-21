@@ -222,6 +222,67 @@ public final class MailboxWebControllerTest
     }
 
     /**
+     * Verifies that POST /mailboxes with forwardEmails=true creates and persists a mailbox with forwarding enabled.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes with forwardEmails=true creates and persists mailbox with forwarding enabled")
+    public void testCreateMailboxWithForwardingEnabled() throws Exception
+    {
+        // GIVEN
+        final String address = "forward-enabled-box";
+        final String domainName = "xcmailr.test";
+
+        // WHEN & THEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", address)
+               .param("domain", domainName)
+               .param("durationHours", "2")
+               .param("forwardEmails", "true"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        final MBox persistedBox = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, domainName).orElse(null);
+        assertNotNull(persistedBox, "Mailbox must be stored in database");
+        assertTrue(persistedBox.isForwardEmails(), "Forwarding should be enabled as configured");
+        assertEquals(owner.getId(), persistedBox.getUsr().getId());
+    }
+
+    /**
+     * Verifies that POST /mailboxes without forwardEmails parameter (unchecked checkbox) defaults to forwarding disabled.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes without forwardEmails parameter creates and persists mailbox with forwarding disabled")
+    public void testCreateMailboxWithoutForwardingParamDefaultsToFalse() throws Exception
+    {
+        // GIVEN unchecked HTML checkbox results in omitted forwardEmails form parameter
+        final String address = "forward-omitted-box";
+        final String domainName = "xcmailr.test";
+
+        // WHEN & THEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", address)
+               .param("domain", domainName)
+               .param("durationHours", "2"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        final MBox persistedBox = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, domainName).orElse(null);
+        assertNotNull(persistedBox, "Mailbox must be stored in database");
+        assertFalse(persistedBox.isForwardEmails(), "Forwarding should default to disabled when checkbox is omitted");
+        assertEquals(owner.getId(), persistedBox.getUsr().getId());
+    }
+
+    /**
      * Verifies that POST /mailboxes/{id}/toggle inverts the expired state of an existing mailbox.
      *
      * @throws Exception if mock MVC execution fails
@@ -594,6 +655,62 @@ public final class MailboxWebControllerTest
         final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, "xcmailr.test").orElse(null);
         assertNotNull(box, "Mailbox must be persisted via standard browser form submit");
         assertTrue(box.isForwardEmails());
+    }
+
+    /**
+     * Verifies that standard non-HTMX form submission without forwardEmails parameter defaults to forwarding disabled.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special case: non-HTMX browser fallback form submission without forwardEmails defaults to disabled")
+    public void testCreateMailboxFormSubmitNonHtmxOmittedForwardingDefaultsToFalse() throws Exception
+    {
+        // GIVEN a traditional browser form submission without forwardEmails checkbox
+        final String address = "standard-browser-no-forward-box";
+
+        // WHEN & THEN
+        mockMvc.perform(post("/mailboxes")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", address)
+               .param("domain", "xcmailr.test")
+               .param("durationHours", "6"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/mailboxes?created"));
+
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, "xcmailr.test").orElse(null);
+        assertNotNull(box, "Mailbox must be persisted via standard browser form submit");
+        assertFalse(box.isForwardEmails(), "Forwarding should default to disabled for non-HTMX form submissions");
+    }
+
+    /**
+     * Verifies that POST /mailboxes with explicit forwardEmails=false persists with forwarding disabled.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special case: POST /mailboxes with explicit forwardEmails=false persists with forwarding disabled")
+    public void testCreateMailboxExplicitForwardingDisabled() throws Exception
+    {
+        // GIVEN explicit forwardEmails=false parameter
+        final String address = "explicit-false-box";
+
+        // WHEN & THEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", address)
+               .param("domain", "xcmailr.test")
+               .param("durationHours", "1")
+               .param("forwardEmails", "false"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        final MBox persistedBox = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, "xcmailr.test").orElse(null);
+        assertNotNull(persistedBox, "Mailbox must be stored in database");
+        assertFalse(persistedBox.isForwardEmails(), "Forwarding should be disabled");
     }
 
     /**

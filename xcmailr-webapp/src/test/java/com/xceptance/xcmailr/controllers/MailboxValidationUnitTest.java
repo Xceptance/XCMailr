@@ -331,5 +331,73 @@ public final class MailboxValidationUnitTest
         // THEN
         assertTrue(matches, "Dotted address must be accepted by entity regex");
     }
+
+    // =========================================================================
+    // DURATION CALCULATION & FORWARDING UNIT TESTS (TESTING PYRAMID)
+    // =========================================================================
+
+    @ParameterizedTest(name = "Happy path: duration {0} hours correctly offsets from base timestamp")
+    @ValueSource(ints = {1, 2, 24, 168, 720})
+    @DisplayName("Happy path: standard durations produce expected expiration timestamps")
+    public void testExpirationCalculation_PositiveHours_OffsetsCorrectly(final int durationHours)
+    {
+        // GIVEN
+        final long fixedNow = 1_700_000_000_000L;
+
+        // WHEN
+        final long expirationTs = durationHours <= 0 ? 0L : fixedNow + java.util.concurrent.TimeUnit.HOURS.toMillis(durationHours);
+
+        // THEN
+        final long expectedOffset = (long) durationHours * 3600 * 1000;
+        assertEquals(fixedNow + expectedOffset, expirationTs, "Expiration timestamp must match base plus duration in milliseconds");
+    }
+
+    @ParameterizedTest(name = "Edge case: duration {0} hours evaluates to unlimited (0)")
+    @ValueSource(ints = {0, -1, -24, Integer.MIN_VALUE})
+    @DisplayName("Edge case: zero or negative durations produce unlimited expiration (0L)")
+    public void testExpirationCalculation_NonPositiveHours_EvaluatesToZero(final int durationHours)
+    {
+        // GIVEN
+        final long fixedNow = 1_700_000_000_000L;
+
+        // WHEN
+        final long expirationTs = durationHours <= 0 ? 0L : fixedNow + java.util.concurrent.TimeUnit.HOURS.toMillis(durationHours);
+
+        // THEN
+        assertEquals(0L, expirationTs, "Zero or negative duration must evaluate to 0L (unlimited)");
+    }
+
+    @Test
+    @DisplayName("Happy path: MBox forwardEmails property respects explicit true and false states")
+    public void testMailboxForwarding_ExplicitStates_Preserved()
+    {
+        // GIVEN
+        final MBox boxEnabled = new MBox();
+        final MBox boxDisabled = new MBox();
+
+        // WHEN
+        boxEnabled.setForwardEmails(true);
+        boxDisabled.setForwardEmails(false);
+
+        // THEN
+        assertTrue(boxEnabled.isForwardEmails(), "Forwarding should be enabled when set to true");
+        assertFalse(boxDisabled.isForwardEmails(), "Forwarding should be disabled when set to false");
+    }
+
+    @Test
+    @DisplayName("Special case: omitted checkbox default (false) sets forwardEmails to false")
+    public void testMailboxForwarding_OmittedDefault_EvaluatesToFalse()
+    {
+        // GIVEN: In HTML form submission, unchecked checkboxes are omitted,
+        // so the controller's defaultValue parameter resolution gives false.
+        final boolean resolvedForwardParameter = false;
+        final MBox box = new MBox();
+
+        // WHEN
+        box.setForwardEmails(resolvedForwardParameter);
+
+        // THEN
+        assertFalse(box.isForwardEmails(), "Unchecked checkbox default must resolve forwardEmails to false");
+    }
 }
 

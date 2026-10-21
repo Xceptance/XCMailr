@@ -27,7 +27,7 @@
             <p class="text-muted small mb-0 mt-1">
                 Expires:
                 <span th:if="${mailbox.ts_Active == 0}" class="text-success-emphasis fw-medium">Unlimited</span>
-                <span th:unless="${mailbox.ts_Active == 0}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mailbox.ts_Active))}">2026-10-01 12:00:00</span>
+                <time th:unless="${mailbox.ts_Active == 0}" class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(mailbox.ts_Active)) : T(java.time.Instant).ofEpochMilli(mailbox.ts_Active).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mailbox.ts_Active))}">2026-10-01 12:00:00</time>
                 &bull; Forwards: <strong th:text="${mailbox.forwards}">0</strong>
                 &bull; Suppressed: <strong th:text="${mailbox.suppressions}">0</strong>
             </p>

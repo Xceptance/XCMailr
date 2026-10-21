@@ -71,6 +71,7 @@ public class MailWebController
     private static final Logger LOG = LoggerFactory.getLogger(MailWebController.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                                                                              .withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_INSTANT;
 
     private final MailRepository mailRepository;
     private final MailboxRepository mailboxRepository;
@@ -121,6 +122,7 @@ public class MailWebController
         model.addAttribute("mails", mails);
         model.addAttribute("mailboxAddressMap", mailboxAddressMap);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
+        model.addAttribute("isoFormatter", ISO_FORMATTER);
 
         if ("true".equalsIgnoreCase(hxRequest))
         {
@@ -155,6 +157,7 @@ public class MailWebController
         model.addAttribute("mailbox", mailbox);
         model.addAttribute("mails", mails);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
+        model.addAttribute("isoFormatter", ISO_FORMATTER);
 
         if ("true".equalsIgnoreCase(hxRequest))
         {
@@ -213,6 +216,7 @@ public class MailWebController
             model.addAttribute("headers", headers);
             model.addAttribute("attachments", attachments);
             model.addAttribute("dateFormatter", DATE_FORMATTER);
+            model.addAttribute("isoFormatter", ISO_FORMATTER);
 
             if ("true".equalsIgnoreCase(hxRequest))
             {

@@ -10,7 +10,7 @@
                 <div class="text-muted small">
                     <strong>From:</strong> <span th:text="${mail.sender}">sender@example.com</span>
                     <span class="mx-2">&bull;</span>
-                    <strong>Date:</strong> <span th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mail.receiveTime))}">2026-10-01 12:00:00</span>
+                    <strong>Date:</strong> <time class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(mail.receiveTime)) : T(java.time.Instant).ofEpochMilli(mail.receiveTime).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mail.receiveTime))}">2026-10-01 12:00:00</time>
                 </div>
             </div>
             <div class="btn-group btn-group-sm">

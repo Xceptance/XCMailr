@@ -265,6 +265,7 @@ public class MailWebControllerTest
         thymeleafContext.setVariable("mails", List.of(orphanMail));
         thymeleafContext.setVariable("mailboxAddressMap", Map.of());
         thymeleafContext.setVariable("dateFormatter", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()));
+        thymeleafContext.setVariable("isoFormatter", DateTimeFormatter.ISO_INSTANT);
 
         final String html = templateEngine.process("mailboxes/fragments/all-mail-list", thymeleafContext);
         assertNotNull(html);

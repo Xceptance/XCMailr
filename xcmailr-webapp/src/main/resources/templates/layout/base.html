@@ -363,6 +363,49 @@
                 }
             }
         });
+
+        /**
+         * Formats all <time class="local-time"> elements within rootEl using the browser's
+         * native Intl.DateTimeFormat in the client's local timezone.
+         */
+        function formatLocalTimes(rootEl) {
+            const scope = (rootEl && rootEl.querySelectorAll) ? rootEl : document;
+            const timeElements = scope.querySelectorAll('time.local-time');
+            timeElements.forEach(function (el) {
+                const dt = el.getAttribute('datetime');
+                if (!dt) {
+                    return;
+                }
+                const date = new Date(dt);
+                if (isNaN(date.getTime())) {
+                    return;
+                }
+                if (!el.getAttribute('title')) {
+                    el.setAttribute('title', dt + ' (UTC)');
+                }
+                try {
+                    el.textContent = new Intl.DateTimeFormat(navigator.language || undefined, {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }).format(date);
+                } catch (e) {
+                    el.textContent = date.toLocaleString();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            formatLocalTimes(document.body);
+        });
+
+        if (window.htmx) {
+            htmx.onLoad(function (content) {
+                formatLocalTimes(content);
+            });
+        }
     })();
 </script>
 

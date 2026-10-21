@@ -72,6 +72,7 @@ public class AdminWebController
                                                                   Pattern.CASE_INSENSITIVE);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                                                                              .withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_INSTANT;
 
     private final UserRepository userRepository;
     private final DomainRepository domainRepository;
@@ -349,6 +350,7 @@ public class AdminWebController
         model.addAttribute("page", txPage);
         model.addAttribute("statusSummary", statusSummary);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
+        model.addAttribute("isoFormatter", ISO_FORMATTER);
 
         if ("true".equalsIgnoreCase(hxRequest))
         {
