@@ -58,7 +58,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 
 #### Scenario: Successful Mailbox Creation and Table Refresh
 - **WHEN** the user submits the new mailbox form with valid parameters
-- **THEN** the modal dialog closes, the newly created mailbox appears in the dashboard table, and the table container markup is retained intact
+- **THEN** the modal dialog closes and its backdrop is cleanly removed from the DOM, restoring normal viewport brightness and interactivity, the newly created mailbox appears in the dashboard table, and the table container markup is retained intact
 
 #### Scenario: Creation Validation Feedback
 - **WHEN** the user submits the new mailbox form with missing, malformed, or unauthorized domain data
@@ -66,7 +66,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 
 #### Scenario: Modal Dialog Actions
 - **WHEN** the user clicks to edit, delete, or extend expiration on an existing mailbox
-- **THEN** HTMX loads the corresponding modal fragment dynamically into the shared modal host and updates the table upon successful submission
+- **THEN** HTMX loads the corresponding modal fragment dynamically into the shared modal host, and upon successful submission the modal dialog and its backdrop are dismissed cleanly and the table updates
 
 #### Scenario: Mailbox Deletion UI Refresh
 - **WHEN** the user confirms deletion of a mailbox from the mailbox actions menu
@@ -330,3 +330,12 @@ The system SHALL provide an interactive email inspection view for individual mai
 #### Scenario: Email Preview Rendering with Untyped UTF-8 Body
 - **WHEN** an authenticated user loads the preview of an email whose plain text or HTML body was transmitted as raw UTF-8 without a Content-Type header or without an explicit charset parameter
 - **THEN** the plain text and HTML preview panes display the text accurately with correct Unicode characters and without mojibake (e.g. displaying `üüü` rather than `Ã¼Ã¼Ã¼`)
+
+### Requirement: Corporate Footer and Brand Notice
+The system SHALL display a standardized corporate footer on all application views containing a yearless copyright notice and platform metadata, preventing recurring annual copyright maintenance churn.
+
+#### Scenario: Standardized Yearless Copyright Display
+- **WHEN** any web application view is rendered using the base layout
+- **THEN** the footer renders a yearless copyright notice referencing Xceptance Software Technologies GmbH without hardcoded year ranges
+- **AND** the technology stack summary line is rendered accurately underneath
+

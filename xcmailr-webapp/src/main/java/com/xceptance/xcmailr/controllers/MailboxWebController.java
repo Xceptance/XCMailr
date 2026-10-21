@@ -269,8 +269,7 @@ public class MailboxWebController
         if ("true".equalsIgnoreCase(hxRequest))
         {
             final HttpHeaders headers = new HttpHeaders();
-            headers.add("HX-Trigger", "mailboxChanged");
-            headers.add("HX-Trigger-After-Swap", "closeModal");
+            headers.add("HX-Trigger", "mailboxChanged, closeModal");
             return ResponseEntity.ok().headers(headers).body("");
         }
 
@@ -327,8 +326,7 @@ public class MailboxWebController
         if ("true".equalsIgnoreCase(hxRequest))
         {
             final HttpHeaders headers = new HttpHeaders();
-            headers.add("HX-Trigger", "mailboxChanged");
-            headers.add("HX-Trigger-After-Swap", "closeModal");
+            headers.add("HX-Trigger", "mailboxChanged, closeModal");
             return ResponseEntity.ok().headers(headers).body("");
         }
 

@@ -349,10 +349,12 @@ public final class HtmxCsrfClientContractTest
 
         // THEN: The request passes Spring Security CSRF verification with HTTP 200 OK
         assertEquals(200, response.getStatusCode(), "Mutating request with valid CSRF token must return 200 OK");
-        assertEquals("mailboxChanged", response.getResponseHeaderValue("HX-Trigger"),
-            "HTMX response must trigger mailboxChanged event");
-        assertEquals("closeModal", response.getResponseHeaderValue("HX-Trigger-After-Swap"),
-            "HTMX response must trigger closeModal event");
+        final String hxTrigger = response.getResponseHeaderValue("HX-Trigger");
+        assertNotNull(hxTrigger, "HX-Trigger header must be present");
+        assertTrue(hxTrigger.contains("mailboxChanged"), "HTMX response must trigger mailboxChanged event");
+        assertTrue(hxTrigger.contains("closeModal"), "HTMX response must trigger closeModal event");
+        assertNull(response.getResponseHeaderValue("HX-Trigger-After-Swap"),
+            "Deprecated HX-Trigger-After-Swap header must not be emitted");
         assertTrue(mailboxRepository.existsByAddressIgnoreCaseAndDomainIgnoreCase("valid-csrf-box", "xcmailr.test"),
             "Mailbox must be persisted to the database");
     }

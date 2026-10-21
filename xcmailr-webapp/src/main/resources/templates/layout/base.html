@@ -244,7 +244,7 @@
 <!-- Corporate Footer -->
 <footer class="footer-xceptance text-center">
     <div class="container">
-        <p class="mb-1">&copy; 2013-2026 <a href="https://www.xceptance.com" target="_blank">Xceptance Software Technologies GmbH</a>. All rights reserved.</p>
+        <p class="mb-1">&copy; <a href="https://www.xceptance.com" target="_blank">Xceptance Software Technologies GmbH</a>. All rights reserved.</p>
         <p class="small mb-0">XCMailr Modernized &bull; Java 25 &bull; Spring Boot 4.x &bull; HTMX</p>
     </div>
 </footer>
@@ -356,8 +356,8 @@
         // Global HTMX closeModal event listener to dismiss actionModal
         document.body.addEventListener('closeModal', function () {
             const modalEl = document.getElementById('actionModal');
-            if (modalEl) {
-                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalEl && window.bootstrap && bootstrap.Modal) {
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
                 if (modalInstance) {
                     modalInstance.hide();
                 }

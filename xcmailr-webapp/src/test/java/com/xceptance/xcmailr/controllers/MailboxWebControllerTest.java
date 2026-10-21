@@ -212,8 +212,8 @@ public final class MailboxWebControllerTest
                .param("durationHours", "1")
                .param("forwardEmails", "false"))
                .andExpect(status().isOk())
-               .andExpect(header().string("HX-Trigger", "mailboxChanged"))
-               .andExpect(header().string("HX-Trigger-After-Swap", "closeModal"));
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"))
+               .andExpect(header().doesNotExist("HX-Trigger-After-Swap"));
 
         final MBox persistedBox = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, domainName).orElse(null);
         assertNotNull(persistedBox, "Mailbox must be stored in database");
@@ -299,7 +299,8 @@ public final class MailboxWebControllerTest
                .param("forwardEmails", "false")
                .param("active", "false"))
                .andExpect(status().isOk())
-               .andExpect(header().string("HX-Trigger", "mailboxChanged"));
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"))
+               .andExpect(header().doesNotExist("HX-Trigger-After-Swap"));
 
         // THEN
         final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
@@ -511,6 +512,58 @@ public final class MailboxWebControllerTest
         assertTrue(unchanged.isForwardEmails(), "Mailbox forward settings must not be modified by unauthorized user");
     }
 
+    /**
+     * Verifies that creation validation failure due to duplicate address re-renders modal without closeModal trigger.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: POST /mailboxes duplicate address retains modal and omits closeModal trigger")
+    public void testCreateMailboxValidationFailureOmitsCloseModal() throws Exception
+    {
+        // GIVEN an existing mailbox
+        final MBox existing = new MBox("dupe-test", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
+        mailboxRepository.save(existing);
+
+        // WHEN attempting to create duplicate mailbox via HTMX
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", "dupe-test")
+               .param("domain", "xcmailr.test")
+               .param("durationHours", "1"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attribute("error", "A mailbox with this address already exists."))
+               .andExpect(header().doesNotExist("HX-Trigger"))
+               .andExpect(header().doesNotExist("HX-Trigger-After-Swap"));
+    }
+
+    /**
+     * Verifies that POST /mailboxes/{id}/edit on a non-existent mailbox returns 404 without emitting closeModal trigger.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: POST /mailboxes/{id}/edit on non-existent mailbox returns 404 and omits closeModal trigger")
+    public void testUpdateMailboxNonExistentReturnsNotFound() throws Exception
+    {
+        // GIVEN a non-existent mailbox ID
+        final long nonExistentId = 999999L;
+
+        // WHEN attempting to edit non-existent mailbox via HTMX
+        mockMvc.perform(post("/mailboxes/" + nonExistentId + "/edit")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("forwardEmails", "false")
+               .param("active", "false"))
+               .andExpect(status().isNotFound())
+               .andExpect(header().doesNotExist("HX-Trigger"))
+               .andExpect(header().doesNotExist("HX-Trigger-After-Swap"));
+    }
+
     // =========================================================================
     // SPECIAL EDGE CASES INTEGRATION TESTS
     // =========================================================================
@@ -564,8 +617,8 @@ public final class MailboxWebControllerTest
                .param("domain", "xcmailr.test")
                .param("durationHours", "1"))
                .andExpect(status().isOk())
-               .andExpect(header().string("HX-Trigger", "mailboxChanged"))
-               .andExpect(header().string("HX-Trigger-After-Swap", "closeModal"));
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"))
+               .andExpect(header().doesNotExist("HX-Trigger-After-Swap"));
 
         // THEN
         final long countAfter = mailboxRepository.count();
