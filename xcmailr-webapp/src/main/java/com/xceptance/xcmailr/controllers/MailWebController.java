@@ -33,6 +33,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -50,6 +54,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
+import com.xceptance.xcmailr.repositories.projections.MailSummaryProjection;
 import com.xceptance.xcmailr.services.EmailSanitizationService;
 import com.xceptance.xcmailr.util.JakartaMimeMessageParser;
 
@@ -91,14 +96,19 @@ public class MailWebController
 
     /**
      * Unified "All Mails" inbox view listing emails across all mailboxes owned by the user.
+     * Paginates results and uses lightweight {@link MailSummaryProjection} to omit raw message BLOBs.
      *
+     * @param page zero-based page index (defaults to 0)
+     * @param size page size clamped between 1 and 100 (defaults to 25)
      * @param hxRequest header indicating HTMX request
      * @param principal authenticated user
      * @param model template model
      * @return view or fragment name
      */
     @GetMapping("/mails")
-    public String listAllMails(@RequestHeader(value = "HX-Request", required = false) final String hxRequest,
+    public String listAllMails(@RequestParam(value = "page", defaultValue = "0") final int page,
+                               @RequestParam(value = "size", defaultValue = "25") final int size,
+                               @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
                                final Principal principal,
                                final Model model)
     {
@@ -106,20 +116,34 @@ public class MailWebController
         final List<MBox> userMailboxes = mailboxRepository.findByUsr(user);
         final List<Long> mailboxIds = userMailboxes.stream().map(MBox::getId).toList();
 
-        final List<Mail> mails;
+        // Parameter normalization and defensive bounds clamping
+        final int normalizedPage = Math.max(0, page);
+        final int normalizedSize = Math.min(Math.max(1, size), 100);
+        // Compile-time static sorting strictly prevents dynamic SQL injection in ORDER BY clauses
+        final Pageable pageable = PageRequest.of(normalizedPage, normalizedSize, Sort.by(Sort.Direction.DESC, "receiveTime"));
+
+        final Page<MailSummaryProjection> mailPage;
         if (mailboxIds.isEmpty())
         {
-            mails = Collections.emptyList();
+            // Short-circuit immediately when user has no mailboxes: avoids unnecessary DB query
+            mailPage = Page.empty(pageable);
         }
         else
         {
-            mails = mailRepository.findByMailboxInOrderByReceiveTimeDesc(mailboxIds);
+            // Lightweight projection excludes @Lob byte[] message from fetch and memory snapshots
+            mailPage = mailRepository.findSummaryByMailboxIn(mailboxIds, pageable);
         }
 
         final Map<Long, String> mailboxAddressMap = userMailboxes.stream()
             .collect(Collectors.toMap(MBox::getId, MBox::getFullAddress, (a, b) -> a));
 
-        model.addAttribute("mails", mails);
+        model.addAttribute("mails", mailPage.getContent());
+        model.addAttribute("page", mailPage);
+        model.addAttribute("mailPage", mailPage);
+        model.addAttribute("currentPage", normalizedPage);
+        model.addAttribute("totalPages", mailPage.getTotalPages());
+        model.addAttribute("totalElements", mailPage.getTotalElements());
+        model.addAttribute("pageSize", normalizedSize);
         model.addAttribute("mailboxAddressMap", mailboxAddressMap);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
         model.addAttribute("isoFormatter", ISO_FORMATTER);
@@ -134,8 +158,11 @@ public class MailWebController
 
     /**
      * Mailbox inbox message list view.
+     * Paginates results and uses lightweight {@link MailSummaryProjection} to omit raw message BLOBs.
      *
      * @param boxId mailbox ID
+     * @param page zero-based page index (defaults to 0)
+     * @param size page size clamped between 1 and 100 (defaults to 25)
      * @param hxRequest header indicating HTMX request
      * @param principal authenticated user
      * @param model template model
@@ -143,19 +170,33 @@ public class MailWebController
      */
     @GetMapping("/mailboxes/{boxId}/mails")
     public String listMails(@PathVariable("boxId") final long boxId,
+                            @RequestParam(value = "page", defaultValue = "0") final int page,
+                            @RequestParam(value = "size", defaultValue = "25") final int size,
                             @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
                             final Principal principal,
                             final Model model)
     {
         final User user = getUser(principal);
+        // Multi-tenant check: verifies mailbox belongs to authenticated user, throws 403 Forbidden otherwise
         final MBox mailbox = getMailboxForUser(boxId, user);
 
-        final List<Mail> mails = new ArrayList<>(mailRepository.findByMailboxOrderByReceiveTimeAsc(boxId));
-        // Sort descending by receive timestamp (most recent first)
-        mails.sort(Comparator.comparingLong(Mail::getReceiveTime).reversed());
+        // Parameter normalization and defensive bounds clamping
+        final int normalizedPage = Math.max(0, page);
+        final int normalizedSize = Math.min(Math.max(1, size), 100);
+        // Compile-time static sorting strictly prevents dynamic SQL injection in ORDER BY clauses
+        final Pageable pageable = PageRequest.of(normalizedPage, normalizedSize, Sort.by(Sort.Direction.DESC, "receiveTime"));
+
+        // Lightweight projection excludes @Lob byte[] message from fetch and memory snapshots
+        final Page<MailSummaryProjection> mailPage = mailRepository.findSummaryByMailbox(boxId, pageable);
 
         model.addAttribute("mailbox", mailbox);
-        model.addAttribute("mails", mails);
+        model.addAttribute("mails", mailPage.getContent());
+        model.addAttribute("page", mailPage);
+        model.addAttribute("mailPage", mailPage);
+        model.addAttribute("currentPage", normalizedPage);
+        model.addAttribute("totalPages", mailPage.getTotalPages());
+        model.addAttribute("totalElements", mailPage.getTotalElements());
+        model.addAttribute("pageSize", normalizedSize);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
         model.addAttribute("isoFormatter", ISO_FORMATTER);
 

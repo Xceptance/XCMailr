@@ -164,6 +164,14 @@ public class Mail extends AbstractEntity implements Serializable
     }
 
     /**
+     * @return foreign mailbox identifier
+     */
+    public long getMailbox()
+    {
+        return mailbox;
+    }
+
+    /**
      * Sets the foreign mailbox reference.
      *
      * @param mailbox mailbox entity whose ID will be assigned

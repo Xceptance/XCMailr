@@ -15,15 +15,20 @@
  */
 package com.xceptance.xcmailr.repositories;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.xceptance.xcmailr.repositories.projections.MailSummaryProjection;
 
 import models.Mail;
 
@@ -50,6 +55,32 @@ public interface MailRepository extends JpaRepository<Mail, Long>
      * @return list of matching mails ordered newest first
      */
     List<Mail> findByMailboxInOrderByReceiveTimeDesc(final List<Long> mailboxIds);
+
+    /**
+     * Retrieves a paginated slice of email summaries delivered to any of the specified mailbox IDs.
+     * <p>
+     * Returns lightweight {@link MailSummaryProjection} instances, omitting the heavy message payload BLOB
+     * from database fetch and heap memory. Uses parameterized query binding to guarantee SQL injection immunity.
+     * </p>
+     *
+     * @param mailboxIds collection of destination mailbox IDs
+     * @param pageable pagination and sorting parameters
+     * @return page of matching email summaries
+     */
+    Page<MailSummaryProjection> findSummaryByMailboxIn(final Collection<Long> mailboxIds, final Pageable pageable);
+
+    /**
+     * Retrieves a paginated slice of email summaries delivered to a specific mailbox.
+     * <p>
+     * Returns lightweight {@link MailSummaryProjection} instances, omitting the heavy message payload BLOB
+     * from database fetch and heap memory. Uses parameterized query binding to guarantee SQL injection immunity.
+     * </p>
+     *
+     * @param mailboxId destination mailbox ID
+     * @param pageable pagination and sorting parameters
+     * @return page of matching email summaries
+     */
+    Page<MailSummaryProjection> findSummaryByMailbox(final long mailboxId, final Pageable pageable);
 
     /**
      * Finds a mail by its unique UUID identifier.

@@ -3,7 +3,7 @@
 <body>
 
 <div th:fragment="mailList" id="mail-list-container"
-     th:attr="hx-get=@{/mails},hx-trigger='mailListChanged from:body',hx-target='#mail-list-container',hx-swap='outerHTML'">
+     th:attr="hx-get=@{/mails(page=${currentPage != null ? currentPage : 0}, size=${pageSize != null ? pageSize : 25})},hx-trigger='mailListChanged from:body',hx-target='#mail-list-container',hx-swap='outerHTML'">
     <div class="table-responsive bg-white rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0" id="mail-list-table">
             <thead class="table-light">
@@ -14,7 +14,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:if="${#lists.isEmpty(mails)}">
+                <tr th:if="${(mailPage != null and totalElements == 0) or #lists.isEmpty(mails)}">
                     <td colspan="3" class="text-center text-muted py-5 empty-inbox-state">
                         <i class="bi bi-envelope-open display-6 d-block mb-2 text-secondary opacity-50"></i>
                         <em>No messages received across your mailboxes yet.</em>
@@ -62,6 +62,52 @@
                 </tr>
             </tbody>
         </table>
+
+        <!-- HTMX Pagination Controls -->
+        <nav th:if="${mailPage != null and totalPages != null and totalPages > 0}" aria-label="Mail pagination" class="d-flex justify-content-between align-items-center p-3 border-top flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing <span class="fw-semibold" th:text="${mailPage.numberOfElements}">1</span> of <span class="fw-semibold" th:text="${totalElements}">1</span> messages
+            </div>
+            <ul class="pagination pagination-sm mb-0">
+                <!-- First Page -->
+                <li class="page-item" th:classappend="${mailPage.first ? 'disabled' : ''}">
+                    <a class="page-link pagination-first"
+                       th:href="@{/mails(page=0, size=${pageSize != null ? pageSize : 25})}"
+                       th:attr="hx-get=@{/mails(page=0, size=${pageSize != null ? pageSize : 25})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                       aria-label="First">&laquo;</a>
+                </li>
+                <!-- Previous Page -->
+                <li class="page-item" th:classappend="${!mailPage.hasPrevious() ? 'disabled' : ''}">
+                    <a class="page-link pagination-prev"
+                       th:href="@{/mails(page=${currentPage != null and currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize != null ? pageSize : 25})}"
+                       th:attr="hx-get=@{/mails(page=${currentPage != null and currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize != null ? pageSize : 25})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                       aria-label="Previous">&lsaquo;</a>
+                </li>
+                <!-- Page Numbers -->
+                <li th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, (currentPage != null ? currentPage : 0) - 2), T(java.lang.Math).min(totalPages - 1, (currentPage != null ? currentPage : 0) + 2))}"
+                    class="page-item"
+                    th:classappend="${i == (currentPage != null ? currentPage : 0) ? 'active' : ''}">
+                    <a class="page-link pagination-num"
+                       th:href="@{/mails(page=${i}, size=${pageSize != null ? pageSize : 25})}"
+                       th:attr="hx-get=@{/mails(page=${i}, size=${pageSize != null ? pageSize : 25})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                       th:text="${i + 1}">1</a>
+                </li>
+                <!-- Next Page -->
+                <li class="page-item" th:classappend="${!mailPage.hasNext() ? 'disabled' : ''}">
+                    <a class="page-link pagination-next"
+                       th:href="@{/mails(page=${currentPage != null and currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1}, size=${pageSize != null ? pageSize : 25})}"
+                       th:attr="hx-get=@{/mails(page=${currentPage != null and currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1}, size=${pageSize != null ? pageSize : 25})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                       aria-label="Next">&rsaquo;</a>
+                </li>
+                <!-- Last Page -->
+                <li class="page-item" th:classappend="${mailPage.last ? 'disabled' : ''}">
+                    <a class="page-link pagination-last"
+                       th:href="@{/mails(page=${totalPages - 1}, size=${pageSize != null ? pageSize : 25})}"
+                       th:attr="hx-get=@{/mails(page=${totalPages - 1}, size=${pageSize != null ? pageSize : 25})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                       aria-label="Last">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
 

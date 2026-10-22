@@ -17,6 +17,7 @@ package com.xceptance.xcmailr.controllers;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -175,7 +176,7 @@ public class MailWebControllerTest
     }
 
     @Test
-    @DisplayName("GET /mails should render complete HTML page with message list, recipient badge, and viewer pane")
+    @DisplayName("GET /mails should render complete HTML page with message list, recipient badge, viewer pane, and pagination attributes")
     public void testListAllMailsFullPage() throws Exception
     {
         mockMvc.perform(get("/mails")
@@ -183,6 +184,12 @@ public class MailWebControllerTest
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/all-mails"))
                .andExpect(model().attributeExists("mails"))
+               .andExpect(model().attributeExists("mailPage"))
+               .andExpect(model().attributeExists("page"))
+               .andExpect(model().attribute("currentPage", 0))
+               .andExpect(model().attribute("pageSize", 25))
+               .andExpect(model().attribute("totalPages", 1))
+               .andExpect(model().attribute("totalElements", 1L))
                .andExpect(model().attributeExists("mailboxAddressMap"))
                .andExpect(content().string(not(emptyOrNullString())))
                .andExpect(content().string(containsString("All Mails")))
@@ -208,7 +215,7 @@ public class MailWebControllerTest
                .andExpect(content().string(containsString("Weekly Digest")))
                .andExpect(content().string(containsString("inbox@xcmailr.test")))
                .andExpect(content().string(not(containsString("<html"))))
-               .andExpect(content().string(not(containsString("<nav"))));
+               .andExpect(content().string(not(containsString("navbar"))));
     }
 
     @Test
@@ -344,7 +351,7 @@ public class MailWebControllerTest
     }
 
     @Test
-    @DisplayName("GET /mailboxes/{boxId}/mails should list emails for mailbox owner")
+    @DisplayName("GET /mailboxes/{boxId}/mails should list emails for mailbox owner with pagination attributes")
     public void testListMailsFullPage() throws Exception
     {
         mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
@@ -352,7 +359,13 @@ public class MailWebControllerTest
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/mails"))
                .andExpect(model().attributeExists("mailbox"))
-               .andExpect(model().attributeExists("mails"));
+               .andExpect(model().attributeExists("mails"))
+               .andExpect(model().attributeExists("mailPage"))
+               .andExpect(model().attributeExists("page"))
+               .andExpect(model().attribute("currentPage", 0))
+               .andExpect(model().attribute("pageSize", 25))
+               .andExpect(model().attribute("totalPages", 1))
+               .andExpect(model().attribute("totalElements", 1L));
     }
 
     @Test
@@ -364,6 +377,282 @@ public class MailWebControllerTest
                .with(user("alice@xcmailr.test").roles("USER")))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/fragments/mail-list :: mailList"));
+    }
+
+    @Test
+    @DisplayName("GET /mails clamps negative page to 0 and excessive size to 100")
+    public void testListAllMailsParameterNormalizationClamping() throws Exception
+    {
+        mockMvc.perform(get("/mails")
+               .param("page", "-1")
+               .param("size", "500")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/all-mails"))
+               .andExpect(model().attribute("currentPage", 0))
+               .andExpect(model().attribute("pageSize", 100));
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails clamps negative page to 0 and excessive size to 100")
+    public void testListMailsParameterNormalizationClamping() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
+               .param("page", "-5")
+               .param("size", "200")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/mails"))
+               .andExpect(model().attribute("currentPage", 0))
+               .andExpect(model().attribute("pageSize", 100));
+    }
+
+    @Test
+    @DisplayName("GET /mails returns empty content when page index exceeds available pages")
+    public void testListAllMailsPageIndexExceedingAvailablePages() throws Exception
+    {
+        mockMvc.perform(get("/mails")
+               .param("page", "10")
+               .param("size", "25")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("currentPage", 10))
+               .andExpect(model().attribute("totalElements", 1L))
+               .andExpect(model().attribute("totalPages", 1))
+               .andExpect(model().attribute("mails", org.hamcrest.Matchers.empty()));
+    }
+
+    @Test
+    @DisplayName("GET /mails for user owning zero mailboxes short-circuits and returns empty page without DB query")
+    public void testListAllMailsUserWithZeroMailboxes() throws Exception
+    {
+        final User charlie = new User("Charlie", "Brown", "charlie@xcmailr.test", "Password123", "en");
+        charlie.setActive(true);
+        userRepository.save(charlie);
+
+        mockMvc.perform(get("/mails")
+               .with(user("charlie@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/all-mails"))
+               .andExpect(model().attribute("currentPage", 0))
+               .andExpect(model().attribute("totalElements", 0L))
+               .andExpect(model().attribute("totalPages", 0))
+               .andExpect(model().attribute("mails", org.hamcrest.Matchers.empty()))
+               .andExpect(content().string(containsString("No messages received across your mailboxes yet.")));
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails for mailbox with zero emails returns empty page")
+    public void testListMailsEmptyMailbox() throws Exception
+    {
+        final MBox emptyBox = new MBox("emptybox", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, alice);
+        mailboxRepository.save(emptyBox);
+
+        mockMvc.perform(get("/mailboxes/" + emptyBox.getId() + "/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/mails"))
+               .andExpect(model().attribute("currentPage", 0))
+               .andExpect(model().attribute("totalElements", 0L))
+               .andExpect(model().attribute("totalPages", 0))
+               .andExpect(model().attribute("mails", org.hamcrest.Matchers.empty()))
+               .andExpect(content().string(containsString("No emails received in this mailbox yet.")));
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails for mailbox owned by another user returns HTTP 403 Forbidden")
+    public void testListMailsUnauthorizedMailboxAccessForbidden() throws Exception
+    {
+        final MBox bobBox = new MBox("bobbox", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, bob);
+        mailboxRepository.save(bobBox);
+
+        // Alice attempts to access Bob's mailbox message list
+        mockMvc.perform(get("/mailboxes/" + bobBox.getId() + "/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET /mails with SQL injection in page parameter returns HTTP 400 Bad Request")
+    public void testListAllMailsSqlInjectionInPageParamRejection() throws Exception
+    {
+        mockMvc.perform(get("/mails")
+               .param("page", "1' OR '1'='1")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("GET /mails with SQL injection in size parameter returns HTTP 400 Bad Request")
+    public void testListAllMailsSqlInjectionInSizeParamRejection() throws Exception
+    {
+        mockMvc.perform(get("/mails")
+               .param("size", "25; DROP TABLE mail;--")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails with SQL injection in boxId returns HTTP 400 Bad Request")
+    public void testListMailsSqlInjectionInBoxIdParamRejection() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes/1' OR '1'='1/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("GET /mails ignores dynamic sort parameter and safely enforces static sort order")
+    public void testListAllMailsSqlInjectionInSortIgnored() throws Exception
+    {
+        mockMvc.perform(get("/mails")
+               .param("sort", "receiveTime; DROP TABLE mail")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/all-mails"))
+               .andExpect(model().attributeExists("mailPage"));
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails without authentication should redirect to login")
+    public void testListMailsUnauthenticatedRedirectsToLogin() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrlPattern("/**/login"));
+    }
+
+    @Test
+    @DisplayName("POST/PUT on /mailboxes/{boxId}/mails returns HTTP 405 Method Not Allowed")
+    public void testListMailsDisallowedMethods() throws Exception
+    {
+        mockMvc.perform(post("/mailboxes/" + aliceBox.getId() + "/mails")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf()))
+               .andExpect(status().isMethodNotAllowed());
+
+        mockMvc.perform(put("/mailboxes/" + aliceBox.getId() + "/mails")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf()))
+               .andExpect(status().isMethodNotAllowed());
+    }
+
+    // =========================================================================
+    // Template Rendering & HTMX Pagination Controls Tests (Task 4.3)
+    // =========================================================================
+
+    @Test
+    @DisplayName("GET /mails on first page renders HTMX pagination with disabled previous/first and active page 1")
+    public void testAllMailsPaginationControlsOnFirstPage() throws Exception
+    {
+        for (int i = 1; i <= 4; i++)
+        {
+            final Mail additionalMail = new Mail();
+            additionalMail.setSender("sender" + i + "@external.com");
+            additionalMail.setSubject("Subject " + i);
+            additionalMail.setReceiveTime(System.currentTimeMillis() + (i * 1000L));
+            additionalMail.setMessage(("body " + i).getBytes(StandardCharsets.UTF_8));
+            additionalMail.setMailbox(aliceBox);
+            mailRepository.save(additionalMail);
+        }
+
+        mockMvc.perform(get("/mails")
+               .param("page", "0")
+               .param("size", "2")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Showing <span class=\"fw-semibold\">2</span> of <span class=\"fw-semibold\">5</span> messages")))
+               .andExpect(content().string(containsString("hx-target=\"#mail-list-container\"")))
+               .andExpect(content().string(containsString("hx-push-url=\"true\"")))
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-first\".*")))
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-prev\".*")))
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item active\">\\s*<a class=\"page-link pagination-num\".*")))
+               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-next\".*"))))
+               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-last\".*"))));
+    }
+
+    @Test
+    @DisplayName("GET /mails on last page renders HTMX pagination with disabled next/last and active last page")
+    public void testAllMailsPaginationControlsOnLastPage() throws Exception
+    {
+        for (int i = 1; i <= 4; i++)
+        {
+            final Mail additionalMail = new Mail();
+            additionalMail.setSender("sender" + i + "@external.com");
+            additionalMail.setSubject("Subject " + i);
+            additionalMail.setReceiveTime(System.currentTimeMillis() + (i * 1000L));
+            additionalMail.setMessage(("body " + i).getBytes(StandardCharsets.UTF_8));
+            additionalMail.setMailbox(aliceBox);
+            mailRepository.save(additionalMail);
+        }
+
+        mockMvc.perform(get("/mails")
+               .param("page", "2")
+               .param("size", "2")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Showing <span class=\"fw-semibold\">1</span> of <span class=\"fw-semibold\">5</span> messages")))
+               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-first\".*"))))
+               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-prev\".*"))))
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-next\".*")))
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-last\".*")));
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails on first page renders HTMX pagination with mailbox target URL")
+    public void testMailboxMailsPaginationControlsOnFirstPage() throws Exception
+    {
+        for (int i = 1; i <= 4; i++)
+        {
+            final Mail additionalMail = new Mail();
+            additionalMail.setSender("sender" + i + "@external.com");
+            additionalMail.setSubject("Subject " + i);
+            additionalMail.setReceiveTime(System.currentTimeMillis() + (i * 1000L));
+            additionalMail.setMessage(("body " + i).getBytes(StandardCharsets.UTF_8));
+            additionalMail.setMailbox(aliceBox);
+            mailRepository.save(additionalMail);
+        }
+
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
+               .param("page", "0")
+               .param("size", "2")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Showing <span class=\"fw-semibold\">2</span> of <span class=\"fw-semibold\">5</span> messages")))
+               .andExpect(content().string(containsString("hx-target=\"#mail-list-container\"")))
+               .andExpect(content().string(containsString("hx-push-url=\"true\"")))
+               .andExpect(content().string(containsString("/mailboxes/" + aliceBox.getId() + "/mails?page=1&amp;size=2")))
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-first\".*")))
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-prev\".*")));
+    }
+
+    @Test
+    @DisplayName("GET /mails with zero emails renders empty state indicator and omits pagination nav bar")
+    public void testAllMailsEmptyStateIndicatorOmitsPagination() throws Exception
+    {
+        mailRepository.deleteAll();
+
+        mockMvc.perform(get("/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("empty-inbox-state")))
+               .andExpect(content().string(containsString("No messages received across your mailboxes yet.")))
+               .andExpect(content().string(not(containsString("aria-label=\"Mail pagination\""))));
+    }
+
+    @Test
+    @DisplayName("GET /mailboxes/{boxId}/mails with zero emails renders empty state indicator and omits pagination nav bar")
+    public void testMailboxMailsEmptyStateIndicatorOmitsPagination() throws Exception
+    {
+        final MBox emptyBox = new MBox("empty-test-box", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, alice);
+        mailboxRepository.save(emptyBox);
+
+        mockMvc.perform(get("/mailboxes/" + emptyBox.getId() + "/mails")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("empty-inbox-state")))
+               .andExpect(content().string(containsString("No emails received in this mailbox yet.")))
+               .andExpect(content().string(not(containsString("aria-label=\"Mailbox pagination\""))));
     }
 
     /**
