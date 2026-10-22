@@ -1,0 +1,102 @@
+# Spec Delta
+
+## MODIFIED Requirements
+
+### Requirement: Dynamic Mailbox Dashboard
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette.
+
+#### Scenario: Live Search and Filter
+- **WHEN** the user types into the mailbox filter input
+- **THEN** HTMX triggers an asynchronous partial update of the mailbox table matching the filter criteria
+
+#### Scenario: Creation Modal Display
+- **WHEN** the user clicks the "New Mailbox" button on the dashboard
+- **THEN** the system dynamically loads and displays the creation modal in the foreground with input focus and domain options, with the modal backdrop positioned behind the modal dialog
+
+#### Scenario: Successful Mailbox Creation and Table Refresh
+- **WHEN** the user submits the new mailbox form with valid parameters
+- **THEN** the modal dialog closes, the newly created mailbox appears in the dashboard table, and the table container markup is retained intact
+
+#### Scenario: Creation Validation Feedback
+- **WHEN** the user submits the new mailbox form with missing, malformed, or unauthorized domain data
+- **THEN** the modal dialog remains open and presents inline validation feedback highlighting the specific error
+
+#### Scenario: Modal Dialog Actions
+- **WHEN** the user clicks to edit, delete, or extend expiration on an existing mailbox
+- **THEN** HTMX loads the corresponding modal fragment dynamically into the shared modal host and updates the table upon successful submission
+
+#### Scenario: Mailbox Deletion UI Refresh
+- **WHEN** the user confirms deletion of a mailbox from the mailbox actions menu
+- **THEN** the mailbox and associated emails are deleted on the server, and the mailbox table automatically refreshes via HTMX without blanking out the page or removing the table container element from the DOM, displaying remaining mailboxes or the empty state if none remain
+
+#### Scenario: Inline Row Action UI Refresh
+- **WHEN** the user triggers an inline or dropdown action on a mailbox row (such as the compact status toggle icon button, +1d extension badge button, or counter reset from the overflow menu)
+- **THEN** the action is processed and the mailbox table refreshes smoothly via HTMX without removing the table container or causing page content to disappear
+
+#### Scenario: Preservation of Filter and Search on Table Refresh
+- **WHEN** a mailbox action (create, edit, delete, toggle, extend, or reset) triggers an automatic table refresh
+- **THEN** the refreshed table retains the currently active search query and status filter selection
+
+#### Scenario: Responsive Mobile Table Viewport
+- **WHEN** a user views the mailbox table on a mobile viewport narrower than 768px
+- **THEN** the table hides secondary columns (forwards, suppressed, and expiration) to prevent horizontal scrolling and displays essential expiration and forwarding status as a subline beneath the primary email address
+
+#### Scenario: Responsive Action Menu Consolidation
+- **WHEN** a user interacts with a mailbox row on a mobile viewport narrower than 768px
+- **THEN** standalone compact icon quick action buttons (toggle and +1d) are collapsed into the `[...]` kebab dropdown menu, presenting a single compact action button per row with all actions accessible within the dropdown
+
+#### Scenario: Subtle Visual Status and Mail Count Indicators
+- **WHEN** the mailbox table is rendered
+- **THEN** active and expired statuses are displayed using subtle desaturated tokens or status dots rather than high-saturation solid badges, and zero mail counts are rendered with neutral muted styling
+
+#### Scenario: Responsive Filter and Search Bar Stacking
+- **WHEN** the mailbox page is displayed on a mobile viewport
+- **THEN** the search input expands to full width and the status filter select element stacks cleanly underneath without horizontal clipping or misaligned margins
+
+#### Scenario: Mailbox Action Dropdown Visibility and Overflow Prevention
+- **WHEN** the user opens the action dropdown menu for any mailbox row in a table container with overflow or few rows
+- **THEN** the dropdown menu is positioned using a fixed viewport boundary strategy so that it renders completely visible without being clipped or hidden by table responsive overflow boundaries
+
+#### Scenario: Contextual Floating Batch Bar Visibility
+- **WHEN** zero mailboxes are selected via checkboxes
+- **THEN** the floating batch action bar remains completely hidden
+- **WHEN** one or more mailboxes are selected via row checkboxes or the master header checkbox
+- **THEN** a floating bottom batch action bar appears indicating the exact count of selected mailboxes, providing bulk action buttons and a button to deselect all
+
+#### Scenario: Master Checkbox Toggle Behavior
+- **WHEN** the user clicks the master checkbox in the mailbox table header
+- **THEN** all visible row checkboxes on the current page are toggled to match the master checkbox state, and the floating batch bar updates its count or visibility accordingly
+
+#### Scenario: Bulk Enable Operation
+- **WHEN** the user triggers the "Enable" action from the floating batch bar with one or more mailboxes selected
+- **THEN** the system issues an asynchronous request to activate all selected mailboxes owned by the user and refreshes the mailbox table via HTMX with updated statuses
+
+#### Scenario: Bulk Disable Operation
+- **WHEN** the user triggers the "Disable" action from the floating batch bar with one or more mailboxes selected
+- **THEN** the system issues an asynchronous request to deactivate all selected mailboxes owned by the user and refreshes the mailbox table via HTMX with updated statuses
+
+#### Scenario: Bulk Validity Extension
+- **WHEN** the user triggers the "+24h" extension action from the floating batch bar with one or more mailboxes selected
+- **THEN** the system adds 24 hours to the expiration timestamps of all selected mailboxes owned by the user and refreshes the mailbox table via HTMX
+
+#### Scenario: Bulk Counter Reset
+- **WHEN** the user triggers the "Reset Counters" action from the floating batch bar with one or more mailboxes selected
+- **THEN** the system resets the forward and suppression counters to zero for all selected mailboxes owned by the user and refreshes the mailbox table via HTMX
+
+#### Scenario: Bulk Mailbox Deletion Confirmation and Execution
+- **WHEN** the user triggers the "Delete" action from the floating batch bar
+- **THEN** the browser displays a confirmation alert prompting the user to confirm deletion of the selected mailboxes
+- **WHEN** confirmed, the system deletes the selected mailboxes and their stored messages and refreshes the mailbox table via HTMX
+
+#### Scenario: Bulk Plain Text Address Export
+- **WHEN** the user requests a text export of selected mailboxes or all owned mailboxes
+- **THEN** the system generates and streams a plain text file (`text/plain`) containing the requested mailbox addresses formatted one per line
+
+#### Scenario: Cross-Tenant Bulk Action Security Isolation
+- **WHEN** an authenticated user submits a bulk action containing IDs belonging to another user
+- **THEN** the system strictly filters out or rejects mailboxes not owned by the authenticated user, preventing unauthorized modification or deletion of other tenants' mailboxes
+
+#### Scenario: Empty Selection Bulk Action Protection
+- **WHEN** a client issues a bulk action request with an empty or missing list of mailbox IDs
+- **THEN** the system handles the request safely without modifying data or throwing unhandled server exceptions, returning a clean response
+

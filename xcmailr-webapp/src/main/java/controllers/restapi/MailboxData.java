@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package controllers.restapi;
 
-import org.hibernate.validator.constraints.Email;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 
 import models.MBox;
 
@@ -24,6 +25,7 @@ import models.MBox;
  */
 public class MailboxData
 {
+    @NotEmpty
     @Email
     public String address;
 
