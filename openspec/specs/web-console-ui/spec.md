@@ -7,7 +7,7 @@ Provides a responsive, server-driven web management console using Thymeleaf and 
 ## Requirements
 
 ### Requirement: User Authentication and Self-Service
-The system SHALL provide web views for user registration, email verification, session login, password reset, and profile management, handling both success and error conditions gracefully.
+The system SHALL provide web views for user registration, email verification, session login, password reset, and profile management including self-service account deletion, handling both success and error conditions gracefully.
 
 #### Scenario: User Login and Session Management
 - **WHEN** a user enters valid email and password credentials for an active account on the login page
@@ -44,6 +44,39 @@ The system SHALL provide web views for user registration, email verification, se
 #### Scenario: Case-Insensitive Email Authentication
 - **WHEN** a user logs in using an email address whose casing differs from the registration record
 - **THEN** the system normalizes the email casing and successfully authenticates the user
+
+#### Scenario: Self-Service Account Deletion with Valid Password (Happy Path)
+- **WHEN** an authenticated user opens the account deletion modal on their profile page, enters their correct current password, and submits the form
+- **THEN** the system transactionally removes all stored emails for the user's mailboxes, removes all mailboxes owned by the user, and deletes the user record
+- **AND** the system invalidates the current HTTP session, clears security credentials, and redirects to `/login?accountDeleted` displaying an informative confirmation banner
+
+#### Scenario: Self-Service Account Deletion with Incorrect Password (Error Case)
+- **WHEN** an authenticated user attempts to delete their account but submits an incorrect password
+- **THEN** the system rejects the deletion, retains all user mailboxes, emails, and account records unaltered, and reloads the profile page with a clear error alert indicating the password was incorrect
+
+#### Scenario: Self-Service Account Deletion with Blank Password (Error Case)
+- **WHEN** an authenticated user submits the account deletion request with a blank or whitespace-only password
+- **THEN** the system rejects the deletion and reloads the profile page with an error notification requiring password entry
+
+#### Scenario: Sole Administrator Account Deletion Prevention (Special Case / Security)
+- **WHEN** an authenticated administrator attempts to delete their own account and they are the only remaining active administrator in the system
+- **THEN** the system blocks the deletion, keeps all administrator and mailbox data intact, and reloads the profile page displaying an error message stating that the last administrator account cannot be deleted
+
+#### Scenario: Administrator Self-Service Deletion When Multiple Administrators Exist (Happy Path)
+- **WHEN** an authenticated administrator enters their valid password to delete their account and at least one other active administrator account exists
+- **THEN** the system permits the deletion, cascades data cleanup, terminates the session, and redirects to `/login?accountDeleted`
+
+#### Scenario: Unauthenticated Account Deletion Attempt (Security Case)
+- **WHEN** an unauthenticated request attempts to invoke `POST /profile/delete`
+- **THEN** the system rejects the request and redirects to `/login` without modifying any user records
+
+#### Scenario: Account Deletion Attempt With Missing CSRF Token (Security Case)
+- **WHEN** an account deletion request is transmitted without a CSRF token
+- **THEN** the system rejects the request immediately with an HTTP 403 Forbidden response without modifying any user data
+
+#### Scenario: Account Deletion Attempt With Invalid CSRF Token (Security Case)
+- **WHEN** an authenticated user submits an account deletion request with an invalid or forged CSRF token
+- **THEN** the system rejects the request with an HTTP 403 Forbidden response and preserves all account data untouched
 
 ### Requirement: Dynamic Mailbox Dashboard
 The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, honoring forwarding preferences on creation and rendering timestamps localized to the client browser's timezone.

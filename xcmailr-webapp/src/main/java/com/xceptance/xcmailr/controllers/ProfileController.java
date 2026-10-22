@@ -19,24 +19,33 @@ import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.xceptance.xcmailr.repositories.MailRepository;
+import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.PasswordContext;
 import com.xceptance.xcmailr.security.PasswordValidationResult;
 import com.xceptance.xcmailr.security.PasswordValidator;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import models.MBox;
 import models.User;
 
 /**
@@ -53,17 +62,33 @@ public class ProfileController
                                                                              .withZone(ZoneId.systemDefault());
 
     private final UserRepository userRepository;
+    private final MailboxRepository mailboxRepository;
+    private final MailRepository mailRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
 
+    /**
+     * Constructs a new {@link ProfileController} instance with all required repositories and security services.
+     *
+     * @param userRepository repository for accessing and managing user accounts
+     * @param mailboxRepository repository for managing mailboxes
+     * @param mailRepository repository for managing emails
+     * @param passwordEncoder encoder used to hash and verify user passwords
+     * @param passwordValidator validator for enforcing password quality standards
+     */
     public ProfileController(final UserRepository userRepository,
+                             final MailboxRepository mailboxRepository,
+                             final MailRepository mailRepository,
                              final PasswordEncoder passwordEncoder,
                              final PasswordValidator passwordValidator)
     {
         this.userRepository = userRepository;
+        this.mailboxRepository = mailboxRepository;
+        this.mailRepository = mailRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordValidator = passwordValidator;
     }
+
 
     /**
      * Renders user profile and API token management page.
@@ -214,9 +239,81 @@ public class ProfileController
         return "redirect:/profile?tokenRevoked";
     }
 
+    /**
+     * Handles self-service user account deletion.
+     * <p>
+     * Re-authenticates the user using their current plaintext password, verifies that the user is not the sole
+     * remaining active administrator, transactionally removes all emails and mailboxes associated with the account,
+     * deletes the user record, clears the active security context, invalidates the HTTP session, and redirects to
+     * {@code /login?accountDeleted}.
+     * </p>
+     *
+     * @param currentPassword the user's current password for confirmation
+     * @param principal authenticated user principal
+     * @param request current HTTP request used to invalidate the session
+     * @param model template model for presenting validation errors
+     * @return redirect to login page upon success, or the profile view if validation fails
+     */
+    @PostMapping("/delete")
+    @Transactional
+    public String deleteAccount(@RequestParam(value = "currentPassword", defaultValue = "") final String currentPassword,
+                                final Principal principal,
+                                final HttpServletRequest request,
+                                final Model model)
+    {
+        final User user = getUser(principal);
+
+        // Validate that password was provided
+        if (currentPassword == null || currentPassword.isBlank())
+        {
+            populateProfileModel(model, user);
+            model.addAttribute("errorMessage", "Please enter your current password to confirm deletion.");
+            return "user/profile";
+        }
+
+        // Validate password match
+        if (!passwordEncoder.matches(currentPassword, user.getPasswd()))
+        {
+            populateProfileModel(model, user);
+            model.addAttribute("errorMessage", "Current password does not match.");
+            return "user/profile";
+        }
+
+        // Enforce sole administrator protection: at least one active administrator must remain
+        if (user.isAdmin() && userRepository.countByAdminTrueAndActiveTrue() <= 1)
+        {
+            populateProfileModel(model, user);
+            model.addAttribute("errorMessage", "Your account cannot be deleted because it is the last administrator account. At least one active administrator account must exist.");
+            return "user/profile";
+        }
+
+        // Transactional cascade deletion of all mailboxes and emails owned by the user
+        final List<MBox> boxes = mailboxRepository.findByUsr(user, Pageable.unpaged()).getContent();
+        for (final MBox box : boxes)
+        {
+            mailRepository.deleteByMailbox(box.getId());
+            mailboxRepository.delete(box);
+        }
+
+        // Delete user entity
+        userRepository.delete(user);
+        LOG.info("User {} successfully deleted their account via self-service", user.getMail());
+
+        // Invalidate session and clear security context
+        SecurityContextHolder.clearContext();
+        final HttpSession session = request.getSession(false);
+        if (session != null)
+        {
+            session.invalidate();
+        }
+
+        return "redirect:/login?accountDeleted";
+    }
+
     private User getUser(final Principal principal)
     {
         return userRepository.findByMailIgnoreCase(principal.getName())
                              .orElseThrow(() -> new IllegalStateException("Authenticated user not found: " + principal.getName()));
     }
 }
+

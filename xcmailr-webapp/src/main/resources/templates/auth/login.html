@@ -21,6 +21,10 @@
                 <div th:if="${param.logout != null}" class="alert alert-info" role="alert">
                     You have been logged out successfully.
                 </div>
+                <div th:if="${param.accountDeleted != null}" class="alert alert-info" role="alert">
+                    Your account and all associated mailboxes and emails have been successfully deleted.
+                </div>
+
                 <div th:if="${param.registered != null}" class="alert alert-info" role="alert">
                     Registration successful! Please check your email to activate your account before logging in.
                 </div>

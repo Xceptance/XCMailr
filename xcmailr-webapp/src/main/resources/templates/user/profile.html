@@ -114,9 +114,9 @@
                 </div>
             </div>
 
-            <!-- Right Column: API Token -->
+            <!-- Right Column: API Token & Danger Zone -->
             <div class="col-12 col-md-6">
-                <div class="card shadow-sm border-0">
+                <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-white py-3">
                         <h5 class="card-title mb-0 fw-semibold">REST API Token</h5>
                     </div>
@@ -157,9 +157,55 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Danger Zone / Delete Account -->
+                <div class="card shadow-sm border-danger border-opacity-25">
+                    <div class="card-header bg-danger bg-opacity-10 py-3">
+                        <h5 class="card-title mb-0 fw-semibold text-danger">Danger Zone</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger mb-3 py-2 small" role="alert">
+                            Permanently delete your account, all associated mailboxes, and stored emails. This action cannot be undone.
+                        </div>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                            Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Account Confirmation Modal -->
+        <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form th:action="@{/profile/delete}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account Confirmation</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning mb-3">
+                                <strong>Warning:</strong> Deleting your account will immediately and permanently erase all your mailboxes and received emails. This action cannot be undone.
+                            </div>
+                            <p>To confirm deletion, please enter your current password:</p>
+                            <div class="mb-3">
+                                <label for="deleteCurrentPassword" class="form-label fw-semibold">Current Password</label>
+                                <input type="password" class="form-control" id="deleteCurrentPassword" name="currentPassword" required placeholder="Enter your current password">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Permanently Delete Account</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 </body>
 </html>

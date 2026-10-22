@@ -102,4 +102,12 @@ public interface UserRepository extends JpaRepository<User, Long>
      */
     @Query("SELECT u FROM User u WHERE LOWER(u.mail) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.forename) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.surname) LIKE LOWER(CONCAT('%', :search, '%')) ORDER BY u.mail ASC")
     Page<User> searchUsers(@Param("search") final String search, final Pageable pageable);
+
+    /**
+     * Counts the number of active administrator accounts in the system.
+     *
+     * @return total count of active administrator accounts
+     */
+    long countByAdminTrueAndActiveTrue();
 }
+

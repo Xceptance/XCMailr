@@ -42,15 +42,22 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.web.servlet.MvcResult;
+
 import com.xceptance.xcmailr.XcmailrApplication;
+import com.xceptance.xcmailr.repositories.MailRepository;
+import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.PasswordValidator;
 
+import models.MBox;
+import models.Mail;
 import models.User;
 
 /**
  * Tests for {@link ProfileController} verifying profile display, profile updating,
- * password modification, and API token generation/revocation.
+ * password modification, API token generation/revocation, and self-service account deletion.
  */
 @SpringBootTest(classes = XcmailrApplication.class)
 @ActiveProfiles("test")
@@ -63,6 +70,12 @@ public class ProfileControllerTest
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private MailboxRepository mailboxRepository;
+
+    @Autowired
+    private MailRepository mailRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -80,12 +93,15 @@ public class ProfileControllerTest
             .apply(springSecurity())
             .build();
 
+        mailRepository.deleteAll();
+        mailboxRepository.deleteAll();
         userRepository.deleteAll();
 
         testUser = new User("John", "Doe", "john.doe@xcmailr.test", "CurrentSecret123", "en");
         testUser.setActive(true);
         userRepository.save(testUser);
     }
+
 
     @Test
     @DisplayName("GET /profile should display profile view for authenticated user with password policy guidance")
@@ -283,7 +299,7 @@ public class ProfileControllerTest
         org.mockito.Mockito.when(failingEncoder.encode(org.mockito.ArgumentMatchers.anyString()))
                            .thenThrow(new IllegalArgumentException("password cannot be more than 72 bytes"));
 
-        final ProfileController defensiveController = new ProfileController(userRepository, failingEncoder, passwordValidator);
+        final ProfileController defensiveController = new ProfileController(userRepository, mailboxRepository, mailRepository, failingEncoder, passwordValidator);
         final MockMvc defensiveMockMvc = MockMvcBuilders.standaloneSetup(defensiveController).build();
 
         defensiveMockMvc.perform(post("/profile/change-password")
@@ -359,4 +375,258 @@ public class ProfileControllerTest
         assertNull(updated.getApiToken());
         assertEquals(0L, updated.getApiTokenCreationTimestamp());
     }
+
+    /**
+     * Verifies that an authenticated standard user can successfully delete their own account.
+     * <p>
+     * Ensures all associated mailboxes and emails are cascade deleted, the user record is removed from the
+     * database, the HTTP session is invalidated, and the user is redirected to {@code /login?accountDeleted}.
+     * </p>
+     *
+     * @throws Exception if an error occurs during MVC request processing
+     */
+    @Test
+    @DisplayName("POST /profile/delete happy path for standard user cascades mailboxes and mails, invalidates session, and redirects")
+    public void testDeleteAccountHappyPathNormalUser() throws Exception
+    {
+        // Setup: Create a mailbox and an associated email for testUser
+        final MBox box = new MBox("testbox", "xcmailr.test", 0L, false, testUser);
+        mailboxRepository.save(box);
+
+        final Mail mail = new Mail();
+        mail.setSender("sender@example.test");
+        mail.setSubject("Test Cascade Deletion");
+        mail.setReceiveTime(System.currentTimeMillis());
+        mail.setMessage("Sample email body".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        mail.setMailbox(box);
+        mailRepository.save(mail);
+
+        assertEquals(1L, userRepository.count());
+        assertEquals(1L, mailboxRepository.count());
+        assertEquals(1L, mailRepository.count());
+
+        final MockHttpSession session = new MockHttpSession();
+
+        // Perform self-service account deletion with correct current password
+        mockMvc.perform(post("/profile/delete")
+               .session(session)
+               .with(user(testUser.getMail()).roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?accountDeleted"));
+
+        // Verify session invalidation
+        assertTrue(session.isInvalid(), "HTTP session must be invalidated upon account deletion");
+
+        // Verify transactional cascade deletion of all user entities
+        assertTrue(userRepository.findById(testUser.getId()).isEmpty(), "User record must be deleted");
+        assertTrue(mailboxRepository.findAll().isEmpty(), "User mailboxes must be cascade deleted");
+        assertTrue(mailRepository.findAll().isEmpty(), "Emails belonging to deleted mailboxes must be removed");
+    }
+
+    /**
+     * Verifies that an administrator can delete their account when at least one other active administrator exists.
+     * <p>
+     * Ensures the deleting administrator is removed, the remaining administrator is preserved,
+     * the session is invalidated, and the user is redirected to {@code /login?accountDeleted}.
+     * </p>
+     *
+     * @throws Exception if an error occurs during MVC request processing
+     */
+    @Test
+    @DisplayName("POST /profile/delete happy path for admin when multiple active admins exist")
+    public void testDeleteAccountHappyPathAdminWithMultipleAdmins() throws Exception
+    {
+        // Promote testUser to active admin
+        testUser.setAdmin(true);
+        userRepository.save(testUser);
+
+        // Create a second active administrator
+        final User secondAdmin = new User("Second", "Admin", "second.admin@xcmailr.test", "AdminSecret123", "en");
+        secondAdmin.setActive(true);
+        secondAdmin.setAdmin(true);
+        userRepository.save(secondAdmin);
+
+        assertEquals(2L, userRepository.countByAdminTrueAndActiveTrue(), "Should have 2 active admins initially");
+
+        final MockHttpSession session = new MockHttpSession();
+
+        // Perform account deletion as testUser
+        mockMvc.perform(post("/profile/delete")
+               .session(session)
+               .with(user(testUser.getMail()).roles("ADMIN", "USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?accountDeleted"));
+
+        // Verify session invalidation and deletion of testUser only
+        assertTrue(session.isInvalid(), "HTTP session must be invalidated upon admin account deletion");
+        assertTrue(userRepository.findById(testUser.getId()).isEmpty(), "Deleting admin must be removed");
+        assertTrue(userRepository.findById(secondAdmin.getId()).isPresent(), "Remaining admin must still exist");
+        assertEquals(1L, userRepository.countByAdminTrueAndActiveTrue(), "Exactly one active admin should remain");
+    }
+
+    /**
+     * Verifies that account deletion is rejected when an incorrect current password is supplied.
+     * <p>
+     * Ensures an error message is returned on the profile view and no user data is deleted.
+     * </p>
+     *
+     * @throws Exception if an error occurs during MVC request processing
+     */
+    @Test
+    @DisplayName("POST /profile/delete with incorrect password should reject and retain data")
+    public void testDeleteAccountWrongPassword() throws Exception
+    {
+        final MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/profile/delete")
+               .session(session)
+               .with(user(testUser.getMail()).roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "IncorrectPassword123"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Current password does not match."));
+
+        // Verify session and user record remain intact
+        assertTrue(!session.isInvalid(), "Session must not be invalidated on failed deletion");
+        assertTrue(userRepository.findById(testUser.getId()).isPresent(), "User record must not be deleted");
+    }
+
+    /**
+     * Verifies that account deletion is rejected when a blank or whitespace-only password is submitted.
+     * <p>
+     * Ensures an error message requesting the current password is shown and no data is deleted.
+     * </p>
+     *
+     * @throws Exception if an error occurs during MVC request processing
+     */
+    @Test
+    @DisplayName("POST /profile/delete with blank password should reject and retain data")
+    public void testDeleteAccountBlankPassword() throws Exception
+    {
+        final MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/profile/delete")
+               .session(session)
+               .with(user(testUser.getMail()).roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "   "))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Please enter your current password to confirm deletion."));
+
+        // Verify session and user record remain intact
+        assertTrue(!session.isInvalid(), "Session must not be invalidated on failed deletion");
+        assertTrue(userRepository.findById(testUser.getId()).isPresent(), "User record must not be deleted");
+    }
+
+    /**
+     * Verifies that a sole active administrator cannot delete their account.
+     * <p>
+     * Ensures system integrity by requiring at least one active administrator, blocking the deletion,
+     * presenting an informative error message on the profile page, and retaining all user data.
+     * </p>
+     *
+     * @throws Exception if an error occurs during MVC request processing
+     */
+    @Test
+    @DisplayName("POST /profile/delete for sole active admin should block deletion and display error")
+    public void testDeleteAccountSoleAdminBlocked() throws Exception
+    {
+        // Make testUser an active administrator
+        testUser.setAdmin(true);
+        userRepository.save(testUser);
+
+        // Add a mailbox and email to verify retention
+        final MBox box = new MBox("adminbox", "xcmailr.test", 0L, false, testUser);
+        mailboxRepository.save(box);
+
+        final Mail mail = new Mail();
+        mail.setSender("alert@system.test");
+        mail.setSubject("Sole Admin Test");
+        mail.setReceiveTime(System.currentTimeMillis());
+        mail.setMessage("System alert".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        mail.setMailbox(box);
+        mailRepository.save(mail);
+
+        assertEquals(1L, userRepository.countByAdminTrueAndActiveTrue(), "testUser must be the sole active admin");
+
+        final MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/profile/delete")
+               .session(session)
+               .with(user(testUser.getMail()).roles("ADMIN", "USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage",
+                       "Your account cannot be deleted because it is the last administrator account. At least one active administrator account must exist."));
+
+        // Verify session and all user data remain intact
+        assertTrue(!session.isInvalid(), "Session must not be invalidated when sole admin deletion is blocked");
+        assertTrue(userRepository.findById(testUser.getId()).isPresent(), "Sole admin account must be preserved");
+        assertEquals(1L, mailboxRepository.count(), "Mailbox must be preserved");
+        assertEquals(1L, mailRepository.count(), "Mail must be preserved");
+    }
+
+    /**
+     * Verifies that unauthenticated requests to the account deletion endpoint are rejected and redirected.
+     *
+     * @throws Exception if an error occurs during MVC request processing
+     */
+    @Test
+    @DisplayName("POST /profile/delete unauthenticated should redirect to login")
+    public void testDeleteAccountUnauthenticated() throws Exception
+    {
+        mockMvc.perform(post("/profile/delete")
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123"))
+               .andExpect(status().is3xxRedirection());
+
+        // Verify testUser data was not altered
+        assertTrue(userRepository.findById(testUser.getId()).isPresent(), "User record must remain intact");
+    }
+
+    /**
+     * Verifies that account deletion requests missing a CSRF token are rejected with HTTP 403 Forbidden.
+     *
+     * @throws Exception if an error occurs during MVC request processing
+     */
+    @Test
+    @DisplayName("POST /profile/delete without CSRF token should return 403 Forbidden")
+    public void testDeleteAccountCsrfMissing() throws Exception
+    {
+        mockMvc.perform(post("/profile/delete")
+               .with(user(testUser.getMail()).roles("USER"))
+               .param("currentPassword", "CurrentSecret123"))
+               .andExpect(status().isForbidden());
+
+        // Verify testUser data was not altered
+        assertTrue(userRepository.findById(testUser.getId()).isPresent(), "User record must remain intact");
+    }
+
+    /**
+     * Verifies that account deletion requests with an invalid/forged CSRF token are rejected with HTTP 403 Forbidden.
+     *
+     * @throws Exception if an error occurs during MVC request processing
+     */
+    @Test
+    @DisplayName("POST /profile/delete with invalid CSRF token should return 403 Forbidden")
+    public void testDeleteAccountCsrfInvalid() throws Exception
+    {
+        mockMvc.perform(post("/profile/delete")
+               .with(user(testUser.getMail()).roles("USER"))
+               .with(csrf().useInvalidToken())
+               .param("currentPassword", "CurrentSecret123"))
+               .andExpect(status().isForbidden());
+
+        // Verify testUser data was not altered
+        assertTrue(userRepository.findById(testUser.getId()).isPresent(), "User record must remain intact");
+    }
 }
+

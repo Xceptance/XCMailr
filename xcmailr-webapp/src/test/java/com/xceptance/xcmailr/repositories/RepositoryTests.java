@@ -93,6 +93,47 @@ public class RepositoryTests
         assertEquals("john@example.com", byToken.get().getMail());
     }
 
+    /**
+     * Verifies that {@link UserRepository#countByAdminTrueAndActiveTrue()} counts only
+     * administrator accounts that are currently active, ignoring standard users and deactivated administrators.
+     */
+    @Test
+    @DisplayName("Verify countByAdminTrueAndActiveTrue correctly counts active admins only")
+    public void testCountByAdminTrueAndActiveTrue()
+    {
+        // Initial state with clean database should report 0 active admins
+        assertEquals(0, userRepository.countByAdminTrueAndActiveTrue());
+
+        // Create standard active user (non-admin)
+        final User standardUser = new User("Alice", "User", "alice@example.com", "secret", "en");
+        standardUser.setActive(true);
+        standardUser.setAdmin(false);
+        userRepository.save(standardUser);
+        assertEquals(0, userRepository.countByAdminTrueAndActiveTrue(), "Standard active users should not count as admin");
+
+        // Create inactive administrator account
+        final User inactiveAdmin = new User("Bob", "Admin", "bob.admin@example.com", "secret", "en");
+        inactiveAdmin.setActive(false);
+        inactiveAdmin.setAdmin(true);
+        userRepository.save(inactiveAdmin);
+        assertEquals(0, userRepository.countByAdminTrueAndActiveTrue(), "Deactivated administrators should not count towards active total");
+
+        // Create first active administrator
+        final User activeAdmin1 = new User("Charlie", "Admin", "charlie.admin@example.com", "secret", "en");
+        activeAdmin1.setActive(true);
+        activeAdmin1.setAdmin(true);
+        userRepository.save(activeAdmin1);
+        assertEquals(1, userRepository.countByAdminTrueAndActiveTrue(), "One active administrator must be counted");
+
+        // Create second active administrator
+        final User activeAdmin2 = new User("Diana", "Admin", "diana.admin@example.com", "secret", "en");
+        activeAdmin2.setActive(true);
+        activeAdmin2.setAdmin(true);
+        userRepository.save(activeAdmin2);
+        assertEquals(2, userRepository.countByAdminTrueAndActiveTrue(), "Two active administrators must be counted");
+    }
+
+
     @Test
     @DisplayName("Verify DomainRepository CRUD and ordering")
     public void testDomainRepository()
