@@ -367,6 +367,71 @@ public final class MailboxValidationUnitTest
         assertEquals(0L, expirationTs, "Zero or negative duration must evaluate to 0L (unlimited)");
     }
 
+    /**
+     * Verifies that large duration values do not cause 32-bit integer overflow when computing millisecond offsets.
+     */
+    @Test
+    @DisplayName("Special case: large duration does not suffer from 32-bit integer overflow")
+    public void testExpirationCalculation_LargeDuration_NoIntegerOverflow()
+    {
+        // GIVEN
+        final long fixedNow = 1_700_000_000_000L;
+        final int largeDurationHours = 1_000_000; // 1 million hours exceeds 32-bit int milliseconds
+
+        // WHEN
+        final long expirationTs = fixedNow + java.util.concurrent.TimeUnit.HOURS.toMillis((long) largeDurationHours);
+
+        // THEN
+        final long expectedOffset = 1_000_000L * 3600L * 1000L;
+        assertEquals(fixedNow + expectedOffset, expirationTs, "Large duration must correctly compute with 64-bit long arithmetic");
+        assertTrue(expirationTs > fixedNow, "Expiration timestamp must remain in the future");
+    }
+
+    /**
+     * Verifies entity timestamp status conversions across happy paths and edge cases (active, expired, unlimited).
+     */
+    @Test
+    @DisplayName("Status conversion: verifies MBox entity active and expired state behavior")
+    public void testMailboxActiveStatus_TimestampConversions()
+    {
+        // GIVEN
+        final long now = System.currentTimeMillis();
+        final long futureTs = now + java.util.concurrent.TimeUnit.HOURS.toMillis(720);
+        final long pastTs = now - 3600_000L;
+
+        // WHEN 1: Happy path active future mailbox
+        final MBox activeFutureBox = new MBox("testbox", "xcmailr.test", futureTs, false, null);
+
+        // THEN 1
+        assertTrue(activeFutureBox.isActive(), "Future mailbox must be active");
+        assertFalse(activeFutureBox.isExpired(), "Future mailbox must not be expired");
+        assertFalse(activeFutureBox.isExpiredByTimestamp(), "Future mailbox is not expired by timestamp");
+
+        // WHEN 2: Happy path unlimited mailbox
+        final MBox unlimitedBox = new MBox("unlimited", "xcmailr.test", 0L, false, null);
+
+        // THEN 2
+        assertTrue(unlimitedBox.isActive(), "Unlimited mailbox must be active");
+        assertFalse(unlimitedBox.isExpired(), "Unlimited mailbox must not be expired");
+        assertFalse(unlimitedBox.isExpiredByTimestamp(), "Unlimited mailbox (ts=0) is not expired by timestamp");
+
+        // WHEN 3: Edge case expired mailbox in the past
+        final MBox expiredPastBox = new MBox("expired", "xcmailr.test", pastTs, true, null);
+
+        // THEN 3
+        assertFalse(expiredPastBox.isActive(), "Past expired mailbox must be inactive");
+        assertTrue(expiredPastBox.isExpired(), "Past expired mailbox must be expired");
+        assertTrue(expiredPastBox.isExpiredByTimestamp(), "Past expired mailbox must be expired by timestamp");
+
+        // WHEN 4: Edge case manually deactivated unlimited mailbox
+        final MBox deactivatedUnlimitedBox = new MBox("deactivated", "xcmailr.test", 0L, true, null);
+
+        // THEN 4
+        assertFalse(deactivatedUnlimitedBox.isActive(), "Deactivated unlimited mailbox must be inactive");
+        assertTrue(deactivatedUnlimitedBox.isExpired(), "Deactivated unlimited mailbox must be expired");
+        assertFalse(deactivatedUnlimitedBox.isExpiredByTimestamp(), "Unlimited mailbox cannot be expired by timestamp even if deactivated");
+    }
+
     @Test
     @DisplayName("Happy path: MBox forwardEmails property respects explicit true and false states")
     public void testMailboxForwarding_ExplicitStates_Preserved()

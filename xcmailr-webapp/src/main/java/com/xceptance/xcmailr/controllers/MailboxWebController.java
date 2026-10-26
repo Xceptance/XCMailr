@@ -170,6 +170,8 @@ public class MailboxWebController
         final List<Domain> domains = domainRepository.findAllByOrderByDomainnameAsc();
         model.addAttribute("domains", domains);
         model.addAttribute("suggestedAddress", RandomStringUtils.randomAlphanumeric(7).toLowerCase());
+        model.addAttribute("selectedDuration", 2);
+        model.addAttribute("forwardEmails", true);
 
         return "mailboxes/index";
     }
@@ -187,6 +189,8 @@ public class MailboxWebController
         final List<Domain> domains = domainRepository.findAllByOrderByDomainnameAsc();
         model.addAttribute("domains", domains);
         model.addAttribute("suggestedAddress", RandomStringUtils.randomAlphanumeric(7).toLowerCase());
+        model.addAttribute("selectedDuration", 2);
+        model.addAttribute("forwardEmails", true);
         return "mailboxes/fragments/modal-new :: modal";
     }
 
@@ -195,7 +199,7 @@ public class MailboxWebController
      *
      * @param address desired local address part (generated if blank)
      * @param domain domain name
-     * @param durationHours validity duration in hours (0 for unlimited)
+     * @param durationHours validity duration in hours (0 for unlimited, defaults to 2 hours)
      * @param forwardEmails whether to forward emails to user's registered address
      * @param hxRequest header indicating HTMX request
      * @param principal authenticated user
@@ -205,7 +209,7 @@ public class MailboxWebController
     @PostMapping("/mailboxes")
     public Object createMailbox(@RequestParam(value = "address", required = false) final String address,
                                 @RequestParam("domain") final String domain,
-                                @RequestParam(value = "durationHours", defaultValue = "1") final int durationHours,
+                                @RequestParam(value = "durationHours", defaultValue = "2") final int durationHours,
                                 @RequestParam(value = "forwardEmails", defaultValue = "false") final boolean forwardEmails,
                                 @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
                                 final Principal principal,
@@ -228,6 +232,8 @@ public class MailboxWebController
                 model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
                 model.addAttribute("address", localAddress);
                 model.addAttribute("selectedDomain", cleanDomain);
+                model.addAttribute("selectedDuration", durationHours);
+                model.addAttribute("forwardEmails", forwardEmails);
                 return "mailboxes/fragments/modal-new :: modal";
             }
             return "redirect:/mailboxes?error=invalidAddress";
@@ -241,6 +247,8 @@ public class MailboxWebController
                 model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
                 model.addAttribute("address", localAddress);
                 model.addAttribute("selectedDomain", cleanDomain);
+                model.addAttribute("selectedDuration", durationHours);
+                model.addAttribute("forwardEmails", forwardEmails);
                 return "mailboxes/fragments/modal-new :: modal";
             }
             return "redirect:/mailboxes?error=invalidDomain";
@@ -254,6 +262,8 @@ public class MailboxWebController
                 model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
                 model.addAttribute("address", localAddress);
                 model.addAttribute("selectedDomain", cleanDomain);
+                model.addAttribute("selectedDuration", durationHours);
+                model.addAttribute("forwardEmails", forwardEmails);
                 return "mailboxes/fragments/modal-new :: modal";
             }
             return "redirect:/mailboxes?error=mailboxExists";

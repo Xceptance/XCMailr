@@ -79,7 +79,7 @@ The system SHALL provide web views for user registration, email verification, se
 - **THEN** the system rejects the request with an HTTP 403 Forbidden response and preserves all account data untouched
 
 ### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, honoring forwarding preferences on creation and rendering timestamps localized to the client browser's timezone.
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, and rendering timestamps localized to the client browser's timezone.
 
 #### Scenario: Live Search and Filter
 - **WHEN** the user types into the mailbox filter input
@@ -88,6 +88,22 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 #### Scenario: Creation Modal Display
 - **WHEN** the user clicks the "New Mailbox" button on the dashboard
 - **THEN** the system dynamically loads and displays the creation modal in the foreground with input focus and domain options, with the modal backdrop positioned behind the modal dialog
+
+#### Scenario: Mailbox Creation Active Duration Segmented Radio Controls
+- **WHEN** the user opens the mailbox creation modal
+- **THEN** active duration is presented as a segmented radio button pill group displaying preset durations (`1h`, `2h`, `1d`, `7d`, `30d`, `Unlimited`) with standard form name `durationHours`
+- **AND** `2 Hours` (`value="2"`) is selected by default
+- **AND** selecting any pill immediately activates that radio option with single-click visual feedback without dropdown menus or popup dismiss ambiguities
+
+#### Scenario: Mailbox Creation with 30-Day Duration Preset (Happy Path)
+- **WHEN** the user selects the `30 Days` duration pill (`durationHours = 720`) and submits the creation form with valid parameters
+- **THEN** the system persists the mailbox with expiration timestamp calculated exactly matching the selected duration (`now + 720 hours`)
+- **AND** the table refreshes displaying the corresponding localized expiration date approximately 30 days in the future
+
+#### Scenario: Mailbox Creation with Unlimited Duration (Happy Path)
+- **WHEN** the user selects the `Unlimited` duration pill (`durationHours = 0`) and submits the creation form with valid parameters
+- **THEN** the system persists the mailbox with `ts_Active = 0` (permanent mailbox)
+- **AND** the table refreshes displaying "Unlimited" for expiration
 
 #### Scenario: Successful Mailbox Creation and Table Refresh
 - **WHEN** the user submits the new mailbox form with valid parameters
@@ -108,6 +124,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 #### Scenario: Creation Validation Feedback
 - **WHEN** the user submits the new mailbox form with missing, malformed, or unauthorized domain data
 - **THEN** the modal dialog remains open and presents inline validation feedback highlighting the specific error
+- **AND** the user's selected duration radio pill, address prefix, domain, and forwarding switch state are preserved in the re-rendered modal
 
 #### Scenario: Modal Dialog Actions
 - **WHEN** the user clicks to edit, delete, or extend expiration on an existing mailbox

@@ -186,7 +186,9 @@ public final class MailboxWebControllerTest
                .with(user(username).roles("USER")))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
-               .andExpect(model().attributeExists("domains", "suggestedAddress"));
+               .andExpect(model().attributeExists("domains", "suggestedAddress"))
+               .andExpect(model().attribute("selectedDuration", 2))
+               .andExpect(model().attribute("forwardEmails", true));
     }
 
     /**
@@ -444,7 +446,9 @@ public final class MailboxWebControllerTest
                .param("domain", "xcmailr.test"))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
-               .andExpect(model().attribute("error", "Invalid mailbox address characters."));
+               .andExpect(model().attribute("error", "Invalid mailbox address characters."))
+               .andExpect(model().attribute("selectedDuration", 2))
+               .andExpect(model().attribute("forwardEmails", false));
     }
 
     /**
@@ -468,7 +472,9 @@ public final class MailboxWebControllerTest
                .param("domain", unconfiguredDomain))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
-               .andExpect(model().attribute("error", "Specified domain is not configured or whitelisted."));
+               .andExpect(model().attribute("error", "Specified domain is not configured or whitelisted."))
+               .andExpect(model().attribute("selectedDuration", 2))
+               .andExpect(model().attribute("forwardEmails", false));
     }
 
     /**
@@ -493,7 +499,9 @@ public final class MailboxWebControllerTest
                .param("domain", "xcmailr.test"))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
-               .andExpect(model().attribute("error", "A mailbox with this address already exists."));
+               .andExpect(model().attribute("error", "A mailbox with this address already exists."))
+               .andExpect(model().attribute("selectedDuration", 2))
+               .andExpect(model().attribute("forwardEmails", false));
     }
 
     /**
@@ -820,6 +828,171 @@ public final class MailboxWebControllerTest
                .andExpect(status().isOk())
                .andExpect(content().string(containsString("data-bs-boundary=\"viewport\"")))
                .andExpect(content().string(containsString("data-bs-popper-config='{\"strategy\":\"fixed\"}'")));
+    }
+
+    /**
+     * Verifies happy path creation of a mailbox with 30-day preset duration (720 hours).
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes with 30-day duration sets expiration to 720 hours in future")
+    public void testCreateMailbox_PresetDuration30Days_OffsetsCorrectly() throws Exception
+    {
+        // GIVEN
+        final String address = "thirty-days-box";
+        final String domainName = "xcmailr.test";
+        final int durationHours = 720;
+        final long before = System.currentTimeMillis();
+
+        // WHEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", address)
+               .param("domain", domainName)
+               .param("durationHours", String.valueOf(durationHours))
+               .param("forwardEmails", "true"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        // THEN
+        final long after = System.currentTimeMillis();
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, domainName).orElseThrow();
+        assertFalse(box.isExpired(), "Mailbox must be active");
+        assertTrue(box.isForwardEmails(), "Forwarding must be enabled");
+        final long minExpected = before + TimeUnit.HOURS.toMillis(durationHours);
+        final long maxExpected = after + TimeUnit.HOURS.toMillis(durationHours);
+        assertTrue(box.getTs_Active() >= minExpected && box.getTs_Active() <= maxExpected,
+                   "Expiration timestamp must be offset by exactly 720 hours");
+    }
+
+    /**
+     * Verifies happy path creation of an unlimited mailbox (0 hours).
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes with unlimited duration sets expiration to 0L")
+    public void testCreateMailbox_PresetDurationUnlimited_PersistsZeroTimestamp() throws Exception
+    {
+        // GIVEN
+        final String address = "unlimited-box";
+        final String domainName = "xcmailr.test";
+
+        // WHEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", address)
+               .param("domain", domainName)
+               .param("durationHours", "0")
+               .param("forwardEmails", "false"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        // THEN
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, domainName).orElseThrow();
+        assertFalse(box.isExpired(), "Mailbox must be active");
+        assertFalse(box.isForwardEmails(), "Forwarding must be disabled");
+        assertEquals(0L, box.getTs_Active(), "Unlimited mailbox must persist ts_active = 0L");
+    }
+
+    /**
+     * Verifies that when durationHours parameter is omitted, controller defaults to 2 hours.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes with omitted durationHours defaults to 2 hours")
+    public void testCreateMailbox_DefaultDuration_ResolvesToTwoHours() throws Exception
+    {
+        // GIVEN
+        final String address = "default-duration-box";
+        final String domainName = "xcmailr.test";
+        final long before = System.currentTimeMillis();
+
+        // WHEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", address)
+               .param("domain", domainName)
+               .param("forwardEmails", "true"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        // THEN
+        final long after = System.currentTimeMillis();
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, domainName).orElseThrow();
+        final long minExpected = before + TimeUnit.HOURS.toMillis(2);
+        final long maxExpected = after + TimeUnit.HOURS.toMillis(2);
+        assertTrue(box.getTs_Active() >= minExpected && box.getTs_Active() <= maxExpected,
+                   "Default duration must be 2 hours");
+    }
+
+    /**
+     * Verifies that validation error re-renders retain selectedDuration and forwardEmails in the model.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: validation failure re-render preserves custom selectedDuration and forwardEmails")
+    public void testCreateMailbox_ValidationError_PreservesSelectedDurationAndForwarding() throws Exception
+    {
+        // GIVEN an invalid address, custom duration (30 days = 720h), and forwarding disabled
+        final String invalidAddress = "invalid@@address";
+        final String domainName = "xcmailr.test";
+        final int customDuration = 720;
+        final boolean customForwarding = false;
+
+        // WHEN & THEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", invalidAddress)
+               .param("domain", domainName)
+               .param("durationHours", String.valueOf(customDuration))
+               .param("forwardEmails", String.valueOf(customForwarding)))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attribute("error", "Invalid mailbox address characters."))
+               .andExpect(model().attribute("selectedDuration", customDuration))
+               .andExpect(model().attribute("forwardEmails", customForwarding))
+               .andExpect(model().attribute("selectedDomain", domainName));
+    }
+
+    /**
+     * Verifies that negative duration hours evaluate safely to unlimited (0L) without errors.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Edge case: POST /mailboxes with negative duration evaluates to unlimited (0L)")
+    public void testCreateMailbox_NegativeDuration_PersistsZeroTimestamp() throws Exception
+    {
+        // GIVEN
+        final String address = "negative-duration-box";
+        final String domainName = "xcmailr.test";
+
+        // WHEN
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("address", address)
+               .param("domain", domainName)
+               .param("durationHours", "-10"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        // THEN
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, domainName).orElseThrow();
+        assertEquals(0L, box.getTs_Active(), "Negative duration must evaluate to 0L");
     }
 }
 
