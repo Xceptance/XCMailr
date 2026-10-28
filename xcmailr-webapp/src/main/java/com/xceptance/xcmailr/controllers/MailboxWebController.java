@@ -97,10 +97,11 @@ public class MailboxWebController
 
     /**
      * Mailbox dashboard view. Handles full page rendering and HTMX partial table updates.
-     * Supports server-side column sorting with sort parameter whitelist verification.
+     * Supports server-side column sorting with sort parameter whitelist verification
+     * and status filtering across ALL, ACTIVE, EXPIRED, EXPIRING, and UNLIMITED states.
      *
      * @param search optional search query
-     * @param status status filter (ALL, ACTIVE, EXPIRED)
+     * @param status status filter (ALL, ACTIVE, EXPIRED, EXPIRING, UNLIMITED; defaults to ALL)
      * @param page page number (0-indexed)
      * @param size page size
      * @param sort sort column property (address, status, expires, forwards, suppressions; defaults to id)
@@ -133,28 +134,31 @@ public class MailboxWebController
         final Sort sortOrder = resolveSort(sort, dir);
         final Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), sortOrder);
 
-        final Page<MBox> mailboxPage;
+        // Normalize status filter via whitelist mapping
+        final String effectiveStatus = resolveStatus(status);
+
         final boolean hasSearch = search != null && !search.trim().isEmpty();
         final String trimmedSearch = hasSearch ? search.trim() : "";
 
-        if ("ACTIVE".equalsIgnoreCase(status))
+        // Route to dedicated repository query based on effective status and search presence
+        final Page<MBox> mailboxPage = switch (effectiveStatus)
         {
-            mailboxPage = hasSearch
+            case "ACTIVE" -> hasSearch
                 ? mailboxRepository.findByUsrAndExpiredAndSearch(user, false, trimmedSearch, pageable)
                 : mailboxRepository.findByUsrAndExpired(user, false, pageable);
-        }
-        else if ("EXPIRED".equalsIgnoreCase(status))
-        {
-            mailboxPage = hasSearch
+            case "EXPIRED" -> hasSearch
                 ? mailboxRepository.findByUsrAndExpiredAndSearch(user, true, trimmedSearch, pageable)
                 : mailboxRepository.findByUsrAndExpired(user, true, pageable);
-        }
-        else
-        {
-            mailboxPage = hasSearch
+            case "EXPIRING" -> hasSearch
+                ? mailboxRepository.findExpiringByUsrAndSearch(user, trimmedSearch, pageable)
+                : mailboxRepository.findExpiringByUsr(user, pageable);
+            case "UNLIMITED" -> hasSearch
+                ? mailboxRepository.findUnlimitedByUsrAndSearch(user, trimmedSearch, pageable)
+                : mailboxRepository.findUnlimitedByUsr(user, pageable);
+            default -> hasSearch
                 ? mailboxRepository.findByUsrAndSearch(user, trimmedSearch, pageable)
                 : mailboxRepository.findByUsr(user, pageable);
-        }
+        };
 
         // Count messages for each mailbox in page
         final Map<Long, Long> mailCounts = new HashMap<>();
@@ -168,7 +172,7 @@ public class MailboxWebController
         model.addAttribute("page", mailboxPage);
         model.addAttribute("mailCounts", mailCounts);
         model.addAttribute("search", trimmedSearch);
-        model.addAttribute("status", status.toUpperCase());
+        model.addAttribute("status", effectiveStatus);
         model.addAttribute("sort", effectiveSort);
         model.addAttribute("dir", effectiveDir);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
@@ -187,6 +191,35 @@ public class MailboxWebController
         model.addAttribute("forwardEmails", true);
 
         return "mailboxes/index";
+    }
+
+    /**
+     * Resolves the normalized mailbox status filter token from an input parameter against a strict whitelist.
+     * Supported filter tokens are:
+     * <ul>
+     *   <li>"ALL" - all user mailboxes (default)</li>
+     *   <li>"ACTIVE" - active mailboxes (expired = false)</li>
+     *   <li>"EXPIRED" - deactivated/elapsed mailboxes (expired = true)</li>
+     *   <li>"EXPIRING" - active mailboxes with finite lifespan (expired = false AND ts_Active > 0)</li>
+     *   <li>"UNLIMITED" - active permanent mailboxes (expired = false AND ts_Active = 0)</li>
+     * </ul>
+     * Any unrecognized, null, empty, or whitespace value safely defaults to "ALL".
+     *
+     * @param status the requested status filter string
+     * @return the normalized uppercase whitelist status ("ALL", "ACTIVE", "EXPIRED", "EXPIRING", "UNLIMITED")
+     */
+    static String resolveStatus(final String status)
+    {
+        if (status == null)
+        {
+            return "ALL";
+        }
+        final String cleanStatus = status.trim().toUpperCase();
+        return switch (cleanStatus)
+        {
+            case "ACTIVE", "EXPIRED", "EXPIRING", "UNLIMITED" -> cleanStatus;
+            default -> "ALL";
+        };
     }
 
     /**
@@ -230,7 +263,9 @@ public class MailboxWebController
      * <ul>
      *   <li>"address" maps to composite ordering by address then domain</li>
      *   <li>"status" maps to expired flag</li>
-     *   <li>"expires" maps to ts_Active timestamp</li>
+     *   <li>"expires" maps to Perspective A (+&infin;) expiration sorting:
+     *       for ASC, finite timestamps sort ascending with unlimited (ts_Active = 0) placed at the end;
+     *       for DESC, unlimited (ts_Active = 0) appears at the top followed by finite timestamps descending</li>
      *   <li>"forwards" maps to forwards counter</li>
      *   <li>"suppressions" maps to suppressions counter</li>
      * </ul>
@@ -256,8 +291,15 @@ public class MailboxWebController
             case "address" -> Sort.by(direction, "address").and(Sort.by(direction, "domain"));
             // Boolean expired status (false = active, true = expired)
             case "status" -> Sort.by(direction, "expired");
-            // Expiration epoch timestamp (use JpaSort.unsafe to avoid Spring Data underscore delimiter parsing on ts_Active)
-            case "expires" -> JpaSort.unsafe(direction, "ts_Active");
+            // Expiration epoch timestamp: Perspective A (Pure Infinity: +infinity)
+            // Permanent unlimited mailboxes (ts_Active = 0) represent infinite lifespan.
+            // On ASC: expiring soonest first, unlimited placed at the end (+infinity).
+            // On DESC: unlimited placed at top (+infinity), followed by furthest in future down to soonest.
+            case "expires" -> direction.isAscending()
+                ? JpaSort.unsafe(Sort.Direction.ASC, "(CASE WHEN ts_Active = 0 THEN 1 ELSE 0 END)")
+                         .and(JpaSort.unsafe(Sort.Direction.ASC, "ts_Active"))
+                : JpaSort.unsafe(Sort.Direction.ASC, "(CASE WHEN ts_Active = 0 THEN 0 ELSE 1 END)")
+                         .and(JpaSort.unsafe(Sort.Direction.DESC, "ts_Active"));
             // Forwarded email counter
             case "forwards" -> Sort.by(direction, "forwards");
             // Suppressed email counter

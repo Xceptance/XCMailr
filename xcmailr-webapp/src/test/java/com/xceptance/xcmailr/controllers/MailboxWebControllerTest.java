@@ -33,6 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -148,6 +150,29 @@ public final class MailboxWebControllerTest
                .andExpect(model().attributeExists("domains"))
                .andExpect(model().attribute("sort", "id"))
                .andExpect(model().attribute("dir", "desc"));
+    }
+
+    /**
+     * Verifies that the full dashboard page renders all five status filter options,
+     * correctly setting the selected attribute on the active filter option.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Full index dashboard renders status filter options including EXPIRING and UNLIMITED")
+    public void testGetDashboardFullPage_StatusFilterOptions() throws Exception
+    {
+        // WHEN & THEN - request with EXPIRING selected
+        mockMvc.perform(get("/mailboxes")
+               .param("status", "EXPIRING")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/index"))
+               .andExpect(content().string(containsString("<option value=\"ALL\">All Statuses</option>")))
+               .andExpect(content().string(containsString("<option value=\"ACTIVE\">Active Only</option>")))
+               .andExpect(content().string(containsString("<option value=\"EXPIRED\">Expired Only</option>")))
+               .andExpect(content().string(containsString("<option value=\"EXPIRING\" selected=\"selected\">Expiring Only</option>")))
+               .andExpect(content().string(containsString("<option value=\"UNLIMITED\">Unlimited Only</option>")));
     }
 
     /**
@@ -1035,7 +1060,7 @@ public final class MailboxWebControllerTest
         assertNotNull(statusOrder, "Status order on 'expired' property must not be null");
         assertEquals(Sort.Direction.ASC, statusOrder.getDirection());
 
-        // Expires -> ts_Active
+        // Expires -> ts_Active (Perspective A)
         final Sort expiresDesc = MailboxWebController.resolveSort("expires", "desc");
         final Sort.Order expiresOrder = expiresDesc.getOrderFor("ts_Active");
         assertNotNull(expiresOrder, "Expires order on 'ts_Active' property must not be null");
@@ -1052,6 +1077,60 @@ public final class MailboxWebControllerTest
         final Sort.Order suppressionsOrder = suppressionsDesc.getOrderFor("suppressions");
         assertNotNull(suppressionsOrder, "Suppressions order must not be null");
         assertEquals(Sort.Direction.DESC, suppressionsOrder.getDirection());
+    }
+
+    /**
+     * Verifies that resolveSort implements Perspective A (Pure Infinity: +infinity) for the "expires" column.
+     * <p>
+     * On ASC: orders by CASE WHEN ts_Active = 0 THEN 1 ELSE 0 END ASC, then ts_Active ASC so finite timestamps
+     * come first (soonest first) and permanent mailboxes (ts_Active = 0) sort at the end (+infinity).
+     * </p>
+     * <p>
+     * On DESC: orders by CASE WHEN ts_Active = 0 THEN 0 ELSE 1 END ASC, then ts_Active DESC so permanent mailboxes
+     * (ts_Active = 0) sort at the very top (+infinity) followed by finite timestamps in descending order.
+     * </p>
+     */
+    @Test
+    @DisplayName("Happy path: Perspective A (+infinity) expiration sort specifications generated for ASC and DESC")
+    public void testResolveSort_HappyPath_PerspectiveA_ExpiresSortOrders()
+    {
+        // 1. ASC: finite timestamps soonest first, unlimited (0) at end (+infinity)
+        final Sort expiresAsc = MailboxWebController.resolveSort("expires", "asc");
+        final List<Sort.Order> ascOrders = new ArrayList<>();
+        expiresAsc.iterator().forEachRemaining(ascOrders::add);
+
+        assertEquals(2, ascOrders.size(), "Expires ASC sort specification must contain exactly 2 order clauses");
+
+        final Sort.Order ascCaseOrder = ascOrders.get(0);
+        assertEquals("(CASE WHEN ts_Active = 0 THEN 1 ELSE 0 END)", ascCaseOrder.getProperty(),
+                     "First order clause must be CASE partitioning finite (0) before unlimited (1)");
+        assertEquals(Sort.Direction.ASC, ascCaseOrder.getDirection(),
+                     "CASE clause must be sorted ASC");
+
+        final Sort.Order ascEpochOrder = ascOrders.get(1);
+        assertEquals("ts_Active", ascEpochOrder.getProperty(),
+                     "Second order clause must be ts_Active epoch timestamp");
+        assertEquals(Sort.Direction.ASC, ascEpochOrder.getDirection(),
+                     "ts_Active must be sorted ASC for chronological expiration");
+
+        // 2. DESC: unlimited (0) at top (+infinity), finite timestamps descending
+        final Sort expiresDesc = MailboxWebController.resolveSort("expires", "desc");
+        final List<Sort.Order> descOrders = new ArrayList<>();
+        expiresDesc.iterator().forEachRemaining(descOrders::add);
+
+        assertEquals(2, descOrders.size(), "Expires DESC sort specification must contain exactly 2 order clauses");
+
+        final Sort.Order descCaseOrder = descOrders.get(0);
+        assertEquals("(CASE WHEN ts_Active = 0 THEN 0 ELSE 1 END)", descCaseOrder.getProperty(),
+                     "First order clause must be CASE partitioning unlimited (0) before finite (1)");
+        assertEquals(Sort.Direction.ASC, descCaseOrder.getDirection(),
+                     "CASE clause must be sorted ASC so unlimited (weight 0) comes first");
+
+        final Sort.Order descEpochOrder = descOrders.get(1);
+        assertEquals("ts_Active", descEpochOrder.getProperty(),
+                     "Second order clause must be ts_Active epoch timestamp");
+        assertEquals(Sort.Direction.DESC, descEpochOrder.getDirection(),
+                     "ts_Active must be sorted DESC for reverse chronological expiration");
     }
 
     /**
@@ -1080,6 +1159,83 @@ public final class MailboxWebControllerTest
     }
 
     /**
+     * Verifies that resolveStatus correctly recognizes all whitelisted status filter tokens.
+     */
+    @Test
+    @DisplayName("Happy path: Whitelisted status filter tokens are mapped correctly by resolveStatus")
+    public void testResolveStatus_HappyPath_AllStatuses()
+    {
+        // Valid status tokens in uppercase
+        assertEquals("ALL", MailboxWebController.resolveStatus("ALL"), "ALL should resolve to ALL");
+        assertEquals("ACTIVE", MailboxWebController.resolveStatus("ACTIVE"), "ACTIVE should resolve to ACTIVE");
+        assertEquals("EXPIRED", MailboxWebController.resolveStatus("EXPIRED"), "EXPIRED should resolve to EXPIRED");
+        assertEquals("EXPIRING", MailboxWebController.resolveStatus("EXPIRING"), "EXPIRING should resolve to EXPIRING");
+        assertEquals("UNLIMITED", MailboxWebController.resolveStatus("UNLIMITED"), "UNLIMITED should resolve to UNLIMITED");
+    }
+
+    /**
+     * Verifies that resolveStatus handles case variations and leading/trailing whitespace cleanly.
+     */
+    @Test
+    @DisplayName("Special case: Status filter tokens match case-insensitively and ignore whitespace")
+    public void testResolveStatus_SpecialCase_CaseInsensitivityAndWhitespace()
+    {
+        // Case variations
+        assertEquals("ALL", MailboxWebController.resolveStatus("all"), "Lowercase all should resolve to ALL");
+        assertEquals("ACTIVE", MailboxWebController.resolveStatus("active"), "Lowercase active should resolve to ACTIVE");
+        assertEquals("EXPIRED", MailboxWebController.resolveStatus("expired"), "Lowercase expired should resolve to EXPIRED");
+        assertEquals("EXPIRING", MailboxWebController.resolveStatus("expiring"), "Lowercase expiring should resolve to EXPIRING");
+        assertEquals("UNLIMITED", MailboxWebController.resolveStatus("unlimited"), "Lowercase unlimited should resolve to UNLIMITED");
+        assertEquals("EXPIRING", MailboxWebController.resolveStatus("ExPiRiNg"), "Mixed case should resolve to EXPIRING");
+        assertEquals("UNLIMITED", MailboxWebController.resolveStatus("UnLiMiTeD"), "Mixed case should resolve to UNLIMITED");
+
+        // Leading/trailing whitespace
+        assertEquals("ALL", MailboxWebController.resolveStatus("   ALL   "), "Padded ALL should resolve to ALL");
+        assertEquals("ACTIVE", MailboxWebController.resolveStatus("\tACTIVE\n"), "Whitespace padded ACTIVE should resolve to ACTIVE");
+        assertEquals("EXPIRING", MailboxWebController.resolveStatus("  expiring  "), "Padded lowercase should resolve to EXPIRING");
+        assertEquals("UNLIMITED", MailboxWebController.resolveStatus("  unlimited  "), "Padded lowercase should resolve to UNLIMITED");
+    }
+
+    /**
+     * Verifies that null, empty, or whitespace-only status values safely default to ALL.
+     */
+    @Test
+    @DisplayName("Error case: Null, empty, and blank status inputs safely default to ALL")
+    public void testResolveStatus_ErrorCase_NullAndEmptyDefaultsToAll()
+    {
+        assertEquals("ALL", MailboxWebController.resolveStatus(null), "null must fall back to ALL");
+        assertEquals("ALL", MailboxWebController.resolveStatus(""), "Empty string must fall back to ALL");
+        assertEquals("ALL", MailboxWebController.resolveStatus("   "), "Whitespace-only must fall back to ALL");
+        assertEquals("ALL", MailboxWebController.resolveStatus("\t\n"), "Tabs and newlines must fall back to ALL");
+    }
+
+    /**
+     * Verifies that unrecognized, invalid, or malicious status filter strings safely default to ALL.
+     */
+    @Test
+    @DisplayName("Error case: Unknown, invalid, and injection status strings safely fall back to ALL")
+    public void testResolveStatus_ErrorCase_InvalidAndMaliciousStringsDefaultToAll()
+    {
+        final String[] invalidStatuses = {
+            "INVALID",
+            "NONEXISTENT",
+            "DELETED",
+            "PENDING",
+            "ALL; DROP TABLE mailboxes;--",
+            "' OR 1=1 --",
+            "<script>alert(1)</script>",
+            "expiring_soon",
+            "unlimited_boxes"
+        };
+
+        for (final String invalidStatus : invalidStatuses)
+        {
+            assertEquals("ALL", MailboxWebController.resolveStatus(invalidStatus),
+                         "Invalid status '" + invalidStatus + "' must fall back to ALL");
+        }
+    }
+
+    /**
      * Verifies that listMailboxes populates requested sort and dir attributes into the model.
      *
      * @throws Exception if mock MVC execution fails
@@ -1102,6 +1258,151 @@ public final class MailboxWebControllerTest
                .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
                .andExpect(model().attribute("sort", "address"))
                .andExpect(model().attribute("dir", "asc"));
+    }
+
+    /**
+     * Verifies that GET /mailboxes with status=EXPIRING filters to active mailboxes with finite lifespan.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: GET /mailboxes with status=EXPIRING returns only active finite mailboxes")
+    public void testListMailboxes_HappyPath_StatusExpiring() throws Exception
+    {
+        // GIVEN: an active expiring mailbox, an active unlimited mailbox, and an expired finite mailbox
+        final long futureEpoch = System.currentTimeMillis() + 3600000L;
+        final long pastEpoch = System.currentTimeMillis() - 3600000L;
+        final MBox expiring = new MBox("expiring-box", "xcmailr.test", futureEpoch, false, owner);
+        final MBox unlimited = new MBox("unlimited-box", "xcmailr.test", 0L, false, owner);
+        final MBox expired = new MBox("expired-box", "xcmailr.test", pastEpoch, true, owner);
+        mailboxRepository.save(expiring);
+        mailboxRepository.save(unlimited);
+        mailboxRepository.save(expired);
+
+        // WHEN & THEN
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .param("status", "EXPIRING"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("status", "EXPIRING"))
+               .andExpect(content().string(containsString("expiring-box@xcmailr.test")))
+               .andExpect(content().string(org.hamcrest.Matchers.not(containsString("unlimited-box@xcmailr.test"))))
+               .andExpect(content().string(org.hamcrest.Matchers.not(containsString("expired-box@xcmailr.test"))));
+    }
+
+    /**
+     * Verifies that GET /mailboxes with status=UNLIMITED filters to active permanent mailboxes.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: GET /mailboxes with status=UNLIMITED returns only active permanent mailboxes")
+    public void testListMailboxes_HappyPath_StatusUnlimited() throws Exception
+    {
+        // GIVEN: an active expiring mailbox, an active unlimited mailbox, and an expired finite mailbox
+        final long futureEpoch = System.currentTimeMillis() + 3600000L;
+        final long pastEpoch = System.currentTimeMillis() - 3600000L;
+        final MBox expiring = new MBox("expiring-box", "xcmailr.test", futureEpoch, false, owner);
+        final MBox unlimited = new MBox("unlimited-box", "xcmailr.test", 0L, false, owner);
+        final MBox expired = new MBox("expired-box", "xcmailr.test", pastEpoch, true, owner);
+        mailboxRepository.save(expiring);
+        mailboxRepository.save(unlimited);
+        mailboxRepository.save(expired);
+
+        // WHEN & THEN
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .param("status", "UNLIMITED"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("status", "UNLIMITED"))
+               .andExpect(content().string(containsString("unlimited-box@xcmailr.test")))
+               .andExpect(content().string(org.hamcrest.Matchers.not(containsString("expiring-box@xcmailr.test"))))
+               .andExpect(content().string(org.hamcrest.Matchers.not(containsString("expired-box@xcmailr.test"))));
+    }
+
+    /**
+     * Verifies that GET /mailboxes with status=EXPIRING and search filters combined.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: GET /mailboxes with status=EXPIRING and search filters matching expiring mailboxes")
+    public void testListMailboxes_HappyPath_StatusExpiringAndSearch() throws Exception
+    {
+        // GIVEN: two expiring mailboxes with different names
+        final long futureEpoch = System.currentTimeMillis() + 3600000L;
+        final MBox expiring1 = new MBox("match-expiring", "xcmailr.test", futureEpoch, false, owner);
+        final MBox expiring2 = new MBox("other-expiring", "xcmailr.test", futureEpoch, false, owner);
+        mailboxRepository.save(expiring1);
+        mailboxRepository.save(expiring2);
+
+        // WHEN & THEN
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .param("status", "EXPIRING")
+               .param("search", "match"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("status", "EXPIRING"))
+               .andExpect(content().string(containsString("match-expiring@xcmailr.test")))
+               .andExpect(content().string(org.hamcrest.Matchers.not(containsString("other-expiring@xcmailr.test"))));
+    }
+
+    /**
+     * Verifies that GET /mailboxes with status=UNLIMITED and search filters combined.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: GET /mailboxes with status=UNLIMITED and search filters matching unlimited mailboxes")
+    public void testListMailboxes_HappyPath_StatusUnlimitedAndSearch() throws Exception
+    {
+        // GIVEN: two unlimited mailboxes with different names
+        final MBox unlimited1 = new MBox("match-unlimited", "xcmailr.test", 0L, false, owner);
+        final MBox unlimited2 = new MBox("other-unlimited", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(unlimited1);
+        mailboxRepository.save(unlimited2);
+
+        // WHEN & THEN
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .param("status", "UNLIMITED")
+               .param("search", "match"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("status", "UNLIMITED"))
+               .andExpect(content().string(containsString("match-unlimited@xcmailr.test")))
+               .andExpect(content().string(org.hamcrest.Matchers.not(containsString("other-unlimited@xcmailr.test"))));
+    }
+
+    /**
+     * Verifies that GET /mailboxes with an invalid status filter safely falls back to ALL.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: GET /mailboxes with invalid status filter falls back to ALL")
+    public void testListMailboxes_ErrorCase_InvalidStatusFallsBackToAll() throws Exception
+    {
+        // GIVEN: a mailbox
+        final MBox box = new MBox("any-status-box", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(box);
+
+        // WHEN & THEN
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .param("status", "MALICIOUS_OR_INVALID"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("status", "ALL"))
+               .andExpect(content().string(containsString("any-status-box@xcmailr.test")));
     }
 
     /**

@@ -374,18 +374,17 @@ public final class MailboxSortingIntegrationTest
     // =========================================================================
 
     /**
-     * Special case: Sorting by expiration timestamp with permanent unlimited mailboxes (ts_Active = 0).
+     * Special case: Permanent unlimited mailboxes (ts_Active = 0) sorting under Perspective A (Pure Infinity: +&infin;).
      * <p>
-     * Verifies that mailboxes with ts_Active = 0 sort deterministically without NullPointerExceptions
-     * or comparison errors alongside finite epoch timestamps:
-     * - ASC: 0 comes first (0 < 1000000000 < 2000000000)
-     * - DESC: highest future timestamp comes first, and unlimited (0) appears last.
+     * Verifies that mailboxes with ts_Active = 0 are treated as infinite lifespan (+&infin;):
+     * - ASC: finite epoch timestamps sort chronologically (soonest first), with unlimited (0) at the very end.
+     * - DESC: unlimited (0) appears at the very top (+&infin;), followed by finite timestamps descending.
      * </p>
      *
      * @throws Exception if request execution fails
      */
     @Test
-    @DisplayName("Special case: Sorting by expiration with permanent unlimited mailboxes (ts_Active = 0)")
+    @DisplayName("Special case: Sorting by expiration with permanent unlimited mailboxes (ts_Active = 0) under Perspective A")
     public void testSorting_SpecialCase_PermanentUnlimitedMailboxes_ExpiresSort() throws Exception
     {
         // GIVEN permanent mailbox (0) and two future expiration mailboxes
@@ -409,9 +408,9 @@ public final class MailboxSortingIntegrationTest
         final Page<MBox> expiresAscPage = (Page<MBox>) expiresAscResult.getModelAndView().getModel().get("page");
         final List<MBox> ascList = expiresAscPage.getContent();
         assertEquals(3, ascList.size());
-        assertEquals(0L, ascList.get(0).getTs_Active(), "Expires ASC: ts_Active = 0 (unlimited) must come first");
-        assertEquals(futureEarly, ascList.get(1).getTs_Active(), "Expires ASC: early expiring must come second");
-        assertEquals(futureLate, ascList.get(2).getTs_Active(), "Expires ASC: late expiring must come third");
+        assertEquals(futureEarly, ascList.get(0).getTs_Active(), "Expires ASC: early expiring must come first (soonest first)");
+        assertEquals(futureLate, ascList.get(1).getTs_Active(), "Expires ASC: late expiring must come second");
+        assertEquals(0L, ascList.get(2).getTs_Active(), "Expires ASC: ts_Active = 0 (unlimited) must come last (+infinity)");
 
         // WHEN sorting by expires DESC
         final MvcResult expiresDescResult = mockMvc.perform(get("/mailboxes")
@@ -426,9 +425,9 @@ public final class MailboxSortingIntegrationTest
         final Page<MBox> expiresDescPage = (Page<MBox>) expiresDescResult.getModelAndView().getModel().get("page");
         final List<MBox> descList = expiresDescPage.getContent();
         assertEquals(3, descList.size());
-        assertEquals(futureLate, descList.get(0).getTs_Active(), "Expires DESC: latest expiration must come first");
-        assertEquals(futureEarly, descList.get(1).getTs_Active(), "Expires DESC: early expiration must come second");
-        assertEquals(0L, descList.get(2).getTs_Active(), "Expires DESC: ts_Active = 0 (unlimited) must come last");
+        assertEquals(0L, descList.get(0).getTs_Active(), "Expires DESC: ts_Active = 0 (unlimited) must come first (+infinity)");
+        assertEquals(futureLate, descList.get(1).getTs_Active(), "Expires DESC: latest finite expiration must come second");
+        assertEquals(futureEarly, descList.get(2).getTs_Active(), "Expires DESC: early finite expiration must come third");
     }
 
     /**
@@ -568,5 +567,355 @@ public final class MailboxSortingIntegrationTest
         assertEquals(2, searchPage.getTotalElements());
         assertEquals("dev-alpha", searchItems.get(0).getAddress());
         assertEquals("dev-zebra", searchItems.get(1).getAddress());
+    }
+
+    // =========================================================================
+    // 3. STATUS FILTERING & COMBINED FILTER/SORT HAPPY PATHS (Task 4.2)
+    // =========================================================================
+
+    /**
+     * Happy path: Verifies that filtering by status EXPIRING returns only active mailboxes with finite lifespans.
+     * <p>
+     * Ensures that permanent mailboxes (ts_Active = 0) and already expired mailboxes (expired = true)
+     * are strictly excluded from the result set.
+     * </p>
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Filtering by status EXPIRING returns only active finite mailboxes")
+    public void testFilter_HappyPath_StatusExpiring() throws Exception
+    {
+        // GIVEN 4 mailboxes: 2 expiring (active, finite), 1 unlimited (active, ts_Active = 0), 1 expired
+        final long future1 = 1_800_000_000_000L;
+        final long future2 = 1_900_000_000_000L;
+        createMailbox("expiring-1", testUser, 0, 0, future1, false);
+        createMailbox("expiring-2", testUser, 0, 0, future2, false);
+        createMailbox("unlimited", testUser, 0, 0, 0L, false);
+        createMailbox("expired-box", testUser, 0, 0, 1_700_000_000_000L, true);
+
+        // WHEN querying with status=EXPIRING
+        final MvcResult result = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("status", "EXPIRING"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("status", "EXPIRING"))
+            .andReturn();
+
+        // THEN only the 2 active expiring mailboxes are returned
+        @SuppressWarnings("unchecked")
+        final Page<MBox> page = (Page<MBox>) result.getModelAndView().getModel().get("page");
+        assertNotNull(page);
+        assertEquals(2, page.getTotalElements(), "Only 2 active expiring mailboxes should be returned");
+        for (final MBox box : page.getContent())
+        {
+            assertFalse(box.isExpired(), "Returned mailbox must be active");
+            assertTrue(box.getTs_Active() > 0L, "Returned mailbox must have finite expiration (ts_Active > 0)");
+        }
+    }
+
+    /**
+     * Happy path: Verifies that filtering by status UNLIMITED returns only active mailboxes with ts_Active = 0.
+     * <p>
+     * Ensures that finite expiring mailboxes and expired mailboxes are strictly excluded.
+     * </p>
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Filtering by status UNLIMITED returns only active permanent mailboxes")
+    public void testFilter_HappyPath_StatusUnlimited() throws Exception
+    {
+        // GIVEN 4 mailboxes: 2 unlimited, 1 expiring (active, finite), 1 expired
+        createMailbox("unlimited-1", testUser, 0, 0, 0L, false);
+        createMailbox("unlimited-2", testUser, 0, 0, 0L, false);
+        createMailbox("expiring", testUser, 0, 0, 1_800_000_000_000L, false);
+        createMailbox("expired-box", testUser, 0, 0, 0L, true);
+
+        // WHEN querying with status=UNLIMITED
+        final MvcResult result = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("status", "UNLIMITED"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("status", "UNLIMITED"))
+            .andReturn();
+
+        // THEN only the 2 active unlimited mailboxes are returned
+        @SuppressWarnings("unchecked")
+        final Page<MBox> page = (Page<MBox>) result.getModelAndView().getModel().get("page");
+        assertNotNull(page);
+        assertEquals(2, page.getTotalElements(), "Only 2 active unlimited mailboxes should be returned");
+        for (final MBox box : page.getContent())
+        {
+            assertFalse(box.isExpired(), "Returned mailbox must be active");
+            assertEquals(0L, box.getTs_Active(), "Returned mailbox must have ts_Active = 0");
+        }
+    }
+
+    /**
+     * Happy path: Verifies that filtering by status EXPIRING combined with sorting by expires ASC
+     * orders finite active mailboxes chronologically (soonest expiring first).
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: status=EXPIRING with sort=expires ASC orders expiring mailboxes chronologically")
+    public void testFilterAndSort_HappyPath_ExpiringWithExpiresSortAsc() throws Exception
+    {
+        // GIVEN 3 expiring mailboxes with different timestamps and 1 unlimited mailbox
+        final long early = 1_800_000_000_000L;
+        final long middle = 1_850_000_000_000L;
+        final long late = 1_900_000_000_000L;
+
+        createMailbox("late-box", testUser, 0, 0, late, false);
+        createMailbox("early-box", testUser, 0, 0, early, false);
+        createMailbox("middle-box", testUser, 0, 0, middle, false);
+        createMailbox("unlimited-box", testUser, 0, 0, 0L, false);
+
+        // WHEN querying with status=EXPIRING, sort=expires, dir=asc
+        final MvcResult result = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("status", "EXPIRING")
+                .param("sort", "expires")
+                .param("dir", "asc"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // THEN only 3 expiring mailboxes are returned in ascending chronological order (soonest first)
+        @SuppressWarnings("unchecked")
+        final Page<MBox> page = (Page<MBox>) result.getModelAndView().getModel().get("page");
+        final List<MBox> content = page.getContent();
+        assertEquals(3, content.size(), "Only expiring mailboxes should be present");
+        assertEquals(early, content.get(0).getTs_Active(), "Soonest expiring mailbox must be first");
+        assertEquals(middle, content.get(1).getTs_Active(), "Middle expiring mailbox must be second");
+        assertEquals(late, content.get(2).getTs_Active(), "Latest expiring mailbox must be third");
+    }
+
+    /**
+     * Happy path: Verifies that filtering by status EXPIRING combined with sorting by expires DESC
+     * orders finite active mailboxes reverse-chronologically (furthest expiration first).
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: status=EXPIRING with sort=expires DESC orders expiring mailboxes reverse-chronologically")
+    public void testFilterAndSort_HappyPath_ExpiringWithExpiresSortDesc() throws Exception
+    {
+        // GIVEN 3 expiring mailboxes with different timestamps and 1 unlimited mailbox
+        final long early = 1_800_000_000_000L;
+        final long middle = 1_850_000_000_000L;
+        final long late = 1_900_000_000_000L;
+
+        createMailbox("late-box", testUser, 0, 0, late, false);
+        createMailbox("early-box", testUser, 0, 0, early, false);
+        createMailbox("middle-box", testUser, 0, 0, middle, false);
+        createMailbox("unlimited-box", testUser, 0, 0, 0L, false);
+
+        // WHEN querying with status=EXPIRING, sort=expires, dir=desc
+        final MvcResult result = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("status", "EXPIRING")
+                .param("sort", "expires")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // THEN only 3 expiring mailboxes are returned in descending chronological order (furthest first)
+        @SuppressWarnings("unchecked")
+        final Page<MBox> page = (Page<MBox>) result.getModelAndView().getModel().get("page");
+        final List<MBox> content = page.getContent();
+        assertEquals(3, content.size(), "Only expiring mailboxes should be present");
+        assertEquals(late, content.get(0).getTs_Active(), "Furthest expiring mailbox must be first");
+        assertEquals(middle, content.get(1).getTs_Active(), "Middle expiring mailbox must be second");
+        assertEquals(early, content.get(2).getTs_Active(), "Soonest expiring mailbox must be third");
+    }
+
+    // =========================================================================
+    // 4. ERROR CASES & SPECIAL EDGE CASES (Task 4.3)
+    // =========================================================================
+
+    /**
+     * Error case: Verifies that passing an unknown, illegal, or malicious status parameter
+     * safely falls back to ALL without throwing an exception or causing HTTP 500.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Error case: Invalid status filter parameter safely falls back to ALL")
+    public void testFilter_ErrorCase_InvalidStatusFallback() throws Exception
+    {
+        // GIVEN 1 active finite, 1 active unlimited, 1 expired mailbox
+        createMailbox("box-expiring", testUser, 0, 0, 1_800_000_000_000L, false);
+        createMailbox("box-unlimited", testUser, 0, 0, 0L, false);
+        createMailbox("box-expired", testUser, 0, 0, 0L, true);
+
+        // WHEN querying with invalid status like "DROPTABLE" or SQL injection payload
+        final MvcResult result = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("status", "INVALID_STATUS'; DROP TABLE mboxes;--"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("status", "ALL"))
+            .andReturn();
+
+        // THEN all 3 mailboxes are returned (fallback to ALL)
+        @SuppressWarnings("unchecked")
+        final Page<MBox> page = (Page<MBox>) result.getModelAndView().getModel().get("page");
+        assertEquals(3, page.getTotalElements(), "Invalid status must safely fall back to ALL and return all 3 mailboxes");
+    }
+
+    /**
+     * Error case: Verifies that passing an unknown or malicious sort parameter
+     * safely falls back to id DESC without throwing an exception.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Error case: Invalid sort parameter safely falls back to id DESC")
+    public void testSort_ErrorCase_InvalidSortFallback() throws Exception
+    {
+        // GIVEN 3 mailboxes created in sequential order
+        final MBox box1 = createMailbox("first", testUser, 0, 0, 0L, false);
+        final MBox box2 = createMailbox("second", testUser, 0, 0, 0L, false);
+        final MBox box3 = createMailbox("third", testUser, 0, 0, 0L, false);
+
+        // WHEN querying with invalid sort parameter
+        final MvcResult result = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("sort", "malicious_col--")
+                .param("dir", "asc"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // THEN fallback sort is id DESC (box3, box2, box1)
+        @SuppressWarnings("unchecked")
+        final Page<MBox> page = (Page<MBox>) result.getModelAndView().getModel().get("page");
+        final List<MBox> content = page.getContent();
+        assertEquals(3, content.size());
+        assertEquals(box3.getId(), content.get(0).getId(), "Fallback order must be id DESC (latest created first)");
+        assertEquals(box2.getId(), content.get(1).getId());
+        assertEquals(box1.getId(), content.get(2).getId());
+    }
+
+    /**
+     * Special case: Verifies that sorting and filtering with status=EXPIRING or status=UNLIMITED
+     * on an account with zero mailboxes executes safely and returns an empty page.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Special case: Sorting and filtering on empty mailbox account returns 0 elements cleanly")
+    public void testFilterAndSort_SpecialCase_EmptyAccount() throws Exception
+    {
+        // GIVEN testUser has 0 mailboxes
+
+        // WHEN querying with status=EXPIRING and sort=expires ASC
+        final MvcResult expiringResult = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("status", "EXPIRING")
+                .param("sort", "expires")
+                .param("dir", "asc"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("status", "EXPIRING"))
+            .andReturn();
+
+        @SuppressWarnings("unchecked")
+        final Page<MBox> expiringPage = (Page<MBox>) expiringResult.getModelAndView().getModel().get("page");
+        assertNotNull(expiringPage);
+        assertEquals(0, expiringPage.getTotalElements());
+        assertTrue(expiringPage.getContent().isEmpty());
+
+        // WHEN querying with status=UNLIMITED and sort=expires DESC
+        final MvcResult unlimitedResult = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("status", "UNLIMITED")
+                .param("sort", "expires")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("status", "UNLIMITED"))
+            .andReturn();
+
+        @SuppressWarnings("unchecked")
+        final Page<MBox> unlimitedPage = (Page<MBox>) unlimitedResult.getModelAndView().getModel().get("page");
+        assertNotNull(unlimitedPage);
+        assertEquals(0, unlimitedPage.getTotalElements());
+        assertTrue(unlimitedPage.getContent().isEmpty());
+    }
+
+    /**
+     * Special case: Verifies behavior for an account containing only unlimited mailboxes (ts_Active = 0).
+     * <p>
+     * Filtering by EXPIRING must return 0 elements.
+     * Filtering by UNLIMITED must return all elements.
+     * Sorting by expires ASC and DESC must succeed cleanly without SQL or division-by-zero errors.
+     * </p>
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Special case: Account with only unlimited mailboxes filters and sorts cleanly")
+    public void testFilterAndSort_SpecialCase_AllUnlimitedAccount() throws Exception
+    {
+        // GIVEN 3 unlimited mailboxes and no finite expiring ones
+        createMailbox("perm1", testUser, 10, 0, 0L, false);
+        createMailbox("perm2", testUser, 20, 0, 0L, false);
+        createMailbox("perm3", testUser, 30, 0, 0L, false);
+
+        // WHEN filtering with status=EXPIRING
+        final MvcResult expiringResult = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("status", "EXPIRING"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        @SuppressWarnings("unchecked")
+        final Page<MBox> expiringPage = (Page<MBox>) expiringResult.getModelAndView().getModel().get("page");
+        assertEquals(0, expiringPage.getTotalElements(), "Account with only unlimited mailboxes must return 0 for EXPIRING");
+
+        // WHEN filtering with status=UNLIMITED
+        final MvcResult unlimitedResult = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("status", "UNLIMITED"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        @SuppressWarnings("unchecked")
+        final Page<MBox> unlimitedPage = (Page<MBox>) unlimitedResult.getModelAndView().getModel().get("page");
+        assertEquals(3, unlimitedPage.getTotalElements(), "Account with only unlimited mailboxes must return all 3 for UNLIMITED");
+
+        // WHEN sorting by expires ASC
+        final MvcResult sortAscResult = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("sort", "expires")
+                .param("dir", "asc"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        @SuppressWarnings("unchecked")
+        final Page<MBox> sortAscPage = (Page<MBox>) sortAscResult.getModelAndView().getModel().get("page");
+        assertEquals(3, sortAscPage.getTotalElements(), "Expires ASC sorting must succeed and return all 3 unlimited mailboxes");
+
+        // WHEN sorting by expires DESC
+        final MvcResult sortDescResult = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("sort", "expires")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        @SuppressWarnings("unchecked")
+        final Page<MBox> sortDescPage = (Page<MBox>) sortDescResult.getModelAndView().getModel().get("page");
+        assertEquals(3, sortDescPage.getTotalElements(), "Expires DESC sorting must succeed and return all 3 unlimited mailboxes");
     }
 }

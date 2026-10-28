@@ -107,6 +107,52 @@ public interface MailboxRepository extends JpaRepository<MBox, Long>
     Page<MBox> findByUsrAndExpiredAndSearch(@Param("usr") final User usr, @Param("expired") final boolean expired, @Param("search") final String search, final Pageable pageable);
 
     /**
+     * Retrieves active mailboxes with a finite expiration deadline belonging to the specified user.
+     * Filters for records where {@code expired = false} and {@code ts_Active > 0}.
+     *
+     * @param usr owning user
+     * @param pageable pagination and sorting parameters
+     * @return page of active expiring mailboxes
+     */
+    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = false AND b.ts_Active > 0")
+    Page<MBox> findExpiringByUsr(@Param("usr") final User usr, final Pageable pageable);
+
+    /**
+     * Searches active mailboxes with a finite expiration deadline matching an address or domain substring.
+     * Filters for records where {@code expired = false} and {@code ts_Active > 0}.
+     *
+     * @param usr owning user
+     * @param search search pattern (matched case-insensitively against address and domain)
+     * @param pageable pagination and sorting parameters
+     * @return page of matching active expiring mailboxes
+     */
+    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = false AND b.ts_Active > 0 AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<MBox> findExpiringByUsrAndSearch(@Param("usr") final User usr, @Param("search") final String search, final Pageable pageable);
+
+    /**
+     * Retrieves active permanent (unlimited duration) mailboxes belonging to the specified user.
+     * Filters for records where {@code expired = false} and {@code ts_Active = 0}.
+     *
+     * @param usr owning user
+     * @param pageable pagination and sorting parameters
+     * @return page of active unlimited mailboxes
+     */
+    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = false AND b.ts_Active = 0")
+    Page<MBox> findUnlimitedByUsr(@Param("usr") final User usr, final Pageable pageable);
+
+    /**
+     * Searches active permanent (unlimited duration) mailboxes matching an address or domain substring.
+     * Filters for records where {@code expired = false} and {@code ts_Active = 0}.
+     *
+     * @param usr owning user
+     * @param search search pattern (matched case-insensitively against address and domain)
+     * @param pageable pagination and sorting parameters
+     * @return page of matching active unlimited mailboxes
+     */
+    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = false AND b.ts_Active = 0 AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<MBox> findUnlimitedByUsrAndSearch(@Param("usr") final User usr, @Param("search") final String search, final Pageable pageable);
+
+    /**
      * Finds mailboxes that are currently marked active (expired = false) but whose expiration
      * timestamp is in the past and not zero (unlimited).
      *

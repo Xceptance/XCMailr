@@ -79,7 +79,7 @@ The system SHALL provide web views for user registration, email verification, se
 - **THEN** the system rejects the request with an HTTP 403 Forbidden response and preserves all account data untouched
 
 ### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, and providing full-dataset server-side column sorting with clear, modern sortable indicator chevrons that adapt cleanly to mobile viewports.
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, and offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`).
 
 #### Scenario: Live Search and Filter
 - **WHEN** the user types into the mailbox filter input
@@ -140,7 +140,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 
 #### Scenario: Preservation of Filter and Search on Table Refresh
 - **WHEN** a mailbox action (create, edit, delete, toggle, extend, or reset) triggers an automatic table refresh
-- **THEN** the refreshed table retains the currently active search query and status filter selection
+- **THEN** the refreshed table retains the currently active search query and status filter selection (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, or `UNLIMITED`)
 
 #### Scenario: Dashboard Header Primary Action Exclusivity
 - **WHEN** the mailbox dashboard page header is rendered
@@ -235,6 +235,18 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **WHEN** an authenticated user performs a live search, selects a status filter, navigates across pages, or triggers a mailbox action resulting in a `mailboxChanged` table refresh while an active sort is applied
 - **THEN** the system preserves the active `sort` and `dir` parameters, returning table results ordered according to the selected sort criteria
 
+#### Scenario: Status Filter by Expiring Mailboxes (Happy Path)
+- **WHEN** the user selects the "Expiring" status filter option (`status=EXPIRING`)
+- **THEN** the system filters the mailbox list to display exclusively active mailboxes with finite expiration dates (`expired = false AND ts_Active > 0`), excluding permanent unlimited mailboxes and already expired mailboxes
+
+#### Scenario: Status Filter by Unlimited Mailboxes (Happy Path)
+- **WHEN** the user selects the "Unlimited" status filter option (`status=UNLIMITED`)
+- **THEN** the system filters the mailbox list to display exclusively active permanent mailboxes (`ts_Active = 0`), excluding expiring mailboxes and deactivated/expired mailboxes
+
+#### Scenario: Status Filter Unknown Fallback (Error Case)
+- **WHEN** a request supplies an unknown, empty, or unsupported status filter parameter (e.g. `status=INVALID` or arbitrary strings)
+- **THEN** the system safely defaults to displaying all user mailboxes (`status=ALL`) without raising an error
+
 #### Scenario: Unrecognized Sort Column Fallback (Error Case)
 - **WHEN** a request supplies an unknown, empty, or malicious `sort` parameter (e.g. `sort=invalid` or SQL injection strings)
 - **THEN** the system rejects the arbitrary parameter and safely defaults to sorting by mailbox ID in descending order (`id DESC`) without throwing server exceptions or exposing database errors
@@ -248,8 +260,14 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **THEN** the entire collection is sorted before slicing into pages, such that page 1 contains the globally first elements and page 2 contains subsequent elements, preventing client-side page-only reordering
 
 #### Scenario: Expiration Timestamp Ordering with Permanent Unlimited Mailboxes (Special Case)
-- **WHEN** an authenticated user sorts by `Expires` (`ts_Active`) in a dataset containing both finite expiration dates and permanent mailboxes (`ts_Active = 0`)
-- **THEN** the mailboxes are ordered deterministically by timestamp value without null pointer exceptions or numeric comparison errors
+- **WHEN** an authenticated user sorts by `Expires` (`ts_Active`) in ascending order (`dir=asc`) in a dataset containing both finite expiration dates and permanent mailboxes (`ts_Active = 0`)
+- **THEN** finite expiration mailboxes are sorted chronologically with expiring soonest first, and permanent unlimited mailboxes (`ts_Active = 0`) appear at the very end of the sorted dataset as $+\infty$
+- **WHEN** an authenticated user sorts by `Expires` (`ts_Active`) in descending order (`dir=desc`) in a dataset containing both finite expiration dates and permanent mailboxes (`ts_Active = 0`)
+- **THEN** permanent unlimited mailboxes (`ts_Active = 0`) appear at the very top of the sorted dataset as $+\infty$, followed by finite expiration mailboxes sorted in reverse chronological order with expiring furthest in future first down to expiring soonest
+
+#### Scenario: Combined Expiration Sorting and Status Filtering (Special Case)
+- **WHEN** an authenticated user applies a status filter (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, or `UNLIMITED`) and sorts by `Expires` in ascending or descending direction
+- **THEN** the system applies both the status filter predicate and the infinity-aware expiration sort simultaneously across the full user dataset before pagination
 
 #### Scenario: Sorting an Empty Mailbox List (Special Case)
 - **WHEN** an authenticated user with zero mailboxes applies a column sort or filter

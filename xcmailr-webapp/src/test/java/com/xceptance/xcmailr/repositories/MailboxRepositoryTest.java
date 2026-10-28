@@ -27,6 +27,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -162,5 +165,187 @@ public class MailboxRepositoryTest
         final List<MBox> expiredList = mailboxRepository.findByUsrAndExpired(primaryUser, true);
         assertEquals(1, expiredList.size());
         assertTrue(expiredList.get(0).isExpired());
+    }
+
+    /**
+     * Tier 2 Repository Slice Test: Verifies that {@code findExpiringByUsr} returns exclusively
+     * active mailboxes with a finite future expiration timestamp (expired = false AND ts_Active > 0).
+     * Permanent unlimited mailboxes (ts_Active = 0), deactivated mailboxes (expired = true),
+     * and foreign tenant mailboxes must be strictly excluded.
+     */
+    @Test
+    @DisplayName("findExpiringByUsr returns only active finite mailboxes owned by primary user")
+    public void testFindExpiringByUsr_HappyPathAndExclusions()
+    {
+        final long futureEpoch = System.currentTimeMillis() + 86_400_000L;
+
+        // 1. Target: Active finite mailbox (should be included)
+        final MBox activeExpiring = new MBox("expiring1", "xcmailr.test", futureEpoch, false, primaryUser);
+        activeExpiring.setExpired(false);
+        mailboxRepository.save(activeExpiring);
+
+        // 2. Active unlimited mailbox (ts_Active = 0, should be excluded)
+        final MBox activeUnlimited = new MBox("unlimited1", "xcmailr.test", 0L, false, primaryUser);
+        activeUnlimited.setExpired(false);
+        mailboxRepository.save(activeUnlimited);
+
+        // 3. Expired finite mailbox (expired = true, should be excluded)
+        final MBox expiredFinite = new MBox("expiredfinite", "xcmailr.test", futureEpoch, false, primaryUser);
+        expiredFinite.setExpired(true);
+        mailboxRepository.save(expiredFinite);
+
+        // 4. Expired unlimited mailbox (expired = true AND ts_Active = 0, should be excluded)
+        final MBox expiredUnlimited = new MBox("expiredunlimited", "xcmailr.test", 0L, false, primaryUser);
+        expiredUnlimited.setExpired(true);
+        mailboxRepository.save(expiredUnlimited);
+
+        // 5. Foreign user active finite mailbox (tenant boundary, should be excluded)
+        final MBox foreignExpiring = new MBox("foreignexpiring", "xcmailr.test", futureEpoch, false, foreignUser);
+        foreignExpiring.setExpired(false);
+        mailboxRepository.save(foreignExpiring);
+
+        final Pageable pageable = PageRequest.of(0, 10);
+        final Page<MBox> resultPage = mailboxRepository.findExpiringByUsr(primaryUser, pageable);
+
+        assertEquals(1, resultPage.getTotalElements(), "Exactly one active finite mailbox should be returned");
+        assertEquals("expiring1", resultPage.getContent().get(0).getAddress());
+        assertEquals(futureEpoch, resultPage.getContent().get(0).getTs_Active());
+        assertFalse(resultPage.getContent().get(0).isExpired());
+    }
+
+    /**
+     * Tier 2 Repository Slice Test: Verifies that {@code findExpiringByUsrAndSearch} matches
+     * active finite mailboxes by address prefix or domain substring case-insensitively,
+     * while excluding non-matching, expired, unlimited, or foreign records.
+     */
+    @Test
+    @DisplayName("findExpiringByUsrAndSearch matches address and domain substrings for active finite mailboxes")
+    public void testFindExpiringByUsrAndSearch_PrefixAndDomainMatching()
+    {
+        final long futureEpoch = System.currentTimeMillis() + 86_400_000L;
+
+        // Matches by address prefix
+        final MBox matchByAddress = new MBox("searchme1", "alpha.test", futureEpoch, false, primaryUser);
+        matchByAddress.setExpired(false);
+        mailboxRepository.save(matchByAddress);
+
+        // Matches by domain substring
+        final MBox matchByDomain = new MBox("otherbox", "custom-search-domain.test", futureEpoch, false, primaryUser);
+        matchByDomain.setExpired(false);
+        mailboxRepository.save(matchByDomain);
+
+        // Does not match search query
+        final MBox noMatch = new MBox("nomatch", "beta.test", futureEpoch, false, primaryUser);
+        noMatch.setExpired(false);
+        mailboxRepository.save(noMatch);
+
+        // Matches search query but is unlimited (should be excluded)
+        final MBox unlimitedMatching = new MBox("searchme-unlimited", "alpha.test", 0L, false, primaryUser);
+        unlimitedMatching.setExpired(false);
+        mailboxRepository.save(unlimitedMatching);
+
+        // Matches search query but belongs to foreign tenant (should be excluded)
+        final MBox foreignMatching = new MBox("searchme-foreign", "alpha.test", futureEpoch, false, foreignUser);
+        foreignMatching.setExpired(false);
+        mailboxRepository.save(foreignMatching);
+
+        final Pageable pageable = PageRequest.of(0, 10);
+        final Page<MBox> searchResult = mailboxRepository.findExpiringByUsrAndSearch(primaryUser, "search", pageable);
+
+        assertEquals(2, searchResult.getTotalElements(), "Should match exactly the two active finite mailboxes matching search");
+        final List<String> matchedAddresses = searchResult.getContent().stream().map(MBox::getAddress).toList();
+        assertTrue(matchedAddresses.contains("searchme1"));
+        assertTrue(matchedAddresses.contains("otherbox"));
+    }
+
+    /**
+     * Tier 2 Repository Slice Test: Verifies that {@code findUnlimitedByUsr} returns exclusively
+     * active permanent mailboxes (expired = false AND ts_Active = 0).
+     * Finite mailboxes (ts_Active > 0), deactivated mailboxes (expired = true),
+     * and foreign tenant mailboxes must be strictly excluded.
+     */
+    @Test
+    @DisplayName("findUnlimitedByUsr returns only active permanent mailboxes owned by primary user")
+    public void testFindUnlimitedByUsr_HappyPathAndExclusions()
+    {
+        final long futureEpoch = System.currentTimeMillis() + 86_400_000L;
+
+        // 1. Target: Active unlimited mailbox (should be included)
+        final MBox activeUnlimited = new MBox("unlimited1", "xcmailr.test", 0L, false, primaryUser);
+        activeUnlimited.setExpired(false);
+        mailboxRepository.save(activeUnlimited);
+
+        // 2. Active finite mailbox (ts_Active > 0, should be excluded)
+        final MBox activeFinite = new MBox("finite1", "xcmailr.test", futureEpoch, false, primaryUser);
+        activeFinite.setExpired(false);
+        mailboxRepository.save(activeFinite);
+
+        // 3. Expired unlimited mailbox (expired = true AND ts_Active = 0, should be excluded)
+        final MBox expiredUnlimited = new MBox("expiredunlimited", "xcmailr.test", 0L, false, primaryUser);
+        expiredUnlimited.setExpired(true);
+        mailboxRepository.save(expiredUnlimited);
+
+        // 4. Foreign user active unlimited mailbox (tenant boundary, should be excluded)
+        final MBox foreignUnlimited = new MBox("foreignunlimited", "xcmailr.test", 0L, false, foreignUser);
+        foreignUnlimited.setExpired(false);
+        mailboxRepository.save(foreignUnlimited);
+
+        final Pageable pageable = PageRequest.of(0, 10);
+        final Page<MBox> resultPage = mailboxRepository.findUnlimitedByUsr(primaryUser, pageable);
+
+        assertEquals(1, resultPage.getTotalElements(), "Exactly one active permanent mailbox should be returned");
+        assertEquals("unlimited1", resultPage.getContent().get(0).getAddress());
+        assertEquals(0L, resultPage.getContent().get(0).getTs_Active());
+        assertFalse(resultPage.getContent().get(0).isExpired());
+    }
+
+    /**
+     * Tier 2 Repository Slice Test: Verifies that {@code findUnlimitedByUsrAndSearch} matches
+     * active permanent mailboxes by address prefix or domain substring case-insensitively,
+     * while excluding non-matching, expired, finite, or foreign records.
+     */
+    @Test
+    @DisplayName("findUnlimitedByUsrAndSearch matches address and domain substrings for active permanent mailboxes")
+    public void testFindUnlimitedByUsrAndSearch_PrefixAndDomainMatching()
+    {
+        final long futureEpoch = System.currentTimeMillis() + 86_400_000L;
+
+        // Matches by address prefix
+        final MBox matchByAddress = new MBox("findme-perm", "alpha.test", 0L, false, primaryUser);
+        matchByAddress.setExpired(false);
+        mailboxRepository.save(matchByAddress);
+
+        // Matches by domain substring
+        final MBox matchByDomain = new MBox("otherperm", "target-findme.test", 0L, false, primaryUser);
+        matchByDomain.setExpired(false);
+        mailboxRepository.save(matchByDomain);
+
+        // Does not match search query
+        final MBox noMatch = new MBox("nomatch", "beta.test", 0L, false, primaryUser);
+        noMatch.setExpired(false);
+        mailboxRepository.save(noMatch);
+
+        // Matches search query but has finite expiration (should be excluded)
+        final MBox finiteMatching = new MBox("findme-finite", "alpha.test", futureEpoch, false, primaryUser);
+        finiteMatching.setExpired(false);
+        mailboxRepository.save(finiteMatching);
+
+        // Matches search query but is expired (should be excluded)
+        final MBox expiredMatching = new MBox("findme-expired", "alpha.test", 0L, false, primaryUser);
+        expiredMatching.setExpired(true);
+        mailboxRepository.save(expiredMatching);
+
+        // Matches search query but belongs to foreign tenant (should be excluded)
+        final MBox foreignMatching = new MBox("findme-foreign", "alpha.test", 0L, false, foreignUser);
+        foreignMatching.setExpired(false);
+        mailboxRepository.save(foreignMatching);
+
+        final Pageable pageable = PageRequest.of(0, 10);
+        final Page<MBox> searchResult = mailboxRepository.findUnlimitedByUsrAndSearch(primaryUser, "findme", pageable);
+
+        assertEquals(2, searchResult.getTotalElements(), "Should match exactly the two active permanent mailboxes matching search");
+        final List<String> matchedAddresses = searchResult.getContent().stream().map(MBox::getAddress).toList();
+        assertTrue(matchedAddresses.contains("findme-perm"));
+        assertTrue(matchedAddresses.contains("otherperm"));
     }
 }
