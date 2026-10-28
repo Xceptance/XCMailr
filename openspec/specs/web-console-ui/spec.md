@@ -79,7 +79,7 @@ The system SHALL provide web views for user registration, email verification, se
 - **THEN** the system rejects the request with an HTTP 403 Forbidden response and preserves all account data untouched
 
 ### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, and providing full-dataset server-side column sorting with sort state preservation.
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, and providing full-dataset server-side column sorting with clear, modern sortable indicator chevrons that adapt cleanly to mobile viewports.
 
 #### Scenario: Live Search and Filter
 - **WHEN** the user types into the mailbox filter input
@@ -151,8 +151,10 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **THEN** subtle secondary text export links ("All (.txt)" and "Active (.txt)") are rendered within the table footer utility and pagination area below the table, remaining accessible without competing with primary page actions
 
 #### Scenario: Responsive Mobile Table Viewport
-- **WHEN** a user views the mailbox table on a mobile viewport narrower than 768px
-- **THEN** the table hides secondary columns (forwards, suppressed, and expiration) to prevent horizontal scrolling and displays essential expiration and forwarding status as a subline beneath the primary email address
+- **WHEN** a user views the mailbox table on a mobile viewport narrower than 576px
+- **THEN** the table displays the sortable `Address` header with an inline, non-wrapping chevron indicator (`bi-chevron-expand` or active direction chevron)
+- **AND** secondary columns (`Status`, `Expires`, `Forwards`, `Suppressed`) remain hidden from table headers and display their essential status, expiration, and forwarding info within the address row subline
+- **AND** the header link retains comfortable tap targets without overflowing the mobile viewport or causing horizontal layout breakage
 
 #### Scenario: Responsive Action Menu Consolidation
 - **WHEN** a user interacts with a mailbox row on a mobile viewport narrower than 768px
@@ -213,11 +215,17 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **WHEN** a client issues a bulk action request with an empty or missing list of mailbox IDs
 - **THEN** the system handles the request safely without modifying data or throwing unhandled server exceptions, returning a clean response
 
+#### Scenario: Default Sort Order by Creation Date (Happy Path)
+- **WHEN** an authenticated user accesses the mailbox dashboard without explicit sort parameters, or after creating a new mailbox
+- **THEN** the mailbox list is sorted by creation date in descending order (`id DESC`), causing newly created mailboxes to appear immediately at the top of the list
+- **AND** all visible sortable column headers display the neutral inactive chevron indicator (`bi-chevron-expand`)
+
 #### Scenario: Full-Dataset Column Sorting (Happy Path)
 - **WHEN** an authenticated user clicks a sortable column header (`Address`, `Status`, `Expires`, `Forwards`, or `Suppressed`)
 - **THEN** HTMX issues an asynchronous GET request to `/mailboxes` with parameters `sort` (selected column key) and `dir` (`asc` or `desc`)
 - **AND** the system sorts the entire user mailbox dataset at the database level before applying pagination limits, displaying the first page of results
-- **AND** the table header renders an active sort direction indicator icon (up arrow for ascending, down arrow for descending)
+- **AND** the active sorted column header renders a modern directional chevron indicator (`bi-chevron-up` for ascending, `bi-chevron-down` for descending) styled with primary accent
+- **AND** inactive sortable column headers render a subtle neutral sortable chevron indicator (`bi-chevron-expand`) indicating sortability across desktop and touch viewports
 
 #### Scenario: Column Sort Direction Toggle (Happy Path)
 - **WHEN** an authenticated user clicks an already active sort column header

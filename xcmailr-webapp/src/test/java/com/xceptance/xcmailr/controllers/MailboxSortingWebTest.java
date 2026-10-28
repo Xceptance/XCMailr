@@ -49,11 +49,14 @@ import models.MBox;
 import models.User;
 
 /**
- * Tier 2 WebMvc Slice Test Suite for server-side mailbox table sorting and HTMX interactions.
+ * Tier 2 WebMvc Slice Test Suite for server-side mailbox table sorting, modern chevron indicators,
+ * responsive mobile layout attributes, and HTMX interactions.
  * <p>
- * Verifies that the table fragment rendering correctly outputs active sort indicator icons,
- * toggles direction URLs, renders hidden preservation inputs, binds HTMX container inclusions,
- * and maintains sort criteria across pagination controls.
+ * Validates that table fragment rendering correctly outputs modern Bootstrap chevron indicator icons
+ * ({@code bi-chevron-expand} for inactive sortable columns, {@code bi-chevron-up} for active ascending,
+ * and {@code bi-chevron-down} for active descending), verifies mobile-responsive attributes
+ * ({@code text-nowrap}, {@code d-inline-flex}, {@code py-1}), confirms state preservation across pagination,
+ * and tests graceful fallback behavior for invalid or malicious sort criteria.
  * </p>
  *
  * @author Xceptance Software Technologies GmbH
@@ -111,14 +114,45 @@ public final class MailboxSortingWebTest
     // =========================================================================
 
     /**
-     * Verifies that sorting by Address ASC renders the up arrow icon on the Address header,
-     * toggles the target direction to DESC in the header link, and outputs hidden sort inputs.
+     * Verifies that the default initial load without sort parameters defaults to creation order (id DESC),
+     * rendering neutral bi-chevron-expand icons on all sortable columns without directional arrows.
      *
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Happy path: Address ASC renders up-arrow, toggles link to DESC, and outputs hidden inputs")
-    public void testSorting_HappyPath_AddressAscending_RendersUpArrowAndToggledDescLink() throws Exception
+    @DisplayName("Happy path: Default view (id DESC) renders neutral bi-chevron-expand icons across all sortable headers")
+    public void testSorting_HappyPath_DefaultView_RendersNeutralChevronIconsAcrossSortableHeaders() throws Exception
+    {
+        final MBox box = new MBox("alpha", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user("alice@xcmailr.test")))
+            .andExpect(status().isOk())
+            .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+            .andExpect(model().attribute("sort", "id"))
+            .andExpect(model().attribute("dir", "desc"))
+            // Hidden input state preservation reflects default creation order
+            .andExpect(content().string(containsString("name=\"sort\" value=\"id\"")))
+            .andExpect(content().string(containsString("name=\"dir\" value=\"desc\"")))
+            // Neutral expand chevrons must be rendered for inactive sortable columns
+            .andExpect(content().string(containsString("bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1")))
+            // No active directional chevrons rendered when default id sorting is active
+            .andExpect(content().string(not(containsString("bi bi-chevron-up sort-icon text-primary"))))
+            .andExpect(content().string(not(containsString("bi bi-chevron-down sort-icon text-primary"))));
+    }
+
+    /**
+     * Verifies that sorting by Address ASC renders the up-chevron icon on the Address header,
+     * toggles the target direction to DESC in the header link, outputs hidden sort inputs,
+     * and preserves neutral expand chevrons on non-active columns.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Address ASC renders up-chevron, toggles link to DESC, and outputs hidden inputs")
+    public void testSorting_HappyPath_AddressAscending_RendersUpChevronAndToggledDescLink() throws Exception
     {
         final MBox box = new MBox("alpha", "xcmailr.test", 0L, false, owner);
         mailboxRepository.save(box);
@@ -135,8 +169,10 @@ public final class MailboxSortingWebTest
             // Hidden input state preservation
             .andExpect(content().string(containsString("name=\"sort\" value=\"address\"")))
             .andExpect(content().string(containsString("name=\"dir\" value=\"asc\"")))
-            // Active direction arrow
-            .andExpect(content().string(containsString("bi bi-arrow-up text-primary")))
+            // Active direction chevron on Address
+            .andExpect(content().string(containsString("bi bi-chevron-up sort-icon text-primary ms-1")))
+            // Inactive columns retain neutral expand chevrons
+            .andExpect(content().string(containsString("bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1")))
             // Header link toggled to 'desc'
             .andExpect(content().string(containsString("sort=address")))
             .andExpect(content().string(containsString("dir=desc")))
@@ -145,14 +181,14 @@ public final class MailboxSortingWebTest
     }
 
     /**
-     * Verifies that sorting by Address DESC renders the down arrow icon on the Address header
+     * Verifies that sorting by Address DESC renders the down-chevron icon on the Address header
      * and toggles the target direction to ASC.
      *
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Happy path: Address DESC renders down-arrow and toggles link to ASC")
-    public void testSorting_HappyPath_AddressDescending_RendersDownArrowAndToggledAscLink() throws Exception
+    @DisplayName("Happy path: Address DESC renders down-chevron and toggles link to ASC")
+    public void testSorting_HappyPath_AddressDescending_RendersDownChevronAndToggledAscLink() throws Exception
     {
         final MBox box = new MBox("omega", "xcmailr.test", 0L, false, owner);
         mailboxRepository.save(box);
@@ -166,15 +202,15 @@ public final class MailboxSortingWebTest
             .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
             .andExpect(model().attribute("sort", "address"))
             .andExpect(model().attribute("dir", "desc"))
-            // Active direction down arrow
-            .andExpect(content().string(containsString("bi bi-arrow-down text-primary")))
+            // Active direction down chevron
+            .andExpect(content().string(containsString("bi bi-chevron-down sort-icon text-primary ms-1")))
             // Header link toggled to 'asc'
             .andExpect(content().string(containsString("sort=address")))
             .andExpect(content().string(containsString("dir=asc")));
     }
 
     /**
-     * Verifies that sorting by Status ASC renders the active sort arrow on the Status header.
+     * Verifies that sorting by Status ASC renders the active sort up-chevron on the Status header.
      *
      * @throws Exception if mock MVC request execution fails
      */
@@ -194,11 +230,11 @@ public final class MailboxSortingWebTest
             .andExpect(model().attribute("sort", "status"))
             .andExpect(model().attribute("dir", "asc"))
             .andExpect(content().string(containsString("Sort by Status")))
-            .andExpect(content().string(containsString("bi bi-arrow-up text-primary")));
+            .andExpect(content().string(containsString("bi bi-chevron-up sort-icon text-primary ms-1")));
     }
 
     /**
-     * Verifies that sorting by Expires DESC renders the down arrow on the Expires header.
+     * Verifies that sorting by Expires DESC renders the down-chevron on the Expires header.
      *
      * @throws Exception if mock MVC request execution fails
      */
@@ -218,7 +254,55 @@ public final class MailboxSortingWebTest
             .andExpect(model().attribute("sort", "expires"))
             .andExpect(model().attribute("dir", "desc"))
             .andExpect(content().string(containsString("Sort by Expiration")))
-            .andExpect(content().string(containsString("bi bi-arrow-down text-primary")));
+            .andExpect(content().string(containsString("bi bi-chevron-down sort-icon text-primary ms-1")));
+    }
+
+    /**
+     * Verifies that sorting by Forwards ASC renders the up-chevron on the Forwards header.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Forwards ASC renders sort indicator on Forwards column")
+    public void testSorting_HappyPath_ForwardsSort_RendersIndicator() throws Exception
+    {
+        final MBox box = new MBox("forwards-box", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user("alice@xcmailr.test"))
+                .param("sort", "forwards")
+                .param("dir", "asc"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("sort", "forwards"))
+            .andExpect(model().attribute("dir", "asc"))
+            .andExpect(content().string(containsString("Total forwarded emails")))
+            .andExpect(content().string(containsString("bi bi-chevron-up sort-icon text-primary ms-1")));
+    }
+
+    /**
+     * Verifies that sorting by Suppressions DESC renders the down-chevron on the Suppressed header.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Suppressions DESC renders sort indicator on Suppressed column")
+    public void testSorting_HappyPath_SuppressionsSort_RendersIndicator() throws Exception
+    {
+        final MBox box = new MBox("suppressed-box", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user("alice@xcmailr.test"))
+                .param("sort", "suppressions")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("sort", "suppressions"))
+            .andExpect(model().attribute("dir", "desc"))
+            .andExpect(content().string(containsString("Suppressed incoming emails while inactive")))
+            .andExpect(content().string(containsString("bi bi-chevron-down sort-icon text-primary ms-1")));
     }
 
     /**
@@ -269,18 +353,43 @@ public final class MailboxSortingWebTest
     }
 
     // =========================================================================
-    // 2. ERROR CASES (Tier 2 Slice Coverage)
+    // 2. RESPONSIVE & ACCESSIBILITY TESTS (Mobile-First Attributes)
     // =========================================================================
 
     /**
-     * Verifies that an invalid sort parameter defaults cleanly to id DESC without throwing errors
-     * and renders inactive sort headers without arrows.
+     * Verifies that sortable header links contain required mobile responsiveness and accessibility attributes:
+     * sortable-header class, text-body for theme compatibility, d-inline-flex and text-nowrap to prevent icon wrapping,
+     * py-1 for touchscreen tap targets, and aria-hidden="true" on indicator icons.
      *
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Error case: Unrecognized sort parameter safely defaults to id DESC with clean headers")
-    public void testSorting_ErrorCase_UnrecognizedSortParameter_DefaultsToIdDescAndCleanHeaders() throws Exception
+    @DisplayName("Responsive & Accessibility: Sortable headers contain non-wrapping and touch-padding attributes")
+    public void testSorting_ResponsiveAndAccessibility_AttributesPresent() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user("alice@xcmailr.test")))
+            .andExpect(status().isOk())
+            // Sortable header class and responsive non-wrapping layout
+            .andExpect(content().string(containsString("class=\"sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1\"")))
+            // Screen reader accessibility: aria-hidden="true" on chevron icons
+            .andExpect(content().string(containsString("aria-hidden=\"true\"")));
+    }
+
+    // =========================================================================
+    // 3. ERROR & FALLBACK CASES (Tier 2 Slice Coverage)
+    // =========================================================================
+
+    /**
+     * Verifies that an invalid sort parameter defaults cleanly to id DESC without throwing errors
+     * and renders neutral sortable chevron indicators without active directional arrows.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Error case: Unrecognized sort parameter safely defaults to id DESC with neutral chevrons")
+    public void testSorting_ErrorCase_UnrecognizedSortParameter_DefaultsToIdDescAndNeutralChevrons() throws Exception
     {
         final MBox box = new MBox("valid-box", "xcmailr.test", 0L, false, owner);
         mailboxRepository.save(box);
@@ -295,13 +404,15 @@ public final class MailboxSortingWebTest
             .andExpect(model().attribute("dir", "desc"))
             .andExpect(content().string(containsString("name=\"sort\" value=\"id\"")))
             .andExpect(content().string(containsString("name=\"dir\" value=\"desc\"")))
-            // No column arrows rendered when sorting by fallback ID
-            .andExpect(content().string(not(containsString("bi bi-arrow-up text-primary"))))
-            .andExpect(content().string(not(containsString("bi bi-arrow-down text-primary"))));
+            // Renders neutral expand chevrons on headers when defaulting to id
+            .andExpect(content().string(containsString("bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1")))
+            // No active directional arrows or chevrons rendered
+            .andExpect(content().string(not(containsString("bi bi-chevron-up sort-icon text-primary"))))
+            .andExpect(content().string(not(containsString("bi bi-chevron-down sort-icon text-primary"))));
     }
 
     /**
-     * Verifies that SQL injection attempts in sort parameter are sanitized safely.
+     * Verifies that SQL injection attempts in sort parameter are sanitized safely to id DESC.
      *
      * @throws Exception if mock MVC request execution fails
      */
@@ -320,7 +431,7 @@ public final class MailboxSortingWebTest
     }
 
     // =========================================================================
-    // 3. SPECIAL CASES (Tier 2 Slice Coverage)
+    // 4. SPECIAL CASES (Tier 2 Slice Coverage)
     // =========================================================================
 
     /**

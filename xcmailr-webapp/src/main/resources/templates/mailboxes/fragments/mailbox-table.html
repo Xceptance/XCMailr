@@ -21,48 +21,53 @@
                         <input type="checkbox" id="selectAllMailboxes" class="form-check-input" aria-label="Select all mailboxes">
                     </th>
                     <th scope="col">
-                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='address', dir=${sort == 'address' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            title="Sort by Address">
                             <span>Address</span>
-                            <i th:if="${sort == 'address' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
-                            <i th:if="${sort == 'address' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                            <i th:if="${sort != 'address'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'address' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'address' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
                         </a>
                     </th>
                     <th scope="col" class="d-none d-sm-table-cell" style="width: 105px;">
-                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='status', dir=${sort == 'status' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            title="Sort by Status">
                             <span>Status</span>
-                            <i th:if="${sort == 'status' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
-                            <i th:if="${sort == 'status' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                            <i th:if="${sort != 'status'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'status' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'status' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
                         </a>
                     </th>
                     <th scope="col" class="d-none d-lg-table-cell" style="width: 150px;">
-                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='expires', dir=${sort == 'expires' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            title="Sort by Expiration">
                             <span>Expires</span>
-                            <i th:if="${sort == 'expires' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
-                            <i th:if="${sort == 'expires' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                            <i th:if="${sort != 'expires'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'expires' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'expires' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
                         </a>
                     </th>
                     <th scope="col" class="text-center d-none d-md-table-cell" style="width: 85px;">
-                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='forwards', dir=${sort == 'forwards' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            title="Total forwarded emails">
                             <span>Forwards</span>
-                            <i th:if="${sort == 'forwards' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
-                            <i th:if="${sort == 'forwards' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                            <i th:if="${sort != 'forwards'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'forwards' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'forwards' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
                         </a>
                     </th>
                     <th scope="col" class="text-center d-none d-md-table-cell" style="width: 95px;">
-                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='suppressions', dir=${sort == 'suppressions' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            title="Suppressed incoming emails while inactive">
                             <span>Suppressed</span>
-                            <i th:if="${sort == 'suppressions' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
-                            <i th:if="${sort == 'suppressions' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                            <i th:if="${sort != 'suppressions'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'suppressions' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'suppressions' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
                         </a>
                     </th>
                     <th scope="col" class="text-center" style="width: 75px;" title="Stored emails in webmail inbox">Mails</th>

@@ -389,3 +389,25 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 .dropdown-toggle-no-caret::after {
     display: none !important;
 }
+
+/* ==========================================================================
+   Sortable Table Headers & Indicator Icons
+   ========================================================================== */
+
+.sortable-header {
+    user-select: none;
+    cursor: pointer;
+    transition: color 0.15s ease-in-out;
+}
+
+.sortable-header:hover .sort-icon,
+.sortable-header:focus .sort-icon {
+    opacity: 1 !important;
+    color: var(--xc-primary) !important;
+}
+
+.sort-icon {
+    font-size: 0.8rem;
+    transition: opacity 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
