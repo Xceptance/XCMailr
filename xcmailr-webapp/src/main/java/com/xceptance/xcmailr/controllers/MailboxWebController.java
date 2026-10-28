@@ -35,6 +35,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -96,11 +97,14 @@ public class MailboxWebController
 
     /**
      * Mailbox dashboard view. Handles full page rendering and HTMX partial table updates.
+     * Supports server-side column sorting with sort parameter whitelist verification.
      *
      * @param search optional search query
      * @param status status filter (ALL, ACTIVE, EXPIRED)
      * @param page page number (0-indexed)
      * @param size page size
+     * @param sort sort column property (address, status, expires, forwards, suppressions; defaults to id)
+     * @param dir sort direction (asc, desc; defaults to desc)
      * @param hxRequest header indicating HTMX dynamic request
      * @param principal authenticated user
      * @param model template model
@@ -111,6 +115,8 @@ public class MailboxWebController
                                 @RequestParam(value = "status", defaultValue = "ALL") final String status,
                                 @RequestParam(value = "page", defaultValue = "0") final int page,
                                 @RequestParam(value = "size", defaultValue = "15") final int size,
+                                @RequestParam(value = "sort", defaultValue = "id") final String sort,
+                                @RequestParam(value = "dir", defaultValue = "desc") final String dir,
                                 @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
                                 final Principal principal,
                                 final Model model)
@@ -120,7 +126,12 @@ public class MailboxWebController
             return "redirect:/login";
         }
         final User user = getUser(principal);
-        final Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), Sort.by(Sort.Direction.DESC, "id"));
+
+        // Normalize sort column and direction via strict whitelist mapping
+        final String effectiveSort = resolveSortField(sort);
+        final String effectiveDir = "id".equals(effectiveSort) ? "desc" : resolveSortDirection(dir);
+        final Sort sortOrder = resolveSort(sort, dir);
+        final Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), sortOrder);
 
         final Page<MBox> mailboxPage;
         final boolean hasSearch = search != null && !search.trim().isEmpty();
@@ -158,6 +169,8 @@ public class MailboxWebController
         model.addAttribute("mailCounts", mailCounts);
         model.addAttribute("search", trimmedSearch);
         model.addAttribute("status", status.toUpperCase());
+        model.addAttribute("sort", effectiveSort);
+        model.addAttribute("dir", effectiveDir);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
         model.addAttribute("isoFormatter", ISO_FORMATTER);
 
@@ -174,6 +187,84 @@ public class MailboxWebController
         model.addAttribute("forwardEmails", true);
 
         return "mailboxes/index";
+    }
+
+    /**
+     * Resolves the normalized sort column property name from an input parameter against a strict whitelist.
+     * Returns "id" if the input parameter is null, blank, or not in the allowed set.
+     *
+     * @param sort the requested sort column name
+     * @return the normalized whitelist property key ("address", "status", "expires", "forwards", "suppressions"),
+     *         or "id" as the safe fallback
+     */
+    static String resolveSortField(final String sort)
+    {
+        if (sort == null)
+        {
+            return "id";
+        }
+        final String cleanSort = sort.trim().toLowerCase();
+        return switch (cleanSort)
+        {
+            case "address", "status", "expires", "forwards", "suppressions" -> cleanSort;
+            default -> "id";
+        };
+    }
+
+    /**
+     * Resolves the normalized sort direction ("asc" or "desc").
+     * Case-insensitively checks for "asc"; any other value (including null, empty, or invalid)
+     * safely defaults to "desc".
+     *
+     * @param dir the requested sort direction string
+     * @return "asc" if requested, otherwise "desc"
+     */
+    static String resolveSortDirection(final String dir)
+    {
+        return "asc".equalsIgnoreCase(dir) ? "asc" : "desc";
+    }
+
+    /**
+     * Constructs a Spring Data {@link Sort} instance corresponding to the requested column and direction.
+     * Only whitelisted column keys are mapped to entity attributes:
+     * <ul>
+     *   <li>"address" maps to composite ordering by address then domain</li>
+     *   <li>"status" maps to expired flag</li>
+     *   <li>"expires" maps to ts_Active timestamp</li>
+     *   <li>"forwards" maps to forwards counter</li>
+     *   <li>"suppressions" maps to suppressions counter</li>
+     * </ul>
+     * Any unrecognized or invalid sort parameter safely falls back to ordering by entity ID descending.
+     *
+     * @param sort the requested sort column key
+     * @param dir the requested sort direction string ("asc" or "desc")
+     * @return a valid {@link Sort} instance ready for use in database queries
+     */
+    static Sort resolveSort(final String sort, final String dir)
+    {
+        final String effectiveField = resolveSortField(sort);
+        if ("id".equals(effectiveField))
+        {
+            // Default or unrecognized column safely defaults to ID descending
+            return Sort.by(Sort.Direction.DESC, "id");
+        }
+
+        final Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return switch (effectiveField)
+        {
+            // Composite sort by local address part, then domain name
+            case "address" -> Sort.by(direction, "address").and(Sort.by(direction, "domain"));
+            // Boolean expired status (false = active, true = expired)
+            case "status" -> Sort.by(direction, "expired");
+            // Expiration epoch timestamp (use JpaSort.unsafe to avoid Spring Data underscore delimiter parsing on ts_Active)
+            case "expires" -> JpaSort.unsafe(direction, "ts_Active");
+            // Forwarded email counter
+            case "forwards" -> Sort.by(direction, "forwards");
+            // Suppressed email counter
+            case "suppressions" -> Sort.by(direction, "suppressions");
+            // Safe fallback to ID DESC for defensive coding
+            default -> Sort.by(Sort.Direction.DESC, "id");
+        };
     }
 
     /**

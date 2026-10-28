@@ -79,7 +79,7 @@ The system SHALL provide web views for user registration, email verification, se
 - **THEN** the system rejects the request with an HTTP 403 Forbidden response and preserves all account data untouched
 
 ### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, and rendering timestamps localized to the client browser's timezone.
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, and providing full-dataset server-side column sorting with sort state preservation.
 
 #### Scenario: Live Search and Filter
 - **WHEN** the user types into the mailbox filter input
@@ -212,6 +212,40 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 #### Scenario: Empty Selection Bulk Action Protection
 - **WHEN** a client issues a bulk action request with an empty or missing list of mailbox IDs
 - **THEN** the system handles the request safely without modifying data or throwing unhandled server exceptions, returning a clean response
+
+#### Scenario: Full-Dataset Column Sorting (Happy Path)
+- **WHEN** an authenticated user clicks a sortable column header (`Address`, `Status`, `Expires`, `Forwards`, or `Suppressed`)
+- **THEN** HTMX issues an asynchronous GET request to `/mailboxes` with parameters `sort` (selected column key) and `dir` (`asc` or `desc`)
+- **AND** the system sorts the entire user mailbox dataset at the database level before applying pagination limits, displaying the first page of results
+- **AND** the table header renders an active sort direction indicator icon (up arrow for ascending, down arrow for descending)
+
+#### Scenario: Column Sort Direction Toggle (Happy Path)
+- **WHEN** an authenticated user clicks an already active sort column header
+- **THEN** the sort direction is inverted (from `asc` to `desc`, or from `desc` to `asc`), and the table re-renders reflecting the inverted order from page 0
+
+#### Scenario: Sort State Preservation Across Search, Filter, Pagination, and Refreshes (Happy Path)
+- **WHEN** an authenticated user performs a live search, selects a status filter, navigates across pages, or triggers a mailbox action resulting in a `mailboxChanged` table refresh while an active sort is applied
+- **THEN** the system preserves the active `sort` and `dir` parameters, returning table results ordered according to the selected sort criteria
+
+#### Scenario: Unrecognized Sort Column Fallback (Error Case)
+- **WHEN** a request supplies an unknown, empty, or malicious `sort` parameter (e.g. `sort=invalid` or SQL injection strings)
+- **THEN** the system rejects the arbitrary parameter and safely defaults to sorting by mailbox ID in descending order (`id DESC`) without throwing server exceptions or exposing database errors
+
+#### Scenario: Malformed Sort Direction Fallback (Error Case)
+- **WHEN** a request supplies an unrecognized or malformed `dir` parameter (e.g. `dir=sideways` or `dir=123`)
+- **THEN** the system safely defaults the direction to `desc` (or `asc` depending on default column preference) without failing the request
+
+#### Scenario: Multi-Page Dataset Sorting Preventing Local-Page-Only Sorting (Special Case / Issue #91)
+- **WHEN** a user owns mailboxes spanning multiple pagination pages and requests a sorted view
+- **THEN** the entire collection is sorted before slicing into pages, such that page 1 contains the globally first elements and page 2 contains subsequent elements, preventing client-side page-only reordering
+
+#### Scenario: Expiration Timestamp Ordering with Permanent Unlimited Mailboxes (Special Case)
+- **WHEN** an authenticated user sorts by `Expires` (`ts_Active`) in a dataset containing both finite expiration dates and permanent mailboxes (`ts_Active = 0`)
+- **THEN** the mailboxes are ordered deterministically by timestamp value without null pointer exceptions or numeric comparison errors
+
+#### Scenario: Sorting an Empty Mailbox List (Special Case)
+- **WHEN** an authenticated user with zero mailboxes applies a column sort or filter
+- **THEN** the table renders the standard empty state message with active sort headers intact without throwing errors
 
 ### Requirement: Admin Management Console
 The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist.

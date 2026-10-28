@@ -7,7 +7,12 @@
      hx-trigger="mailboxChanged from:body"
      hx-target="#mailbox-table-container"
      hx-swap="outerHTML"
-     hx-include="[name='search'], #statusFilterSelect">
+     hx-include="[name='search'], #statusFilterSelect, [name='sort'], [name='dir']">
+
+    <!-- Hidden state preservation inputs for active sort criteria -->
+    <input type="hidden" name="sort" th:value="${sort}" />
+    <input type="hidden" name="dir" th:value="${dir}" />
+
     <div class="table-responsive bg-white rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">
@@ -15,11 +20,51 @@
                     <th scope="col" style="width: 40px;" class="text-center">
                         <input type="checkbox" id="selectAllMailboxes" class="form-check-input" aria-label="Select all mailboxes">
                     </th>
-                    <th scope="col">Address</th>
-                    <th scope="col" class="d-none d-sm-table-cell" style="width: 105px;">Status</th>
-                    <th scope="col" class="d-none d-lg-table-cell" style="width: 150px;">Expires</th>
-                    <th scope="col" class="text-center d-none d-md-table-cell" style="width: 85px;" title="Total forwarded emails">Forwards</th>
-                    <th scope="col" class="text-center d-none d-md-table-cell" style="width: 95px;" title="Suppressed incoming emails while inactive">Suppressed</th>
+                    <th scope="col">
+                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                           th:attr="hx-get=@{/mailboxes(sort='address', dir=${sort == 'address' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           title="Sort by Address">
+                            <span>Address</span>
+                            <i th:if="${sort == 'address' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
+                            <i th:if="${sort == 'address' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="d-none d-sm-table-cell" style="width: 105px;">
+                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                           th:attr="hx-get=@{/mailboxes(sort='status', dir=${sort == 'status' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           title="Sort by Status">
+                            <span>Status</span>
+                            <i th:if="${sort == 'status' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
+                            <i th:if="${sort == 'status' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="d-none d-lg-table-cell" style="width: 150px;">
+                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                           th:attr="hx-get=@{/mailboxes(sort='expires', dir=${sort == 'expires' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           title="Sort by Expiration">
+                            <span>Expires</span>
+                            <i th:if="${sort == 'expires' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
+                            <i th:if="${sort == 'expires' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="text-center d-none d-md-table-cell" style="width: 85px;">
+                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                           th:attr="hx-get=@{/mailboxes(sort='forwards', dir=${sort == 'forwards' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           title="Total forwarded emails">
+                            <span>Forwards</span>
+                            <i th:if="${sort == 'forwards' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
+                            <i th:if="${sort == 'forwards' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="text-center d-none d-md-table-cell" style="width: 95px;">
+                        <a href="javascript:void(0)" role="button" class="text-decoration-none text-dark d-inline-flex align-items-center gap-1 text-nowrap"
+                           th:attr="hx-get=@{/mailboxes(sort='suppressions', dir=${sort == 'suppressions' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           title="Suppressed incoming emails while inactive">
+                            <span>Suppressed</span>
+                            <i th:if="${sort == 'suppressions' and dir == 'asc'}" class="bi bi-arrow-up text-primary"></i>
+                            <i th:if="${sort == 'suppressions' and dir == 'desc'}" class="bi bi-arrow-down text-primary"></i>
+                        </a>
+                    </th>
                     <th scope="col" class="text-center" style="width: 75px;" title="Stored emails in webmail inbox">Mails</th>
                     <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;">Actions</th>
                 </tr>
@@ -194,7 +239,7 @@
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
                     <button class="page-link" type="button"
-                            th:attr="hx-get=@{/mailboxes(page=${page.number - 1}, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                            th:attr="hx-get=@{/mailboxes(page=${page.number - 1}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
                         Previous
                     </button>
                 </li>
@@ -202,14 +247,14 @@
                 <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
                     class="page-item" th:classappend="${i == page.number ? 'active' : ''}">
                     <button class="page-link" type="button" th:text="${i + 1}"
-                            th:attr="hx-get=@{/mailboxes(page=${i}, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                            th:attr="hx-get=@{/mailboxes(page=${i}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
                         1
                     </button>
                 </li>
 
                 <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
                     <button class="page-link" type="button"
-                            th:attr="hx-get=@{/mailboxes(page=${page.number + 1}, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                            th:attr="hx-get=@{/mailboxes(page=${page.number + 1}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
                         Next
                     </button>
                 </li>

@@ -40,6 +40,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -144,7 +145,9 @@ public final class MailboxWebControllerTest
                .andExpect(view().name("mailboxes/index"))
                .andExpect(model().attributeExists("mailboxes"))
                .andExpect(model().attributeExists("page"))
-               .andExpect(model().attributeExists("domains"));
+               .andExpect(model().attributeExists("domains"))
+               .andExpect(model().attribute("sort", "id"))
+               .andExpect(model().attribute("dir", "desc"));
     }
 
     /**
@@ -166,7 +169,9 @@ public final class MailboxWebControllerTest
                .with(user("alice@xcmailr.test").roles("USER")))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
-               .andExpect(model().attributeExists("mailboxes"));
+               .andExpect(model().attributeExists("mailboxes"))
+               .andExpect(model().attribute("sort", "id"))
+               .andExpect(model().attribute("dir", "desc"));
     }
 
     /**
@@ -993,6 +998,241 @@ public final class MailboxWebControllerTest
         // THEN
         final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase(address, domainName).orElseThrow();
         assertEquals(0L, box.getTs_Active(), "Negative duration must evaluate to 0L");
+    }
+
+    // =========================================================================
+    // Tier 1 Unit Tests: Whitelist Mapping, Parameter Handling & Sort Resolution
+    // =========================================================================
+
+    /**
+     * Verifies that all valid column whitelist keys map to their expected JPA Sort orders and directions.
+     */
+    @Test
+    @DisplayName("Happy path: Whitelist columns resolve to expected Spring Data Sort specifications")
+    public void testResolveSort_HappyPath_AllColumnsAndDirections()
+    {
+        // Address ASC -> composite order: address ASC, domain ASC
+        final Sort addressAsc = MailboxWebController.resolveSort("address", "asc");
+        final Sort.Order addressOrderAsc = addressAsc.getOrderFor("address");
+        final Sort.Order domainOrderAsc = addressAsc.getOrderFor("domain");
+        assertNotNull(addressOrderAsc, "Address order must not be null");
+        assertNotNull(domainOrderAsc, "Domain order must not be null");
+        assertEquals(Sort.Direction.ASC, addressOrderAsc.getDirection());
+        assertEquals(Sort.Direction.ASC, domainOrderAsc.getDirection());
+
+        // Address DESC -> composite order: address DESC, domain DESC
+        final Sort addressDesc = MailboxWebController.resolveSort("address", "desc");
+        final Sort.Order addressOrderDesc = addressDesc.getOrderFor("address");
+        final Sort.Order domainOrderDesc = addressDesc.getOrderFor("domain");
+        assertNotNull(addressOrderDesc, "Address order must not be null");
+        assertNotNull(domainOrderDesc, "Domain order must not be null");
+        assertEquals(Sort.Direction.DESC, addressOrderDesc.getDirection());
+        assertEquals(Sort.Direction.DESC, domainOrderDesc.getDirection());
+
+        // Status -> expired
+        final Sort statusAsc = MailboxWebController.resolveSort("status", "asc");
+        final Sort.Order statusOrder = statusAsc.getOrderFor("expired");
+        assertNotNull(statusOrder, "Status order on 'expired' property must not be null");
+        assertEquals(Sort.Direction.ASC, statusOrder.getDirection());
+
+        // Expires -> ts_Active
+        final Sort expiresDesc = MailboxWebController.resolveSort("expires", "desc");
+        final Sort.Order expiresOrder = expiresDesc.getOrderFor("ts_Active");
+        assertNotNull(expiresOrder, "Expires order on 'ts_Active' property must not be null");
+        assertEquals(Sort.Direction.DESC, expiresOrder.getDirection());
+
+        // Forwards -> forwards
+        final Sort forwardsAsc = MailboxWebController.resolveSort("forwards", "asc");
+        final Sort.Order forwardsOrder = forwardsAsc.getOrderFor("forwards");
+        assertNotNull(forwardsOrder, "Forwards order must not be null");
+        assertEquals(Sort.Direction.ASC, forwardsOrder.getDirection());
+
+        // Suppressions -> suppressions
+        final Sort suppressionsDesc = MailboxWebController.resolveSort("suppressions", "desc");
+        final Sort.Order suppressionsOrder = suppressionsDesc.getOrderFor("suppressions");
+        assertNotNull(suppressionsOrder, "Suppressions order must not be null");
+        assertEquals(Sort.Direction.DESC, suppressionsOrder.getDirection());
+    }
+
+    /**
+     * Verifies that resolveSortField correctly validates whitelisted column names.
+     */
+    @Test
+    @DisplayName("Happy path: Whitelist columns normalized correctly by resolveSortField")
+    public void testResolveSortField_HappyPath_AllColumns()
+    {
+        assertEquals("address", MailboxWebController.resolveSortField("address"));
+        assertEquals("status", MailboxWebController.resolveSortField("status"));
+        assertEquals("expires", MailboxWebController.resolveSortField("expires"));
+        assertEquals("forwards", MailboxWebController.resolveSortField("forwards"));
+        assertEquals("suppressions", MailboxWebController.resolveSortField("suppressions"));
+    }
+
+    /**
+     * Verifies that resolveSortDirection correctly parses direction strings.
+     */
+    @Test
+    @DisplayName("Happy path: Direction strings resolved cleanly")
+    public void testResolveSortDirection_HappyPath()
+    {
+        assertEquals("asc", MailboxWebController.resolveSortDirection("asc"));
+        assertEquals("desc", MailboxWebController.resolveSortDirection("desc"));
+    }
+
+    /**
+     * Verifies that listMailboxes populates requested sort and dir attributes into the model.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: GET /mailboxes with custom sort and dir parameters populates model")
+    public void testListMailboxes_HappyPath_SortParametersPopulatedInModel() throws Exception
+    {
+        // GIVEN a mailbox
+        final MBox box = new MBox("sorting-test", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, owner);
+        mailboxRepository.save(box);
+
+        // WHEN & THEN
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .param("sort", "address")
+               .param("dir", "asc"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("sort", "address"))
+               .andExpect(model().attribute("dir", "asc"));
+    }
+
+    /**
+     * Verifies that unknown or non-whitelisted sort keys safely fall back to ID descending.
+     */
+    @Test
+    @DisplayName("Error case: Unrecognized sort keys fall back safely to id DESC")
+    public void testResolveSort_ErrorCase_UnrecognizedSortKeyFallsBackToIdDesc()
+    {
+        final Sort sortResult = MailboxWebController.resolveSort("nonexistent_column", "asc");
+        final Sort.Order idOrder = sortResult.getOrderFor("id");
+        assertNotNull(idOrder, "Fallback must order by 'id'");
+        assertEquals(Sort.Direction.DESC, idOrder.getDirection(), "Fallback must be DESC");
+        assertEquals("id", MailboxWebController.resolveSortField("nonexistent_column"));
+    }
+
+    /**
+     * Verifies that SQL injection attempts or unexpected characters fall back safely to ID descending.
+     */
+    @Test
+    @DisplayName("Error case: SQL injection attempts fall back safely to id DESC")
+    public void testResolveSort_ErrorCase_SqlInjectionAttemptsFallBackToIdDesc()
+    {
+        final String[] maliciousInputs = {
+            "id; DROP TABLE mailboxes;--",
+            "' OR 1=1 --",
+            "address, id DESC",
+            "SELECT * FROM users",
+            "../etc/passwd"
+        };
+
+        for (final String maliciousInput : maliciousInputs)
+        {
+            final Sort sortResult = MailboxWebController.resolveSort(maliciousInput, "asc");
+            final Sort.Order idOrder = sortResult.getOrderFor("id");
+            assertNotNull(idOrder, "Malicious input '" + maliciousInput + "' must fall back to 'id'");
+            assertEquals(Sort.Direction.DESC, idOrder.getDirection(), "Fallback must be DESC");
+            assertEquals("id", MailboxWebController.resolveSortField(maliciousInput));
+        }
+    }
+
+    /**
+     * Verifies that malformed direction strings safely default to "desc".
+     */
+    @Test
+    @DisplayName("Error case: Malformed direction values safely fall back to desc")
+    public void testResolveSort_ErrorCase_MalformedDirectionFallsBackToDesc()
+    {
+        final String[] invalidDirs = {"sideways", "123", "none", "", "asc;drop", "null"};
+        for (final String invalidDir : invalidDirs)
+        {
+            assertEquals("desc", MailboxWebController.resolveSortDirection(invalidDir),
+                         "Invalid direction '" + invalidDir + "' must fall back to 'desc'");
+            final Sort resolved = MailboxWebController.resolveSort("expires", invalidDir);
+            final Sort.Order expiresOrder = resolved.getOrderFor("ts_Active");
+            assertNotNull(expiresOrder, "Expires order must not be null");
+            assertEquals(Sort.Direction.DESC, expiresOrder.getDirection(),
+                         "Invalid direction must fall back to DESC for expires");
+        }
+    }
+
+    /**
+     * Verifies that GET /mailboxes with an invalid sort key and malformed direction gracefully handles
+     * the request, defaulting to id and desc in model.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: GET /mailboxes with invalid sort parameter falls back to id and desc in model")
+    public void testListMailboxes_ErrorCase_InvalidSortFallback() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .param("sort", "malicious_injection; DROP TABLE--")
+               .param("dir", "invalid_dir"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("sort", "id"))
+               .andExpect(model().attribute("dir", "desc"));
+    }
+
+    /**
+     * Verifies that sort keys and directions are case-insensitively parsed.
+     */
+    @Test
+    @DisplayName("Special case: Column names and directions are matched case-insensitively")
+    public void testResolveSort_SpecialCase_CaseInsensitiveMatching()
+    {
+        assertEquals("address", MailboxWebController.resolveSortField("ADDRESS"));
+        assertEquals("status", MailboxWebController.resolveSortField("StAtUs"));
+        assertEquals("expires", MailboxWebController.resolveSortField("ExPiReS"));
+        assertEquals("forwards", MailboxWebController.resolveSortField("FORWARDS"));
+        assertEquals("suppressions", MailboxWebController.resolveSortField("SuPpReSsIoNs"));
+
+        assertEquals("asc", MailboxWebController.resolveSortDirection("ASC"));
+        assertEquals("asc", MailboxWebController.resolveSortDirection("aSc"));
+
+        final Sort sortResult = MailboxWebController.resolveSort("EXPIRES", "ASC");
+        final Sort.Order expiresOrder = sortResult.getOrderFor("ts_Active");
+        assertNotNull(expiresOrder, "ts_Active order must not be null");
+        assertEquals(Sort.Direction.ASC, expiresOrder.getDirection());
+    }
+
+    /**
+     * Verifies that null, empty, or whitespace sort and direction parameters fall back safely.
+     */
+    @Test
+    @DisplayName("Special case: Null and blank parameters fall back safely without exceptions")
+    public void testResolveSort_SpecialCase_NullAndBlankInputsFallBackToIdDesc()
+    {
+        // Null inputs
+        assertEquals("id", MailboxWebController.resolveSortField(null));
+        assertEquals("desc", MailboxWebController.resolveSortDirection(null));
+        final Sort nullSort = MailboxWebController.resolveSort(null, null);
+        assertNotNull(nullSort.getOrderFor("id"));
+        assertEquals(Sort.Direction.DESC, nullSort.getOrderFor("id").getDirection());
+
+        // Empty string inputs
+        assertEquals("id", MailboxWebController.resolveSortField(""));
+        assertEquals("desc", MailboxWebController.resolveSortDirection(""));
+        final Sort emptySort = MailboxWebController.resolveSort("", "");
+        assertNotNull(emptySort.getOrderFor("id"));
+        assertEquals(Sort.Direction.DESC, emptySort.getOrderFor("id").getDirection());
+
+        // Whitespace inputs
+        assertEquals("id", MailboxWebController.resolveSortField("   "));
+        assertEquals("desc", MailboxWebController.resolveSortDirection("   "));
+        final Sort blankSort = MailboxWebController.resolveSort("   ", "   ");
+        assertNotNull(blankSort.getOrderFor("id"));
+        assertEquals(Sort.Direction.DESC, blankSort.getOrderFor("id").getDirection());
     }
 }
 
