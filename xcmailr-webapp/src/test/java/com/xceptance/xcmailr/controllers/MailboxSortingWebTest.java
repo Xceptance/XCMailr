@@ -176,8 +176,14 @@ public final class MailboxSortingWebTest
             // Header link toggled to 'desc'
             .andExpect(content().string(containsString("sort=address")))
             .andExpect(content().string(containsString("dir=desc")))
-            // Mails column remains static without sorting link
-            .andExpect(content().string(containsString("<th scope=\"col\" class=\"text-center\" style=\"width: 75px;\" title=\"Stored emails in webmail inbox\">Mails</th>")));
+            // Uniform middle alignment on table header row
+            .andExpect(content().string(containsString("<tr class=\"align-middle\">")))
+            // Actions header with matching flex wrapper for uniform vertical baseline
+            .andExpect(content().string(containsString("<th scope=\"col\" class=\"text-end\" style=\"width: 1%; white-space: nowrap;\"><span class=\"d-inline-flex align-items-center py-1\">Actions</span></th>")))
+            // Mails column is completely removed from header and model
+            .andExpect(content().string(not(containsString("<th scope=\"col\" class=\"text-center\" style=\"width: 75px;\" title=\"Stored emails in webmail inbox\">Mails</th>"))))
+            .andExpect(content().string(not(containsString("<th>Mails</th>"))))
+            .andExpect(model().attributeDoesNotExist("mailCounts"));
     }
 
     /**
@@ -479,5 +485,27 @@ public final class MailboxSortingWebTest
             .andExpect(content().string(containsString("hx-include=\"#statusFilterSelect, [name='sort'], [name='dir']\"")))
             .andExpect(content().string(containsString("id=\"statusFilterSelect\"")))
             .andExpect(content().string(containsString("hx-include=\"[name='search'], [name='sort'], [name='dir']\"")));
+    }
+
+    /**
+     * Verifies that the mailbox table renders a streamlined 7-column layout with uniform vertical
+     * alignment, omitting the legacy calculated mail counts, and that the empty state uses colspan="7".
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Special case: Empty list renders 7-column empty-state and omits mailCounts model attribute")
+    public void testSorting_SpecialCase_EmptyList_Renders7ColumnEmptyStateAndOmitsMailCounts() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user("alice@xcmailr.test")))
+            .andExpect(status().isOk())
+            .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+            .andExpect(model().attributeDoesNotExist("mailCounts"))
+            .andExpect(content().string(containsString("<tr class=\"align-middle\">")))
+            .andExpect(content().string(containsString("<span class=\"d-inline-flex align-items-center py-1\">Actions</span>")))
+            .andExpect(content().string(containsString("<td colspan=\"7\" class=\"text-center text-muted py-4\">")))
+            .andExpect(content().string(not(containsString("Mails"))));
     }
 }

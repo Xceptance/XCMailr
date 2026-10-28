@@ -16,7 +16,7 @@
     <div class="table-responsive bg-white rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">
-                <tr>
+                <tr class="align-middle">
                     <th scope="col" style="width: 40px;" class="text-center">
                         <input type="checkbox" id="selectAllMailboxes" class="form-check-input" aria-label="Select all mailboxes">
                     </th>
@@ -70,13 +70,12 @@
                             <i th:if="${sort == 'suppressions' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
                         </a>
                     </th>
-                    <th scope="col" class="text-center" style="width: 75px;" title="Stored emails in webmail inbox">Mails</th>
-                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;">Actions</th>
+                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;"><span class="d-inline-flex align-items-center py-1">Actions</span></th>
                 </tr>
             </thead>
             <tbody id="mailbox-rows">
                 <tr th:if="${#lists.isEmpty(mailboxes)}">
-                    <td colspan="8" class="text-center text-muted py-4">
+                    <td colspan="7" class="text-center text-muted py-4">
                         <em>No mailboxes found matching the criteria.</em>
                     </td>
                 </tr>
@@ -136,15 +135,6 @@
 
                     <td class="text-center d-none d-md-table-cell text-muted" th:text="${box.forwards}">0</td>
                     <td class="text-center d-none d-md-table-cell text-muted" th:text="${box.suppressions}">0</td>
-
-                    <td class="text-center">
-                        <a th:href="@{'/mailboxes/' + ${box.id} + '/mails'}"
-                           th:classappend="${mailCounts.get(box.id) != null && mailCounts.get(box.id) > 0 ? 'badge-count-active' : 'badge-count-zero'}"
-                           class="badge rounded-pill text-decoration-none px-2 py-1"
-                           th:text="${mailCounts.get(box.id) != null ? mailCounts.get(box.id) : 0}">
-                            0
-                        </a>
-                    </td>
 
                     <td class="text-end text-nowrap">
                         <div class="btn-group btn-group-sm" role="group">

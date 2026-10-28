@@ -79,7 +79,7 @@ The system SHALL provide web views for user registration, email verification, se
 - **THEN** the system rejects the request with an HTTP 403 Forbidden response and preserves all account data untouched
 
 ### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, and offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`).
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`), providing uniform vertical alignment across all table header elements, and presenting a streamlined 7-column layout without redundant calculated mail counts.
 
 #### Scenario: Live Search and Filter
 - **WHEN** the user types into the mailbox filter input
@@ -162,7 +162,11 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 
 #### Scenario: Subtle Visual Status and Mail Count Indicators
 - **WHEN** the mailbox table is rendered
-- **THEN** active and expired statuses are displayed using subtle desaturated tokens or status dots rather than high-saturation solid badges, and zero mail counts are rendered with neutral muted styling
+- **THEN** active and expired statuses are displayed using subtle desaturated tokens or status dots rather than high-saturation solid badges, and the table presents a clean 7-column layout omitting redundant calculated mail counts
+
+#### Scenario: Uniform Header Row Vertical Alignment
+- **WHEN** the mailbox table is rendered across desktop and mobile viewports
+- **THEN** table header cells (including the select-all checkbox, sortable headers, and the Actions header) are vertically aligned uniformly along the row using middle alignment and consistent vertical padding, preventing the Actions header and checkbox from sitting deeper or lower than sortable column headers
 
 #### Scenario: Responsive Filter and Search Bar Stacking
 - **WHEN** the mailbox page is displayed on a mobile viewport

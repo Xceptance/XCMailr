@@ -21,10 +21,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -160,17 +158,9 @@ public class MailboxWebController
                 : mailboxRepository.findByUsr(user, pageable);
         };
 
-        // Count messages for each mailbox in page
-        final Map<Long, Long> mailCounts = new HashMap<>();
-        for (final MBox box : mailboxPage.getContent())
-        {
-            mailCounts.put(box.getId(), mailRepository.countByMailbox(box.getId()));
-        }
-
         model.addAttribute("user", user);
         model.addAttribute("mailboxes", mailboxPage.getContent());
         model.addAttribute("page", mailboxPage);
-        model.addAttribute("mailCounts", mailCounts);
         model.addAttribute("search", trimmedSearch);
         model.addAttribute("status", effectiveStatus);
         model.addAttribute("sort", effectiveSort);

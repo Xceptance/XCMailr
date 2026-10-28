@@ -16,6 +16,7 @@
 package com.xceptance.xcmailr.controllers;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -148,6 +149,7 @@ public final class MailboxWebControllerTest
                .andExpect(model().attributeExists("mailboxes"))
                .andExpect(model().attributeExists("page"))
                .andExpect(model().attributeExists("domains"))
+               .andExpect(model().attributeDoesNotExist("mailCounts"))
                .andExpect(model().attribute("sort", "id"))
                .andExpect(model().attribute("dir", "desc"));
     }
@@ -195,6 +197,7 @@ public final class MailboxWebControllerTest
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
                .andExpect(model().attributeExists("mailboxes"))
+               .andExpect(model().attributeDoesNotExist("mailCounts"))
                .andExpect(model().attribute("sort", "id"))
                .andExpect(model().attribute("dir", "desc"));
     }
@@ -1403,6 +1406,28 @@ public final class MailboxWebControllerTest
                .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
                .andExpect(model().attribute("status", "ALL"))
                .andExpect(content().string(containsString("any-status-box@xcmailr.test")));
+    }
+
+    /**
+     * Verifies that GET /mailboxes with an empty mailbox collection renders the empty state
+     * with 7-column colspan and omits the mailCounts model attribute.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special case: Empty mailbox collection omits mailCounts and renders 7-column empty state")
+    public void testListMailboxes_SpecialCase_EmptyDataset_OmitsMailCountsAndRendersEmptyState() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attributeDoesNotExist("mailCounts"))
+               .andExpect(content().string(containsString("<td colspan=\"7\" class=\"text-center text-muted py-4\">")))
+               .andExpect(content().string(containsString("<tr class=\"align-middle\">")))
+               .andExpect(content().string(containsString("<span class=\"d-inline-flex align-items-center py-1\">Actions</span>")))
+               .andExpect(content().string(not(containsString("<th>Mails</th>"))));
     }
 
     /**
