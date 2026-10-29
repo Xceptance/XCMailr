@@ -24,23 +24,23 @@
                     <div class="row g-2 mb-3">
                         <div class="col-md-6">
                             <label for="forename" class="form-label fw-semibold" th:text="#{auth.register.firstName}">First Name</label>
-                            <input type="text" class="form-control" id="forename" name="forename" th:value="${forename}" required placeholder="Jane">
+                            <input type="text" class="form-control" id="forename" name="forename" th:value="${forename}" required placeholder="Jane" th:placeholder="#{auth.register.placeholder.firstName}">
                         </div>
                         <div class="col-md-6">
                             <label for="surname" class="form-label fw-semibold" th:text="#{auth.register.lastName}">Last Name</label>
-                            <input type="text" class="form-control" id="surname" name="surname" th:value="${surname}" required placeholder="Doe">
+                            <input type="text" class="form-control" id="surname" name="surname" th:value="${surname}" required placeholder="Doe" th:placeholder="#{auth.register.placeholder.lastName}">
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="mail" class="form-label fw-semibold" th:text="#{auth.register.targetEmail}">Target Email Address</label>
-                        <input type="email" class="form-control" id="mail" name="mail" th:value="${mail}" required placeholder="forward-target@yourdomain.com">
+                        <input type="email" class="form-control" id="mail" name="mail" th:value="${mail}" required placeholder="forward-target@yourdomain.com" th:placeholder="#{auth.register.placeholder.targetEmail}">
                         <div class="form-text" th:text="#{auth.register.targetEmail.help}">Emails received by your temporary mailboxes will be forwarded to this address.</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="password" class="form-label fw-semibold" th:text="#{auth.register.password}">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" minlength="10" maxlength="72" required placeholder="At least 10 characters">
+                        <input type="password" class="form-control" id="password" name="password" minlength="10" maxlength="72" required placeholder="At least 10 characters" th:placeholder="#{auth.password.placeholder.minLength}">
                         <div class="form-text text-muted mt-1">
                             <small>
                                 <span th:text="#{auth.password.requirements.title}">Password requirements:</span>
@@ -56,7 +56,7 @@
 
                     <div class="mb-3">
                         <label for="confirmPassword" class="form-label fw-semibold" th:text="#{auth.register.confirmPassword}">Confirm Password</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" minlength="10" maxlength="72" required placeholder="Repeat password">
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" minlength="10" maxlength="72" required placeholder="Repeat password" th:placeholder="#{auth.password.placeholder.repeat}">
                     </div>
 
                     <div class="mb-3">

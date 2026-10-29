@@ -316,7 +316,8 @@ public class AdminWebControllerTest
                .andExpect(view().name("admin/domains"))
                .andExpect(content().string(containsString("Domain Whitelist")))
                .andExpect(content().string(containsString("Add Domain")))
-               .andExpect(content().string(containsString("Domain Name")));
+               .andExpect(content().string(containsString("Domain Name")))
+               .andExpect(content().string(containsString("title=\"Valid fully qualified domain name\"")));
     }
 
     /**
@@ -334,7 +335,8 @@ public class AdminWebControllerTest
                .andExpect(view().name("admin/domains"))
                .andExpect(content().string(containsString("Domain-Positivliste")))
                .andExpect(content().string(containsString("Domain hinzufügen")))
-               .andExpect(content().string(containsString("Domain-Name")));
+               .andExpect(content().string(containsString("Domain-Name")))
+               .andExpect(content().string(containsString("title=\"Gültiger vollqualifizierter Domänenname\"")));
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 package com.xceptance.xcmailr.security;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -282,6 +283,75 @@ class PasswordValidatorTest
 
             final PasswordValidationResult emptyContextResult = validator.validate("ValidLongPassword123!", PasswordContext.EMPTY);
             assertTrue(emptyContextResult.isValid());
+        }
+    }
+
+    @Nested
+    @DisplayName("I18n Message Key Tests")
+    class MessageKeyTests
+    {
+        @Test
+        @DisplayName("Attaches empty password message key on null or empty input")
+        void attachesEmptyMessageKey()
+        {
+            final PasswordValidationResult nullResult = validator.validate(null);
+            assertEquals("auth.password.error.empty", nullResult.messageKey());
+
+            final PasswordValidationResult emptyResult = validator.validate("");
+            assertEquals("auth.password.error.empty", emptyResult.messageKey());
+        }
+
+        @Test
+        @DisplayName("Attaches min-length message key when candidate is shorter than 10 characters")
+        void attachesMinLengthMessageKey()
+        {
+            final PasswordValidationResult result = validator.validate("Short1!");
+            assertEquals("auth.password.error.minLength", result.messageKey());
+        }
+
+        @Test
+        @DisplayName("Attaches max-length message key when candidate exceeds 72 characters")
+        void attachesMaxLengthMessageKey()
+        {
+            final String overlyLong = "A".repeat(73);
+            final PasswordValidationResult result = validator.validate(overlyLong);
+            assertEquals("auth.password.error.maxLength", result.messageKey());
+        }
+
+        @Test
+        @DisplayName("Attaches max-bytes message key when candidate exceeds 72 UTF-8 bytes")
+        void attachesMaxBytesMessageKey()
+        {
+            // 20 emojis of 4 bytes each = 80 bytes, 20 characters < 72 length
+            final String highByte = "🔥".repeat(20);
+            final PasswordValidationResult result = validator.validate(highByte);
+            assertEquals("auth.password.error.maxBytes", result.messageKey());
+        }
+
+        @Test
+        @DisplayName("Attaches repeated-character message key when candidate has identical characters")
+        void attachesRepeatedCharMessageKey()
+        {
+            final PasswordValidationResult result = validator.validate("aaaaaaaaaaaaa");
+            assertEquals("auth.password.error.repeatedChar", result.messageKey());
+        }
+
+        @Test
+        @DisplayName("Attaches contextual identity message key when candidate contains user name or email")
+        void attachesContainsIdentityMessageKey()
+        {
+            final PasswordContext context = PasswordContext.of("Jane", "Doe", "jane.doe@example.com");
+            final PasswordValidationResult result = validator.validate("MyJanePassword123", context);
+            assertEquals("auth.password.error.containsIdentity", result.messageKey());
+        }
+
+        @Test
+        @DisplayName("Leaves message key null when candidate is valid")
+        void leavesMessageKeyNullOnValidPassword()
+        {
+            final PasswordValidationResult result = validator.validate("StrongValidPass123!");
+            assertTrue(result.isValid());
+            assertNull(result.messageKey());
         }
     }
 }

@@ -241,7 +241,7 @@
             </span>
         </div>
 
-        <nav aria-label="Mailbox pagination" th:if="${page.totalPages > 1}">
+        <nav aria-label="Mailbox pagination" th:aria-label="#{common.aria.pagination.mailboxes}" th:if="${page.totalPages > 1}">
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
                     <button class="page-link" type="button"
@@ -271,7 +271,7 @@
     </div>
 
     <!-- Contextual Floating Bottom Batch Bar -->
-    <div id="floatingBatchBar" class="floating-batch-bar d-none" role="toolbar" aria-label="Bulk mailbox actions">
+    <div id="floatingBatchBar" class="floating-batch-bar d-none" role="toolbar" aria-label="Bulk mailbox actions" th:aria-label="#{common.aria.toolbar.batchMailboxes}">
         <div class="d-flex align-items-center gap-2 pe-2 border-end border-secondary-subtle">
             <span class="badge bg-primary text-white rounded-pill px-2 py-1">
                 <span id="bulkSelectionCount">0</span> <span th:text="#{mailbox.batch.selected}">selected</span>

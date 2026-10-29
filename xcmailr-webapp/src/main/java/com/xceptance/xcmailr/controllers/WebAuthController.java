@@ -15,6 +15,7 @@
  */
 package com.xceptance.xcmailr.controllers;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -55,18 +58,51 @@ public class WebAuthController
     private final OutboundMailService outboundMailService;
     private final XcmailrProperties properties;
     private final PasswordValidator passwordValidator;
+    private final MessageSource messageSource;
 
+    /**
+     * Constructs a new {@link WebAuthController} instance with all required repositories and services.
+     *
+     * @param userRepository repository for accessing and managing user accounts
+     * @param passwordEncoder encoder used to hash and verify user passwords
+     * @param outboundMailService service for asynchronous dispatch of notification and confirmation emails
+     * @param properties application-level configuration properties
+     * @param passwordValidator validator for enforcing password quality standards
+     */
     public WebAuthController(final UserRepository userRepository,
                              final PasswordEncoder passwordEncoder,
                              final OutboundMailService outboundMailService,
                              final XcmailrProperties properties,
                              final PasswordValidator passwordValidator)
     {
+        this(userRepository, passwordEncoder, outboundMailService, properties, passwordValidator, null);
+    }
+
+    /**
+     * Constructs a new {@link WebAuthController} instance with all required repositories, services,
+     * and message localization source.
+     *
+     * @param userRepository repository for accessing and managing user accounts
+     * @param passwordEncoder encoder used to hash and verify user passwords
+     * @param outboundMailService service for asynchronous dispatch of notification and confirmation emails
+     * @param properties application-level configuration properties
+     * @param passwordValidator validator for enforcing password quality standards
+     * @param messageSource message source for resolving localized error notifications
+     */
+    @Autowired
+    public WebAuthController(final UserRepository userRepository,
+                             final PasswordEncoder passwordEncoder,
+                             final OutboundMailService outboundMailService,
+                             final XcmailrProperties properties,
+                             final PasswordValidator passwordValidator,
+                             final MessageSource messageSource)
+    {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.outboundMailService = outboundMailService;
         this.properties = properties;
         this.passwordValidator = passwordValidator;
+        this.messageSource = messageSource;
     }
 
     /**
@@ -108,6 +144,7 @@ public class WebAuthController
      * @param password user plaintext password
      * @param confirmPassword repeated password confirmation
      * @param language preferred UI language
+     * @param locale request locale for resolving localized error messages
      * @param model template model
      * @return redirect or view name
      */
@@ -118,11 +155,14 @@ public class WebAuthController
                                  @RequestParam("password") final String password,
                                  @RequestParam("confirmPassword") final String confirmPassword,
                                  @RequestParam(value = "language", defaultValue = "en") final String language,
+                                 final Locale locale,
                                  final Model model)
     {
         if (!Objects.equals(password, confirmPassword))
         {
-            model.addAttribute("errorMessage", "Passwords do not match.");
+            model.addAttribute("errorMessage", resolveMessage("auth.error.register.passwordMismatch",
+                                                              "Passwords do not match.",
+                                                              locale));
             populateForm(model, forename, surname, mail);
             return "auth/register";
         }
@@ -131,7 +171,9 @@ public class WebAuthController
         final PasswordValidationResult validationResult = passwordValidator.validate(password, passwordContext);
         if (!validationResult.isValid())
         {
-            model.addAttribute("errorMessage", validationResult.errorMessage());
+            model.addAttribute("errorMessage", resolveMessage(validationResult.messageKey(),
+                                                              validationResult.errorMessage(),
+                                                              locale));
             populateForm(model, forename, surname, mail);
             return "auth/register";
         }
@@ -139,7 +181,9 @@ public class WebAuthController
         final String cleanMail = mail.trim().toLowerCase();
         if (userRepository.existsByMailIgnoreCase(cleanMail))
         {
-            model.addAttribute("errorMessage", "An account with this email address already exists.");
+            model.addAttribute("errorMessage", resolveMessage("auth.error.register.emailExists",
+                                                              "An account with this email address already exists.",
+                                                              locale));
             populateForm(model, forename, surname, cleanMail);
             return "auth/register";
         }
@@ -156,7 +200,9 @@ public class WebAuthController
         catch (final IllegalArgumentException e)
         {
             LOG.warn("Failed to encode password during registration for {}: {}", cleanMail, e.getMessage());
-            model.addAttribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits).");
+            model.addAttribute("errorMessage", resolveMessage("auth.error.register.encoding",
+                                                              "Password cannot be processed (exceeds allowable length or byte limits).",
+                                                              locale));
             populateForm(model, forename, surname, cleanMail);
             return "auth/register";
         }
@@ -309,6 +355,7 @@ public class WebAuthController
      * @param token reset token
      * @param password new password
      * @param confirmPassword repeated new password
+     * @param locale request locale for resolving localized error messages
      * @param model template model
      * @return redirect or view name
      */
@@ -316,6 +363,7 @@ public class WebAuthController
     public String resetPasswordSubmit(@PathVariable("token") final String token,
                                       @RequestParam("password") final String password,
                                       @RequestParam("confirmPassword") final String confirmPassword,
+                                      final Locale locale,
                                       final Model model)
     {
         final Optional<User> userOpt = userRepository.findByConfirmation(token);
@@ -327,7 +375,9 @@ public class WebAuthController
         final User user = userOpt.get();
         if (!Objects.equals(password, confirmPassword))
         {
-            model.addAttribute("errorMessage", "Passwords do not match.");
+            model.addAttribute("errorMessage", resolveMessage("auth.error.resetPassword.passwordMismatch",
+                                                              "Passwords do not match.",
+                                                              locale));
             model.addAttribute("token", token);
             return "auth/reset-password";
         }
@@ -336,7 +386,9 @@ public class WebAuthController
         final PasswordValidationResult validationResult = passwordValidator.validate(password, passwordContext);
         if (!validationResult.isValid())
         {
-            model.addAttribute("errorMessage", validationResult.errorMessage());
+            model.addAttribute("errorMessage", resolveMessage(validationResult.messageKey(),
+                                                              validationResult.errorMessage(),
+                                                              locale));
             model.addAttribute("token", token);
             return "auth/reset-password";
         }
@@ -348,7 +400,9 @@ public class WebAuthController
         catch (final IllegalArgumentException e)
         {
             LOG.warn("Failed to encode password during password reset for {}: {}", user.getMail(), e.getMessage());
-            model.addAttribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits).");
+            model.addAttribute("errorMessage", resolveMessage("auth.error.resetPassword.encoding",
+                                                              "Password cannot be processed (exceeds allowable length or byte limits).",
+                                                              locale));
             model.addAttribute("token", token);
             return "auth/reset-password";
         }
@@ -359,6 +413,15 @@ public class WebAuthController
         LOG.info("Password successfully reset for user {}", user.getMail());
 
         return "redirect:/login?passwordReset";
+    }
+
+    private String resolveMessage(final String messageKey, final String defaultMessage, final Locale locale)
+    {
+        if (messageSource != null && messageKey != null)
+        {
+            return messageSource.getMessage(messageKey, null, defaultMessage, locale != null ? locale : Locale.ENGLISH);
+        }
+        return defaultMessage;
     }
 
     private void populateForm(final Model model, final String forename, final String surname, final String mail)

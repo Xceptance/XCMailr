@@ -37,7 +37,7 @@
 
             <div class="mb-3">
                 <label class="form-label d-block" th:text="#{mailbox.modal.new.duration}">Active Duration</label>
-                <div class="btn-group w-100 flex-wrap" role="group" aria-label="Mailbox active duration presets">
+                <div class="btn-group w-100 flex-wrap" role="group" aria-label="Mailbox active duration presets" th:aria-label="#{common.aria.toolbar.durationPresets}">
                     <input type="radio" class="btn-check" name="durationHours" id="duration-1" value="1" autocomplete="off"
                            th:checked="${selectedDuration == 1}">
                     <label class="btn btn-outline-secondary btn-sm flex-fill" for="duration-1">1h</label>

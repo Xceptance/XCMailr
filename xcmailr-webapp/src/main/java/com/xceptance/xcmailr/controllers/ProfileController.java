@@ -20,11 +20,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,6 +71,7 @@ public class ProfileController
     private final MailRepository mailRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
+    private final MessageSource messageSource;
 
     /**
      * Constructs a new {@link ProfileController} instance with all required repositories and security services.
@@ -84,11 +88,34 @@ public class ProfileController
                              final PasswordEncoder passwordEncoder,
                              final PasswordValidator passwordValidator)
     {
+        this(userRepository, mailboxRepository, mailRepository, passwordEncoder, passwordValidator, null);
+    }
+
+    /**
+     * Constructs a new {@link ProfileController} instance with all required repositories, security services,
+     * and message localization source.
+     *
+     * @param userRepository repository for accessing and managing user accounts
+     * @param mailboxRepository repository for managing mailboxes
+     * @param mailRepository repository for managing emails
+     * @param passwordEncoder encoder used to hash and verify user passwords
+     * @param passwordValidator validator for enforcing password quality standards
+     * @param messageSource message source for resolving localized error notifications
+     */
+    @Autowired
+    public ProfileController(final UserRepository userRepository,
+                             final MailboxRepository mailboxRepository,
+                             final MailRepository mailRepository,
+                             final PasswordEncoder passwordEncoder,
+                             final PasswordValidator passwordValidator,
+                             final MessageSource messageSource)
+    {
         this.userRepository = userRepository;
         this.mailboxRepository = mailboxRepository;
         this.mailRepository = mailRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordValidator = passwordValidator;
+        this.messageSource = messageSource;
     }
 
 
@@ -157,6 +184,7 @@ public class ProfileController
      * @param newPassword new password candidate
      * @param confirmNewPassword new password confirmation
      * @param principal authenticated user principal
+     * @param locale request locale for resolving localized error messages
      * @param model template model
      * @return redirect or view name on error
      */
@@ -165,6 +193,7 @@ public class ProfileController
                                  @RequestParam("newPassword") final String newPassword,
                                  @RequestParam("confirmNewPassword") final String confirmNewPassword,
                                  final Principal principal,
+                                 final Locale locale,
                                  final Model model)
     {
         final User user = getUser(principal);
@@ -172,14 +201,18 @@ public class ProfileController
         if (!passwordEncoder.matches(currentPassword, user.getPasswd()))
         {
             populateProfileModel(model, user);
-            model.addAttribute("errorMessage", "Current password does not match.");
+            model.addAttribute("errorMessage", resolveMessage("profile.error.password.currentMismatch",
+                                                              "Current password does not match.",
+                                                              locale));
             return "user/profile";
         }
 
         if (!Objects.equals(newPassword, confirmNewPassword))
         {
             populateProfileModel(model, user);
-            model.addAttribute("errorMessage", "New passwords do not match.");
+            model.addAttribute("errorMessage", resolveMessage("profile.error.password.newMismatch",
+                                                              "New passwords do not match.",
+                                                              locale));
             return "user/profile";
         }
 
@@ -188,7 +221,9 @@ public class ProfileController
         if (!validationResult.isValid())
         {
             populateProfileModel(model, user);
-            model.addAttribute("errorMessage", validationResult.errorMessage());
+            model.addAttribute("errorMessage", resolveMessage(validationResult.messageKey(),
+                                                              validationResult.errorMessage(),
+                                                              locale));
             return "user/profile";
         }
 
@@ -200,7 +235,9 @@ public class ProfileController
         {
             LOG.warn("Failed to encode password during password change for {}: {}", user.getMail(), e.getMessage());
             populateProfileModel(model, user);
-            model.addAttribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits).");
+            model.addAttribute("errorMessage", resolveMessage("profile.error.password.encoding",
+                                                              "Password cannot be processed (exceeds allowable length or byte limits).",
+                                                              locale));
             return "user/profile";
         }
 
@@ -270,6 +307,7 @@ public class ProfileController
      * @param currentPassword the user's current password for confirmation
      * @param principal authenticated user principal
      * @param request current HTTP request used to invalidate the session
+     * @param locale request locale for resolving localized error messages
      * @param model template model for presenting validation errors
      * @return redirect to login page upon success, or the profile view if validation fails
      */
@@ -278,6 +316,7 @@ public class ProfileController
     public String deleteAccount(@RequestParam(value = "currentPassword", defaultValue = "") final String currentPassword,
                                 final Principal principal,
                                 final HttpServletRequest request,
+                                final Locale locale,
                                 final Model model)
     {
         final User user = getUser(principal);
@@ -286,7 +325,9 @@ public class ProfileController
         if (currentPassword == null || currentPassword.isBlank())
         {
             populateProfileModel(model, user);
-            model.addAttribute("errorMessage", "Please enter your current password to confirm deletion.");
+            model.addAttribute("errorMessage", resolveMessage("profile.error.delete.emptyPassword",
+                                                              "Please enter your current password to confirm deletion.",
+                                                              locale));
             return "user/profile";
         }
 
@@ -294,7 +335,9 @@ public class ProfileController
         if (!passwordEncoder.matches(currentPassword, user.getPasswd()))
         {
             populateProfileModel(model, user);
-            model.addAttribute("errorMessage", "Current password does not match.");
+            model.addAttribute("errorMessage", resolveMessage("profile.error.delete.passwordMismatch",
+                                                              "Current password does not match.",
+                                                              locale));
             return "user/profile";
         }
 
@@ -302,7 +345,9 @@ public class ProfileController
         if (user.isAdmin() && userRepository.countByAdminTrueAndActiveTrue() <= 1)
         {
             populateProfileModel(model, user);
-            model.addAttribute("errorMessage", "Your account cannot be deleted because it is the last administrator account. At least one active administrator account must exist.");
+            model.addAttribute("errorMessage", resolveMessage("profile.error.delete.lastAdmin",
+                                                              "Your account cannot be deleted because it is the last administrator account. At least one active administrator account must exist.",
+                                                              locale));
             return "user/profile";
         }
 
@@ -327,6 +372,15 @@ public class ProfileController
         }
 
         return "redirect:/login?accountDeleted";
+    }
+
+    private String resolveMessage(final String messageKey, final String defaultMessage, final Locale locale)
+    {
+        if (messageSource != null && messageKey != null)
+        {
+            return messageSource.getMessage(messageKey, null, defaultMessage, locale != null ? locale : Locale.ENGLISH);
+        }
+        return defaultMessage;
     }
 
     private User getUser(final Principal principal)

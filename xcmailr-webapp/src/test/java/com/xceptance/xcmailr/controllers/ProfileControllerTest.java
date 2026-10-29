@@ -15,6 +15,8 @@
  */
 package com.xceptance.xcmailr.controllers;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -25,12 +27,13 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -745,6 +748,224 @@ public class ProfileControllerTest
 
         // Verify testUser data was not altered
         assertTrue(userRepository.findById(testUser.getId()).isPresent(), "User record must remain intact");
+    }
+
+    // =========================================================================
+    // LOCALIZATION CONTRACT & ERROR ALERT TESTS (Option 3 Testing Pyramid)
+    // =========================================================================
+
+    /**
+     * Verifies that password change rejection due to incorrect current password returns a localized
+     * German error alert when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /profile/change-password with Locale.GERMAN and wrong password returns German error alert")
+    public void testChangePassword_Localization_GermanLocale_ReturnsGermanErrorMessage() throws Exception
+    {
+        testUser.setLanguage("de");
+        userRepository.save(testUser);
+
+        mockMvc.perform(post("/profile/change-password")
+               .locale(Locale.GERMAN)
+               .with(user(testUser.getMail()).roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "WrongSecret123")
+               .param("newPassword", "NewValidSecret123!")
+               .param("confirmNewPassword", "NewValidSecret123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Das aktuelle Passwort ist nicht korrekt."))
+               .andExpect(content().string(containsString("Das aktuelle Passwort ist nicht korrekt.")));
+    }
+
+    /**
+     * Verifies that password change rejection due to mismatched new passwords returns a localized
+     * German error alert when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /profile/change-password with Locale.GERMAN and mismatched passwords returns German error alert")
+    public void testChangePassword_Localization_GermanLocale_Mismatch_ReturnsGermanErrorMessage() throws Exception
+    {
+        testUser.setLanguage("de");
+        userRepository.save(testUser);
+
+        mockMvc.perform(post("/profile/change-password")
+               .locale(Locale.GERMAN)
+               .with(user(testUser.getMail()).roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123")
+               .param("newPassword", "NewValidSecret123!")
+               .param("confirmNewPassword", "CompletelyDifferent123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Die neuen Passwörter stimmen nicht überein."))
+               .andExpect(content().string(containsString("Die neuen Passwörter stimmen nicht überein.")));
+    }
+
+    /**
+     * Verifies that password change rejection due to NIST/OWASP password quality violation (less than 10 chars)
+     * returns a localized German error alert when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /profile/change-password with Locale.GERMAN and short password returns German validation alert")
+    public void testChangePassword_Localization_GermanLocale_QualityViolation_ReturnsGermanErrorMessage() throws Exception
+    {
+        testUser.setLanguage("de");
+        userRepository.save(testUser);
+
+        mockMvc.perform(post("/profile/change-password")
+               .locale(Locale.GERMAN)
+               .with(user(testUser.getMail()).roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123")
+               .param("newPassword", "Short9!")
+               .param("confirmNewPassword", "Short9!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Das Passwort muss mindestens 10 Zeichen lang sein."))
+               .andExpect(content().string(containsString("Das Passwort muss mindestens 10 Zeichen lang sein.")));
+    }
+
+    /**
+     * Verifies that account deletion rejection due to empty current password returns a localized
+     * German error alert when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /profile/delete with Locale.GERMAN and blank password returns German error alert")
+    public void testDeleteAccount_Localization_GermanLocale_EmptyPassword_ReturnsGermanErrorMessage() throws Exception
+    {
+        testUser.setLanguage("de");
+        userRepository.save(testUser);
+
+        mockMvc.perform(post("/profile/delete")
+               .locale(Locale.GERMAN)
+               .with(user(testUser.getMail()).roles("USER"))
+               .with(csrf())
+               .param("currentPassword", ""))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Bitte geben Sie Ihr aktuelles Passwort ein, um die Löschung zu bestätigen."))
+               .andExpect(content().string(containsString("Bitte geben Sie Ihr aktuelles Passwort ein, um die Löschung zu bestätigen.")));
+    }
+
+    /**
+     * Verifies that sole administrator account deletion protection returns a localized German error alert
+     * when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /profile/delete with Locale.GERMAN for sole admin returns German error alert")
+    public void testDeleteAccount_Localization_GermanLocale_SoleAdmin_ReturnsGermanErrorMessage() throws Exception
+    {
+        // Make testUser the sole administrator with German language preference
+        testUser.setLanguage("de");
+        testUser.setAdmin(true);
+        userRepository.save(testUser);
+
+        mockMvc.perform(post("/profile/delete")
+               .locale(Locale.GERMAN)
+               .with(user(testUser.getMail()).roles("ADMIN", "USER"))
+               .with(csrf())
+               .param("currentPassword", "CurrentSecret123"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessage", "Ihr Konto kann nicht gelöscht werden, da es das letzte Administratorkonto ist. Es muss mindestens ein aktives Administratorkonto existieren."))
+               .andExpect(content().string(containsString("Ihr Konto kann nicht gelöscht werden, da es das letzte Administratorkonto ist.")));
+    }
+
+    /**
+     * Verifies template rendering contract for profile view with German locale:
+     * password placeholders, deletion modal placeholder, and fallback timestamp string.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization Contract: GET /profile with Locale.GERMAN renders localized placeholders and fallback token label")
+    public void testShowProfile_LocalizationContract_GermanPlaceholders() throws Exception
+    {
+        testUser.setLanguage("de");
+        // Ensure no creation timestamp to test 'Kürzlich' fallback
+        testUser.setApiToken("test-token-value");
+        testUser.setApiTokenCreationTimestamp(0L);
+        userRepository.save(testUser);
+
+        mockMvc.perform(get("/profile")
+               .locale(Locale.GERMAN)
+               .with(user(testUser.getMail()).roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               // Placeholder for new password
+               .andExpect(content().string(containsString("placeholder=\"Mindestens 10 Zeichen\"")))
+               // Placeholder for confirm new password
+               .andExpect(content().string(containsString("placeholder=\"Neues Passwort wiederholen\"")))
+               // Placeholder for delete modal current password
+               .andExpect(content().string(containsString("placeholder=\"Aktuelles Passwort\"")))
+               // Fallback creation timestamp
+               .andExpect(content().string(containsString("Kürzlich")))
+               // Offcanvas navigation toggle aria label
+               .andExpect(content().string(containsString("aria-label=\"Navigation umschalten\"")));
+    }
+
+    /**
+     * Verifies template rendering contract for profile view with English locale (default):
+     * password placeholders, deletion modal placeholder, and fallback timestamp string.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization Contract: GET /profile with Locale.ENGLISH renders English placeholders and fallback token label")
+    public void testShowProfile_LocalizationContract_EnglishPlaceholders() throws Exception
+    {
+        testUser.setApiToken("test-token-value");
+        testUser.setApiTokenCreationTimestamp(0L);
+        userRepository.save(testUser);
+
+        mockMvc.perform(get("/profile")
+               .locale(Locale.ENGLISH)
+               .with(user(testUser.getMail()).roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(content().string(containsString("placeholder=\"At least 10 characters\"")))
+               .andExpect(content().string(containsString("placeholder=\"Repeat new password\"")))
+               .andExpect(content().string(containsString("placeholder=\"Current Password\"")))
+               .andExpect(content().string(containsString("Recently")))
+               .andExpect(content().string(containsString("aria-label=\"Toggle navigation\"")));
+    }
+
+    /**
+     * Verifies OWASP ASVS / XSS mitigation standards: user-supplied input in profile model
+     * is automatically escaped with HTML entities by Thymeleaf and cannot result in XSS injection.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("OWASP ASVS XSS: Injected script tag in profile names is automatically escaped in rendered HTML")
+    public void testShowProfile_OwaspAsvs_HtmlEntityEscaping() throws Exception
+    {
+        final String maliciousPayload = "<script>alert('xss-profile')</script>";
+        testUser.setForename(maliciousPayload);
+        testUser.setSurname("<b>bold</b>");
+        userRepository.save(testUser);
+
+        mockMvc.perform(get("/profile")
+               .with(user(testUser.getMail()).roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               // Raw malicious tags must NOT be present unescaped
+               .andExpect(content().string(not(containsString("<script>alert('xss-profile')</script>"))))
+               .andExpect(content().string(not(containsString("<b>bold</b>"))))
+               // Escaped entities must be present
+               .andExpect(content().string(containsString("&lt;script&gt;")))
+               .andExpect(content().string(containsString("&lt;b&gt;bold&lt;/b&gt;")));
     }
 }
 

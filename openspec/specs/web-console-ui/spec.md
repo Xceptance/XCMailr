@@ -580,7 +580,7 @@ The system SHALL display a standardized corporate footer on all application view
 - **AND** the technology stack summary line is rendered accurately underneath
 
 ### Requirement: Comprehensive Web Console Internationalization
-The system SHALL render all user-facing web console views, layouts, navigation menus, modals, form controls, status banners, table headers, and error pages dynamically using message bundles corresponding to the active user's locale (`en` or `de`), falling back to default English when a key is absent, while strictly escaping localized text to prevent Cross-Site Scripting (XSS).
+The system SHALL render all user-facing web console views, layouts, navigation menus, modals, form controls, placeholders, tooltips, ARIA accessibility landmarks, status banners, validation error messages, table headers, and error pages dynamically using message bundles corresponding to the active user's locale (`en` or `de`), falling back to default English when a key is absent, while strictly escaping localized text to prevent Cross-Site Scripting (XSS).
 
 #### Scenario: Layout and Navigation Localized Rendering (Happy Path)
 - **WHEN** an authenticated user with German (`de`) language preference navigates to any application view
@@ -589,11 +589,23 @@ The system SHALL render all user-facing web console views, layouts, navigation m
 
 #### Scenario: Authentication and Onboarding Localized Rendering (Happy Path)
 - **WHEN** an unauthenticated visitor accesses `/login`, `/register`, `/forgot-password`, or `/reset-password` with a German request locale (`Accept-Language: de`)
-- **THEN** form titles, field labels, placeholders, password requirement rules, submit buttons, and status/redirect feedback banners render in German
+- **THEN** form titles, field labels, input placeholders (including forename, surname, target email, password min-length guidance, and password confirmation), password requirement rules, submit buttons, and status/redirect feedback banners render in German
 
 #### Scenario: User Profile and Account Management Localized Rendering (Happy Path)
 - **WHEN** an authenticated user with German language preference navigates to `/profile`
-- **THEN** personal information headers and labels, password change guidance, API token descriptions and action buttons, danger zone warnings, and the account deletion confirmation modal render in German
+- **THEN** personal information headers and labels, password change guidance and input placeholders (such as `"Mindestens 10 Zeichen"` and `"Neues Passwort wiederholen"`), API token descriptions, creation date fallbacks (`"Kürzlich"`), action buttons, danger zone warnings, and the account deletion confirmation modal render in German
+
+#### Scenario: Server-Side Form Validation Error Localization (Error Case)
+- **WHEN** a user submits an authentication or profile form with validation errors (such as password mismatch, incorrect current password, duplicate registration email, or sole administrator account deletion attempt) under German locale
+- **THEN** the controller resolves and displays the corresponding localized error banner (`errorMessage`) in German matching the user's active locale
+
+#### Scenario: Password Quality Validation Error Localization (Error Case)
+- **WHEN** a user submits a candidate password failing OWASP/NIST validation rules (such as minimum length violation, maximum length violation, single repeated character, or identity term inclusion) under German locale
+- **THEN** the validation result message is resolved and displayed in German matching the specific rule violated
+
+#### Scenario: Accessibility and Tooltip Localization (Special Case)
+- **WHEN** an authenticated or unauthenticated user navigates web views containing input pattern validation tooltips or screen reader landmarks under German locale
+- **THEN** input pattern titles (`th:title`) and navigation/toolbar landmarks (`th:aria-label` on pagination and batch action controls) render localized German descriptions
 
 #### Scenario: Mailbox Dashboard and Modal Localized Rendering (Happy Path)
 - **WHEN** an authenticated user with German language preference navigates to `/mailboxes`
@@ -612,7 +624,7 @@ The system SHALL render all user-facing web console views, layouts, navigation m
 - **THEN** the error title, explanation message, and dashboard navigation buttons render in German
 
 #### Scenario: Translation Key Missing Fallback (Special / Edge Case)
-- **WHEN** a template attempts to resolve a translation key that is not present in `messages_de.properties`
+- **WHEN** a template or controller attempts to resolve a translation key that is not present in `messages_de.properties`
 - **THEN** the system falls back to the default message definition in `messages.properties` without throwing server exceptions or breaking template rendering
 
 #### Scenario: OWASP Cross-Site Scripting Prevention in Localized Messages (Security Case)

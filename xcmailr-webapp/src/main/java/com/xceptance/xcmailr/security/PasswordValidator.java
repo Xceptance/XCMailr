@@ -93,32 +93,32 @@ public class PasswordValidator
         // 1. Guard against null or empty input
         if (password == null || password.isEmpty())
         {
-            return PasswordValidationResult.invalid("Password cannot be empty.");
+            return PasswordValidationResult.invalid("Password cannot be empty.", "auth.password.error.empty");
         }
 
         // 2. Minimum length check: 10 characters ensures adequate entropy
         if (password.length() < MIN_LENGTH)
         {
-            return PasswordValidationResult.invalid("Password must be at least " + MIN_LENGTH + " characters long.");
+            return PasswordValidationResult.invalid("Password must be at least " + MIN_LENGTH + " characters long.", "auth.password.error.minLength");
         }
 
         // 3. Maximum character length check: 72 characters aligned with BCrypt key schedule
         if (password.length() > MAX_LENGTH)
         {
-            return PasswordValidationResult.invalid("Password cannot exceed " + MAX_LENGTH + " characters.");
+            return PasswordValidationResult.invalid("Password cannot exceed " + MAX_LENGTH + " characters.", "auth.password.error.maxLength");
         }
 
         // 4. Maximum UTF-8 byte length check: BCrypt strictly rejects inputs exceeding 72 bytes
         final byte[] passwordBytes = password.getBytes(StandardCharsets.UTF_8);
         if (passwordBytes.length > MAX_BYTES)
         {
-            return PasswordValidationResult.invalid("Password cannot exceed " + MAX_BYTES + " bytes (special or non-Latin characters use multiple bytes).");
+            return PasswordValidationResult.invalid("Password cannot exceed " + MAX_BYTES + " bytes (special or non-Latin characters use multiple bytes).", "auth.password.error.maxBytes");
         }
 
         // 5. Repetition defense: reject trivial passwords consisting of only one repeating character
         if (isSingleRepeatedCharacter(password))
         {
-            return PasswordValidationResult.invalid("Password cannot consist of a single repeated character.");
+            return PasswordValidationResult.invalid("Password cannot consist of a single repeated character.", "auth.password.error.repeatedChar");
         }
 
         // 5. User context check: reject passwords containing personal identity values
@@ -131,7 +131,7 @@ public class PasswordValidator
             {
                 if (term.length() >= MIN_CONTEXT_TERM_LENGTH && passwordLower.contains(term))
                 {
-                    return PasswordValidationResult.invalid("Password must not contain your name or email address.");
+                    return PasswordValidationResult.invalid("Password must not contain your name or email address.", "auth.password.error.containsIdentity");
                 }
             }
         }

@@ -91,7 +91,7 @@
             <span th:text="#{common.pagination.summary(${page.number + 1}, ${page.totalPages}, ${page.totalElements})}">Page 1 of 1 (0 total)</span>
         </span>
 
-        <nav aria-label="User pagination">
+        <nav aria-label="User pagination" th:aria-label="#{common.aria.pagination.users}">
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
                     <button class="page-link" type="button"

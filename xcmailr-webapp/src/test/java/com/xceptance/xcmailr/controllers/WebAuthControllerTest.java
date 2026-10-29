@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.util.Locale;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -801,5 +803,256 @@ public class WebAuthControllerTest
                .param("password", "Secret123"))
                .andExpect(status().is3xxRedirection())
                .andExpect(redirectedUrl("/"));
+    }
+
+    /**
+     * Verifies that user registration rejection due to mismatched passwords returns a localized
+     * German error alert when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /register with Locale.GERMAN and mismatched passwords returns German error alert")
+    public void testRegister_Localization_GermanLocale_PasswordMismatch() throws Exception
+    {
+        mockMvc.perform(post("/register")
+               .locale(Locale.GERMAN)
+               .with(csrf())
+               .param("forename", "Hans")
+               .param("surname", "Mueller")
+               .param("mail", "hans.mueller@xcmailr.test")
+               .param("password", "SecretPassword123!")
+               .param("confirmPassword", "DifferentPassword123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Die Passwörter stimmen nicht überein."))
+               .andExpect(content().string(containsString("Die Passwörter stimmen nicht überein.")));
+    }
+
+    /**
+     * Verifies that user registration rejection due to short password policy violation returns a localized
+     * German error alert when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /register with Locale.GERMAN and short password returns German validation alert")
+    public void testRegister_Localization_GermanLocale_ShortPassword() throws Exception
+    {
+        mockMvc.perform(post("/register")
+               .locale(Locale.GERMAN)
+               .with(csrf())
+               .param("forename", "Hans")
+               .param("surname", "Mueller")
+               .param("mail", "hans.mueller@xcmailr.test")
+               .param("password", "Short9!")
+               .param("confirmPassword", "Short9!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Das Passwort muss mindestens 10 Zeichen lang sein."))
+               .andExpect(content().string(containsString("Das Passwort muss mindestens 10 Zeichen lang sein.")));
+    }
+
+    /**
+     * Verifies that user registration rejection due to duplicate email address returns a localized
+     * German error alert when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /register with Locale.GERMAN and duplicate email returns German error alert")
+    public void testRegister_Localization_GermanLocale_DuplicateEmail() throws Exception
+    {
+        final User existing = new User("Existing", "User", "existing@xcmailr.test", "Password123!", "de");
+        existing.setActive(true);
+        userRepository.save(existing);
+
+        mockMvc.perform(post("/register")
+               .locale(Locale.GERMAN)
+               .with(csrf())
+               .param("forename", "Neuer")
+               .param("surname", "Benutzer")
+               .param("mail", "existing@xcmailr.test")
+               .param("password", "ValidSecretPassword123!")
+               .param("confirmPassword", "ValidSecretPassword123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Ein Konto mit dieser E-Mail-Adresse existiert bereits."))
+               .andExpect(content().string(containsString("Ein Konto mit dieser E-Mail-Adresse existiert bereits.")));
+    }
+
+    /**
+     * Verifies that user registration rejection with default English locale returns standard English error message.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /register with default Locale returns English error alert")
+    public void testRegister_Localization_EnglishDefault_PasswordMismatch() throws Exception
+    {
+        mockMvc.perform(post("/register")
+               .locale(Locale.ENGLISH)
+               .with(csrf())
+               .param("forename", "John")
+               .param("surname", "Doe")
+               .param("mail", "john.unique@xcmailr.test")
+               .param("password", "SecretPassword123!")
+               .param("confirmPassword", "MismatchPassword123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessage", "Passwords do not match."))
+               .andExpect(content().string(containsString("Passwords do not match.")));
+    }
+
+    /**
+     * Verifies that password reset submission rejection due to mismatched passwords returns a localized
+     * German error alert when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /pwreset/{token} with Locale.GERMAN and mismatched passwords returns German error alert")
+    public void testResetPassword_Localization_GermanLocale_PasswordMismatch() throws Exception
+    {
+        final User user = new User("Reset", "German", "reset.german@xcmailr.test", "ExistingPassword123!", "de");
+        user.setActive(true);
+        user.setConfirmation("reset-token-de-mismatch");
+        user.setTs_confirm(System.currentTimeMillis() + 3600_000L);
+        userRepository.save(user);
+
+        mockMvc.perform(post("/pwreset/reset-token-de-mismatch")
+               .locale(Locale.GERMAN)
+               .with(csrf())
+               .param("password", "NewValidSecret123!")
+               .param("confirmPassword", "CompletelyDifferent123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(model().attribute("errorMessage", "Die Passwörter stimmen nicht überein."))
+               .andExpect(content().string(containsString("Die Passwörter stimmen nicht überein.")));
+    }
+
+    /**
+     * Verifies that password reset submission rejection due to password policy violation returns a localized
+     * German validation error alert when requested with German locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /pwreset/{token} with Locale.GERMAN and short password returns German validation alert")
+    public void testResetPassword_Localization_GermanLocale_QualityViolation() throws Exception
+    {
+        final User user = new User("Reset", "German", "reset.quality@xcmailr.test", "ExistingPassword123!", "de");
+        user.setActive(true);
+        user.setConfirmation("reset-token-de-quality");
+        user.setTs_confirm(System.currentTimeMillis() + 3600_000L);
+        userRepository.save(user);
+
+        mockMvc.perform(post("/pwreset/reset-token-de-quality")
+               .locale(Locale.GERMAN)
+               .with(csrf())
+               .param("password", "Short9!")
+               .param("confirmPassword", "Short9!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(model().attribute("errorMessage", "Das Passwort muss mindestens 10 Zeichen lang sein."))
+               .andExpect(content().string(containsString("Das Passwort muss mindestens 10 Zeichen lang sein.")));
+    }
+
+    /**
+     * Verifies template rendering contract for registration view with German locale:
+     * forename, surname, target email, password placeholders, and mobile navigation aria-label.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization Contract: GET /register with Locale.GERMAN renders localized placeholders and aria-label")
+    public void testRegisterForm_LocalizationContract_GermanPlaceholders() throws Exception
+    {
+        mockMvc.perform(get("/register")
+               .locale(Locale.GERMAN))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(content().string(containsString("placeholder=\"Erika\"")))
+               .andExpect(content().string(containsString("placeholder=\"Mustermann\"")))
+               .andExpect(content().string(containsString("placeholder=\"zieladresse@ihredomain.de\"")))
+               .andExpect(content().string(containsString("placeholder=\"Mindestens 10 Zeichen\"")))
+               .andExpect(content().string(containsString("placeholder=\"Passwort wiederholen\"")))
+               .andExpect(content().string(containsString("aria-label=\"Navigation umschalten\"")));
+    }
+
+    /**
+     * Verifies template rendering contract for registration view with English locale (default):
+     * forename, surname, target email, password placeholders, and mobile navigation aria-label.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization Contract: GET /register with Locale.ENGLISH renders English placeholders and aria-label")
+    public void testRegisterForm_LocalizationContract_EnglishPlaceholders() throws Exception
+    {
+        mockMvc.perform(get("/register")
+               .locale(Locale.ENGLISH))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(content().string(containsString("placeholder=\"Jane\"")))
+               .andExpect(content().string(containsString("placeholder=\"Doe\"")))
+               .andExpect(content().string(containsString("placeholder=\"forward-target@yourdomain.com\"")))
+               .andExpect(content().string(containsString("placeholder=\"At least 10 characters\"")))
+               .andExpect(content().string(containsString("placeholder=\"Repeat password\"")))
+               .andExpect(content().string(containsString("aria-label=\"Toggle navigation\"")));
+    }
+
+    /**
+     * Verifies template rendering contract for reset password view with German locale:
+     * new password and confirm password placeholders.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization Contract: GET /pwreset/{token} with Locale.GERMAN renders localized placeholders")
+    public void testResetPasswordForm_LocalizationContract_GermanPlaceholders() throws Exception
+    {
+        final User user = new User("Form", "Test", "form.test@xcmailr.test", "Password123!", "de");
+        user.setActive(true);
+        user.setConfirmation("reset-token-form-de");
+        user.setTs_confirm(System.currentTimeMillis() + 3600_000L);
+        userRepository.save(user);
+
+        mockMvc.perform(get("/pwreset/reset-token-form-de")
+               .locale(Locale.GERMAN))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(content().string(containsString("placeholder=\"Mindestens 10 Zeichen\"")))
+               .andExpect(content().string(containsString("placeholder=\"Neues Passwort wiederholen\"")));
+    }
+
+    /**
+     * Verifies OWASP ASVS / XSS mitigation standards: user-supplied input submitted in registration form
+     * is automatically escaped with HTML entities by Thymeleaf when re-rendered on validation failure.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("OWASP ASVS XSS: Injected script tag in registration form fields is automatically escaped in rendered HTML")
+    public void testRegister_OwaspAsvs_HtmlEntityEscaping() throws Exception
+    {
+        final String maliciousForename = "<script>alert('xss-forename')</script>";
+        final String maliciousSurname = "\"><img src=x onerror=alert(1)>";
+
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", maliciousForename)
+               .param("surname", maliciousSurname)
+               .param("mail", "xss.test@xcmailr.test")
+               .param("password", "SecretPassword123!")
+               .param("confirmPassword", "MismatchPassword123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               // Raw unescaped malicious scripts must NOT be present in output
+               .andExpect(content().string(not(containsString("<script>alert('xss-forename')</script>"))))
+               .andExpect(content().string(not(containsString("\"><img src=x onerror=alert(1)>"))))
+               // Escaped entities must be present
+               .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;xss-forename&#39;)&lt;/script&gt;")))
+               .andExpect(content().string(containsString("&quot;&gt;&lt;img src=x onerror=alert(1)&gt;")));
     }
 }

@@ -129,7 +129,7 @@ public class AuthWebControllerTest
             .andExpect(content().string(containsString("Hier registrieren")))
             // Common layout elements
             .andExpect(content().string(containsString("Alle Rechte vorbehalten.")))
-            .andExpect(content().string(containsString("XCMailr Modernisiert")));
+            .andExpect(content().string(containsString("XCMailr Modernized")));
     }
 
     @Test
