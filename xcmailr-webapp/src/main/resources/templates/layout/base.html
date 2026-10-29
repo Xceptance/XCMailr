@@ -232,8 +232,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
                 th:aria-label="#{common.button.close}"></button>
     </div>
-    <div th:if="${errorMessage != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span th:text="${errorMessage}">An error occurred</span>
+    <div th:if="${errorMessageKey != null or errorMessage != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessageKey != null ? #messages.msg(errorMessageKey) : errorMessage}">An error occurred</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
                 th:aria-label="#{common.button.close}"></button>
     </div>

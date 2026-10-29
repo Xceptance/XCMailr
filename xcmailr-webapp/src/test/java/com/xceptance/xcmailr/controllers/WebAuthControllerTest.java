@@ -163,7 +163,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "DifferentPassword123"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attributeExists("errorMessage"));
+               .andExpect(model().attribute("errorMessageKey", "auth.error.register.passwordMismatch"));
     }
 
     @Test
@@ -403,7 +403,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "Short9!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password must be at least 10 characters long."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.minLength"));
     }
 
     @Test
@@ -439,7 +439,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", password73))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxLength"));
     }
 
     @Test
@@ -456,7 +456,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", password128))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxLength"));
     }
 
     @Test
@@ -473,7 +473,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", password129))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxLength"));
     }
 
     @Test
@@ -490,7 +490,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", emojiPassword))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 bytes (special or non-Latin characters use multiple bytes)."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxBytes"));
     }
 
     @Test
@@ -512,7 +512,7 @@ public class WebAuthControllerTest
                         .param("confirmPassword", "ValidSecretPassword123!"))
                         .andExpect(status().isOk())
                         .andExpect(view().name("auth/register"))
-                        .andExpect(model().attribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits)."));
+                        .andExpect(model().attribute("errorMessageKey", "auth.error.register.encoding"));
     }
 
     @Test
@@ -528,7 +528,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "MyAlexanderPass!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.containsIdentity"));
     }
 
     @Test
@@ -544,7 +544,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "MyHamiltonPass!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.containsIdentity"));
     }
 
     @Test
@@ -560,7 +560,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "alex.hamilton2026!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.containsIdentity"));
     }
 
     @Test
@@ -576,7 +576,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "aaaaaaaaaaaa"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Password cannot consist of a single repeated character."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.repeatedChar"));
     }
 
     @Test
@@ -595,7 +595,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "Short9!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
-               .andExpect(model().attribute("errorMessage", "Password must be at least 10 characters long."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.minLength"));
     }
 
     @Test
@@ -614,7 +614,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "NewHopperSecret2026!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
-               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.containsIdentity"));
     }
 
     @Test
@@ -633,7 +633,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "DifferentPassword123!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
-               .andExpect(model().attribute("errorMessage", "Passwords do not match."));
+               .andExpect(model().attribute("errorMessageKey", "auth.error.resetPassword.passwordMismatch"));
     }
 
     @Test
@@ -652,7 +652,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "111111111111"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
-               .andExpect(model().attribute("errorMessage", "Password cannot consist of a single repeated character."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.repeatedChar"));
     }
 
     @Test
@@ -694,7 +694,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", password128))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxLength"));
     }
 
     @Test
@@ -714,7 +714,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", password129))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxLength"));
     }
 
     @Test
@@ -739,7 +739,7 @@ public class WebAuthControllerTest
                         .param("confirmPassword", "ValidSecretPassword123!"))
                         .andExpect(status().isOk())
                         .andExpect(view().name("auth/reset-password"))
-                        .andExpect(model().attribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits)."));
+                        .andExpect(model().attribute("errorMessageKey", "auth.error.resetPassword.encoding"));
     }
 
     @Test
@@ -759,7 +759,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "DifferentPass123"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "An account with this email address already exists."));
+               .andExpect(model().attribute("errorMessageKey", "auth.error.register.emailExists"));
     }
 
     @Test
@@ -825,7 +825,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "DifferentPassword123!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Die Passwörter stimmen nicht überein."))
+               .andExpect(model().attribute("errorMessageKey", "auth.error.register.passwordMismatch"))
                .andExpect(content().string(containsString("Die Passwörter stimmen nicht überein.")));
     }
 
@@ -849,7 +849,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "Short9!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Das Passwort muss mindestens 10 Zeichen lang sein."))
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.minLength"))
                .andExpect(content().string(containsString("Das Passwort muss mindestens 10 Zeichen lang sein.")));
     }
 
@@ -877,7 +877,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "ValidSecretPassword123!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Ein Konto mit dieser E-Mail-Adresse existiert bereits."))
+               .andExpect(model().attribute("errorMessageKey", "auth.error.register.emailExists"))
                .andExpect(content().string(containsString("Ein Konto mit dieser E-Mail-Adresse existiert bereits.")));
     }
 
@@ -900,7 +900,34 @@ public class WebAuthControllerTest
                .param("confirmPassword", "MismatchPassword123!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/register"))
-               .andExpect(model().attribute("errorMessage", "Passwords do not match."))
+               .andExpect(model().attribute("errorMessageKey", "auth.error.register.passwordMismatch"))
+               .andExpect(content().string(containsString("Passwords do not match.")));
+    }
+
+    /**
+     * Verifies that password reset submission rejection due to mismatched passwords returns a localized
+     * English error alert when requested with English locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /pwreset/{token} with Locale.ENGLISH and mismatched passwords returns English error alert")
+    public void testResetPassword_Localization_EnglishLocale_PasswordMismatch() throws Exception
+    {
+        final User user = new User("Reset", "English", "reset.english@xcmailr.test", "ExistingPassword123!", "en");
+        user.setActive(true);
+        user.setConfirmation("reset-token-en-mismatch");
+        user.setTs_confirm(System.currentTimeMillis() + 3600_000L);
+        userRepository.save(user);
+
+        mockMvc.perform(post("/pwreset/reset-token-en-mismatch")
+               .locale(Locale.ENGLISH)
+               .with(csrf())
+               .param("password", "NewValidSecret123!")
+               .param("confirmPassword", "CompletelyDifferent123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/reset-password"))
+               .andExpect(model().attribute("errorMessageKey", "auth.error.resetPassword.passwordMismatch"))
                .andExpect(content().string(containsString("Passwords do not match.")));
     }
 
@@ -927,7 +954,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "CompletelyDifferent123!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
-               .andExpect(model().attribute("errorMessage", "Die Passwörter stimmen nicht überein."))
+               .andExpect(model().attribute("errorMessageKey", "auth.error.resetPassword.passwordMismatch"))
                .andExpect(content().string(containsString("Die Passwörter stimmen nicht überein.")));
     }
 
@@ -954,7 +981,7 @@ public class WebAuthControllerTest
                .param("confirmPassword", "Short9!"))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/reset-password"))
-               .andExpect(model().attribute("errorMessage", "Das Passwort muss mindestens 10 Zeichen lang sein."))
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.minLength"))
                .andExpect(content().string(containsString("Das Passwort muss mindestens 10 Zeichen lang sein.")));
     }
 
@@ -1054,5 +1081,30 @@ public class WebAuthControllerTest
                // Escaped entities must be present
                .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;xss-forename&#39;)&lt;/script&gt;")))
                .andExpect(content().string(containsString("&quot;&gt;&lt;img src=x onerror=alert(1)&gt;")));
+    }
+
+    /**
+     * Verifies that when registration fails validation, the user-selected language option is retained
+     * in the model and rendered as the selected option in the language dropdown.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("POST /register validation failure retains selected language in model and view")
+    public void testRegisterValidationFailureRetainsLanguageSelection() throws Exception
+    {
+        mockMvc.perform(post("/register")
+               .with(csrf())
+               .param("forename", "Hans")
+               .param("surname", "Mueller")
+               .param("mail", "hans.mueller@xcmailr.test")
+               .param("password", "SecretPassword123!")
+               .param("confirmPassword", "MismatchPassword123!")
+               .param("language", "de"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("auth/register"))
+               .andExpect(model().attribute("errorMessageKey", "auth.error.register.passwordMismatch"))
+               .andExpect(model().attribute("language", "de"))
+               .andExpect(content().string(containsString("value=\"de\" selected=\"selected\"")));
     }
 }

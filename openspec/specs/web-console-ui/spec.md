@@ -597,11 +597,13 @@ The system SHALL render all user-facing web console views, layouts, navigation m
 
 #### Scenario: Server-Side Form Validation Error Localization (Error Case)
 - **WHEN** a user submits an authentication or profile form with validation errors (such as password mismatch, incorrect current password, duplicate registration email, or sole administrator account deletion attempt) under German locale
-- **THEN** the controller resolves and displays the corresponding localized error banner (`errorMessage`) in German matching the user's active locale
+- **THEN** the system passes the corresponding message key (`errorMessageKey`) to the view model or flash scope, and the template dynamically renders the localized error banner in German matching the user's active locale, falling back to `errorMessage` if provided
+- **AND** the handling controller action methods do not declare `Locale` parameters or perform Java-side message translation
 
 #### Scenario: Password Quality Validation Error Localization (Error Case)
 - **WHEN** a user submits a candidate password failing OWASP/NIST validation rules (such as minimum length violation, maximum length violation, single repeated character, or identity term inclusion) under German locale
-- **THEN** the validation result message is resolved and displayed in German matching the specific rule violated
+- **THEN** the system passes the validation result's message key to the view model, and the template dynamically renders the localized error banner in German matching the specific rule violated
+- **AND** the handling controller action methods do not declare `Locale` parameters or perform Java-side message translation
 
 #### Scenario: Accessibility and Tooltip Localization (Special Case)
 - **WHEN** an authenticated or unauthenticated user navigates web views containing input pattern validation tooltips or screen reader landmarks under German locale

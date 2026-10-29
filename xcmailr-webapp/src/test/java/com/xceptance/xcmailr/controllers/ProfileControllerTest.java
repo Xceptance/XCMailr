@@ -295,7 +295,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", "NewSecurePassword456!"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Current password does not match."));
+               .andExpect(model().attribute("errorMessageKey", "profile.error.password.currentMismatch"));
     }
 
     @Test
@@ -310,7 +310,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", "DifferentPassword456!"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "New passwords do not match."));
+               .andExpect(model().attribute("errorMessageKey", "profile.error.password.newMismatch"));
     }
 
     @Test
@@ -325,7 +325,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", "Short9!"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Password must be at least 10 characters long."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.minLength"));
     }
 
     @Test
@@ -359,7 +359,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", password73))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxLength"));
     }
 
     @Test
@@ -375,7 +375,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", password128))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxLength"));
     }
 
     @Test
@@ -391,7 +391,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", password129))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 characters."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxLength"));
     }
 
     @Test
@@ -407,7 +407,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", emojiPassword))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Password cannot exceed 72 bytes (special or non-Latin characters use multiple bytes)."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.maxBytes"));
     }
 
     @Test
@@ -430,7 +430,7 @@ public class ProfileControllerTest
                         .param("confirmNewPassword", "ValidSecretPassword123!"))
                         .andExpect(status().isOk())
                         .andExpect(view().name("user/profile"))
-                        .andExpect(model().attribute("errorMessage", "Password cannot be processed (exceeds allowable length or byte limits)."));
+                        .andExpect(model().attribute("errorMessageKey", "profile.error.password.encoding"));
     }
 
     @Test
@@ -445,7 +445,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", "SecretJohnDoe2026!"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Password must not contain your name or email address."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.containsIdentity"));
     }
 
     @Test
@@ -460,7 +460,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", "zzzzzzzzzzzz"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Password cannot consist of a single repeated character."));
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.repeatedChar"));
     }
 
     @Test
@@ -610,7 +610,7 @@ public class ProfileControllerTest
                .param("currentPassword", "IncorrectPassword123"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Current password does not match."));
+               .andExpect(model().attribute("errorMessageKey", "profile.error.delete.passwordMismatch"));
 
         // Verify session and user record remain intact
         assertTrue(!session.isInvalid(), "Session must not be invalidated on failed deletion");
@@ -638,7 +638,7 @@ public class ProfileControllerTest
                .param("currentPassword", "   "))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Please enter your current password to confirm deletion."));
+               .andExpect(model().attribute("errorMessageKey", "profile.error.delete.emptyPassword"));
 
         // Verify session and user record remain intact
         assertTrue(!session.isInvalid(), "Session must not be invalidated on failed deletion");
@@ -685,8 +685,7 @@ public class ProfileControllerTest
                .param("currentPassword", "CurrentSecret123"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage",
-                       "Your account cannot be deleted because it is the last administrator account. At least one active administrator account must exist."));
+               .andExpect(model().attribute("errorMessageKey", "profile.error.delete.lastAdmin"));
 
         // Verify session and all user data remain intact
         assertTrue(!session.isInvalid(), "Session must not be invalidated when sole admin deletion is blocked");
@@ -756,6 +755,32 @@ public class ProfileControllerTest
 
     /**
      * Verifies that password change rejection due to incorrect current password returns a localized
+     * English error alert when requested with English locale.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Localization: POST /profile/change-password with Locale.ENGLISH and wrong password returns English error alert")
+    public void testChangePassword_Localization_EnglishLocale_ReturnsEnglishErrorMessage() throws Exception
+    {
+        testUser.setLanguage("en");
+        userRepository.save(testUser);
+
+        mockMvc.perform(post("/profile/change-password")
+               .locale(Locale.ENGLISH)
+               .with(user(testUser.getMail()).roles("USER"))
+               .with(csrf())
+               .param("currentPassword", "WrongSecret123")
+               .param("newPassword", "NewValidSecret123!")
+               .param("confirmNewPassword", "NewValidSecret123!"))
+               .andExpect(status().isOk())
+               .andExpect(view().name("user/profile"))
+               .andExpect(model().attribute("errorMessageKey", "profile.error.password.currentMismatch"))
+               .andExpect(content().string(containsString("Current password does not match.")));
+    }
+
+    /**
+     * Verifies that password change rejection due to incorrect current password returns a localized
      * German error alert when requested with German locale.
      *
      * @throws Exception if mock MVC execution fails
@@ -776,7 +801,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", "NewValidSecret123!"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Das aktuelle Passwort ist nicht korrekt."))
+               .andExpect(model().attribute("errorMessageKey", "profile.error.password.currentMismatch"))
                .andExpect(content().string(containsString("Das aktuelle Passwort ist nicht korrekt.")));
     }
 
@@ -802,7 +827,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", "CompletelyDifferent123!"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Die neuen Passwörter stimmen nicht überein."))
+               .andExpect(model().attribute("errorMessageKey", "profile.error.password.newMismatch"))
                .andExpect(content().string(containsString("Die neuen Passwörter stimmen nicht überein.")));
     }
 
@@ -828,7 +853,7 @@ public class ProfileControllerTest
                .param("confirmNewPassword", "Short9!"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Das Passwort muss mindestens 10 Zeichen lang sein."))
+               .andExpect(model().attribute("errorMessageKey", "auth.password.error.minLength"))
                .andExpect(content().string(containsString("Das Passwort muss mindestens 10 Zeichen lang sein.")));
     }
 
@@ -852,7 +877,7 @@ public class ProfileControllerTest
                .param("currentPassword", ""))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Bitte geben Sie Ihr aktuelles Passwort ein, um die Löschung zu bestätigen."))
+               .andExpect(model().attribute("errorMessageKey", "profile.error.delete.emptyPassword"))
                .andExpect(content().string(containsString("Bitte geben Sie Ihr aktuelles Passwort ein, um die Löschung zu bestätigen.")));
     }
 
@@ -878,7 +903,7 @@ public class ProfileControllerTest
                .param("currentPassword", "CurrentSecret123"))
                .andExpect(status().isOk())
                .andExpect(view().name("user/profile"))
-               .andExpect(model().attribute("errorMessage", "Ihr Konto kann nicht gelöscht werden, da es das letzte Administratorkonto ist. Es muss mindestens ein aktives Administratorkonto existieren."))
+               .andExpect(model().attribute("errorMessageKey", "profile.error.delete.lastAdmin"))
                .andExpect(content().string(containsString("Ihr Konto kann nicht gelöscht werden, da es das letzte Administratorkonto ist.")));
     }
 

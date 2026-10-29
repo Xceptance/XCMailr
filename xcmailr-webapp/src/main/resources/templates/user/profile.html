@@ -26,8 +26,8 @@
             <span th:text="#{profile.alert.tokenRevoked}">API token was revoked.</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" th:aria-label="#{common.button.close}"></button>
         </div>
-        <div th:if="${errorMessage != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <span th:text="${errorMessage}">Error</span>
+        <div th:if="${errorMessageKey != null or errorMessage != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessageKey != null ? #messages.msg(errorMessageKey) : errorMessage}">Error</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" th:aria-label="#{common.button.close}"></button>
         </div>
 
