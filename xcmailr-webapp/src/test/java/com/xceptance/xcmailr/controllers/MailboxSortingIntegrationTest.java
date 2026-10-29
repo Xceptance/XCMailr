@@ -464,19 +464,22 @@ public final class MailboxSortingIntegrationTest
     /**
      * Special case: Case-insensitive address sorting.
      * <p>
-     * Verifies that mailboxes with different cases sort in deterministic alphabetical order.
+     * Verifies that mailboxes with mixed casing and uppercase initial letters
+     * sort in natural alphabetical order rather than binary ASCII code-point order.
      * </p>
      *
      * @throws Exception if request execution fails
      */
     @Test
-    @DisplayName("Special case: Case-insensitive address sorting executes cleanly")
+    @DisplayName("Special case: Case-insensitive address sorting executes cleanly across mixed-case addresses")
     public void testSorting_SpecialCase_CaseInsensitiveAddressOrdering() throws Exception
     {
-        // GIVEN mailboxes with varied alphabetical prefixes
+        // GIVEN mailboxes with mixed-case prefixes, including uppercase initial letters
         createMailbox("charlie", testUser, 0, 0, 0L, false);
-        createMailbox("bravo", testUser, 0, 0, 0L, false);
+        createMailbox("Bravo", testUser, 0, 0, 0L, false);
         createMailbox("alpha", testUser, 0, 0, 0L, false);
+        createMailbox("UCoMfSLVUDQudxjJ", testUser, 0, 0, 0L, false);
+        createMailbox("0digit", testUser, 0, 0, 0L, false);
 
         // WHEN sorting by address ASC
         final MvcResult ascResult = mockMvc.perform(get("/mailboxes")
@@ -489,10 +492,33 @@ public final class MailboxSortingIntegrationTest
 
         @SuppressWarnings("unchecked")
         final Page<MBox> ascPage = (Page<MBox>) ascResult.getModelAndView().getModel().get("page");
-        final List<MBox> items = ascPage.getContent();
-        assertEquals("alpha", items.get(0).getAddress());
-        assertEquals("bravo", items.get(1).getAddress());
-        assertEquals("charlie", items.get(2).getAddress());
+        final List<MBox> ascItems = ascPage.getContent();
+        assertEquals(5, ascItems.size(), "All 5 mailboxes must be returned");
+        assertEquals("0digit", ascItems.get(0).getAddress());
+        assertEquals("alpha", ascItems.get(1).getAddress());
+        assertEquals("Bravo", ascItems.get(2).getAddress());
+        assertEquals("charlie", ascItems.get(3).getAddress());
+        assertEquals("UCoMfSLVUDQudxjJ", ascItems.get(4).getAddress(),
+                     "Uppercase 'UCoMf...' must sort under 'u', after 'c' and not before 'alpha'");
+
+        // WHEN sorting by address DESC
+        final MvcResult descResult = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()))
+                .param("sort", "address")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        @SuppressWarnings("unchecked")
+        final Page<MBox> descPage = (Page<MBox>) descResult.getModelAndView().getModel().get("page");
+        final List<MBox> descItems = descPage.getContent();
+        assertEquals(5, descItems.size(), "All 5 mailboxes must be returned");
+        assertEquals("UCoMfSLVUDQudxjJ", descItems.get(0).getAddress());
+        assertEquals("charlie", descItems.get(1).getAddress());
+        assertEquals("Bravo", descItems.get(2).getAddress());
+        assertEquals("alpha", descItems.get(3).getAddress());
+        assertEquals("0digit", descItems.get(4).getAddress());
     }
 
     /**

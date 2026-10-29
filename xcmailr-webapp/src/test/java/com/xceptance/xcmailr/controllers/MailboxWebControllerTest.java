@@ -1039,7 +1039,7 @@ public final class MailboxWebControllerTest
     @DisplayName("Happy path: Whitelist columns resolve to expected Spring Data Sort specifications")
     public void testResolveSort_HappyPath_AllColumnsAndDirections()
     {
-        // Address ASC -> composite order: address ASC, domain ASC
+        // Address ASC -> composite order: address ASC, domain ASC (case-insensitive)
         final Sort addressAsc = MailboxWebController.resolveSort("address", "asc");
         final Sort.Order addressOrderAsc = addressAsc.getOrderFor("address");
         final Sort.Order domainOrderAsc = addressAsc.getOrderFor("domain");
@@ -1047,8 +1047,10 @@ public final class MailboxWebControllerTest
         assertNotNull(domainOrderAsc, "Domain order must not be null");
         assertEquals(Sort.Direction.ASC, addressOrderAsc.getDirection());
         assertEquals(Sort.Direction.ASC, domainOrderAsc.getDirection());
+        assertTrue(addressOrderAsc.isIgnoreCase(), "Address order must be case-insensitive");
+        assertTrue(domainOrderAsc.isIgnoreCase(), "Domain order must be case-insensitive");
 
-        // Address DESC -> composite order: address DESC, domain DESC
+        // Address DESC -> composite order: address DESC, domain DESC (case-insensitive)
         final Sort addressDesc = MailboxWebController.resolveSort("address", "desc");
         final Sort.Order addressOrderDesc = addressDesc.getOrderFor("address");
         final Sort.Order domainOrderDesc = addressDesc.getOrderFor("domain");
@@ -1056,6 +1058,8 @@ public final class MailboxWebControllerTest
         assertNotNull(domainOrderDesc, "Domain order must not be null");
         assertEquals(Sort.Direction.DESC, addressOrderDesc.getDirection());
         assertEquals(Sort.Direction.DESC, domainOrderDesc.getDirection());
+        assertTrue(addressOrderDesc.isIgnoreCase(), "Address order must be case-insensitive");
+        assertTrue(domainOrderDesc.isIgnoreCase(), "Domain order must be case-insensitive");
 
         // Status -> expired
         final Sort statusAsc = MailboxWebController.resolveSort("status", "asc");
@@ -1134,6 +1138,31 @@ public final class MailboxWebControllerTest
                      "Second order clause must be ts_Active epoch timestamp");
         assertEquals(Sort.Direction.DESC, descEpochOrder.getDirection(),
                      "ts_Active must be sorted DESC for reverse chronological expiration");
+    }
+
+    /**
+     * Special case: Case-insensitive address sorting configuration.
+     * Verifies that resolveSort configures ignoreCase on both address and domain orders.
+     */
+    @Test
+    @DisplayName("Special case: Address sorting configures case-insensitive orders")
+    public void testResolveSort_SpecialCase_AddressCaseInsensitive()
+    {
+        final Sort ascSort = MailboxWebController.resolveSort("address", "asc");
+        final Sort.Order ascAddress = ascSort.getOrderFor("address");
+        final Sort.Order ascDomain = ascSort.getOrderFor("domain");
+        assertNotNull(ascAddress, "Address ASC order must not be null");
+        assertNotNull(ascDomain, "Domain ASC order must not be null");
+        assertTrue(ascAddress.isIgnoreCase(), "Address ASC order must be case-insensitive");
+        assertTrue(ascDomain.isIgnoreCase(), "Domain ASC order must be case-insensitive");
+
+        final Sort descSort = MailboxWebController.resolveSort("address", "desc");
+        final Sort.Order descAddress = descSort.getOrderFor("address");
+        final Sort.Order descDomain = descSort.getOrderFor("domain");
+        assertNotNull(descAddress, "Address DESC order must not be null");
+        assertNotNull(descDomain, "Domain DESC order must not be null");
+        assertTrue(descAddress.isIgnoreCase(), "Address DESC order must be case-insensitive");
+        assertTrue(descDomain.isIgnoreCase(), "Domain DESC order must be case-insensitive");
     }
 
     /**

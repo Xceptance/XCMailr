@@ -251,7 +251,7 @@ public class MailboxWebController
      * Constructs a Spring Data {@link Sort} instance corresponding to the requested column and direction.
      * Only whitelisted column keys are mapped to entity attributes:
      * <ul>
-     *   <li>"address" maps to composite ordering by address then domain</li>
+     *   <li>"address" maps to composite case-insensitive natural ordering by local address part, then domain name</li>
      *   <li>"status" maps to expired flag</li>
      *   <li>"expires" maps to Perspective A (+&infin;) expiration sorting:
      *       for ASC, finite timestamps sort ascending with unlimited (ts_Active = 0) placed at the end;
@@ -277,8 +277,10 @@ public class MailboxWebController
         final Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
         return switch (effectiveField)
         {
-            // Composite sort by local address part, then domain name
-            case "address" -> Sort.by(direction, "address").and(Sort.by(direction, "domain"));
+            // Composite case-insensitive sort by local address part, then domain name
+            case "address" -> Sort.by(
+                Sort.Order.by("address").with(direction).ignoreCase(),
+                Sort.Order.by("domain").with(direction).ignoreCase());
             // Boolean expired status (false = active, true = expired)
             case "status" -> Sort.by(direction, "expired");
             // Expiration epoch timestamp: Perspective A (Pure Infinity: +infinity)

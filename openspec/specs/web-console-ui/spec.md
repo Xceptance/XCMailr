@@ -79,7 +79,7 @@ The system SHALL provide web views for user registration, email verification, se
 - **THEN** the system rejects the request with an HTTP 403 Forbidden response and preserves all account data untouched
 
 ### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`), providing uniform vertical alignment across all table header elements, and presenting a streamlined 7-column layout without redundant calculated mail counts.
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with case-insensitive natural alphabetical ordering for email addresses, displaying clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`), providing uniform vertical alignment across all table header elements, and presenting a streamlined 7-column layout without redundant calculated mail counts.
 
 #### Scenario: Live Search and Filter
 - **WHEN** the user types into the mailbox filter input
@@ -228,6 +228,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **WHEN** an authenticated user clicks a sortable column header (`Address`, `Status`, `Expires`, `Forwards`, or `Suppressed`)
 - **THEN** HTMX issues an asynchronous GET request to `/mailboxes` with parameters `sort` (selected column key) and `dir` (`asc` or `desc`)
 - **AND** the system sorts the entire user mailbox dataset at the database level before applying pagination limits, displaying the first page of results
+- **AND** sorting by `Address` applies case-insensitive natural alphabetical ordering to the local address part followed by the domain name, ensuring uppercase letters do not sort ahead of lowercase letters
 - **AND** the active sorted column header renders a modern directional chevron indicator (`bi-chevron-up` for ascending, `bi-chevron-down` for descending) styled with primary accent
 - **AND** inactive sortable column headers render a subtle neutral sortable chevron indicator (`bi-chevron-expand`) indicating sortability across desktop and touch viewports
 
@@ -262,6 +263,10 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 #### Scenario: Multi-Page Dataset Sorting Preventing Local-Page-Only Sorting (Special Case / Issue #91)
 - **WHEN** a user owns mailboxes spanning multiple pagination pages and requests a sorted view
 - **THEN** the entire collection is sorted before slicing into pages, such that page 1 contains the globally first elements and page 2 contains subsequent elements, preventing client-side page-only reordering
+
+#### Scenario: Case-Insensitive Address Sorting with Mixed-Case Mailboxes (Special Case)
+- **WHEN** an authenticated user sorts mailboxes by `Address` in ascending order (`dir=asc`) or descending order (`dir=desc`) in a dataset containing mixed-case, lowercase, and uppercase email addresses
+- **THEN** the system orders mailboxes strictly in case-insensitive alphabetical order (for example, `alpha`, `Bravo`, `charlie`), ensuring that uppercase initial letters (such as `UCoMfSLVUDQudxjJ@xcmailr.test`) do not sort ahead of lowercase initial letters (such as `aaaa@xcmailr.test`) due to ASCII code point collation
 
 #### Scenario: Expiration Timestamp Ordering with Permanent Unlimited Mailboxes (Special Case)
 - **WHEN** an authenticated user sorts by `Expires` (`ts_Active`) in ascending order (`dir=asc`) in a dataset containing both finite expiration dates and permanent mailboxes (`ts_Active = 0`)
