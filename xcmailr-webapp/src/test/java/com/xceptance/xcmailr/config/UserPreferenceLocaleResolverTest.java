@@ -17,8 +17,11 @@ package com.xceptance.xcmailr.config;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +35,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.UserPrincipal;
 
 import models.User;
@@ -48,6 +52,7 @@ import models.User;
 class UserPreferenceLocaleResolverTest
 {
     private UserPreferenceLocaleResolver resolver;
+    private UserRepository mockUserRepository;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
 
@@ -57,7 +62,8 @@ class UserPreferenceLocaleResolverTest
     @BeforeEach
     void setUp()
     {
-        this.resolver = new UserPreferenceLocaleResolver();
+        this.mockUserRepository = mock(UserRepository.class);
+        this.resolver = new UserPreferenceLocaleResolver(mockUserRepository);
         this.request = new MockHttpServletRequest();
         this.response = new MockHttpServletResponse();
         SecurityContextHolder.clearContext();
@@ -222,6 +228,189 @@ class UserPreferenceLocaleResolverTest
         final Locale actualLocale = resolver.resolveLocale(request);
 
         assertEquals(Locale.GERMAN.getLanguage(), actualLocale.getLanguage(), "Anonymous token must delegate to header fallback");
+    }
+
+    /**
+     * Verifies happy path: database language setting takes precedence over stale in-session UserPrincipal.
+     */
+    @Test
+    @DisplayName("Happy Path: Database language preference takes precedence over stale session UserPrincipal")
+    void resolveLocale_withDatabasePrecedenceOverStalePrincipal_resolvesDatabaseLocale()
+    {
+        // GIVEN: in-session UserPrincipal holds stale "de", but database has updated to "en"
+        final User sessionUser = new User();
+        sessionUser.setMail("john@xcmailr.test");
+        sessionUser.setLanguage("de");
+        final UserPrincipal principal = new UserPrincipal(sessionUser);
+        final Authentication auth = new UsernamePasswordAuthenticationToken(principal, "credentials", principal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        final User dbUser = new User();
+        dbUser.setMail("john@xcmailr.test");
+        dbUser.setLanguage("en");
+        when(mockUserRepository.findByMailIgnoreCase("john@xcmailr.test")).thenReturn(Optional.of(dbUser));
+
+        // WHEN: locale is resolved
+        final Locale actualLocale = resolver.resolveLocale(request);
+
+        // THEN: database preference "en" is authoritative
+        assertEquals(Locale.ENGLISH, actualLocale, "Expected database language 'en' to override stale session language 'de'");
+    }
+
+    /**
+     * Verifies happy path: database German preference takes precedence over stale session English.
+     */
+    @Test
+    @DisplayName("Happy Path: Database German preference takes precedence over stale session English")
+    void resolveLocale_withDatabaseGermanPrecedenceOverStaleEnglishPrincipal_resolvesGermanLocale()
+    {
+        // GIVEN: in-session UserPrincipal holds stale "en", but database has updated to "de"
+        final User sessionUser = new User();
+        sessionUser.setMail("john@xcmailr.test");
+        sessionUser.setLanguage("en");
+        final UserPrincipal principal = new UserPrincipal(sessionUser);
+        final Authentication auth = new UsernamePasswordAuthenticationToken(principal, "credentials", principal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        final User dbUser = new User();
+        dbUser.setMail("john@xcmailr.test");
+        dbUser.setLanguage("de");
+        when(mockUserRepository.findByMailIgnoreCase("john@xcmailr.test")).thenReturn(Optional.of(dbUser));
+
+        // WHEN: locale is resolved
+        final Locale actualLocale = resolver.resolveLocale(request);
+
+        // THEN: database preference "de" is authoritative
+        assertEquals(Locale.GERMAN, actualLocale, "Expected database language 'de' to override stale session language 'en'");
+    }
+
+    /**
+     * Verifies happy path: case-insensitive email lookup in database.
+     */
+    @Test
+    @DisplayName("Happy Path: Case-insensitive email lookup successfully resolves database locale")
+    void resolveLocale_withCaseInsensitiveEmailLookup_resolvesDatabaseLocale()
+    {
+        // GIVEN: authentication principal username has mixed/uppercase casing
+        final User sessionUser = new User();
+        sessionUser.setMail("John.Doe@XCMailr.Test");
+        sessionUser.setLanguage("en");
+        final UserPrincipal principal = new UserPrincipal(sessionUser);
+        final Authentication auth = new UsernamePasswordAuthenticationToken(principal, "credentials", principal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        final User dbUser = new User();
+        dbUser.setMail("john.doe@xcmailr.test");
+        dbUser.setLanguage("de");
+        when(mockUserRepository.findByMailIgnoreCase("John.Doe@XCMailr.Test")).thenReturn(Optional.of(dbUser));
+
+        // WHEN: locale is resolved
+        final Locale actualLocale = resolver.resolveLocale(request);
+
+        // THEN: database user with German language is found and resolved
+        assertEquals(Locale.GERMAN, actualLocale, "Expected German locale from case-insensitive database lookup");
+    }
+
+    /**
+     * Verifies special / fallback case: when database does not find the user, falls back to in-session UserPrincipal.
+     */
+    @Test
+    @DisplayName("Special Case: User not found in database falls back to in-session UserPrincipal language")
+    void resolveLocale_withUserNotFoundInDatabase_fallsBackToPrincipalLanguage()
+    {
+        // GIVEN: in-session UserPrincipal holds "de", but database lookup returns empty Optional
+        final User sessionUser = new User();
+        sessionUser.setMail("unknown@xcmailr.test");
+        sessionUser.setLanguage("de");
+        final UserPrincipal principal = new UserPrincipal(sessionUser);
+        final Authentication auth = new UsernamePasswordAuthenticationToken(principal, "credentials", principal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        when(mockUserRepository.findByMailIgnoreCase("unknown@xcmailr.test")).thenReturn(Optional.empty());
+
+        // WHEN: locale is resolved
+        final Locale actualLocale = resolver.resolveLocale(request);
+
+        // THEN: falls back to session principal's language "de"
+        assertEquals(Locale.GERMAN, actualLocale, "Expected fallback to in-session UserPrincipal language when database returns empty");
+    }
+
+    /**
+     * Verifies special / fallback case: resolver constructed with null repository gracefully falls back to UserPrincipal.
+     */
+    @Test
+    @DisplayName("Special Case: Resolver with null repository gracefully falls back to UserPrincipal")
+    void resolveLocale_withNullRepository_fallsBackToPrincipalLanguage()
+    {
+        // GIVEN: resolver constructed without repository reference
+        final UserPreferenceLocaleResolver nullRepoResolver = new UserPreferenceLocaleResolver(null);
+
+        final User sessionUser = new User();
+        sessionUser.setMail("standalone@xcmailr.test");
+        sessionUser.setLanguage("de");
+        final UserPrincipal principal = new UserPrincipal(sessionUser);
+        final Authentication auth = new UsernamePasswordAuthenticationToken(principal, "credentials", principal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        // WHEN: locale is resolved
+        final Locale actualLocale = nullRepoResolver.resolveLocale(request);
+
+        // THEN: falls back cleanly to UserPrincipal
+        assertEquals(Locale.GERMAN, actualLocale, "Expected fallback to UserPrincipal when repository is null");
+    }
+
+    /**
+     * Verifies error / injection case: hostile, malformed, or injection language tags in database fall back to English safely.
+     */
+    @Test
+    @DisplayName("Error/OWASP Case: Hostile or malformed language tag in database safely falls back to English without error")
+    void resolveLocale_withHostileLanguageTagInDatabase_safelyFallsBackToEnglish()
+    {
+        // GIVEN: database record contains hostile injection-like string
+        final User sessionUser = new User();
+        sessionUser.setMail("hacker@xcmailr.test");
+        sessionUser.setLanguage("de");
+        final UserPrincipal principal = new UserPrincipal(sessionUser);
+        final Authentication auth = new UsernamePasswordAuthenticationToken(principal, "credentials", principal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        final User dbUser = new User();
+        dbUser.setMail("hacker@xcmailr.test");
+        dbUser.setLanguage("de\r\nSet-Cookie: malicious=true");
+        when(mockUserRepository.findByMailIgnoreCase("hacker@xcmailr.test")).thenReturn(Optional.of(dbUser));
+
+        // WHEN: locale is resolved
+        final Locale actualLocale = resolver.resolveLocale(request);
+
+        // THEN: does not match "de", safely falls back to default English
+        assertEquals(Locale.ENGLISH, actualLocale, "Hostile language string must safely fall back to English");
+    }
+
+    /**
+     * Verifies error case: database record contains null language, falling back to default English.
+     */
+    @Test
+    @DisplayName("Error Case: Database record with null language falls back to default English")
+    void resolveLocale_withDatabaseUserNullLanguage_fallsBackToEnglish()
+    {
+        // GIVEN: database record has null language
+        final User sessionUser = new User();
+        sessionUser.setMail("john@xcmailr.test");
+        sessionUser.setLanguage("de");
+        final UserPrincipal principal = new UserPrincipal(sessionUser);
+        final Authentication auth = new UsernamePasswordAuthenticationToken(principal, "credentials", principal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        final User dbUser = new User();
+        dbUser.setMail("john@xcmailr.test");
+        dbUser.setLanguage(null);
+        when(mockUserRepository.findByMailIgnoreCase("john@xcmailr.test")).thenReturn(Optional.of(dbUser));
+
+        // WHEN: locale is resolved
+        final Locale actualLocale = resolver.resolveLocale(request);
+
+        // THEN: defaults to English without falling back to stale session
+        assertEquals(Locale.ENGLISH, actualLocale, "Null database language must fall back to default English");
     }
 
     /**

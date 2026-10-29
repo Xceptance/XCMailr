@@ -7,7 +7,7 @@ Provides a responsive, server-driven web management console using Thymeleaf and 
 ## Requirements
 
 ### Requirement: User Authentication and Self-Service
-The system SHALL provide web views for user registration, email verification, session login, password reset, and profile management including self-service account deletion, handling both success and error conditions gracefully.
+The system SHALL provide web views for user registration, email verification, session login, password reset, and profile management including language preference updates and self-service account deletion, handling both success and error conditions gracefully and ensuring that profile language updates take immediate effect across subsequent views and asynchronous HTMX requests without requiring re-authentication.
 
 #### Scenario: User Login and Session Management
 - **WHEN** a user enters valid email and password credentials for an active account on the login page
@@ -77,6 +77,35 @@ The system SHALL provide web views for user registration, email verification, se
 #### Scenario: Account Deletion Attempt With Invalid CSRF Token (Security Case)
 - **WHEN** an authenticated user submits an account deletion request with an invalid or forged CSRF token
 - **THEN** the system rejects the request with an HTTP 403 Forbidden response and preserves all account data untouched
+
+#### Scenario: Profile Language Update Takes Immediate Effect Across Views (Happy Path)
+- **WHEN** an authenticated user updates their profile language preference (e.g. from German `de` to English `en` or vice versa) and submits the profile form
+- **THEN** the system persists the change to the database, updates the active session principal, and immediately resolves the new language for subsequent full-page and asynchronous HTMX requests (such as mailbox pagination summaries) without requiring re-authentication
+
+#### Scenario: Dynamic Locale Resolution Prioritizes Persisted User Preference Over Login Snapshot (Happy Path)
+- **WHEN** an authenticated user accesses localized views or partial fragments
+- **THEN** the locale resolver queries the persisted user record to obtain the current language preference, prioritizing it over any static login-time authentication snapshot
+- **AND** falls back to the in-memory principal or default request locale only if database lookup is not possible
+
+#### Scenario: Profile Update Preserves In-Memory Session Principal Consistency (Happy Path)
+- **WHEN** an authenticated user updates their profile (forename, surname, language preference)
+- **THEN** the system updates the in-memory user entity within the active session's authentication principal to match the newly persisted values
+
+#### Scenario: Locale Resolution Fallback on Malformed or Unsupported Language Preference (Error / Fallback Case)
+- **WHEN** an authenticated user's persisted language preference is null, blank, malformed, or an unsupported language code
+- **THEN** the locale resolver safely falls back to standard default English localization without throwing exceptions or generating invalid HTTP response headers
+
+#### Scenario: Profile Language Update Validation Failure Preserves Existing Locale (Error Case)
+- **WHEN** a profile update request contains invalid input fields or validation errors
+- **THEN** the profile changes are rejected, the database and session principal remain unaltered, and the error response renders in the user's previously active locale
+
+#### Scenario: OWASP Access Control and Tenant Isolation in Locale Resolution (Security Case)
+- **WHEN** an authenticated request triggers locale resolution
+- **THEN** the system resolves user identity strictly from the cryptographically verified `Authentication.getName()` security principal and never from untrusted client-supplied headers or request parameters, enforcing strict tenant isolation and preventing identity spoofing
+
+#### Scenario: Privilege Escalation Prevention During Session Principal Synchronization (Security Case)
+- **WHEN** the system synchronizes the in-session `UserPrincipal` upon profile update
+- **THEN** only non-security profile fields (`forename`, `surname`, `language`) are copied, while roles, authorities, admin privileges, password hashes, and account activation states remain strictly immutable and protected against tampering
 
 ### Requirement: Dynamic Mailbox Dashboard
 The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with case-insensitive natural alphabetical ordering for email addresses, displaying clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`), providing uniform vertical alignment across all table header elements, presenting a streamlined 7-column layout without redundant calculated mail counts, and displaying a localized item range pagination summary (e.g., `Showing 1–15 of 17 mailboxes` or `Zeige 1–15 von 17 Postfächern`) matching the authenticated user's preferred language.

@@ -16,6 +16,7 @@
 package com.xceptance.xcmailr.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -50,6 +51,7 @@ import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.PasswordValidator;
+import com.xceptance.xcmailr.security.UserPrincipal;
 
 import models.MBox;
 import models.Mail;
@@ -143,6 +145,122 @@ public class ProfileControllerTest
         assertEquals("Jonathan", updated.getForename());
         assertEquals("Doerr", updated.getSurname());
         assertEquals("de", updated.getLanguage());
+    }
+
+    /**
+     * Verifies happy path: updating profile synchronizes both the persistent database record
+     * and the in-session UserPrincipal held in the Spring Security context.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: POST /profile/update synchronizes in-session UserPrincipal user state")
+    public void testUpdateProfile_HappyPath_SynchronizesInSessionUserPrincipal() throws Exception
+    {
+        // GIVEN: an authenticated session backed by a UserPrincipal with English preference
+        final UserPrincipal userPrincipal = new UserPrincipal(testUser);
+
+        // WHEN: user submits profile update changing language to German
+        mockMvc.perform(post("/profile/update")
+               .with(user(userPrincipal))
+               .with(csrf())
+               .param("forename", "Jonathan")
+               .param("surname", "Doerr")
+               .param("language", "de"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/profile?updated"));
+
+        // THEN: persistent database entity is updated
+        final User dbUser = userRepository.findById(testUser.getId()).orElseThrow();
+        assertEquals("Jonathan", dbUser.getForename());
+        assertEquals("Doerr", dbUser.getSurname());
+        assertEquals("de", dbUser.getLanguage());
+
+        // AND: in-session UserPrincipal user reference is synchronized immediately
+        assertNotNull(userPrincipal.getUser(), "In-session user reference must not be null");
+        assertEquals("Jonathan", userPrincipal.getUser().getForename(), "In-session forename must be updated");
+        assertEquals("Doerr", userPrincipal.getUser().getSurname(), "In-session surname must be updated");
+        assertEquals("de", userPrincipal.getUser().getLanguage(), "In-session language preference must be updated");
+    }
+
+    /**
+     * Verifies OWASP privilege escalation prevention: updating profile attributes synchronizes only
+     * non-sensitive fields and leaves admin status and authorities strictly intact.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Security Case (OWASP): POST /profile/update prevents privilege escalation and preserves roles")
+    public void testUpdateProfile_SecurityCase_PreventsPrivilegeEscalation() throws Exception
+    {
+        // GIVEN: a standard non-administrator user
+        testUser.setAdmin(false);
+        userRepository.save(testUser);
+        final UserPrincipal userPrincipal = new UserPrincipal(testUser);
+
+        // WHEN: user updates personal details
+        mockMvc.perform(post("/profile/update")
+               .with(user(userPrincipal))
+               .with(csrf())
+               .param("forename", "Jonathan")
+               .param("surname", "Doerr")
+               .param("language", "de"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/profile?updated"));
+
+        // THEN: admin privilege remains false and authorities remain standard USER role
+        final User dbUser = userRepository.findById(testUser.getId()).orElseThrow();
+        assertFalse(dbUser.isAdmin(), "Database user admin flag must remain false");
+        assertFalse(userPrincipal.getUser().isAdmin(), "In-session user admin flag must remain false");
+        assertEquals(1, userPrincipal.getAuthorities().size(), "Authorities count must not change");
+        assertEquals("ROLE_USER", userPrincipal.getAuthorities().iterator().next().getAuthority(), "User role must remain standard ROLE_USER");
+    }
+
+    /**
+     * Verifies OWASP CSRF protection: profile update without CSRF token is rejected with HTTP 403 Forbidden.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Security Case (OWASP): POST /profile/update without CSRF token is rejected with 403 Forbidden")
+    public void testUpdateProfile_SecurityCase_MissingCsrfReturnsForbidden() throws Exception
+    {
+        // GIVEN: an authenticated user request lacking CSRF token
+        // WHEN: submitting profile update without CSRF
+        // THEN: request is rejected with HTTP 403 Forbidden and database record remains unchanged
+        mockMvc.perform(post("/profile/update")
+               .with(user("john.doe@xcmailr.test").roles("USER"))
+               .param("forename", "Hacker")
+               .param("surname", "Attempt")
+               .param("language", "de"))
+               .andExpect(status().isForbidden());
+
+        final User dbUser = userRepository.findById(testUser.getId()).orElseThrow();
+        assertEquals("John", dbUser.getForename(), "Database forename must not be altered without CSRF");
+        assertEquals("en", dbUser.getLanguage(), "Database language must not be altered without CSRF");
+    }
+
+    /**
+     * Verifies access control: unauthenticated POST to /profile/update is redirected to login.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Security Case (OWASP): Unauthenticated POST /profile/update redirects to login")
+    public void testUpdateProfile_SecurityCase_UnauthenticatedRedirectsToLogin() throws Exception
+    {
+        // GIVEN: an unauthenticated request
+        // WHEN: submitting profile update
+        // THEN: request is redirected to login and database is unchanged
+        mockMvc.perform(post("/profile/update")
+               .with(csrf())
+               .param("forename", "Anonymous")
+               .param("surname", "User")
+               .param("language", "de"))
+               .andExpect(status().is3xxRedirection());
+
+        final User dbUser = userRepository.findById(testUser.getId()).orElseThrow();
+        assertEquals("John", dbUser.getForename(), "Unauthenticated request must not alter profile");
     }
 
     @Test

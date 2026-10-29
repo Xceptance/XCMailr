@@ -16,6 +16,7 @@
 package com.xceptance.xcmailr.config;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -67,9 +68,12 @@ public class UserPreferenceLocaleResolver implements LocaleResolver
     /**
      * Resolves the current locale.
      * <p>
-     * If the current request is authenticated with a {@link UserPrincipal}, the user's persisted language
-     * preference is checked. If authenticated with an alternate principal type and a {@link UserRepository}
-     * is available, the user record is looked up by username.
+     * If the current request is authenticated, the user's persisted language preference is queried
+     * directly from the {@link UserRepository} as the authoritative source of truth. If the repository
+     * is unavailable or does not return a user record (e.g. in standalone unit tests), resolution
+     * falls back to the in-session {@link UserPrincipal}.
+     * </p>
+     * <p>
      * If the language is "de" (case-insensitive), {@link Locale#GERMAN} is returned; otherwise,
      * {@link Locale#ENGLISH} is returned.
      * </p>
@@ -88,15 +92,23 @@ public class UserPreferenceLocaleResolver implements LocaleResolver
             && !(authentication instanceof AnonymousAuthenticationToken))
         {
             String language = null;
-            if (authentication.getPrincipal() instanceof final UserPrincipal principal)
+            boolean resolvedFromDb = false;
+
+            // Defense-in-depth Layer 1: Query database first as authoritative source of truth
+            if (userRepository != null)
+            {
+                final Optional<User> userOpt = userRepository.findByMailIgnoreCase(authentication.getName());
+                if (userOpt.isPresent())
+                {
+                    language = userOpt.get().getLanguage();
+                    resolvedFromDb = true;
+                }
+            }
+
+            // Fallback to in-session UserPrincipal if repository was null or user was not found
+            if (!resolvedFromDb && authentication.getPrincipal() instanceof final UserPrincipal principal)
             {
                 language = principal.getUser() != null ? principal.getUser().getLanguage() : null;
-            }
-            else if (userRepository != null)
-            {
-                language = userRepository.findByMailIgnoreCase(authentication.getName())
-                                         .map(User::getLanguage)
-                                         .orElse(null);
             }
 
             if (language != null && "de".equalsIgnoreCase(language.trim()))

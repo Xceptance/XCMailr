@@ -54,6 +54,7 @@ import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
+import com.xceptance.xcmailr.security.UserPrincipal;
 
 import models.Domain;
 import models.MBox;
@@ -1791,6 +1792,209 @@ public final class MailboxWebControllerTest
                .andExpect(status().isOk())
                .andExpect(content().string(containsString("No mailboxes found matching the criteria.")))
                .andExpect(content().string(not(containsString("Showing"))))
+               .andExpect(content().string(not(containsString("Zeige"))));
+    }
+
+    /**
+     * Verifies happy path: switching preferred language in the profile from German to English
+     * immediately reflects on subsequent mailbox dashboard full-page and HTMX pagination views.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Profile language update from German to English immediately localizes mailbox dashboard and HTMX swaps")
+    public void testListMailboxes_HappyPath_ProfileLanguageUpdateFromGermanToEnglishTakesImmediateEffect() throws Exception
+    {
+        // GIVEN: 17 mailboxes owned by Alice whose profile begins with German preference
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        createMailboxes(17, owner);
+        final UserPrincipal alicePrincipal = new UserPrincipal(owner);
+
+        // 1. Initial full-page request resolves German
+        mockMvc.perform(get("/mailboxes")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Zeige 1–15 von 17 Postfächern")));
+
+        // 2. User updates profile language to English in /profile
+        mockMvc.perform(post("/profile/update")
+               .with(user(alicePrincipal))
+               .with(csrf())
+               .param("forename", "Alice")
+               .param("surname", "Tester")
+               .param("language", "en"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/profile?updated"));
+
+        // 3. Subsequent full-page request immediately renders English pagination summary without re-login
+        mockMvc.perform(get("/mailboxes")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Showing 1–15 of 17 mailboxes")))
+               .andExpect(content().string(not(containsString("Zeige"))));
+
+        // 4. Subsequent asynchronous HTMX pagination request renders English partial fragment
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("page", "1")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(content().string(containsString("Showing 16–17 of 17 mailboxes")))
+               .andExpect(content().string(not(containsString("Zeige"))));
+    }
+
+    /**
+     * Verifies happy path: switching preferred language in the profile from English to German
+     * immediately reflects on subsequent mailbox dashboard full-page and HTMX pagination views.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Profile language update from English to German immediately localizes mailbox dashboard and HTMX swaps")
+    public void testListMailboxes_HappyPath_ProfileLanguageUpdateFromEnglishToGermanTakesImmediateEffect() throws Exception
+    {
+        // GIVEN: 17 mailboxes owned by Alice whose profile begins with English preference
+        owner.setLanguage("en");
+        userRepository.save(owner);
+        createMailboxes(17, owner);
+        final UserPrincipal alicePrincipal = new UserPrincipal(owner);
+
+        // 1. Initial full-page request resolves English
+        mockMvc.perform(get("/mailboxes")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Showing 1–15 of 17 mailboxes")));
+
+        // 2. User updates profile language to German in /profile
+        mockMvc.perform(post("/profile/update")
+               .with(user(alicePrincipal))
+               .with(csrf())
+               .param("forename", "Alice")
+               .param("surname", "Tester")
+               .param("language", "de"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/profile?updated"));
+
+        // 3. Subsequent full-page request immediately renders German pagination summary without re-login
+        mockMvc.perform(get("/mailboxes")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Zeige 1–15 von 17 Postfächern")))
+               .andExpect(content().string(not(containsString("Showing"))));
+
+        // 4. Subsequent asynchronous HTMX pagination request renders German partial fragment
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("page", "1")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(content().string(containsString("Zeige 16–17 von 17 Postfächern")))
+               .andExpect(content().string(not(containsString("Showing"))));
+    }
+
+    /**
+     * Verifies OWASP tenant isolation: one user updating their profile language does not
+     * affect or contaminate the locale resolution or pagination summary of another tenant.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Security Case (OWASP): Language change for one user maintains strict tenant isolation without leaking to other users")
+    public void testListMailboxes_SecurityCase_TenantIsolationMaintainedAcrossUserUpdates() throws Exception
+    {
+        // GIVEN: Alice with German language and Charlie with English language
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        createMailboxes(17, owner);
+        final UserPrincipal alicePrincipal = new UserPrincipal(owner);
+
+        final User charlie = new User("Charlie", "Brown", "charlie@xcmailr.test", "Password123", "en");
+        charlie.setActive(true);
+        userRepository.save(charlie);
+        createMailboxes(17, charlie);
+        final UserPrincipal charliePrincipal = new UserPrincipal(charlie);
+
+        // WHEN: Alice accesses dashboard, German is resolved
+        mockMvc.perform(get("/mailboxes")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Zeige 1–15 von 17 Postfächern")));
+
+        // AND: Charlie accesses dashboard in the same application run, English is strictly resolved
+        mockMvc.perform(get("/mailboxes")
+               .with(user(charliePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Showing 1–15 of 17 mailboxes")))
+               .andExpect(content().string(not(containsString("Zeige"))));
+    }
+
+    /**
+     * Verifies special case: sorting and filtering parameters (search, sort, dir)
+     * are strictly preserved across localized HTMX partial swaps following a profile language update.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special Case: Preserves sort and filter params across localized HTMX swaps after profile language update")
+    public void testListMailboxes_SpecialCase_PreservesSortAndFilterParamsAcrossLocalizedSwap() throws Exception
+    {
+        // GIVEN: Alice starts with German language preference and 17 mailboxes
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        createMailboxes(17, owner);
+        final UserPrincipal alicePrincipal = new UserPrincipal(owner);
+
+        // 1. Initial request in German with custom sort parameters
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("sort", "address")
+               .param("dir", "asc")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("sort", "address"))
+               .andExpect(model().attribute("dir", "asc"))
+               .andExpect(content().string(containsString("Zeige 1–15 von 17 Postfächern")));
+
+        // 2. User updates profile language to English in /profile
+        mockMvc.perform(post("/profile/update")
+               .with(user(alicePrincipal))
+               .with(csrf())
+               .param("forename", "Alice")
+               .param("surname", "Tester")
+               .param("language", "en"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/profile?updated"));
+
+        // 3. Subsequent HTMX request with sort preserves sort filters while rendering in English
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("sort", "address")
+               .param("dir", "asc")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("sort", "address"))
+               .andExpect(model().attribute("dir", "asc"))
+               .andExpect(content().string(containsString("Showing 1–15 of 17 mailboxes")))
+               .andExpect(content().string(not(containsString("Zeige"))));
+
+        // 4. Subsequent HTMX request with search and sort preserves search filter while rendering in English
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("search", "box-1")
+               .param("sort", "address")
+               .param("dir", "asc")
+               .with(user(alicePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(model().attribute("search", "box-1"))
+               .andExpect(model().attribute("sort", "address"))
+               .andExpect(model().attribute("dir", "asc"))
+               .andExpect(content().string(containsString("Showing 1–9 of 9 mailboxes")))
                .andExpect(content().string(not(containsString("Zeige"))));
     }
 }

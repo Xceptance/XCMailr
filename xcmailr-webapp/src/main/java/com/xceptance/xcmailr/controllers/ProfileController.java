@@ -26,6 +26,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -42,6 +43,7 @@ import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.PasswordContext;
 import com.xceptance.xcmailr.security.PasswordValidationResult;
 import com.xceptance.xcmailr.security.PasswordValidator;
+import com.xceptance.xcmailr.security.UserPrincipal;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -106,7 +108,7 @@ public class ProfileController
     }
 
     /**
-     * Updates user's personal details.
+     * Updates user's personal details and synchronizes in-memory session state.
      *
      * @param forename first name
      * @param surname last name
@@ -125,6 +127,23 @@ public class ProfileController
         user.setSurname(surname.trim());
         user.setLanguage(language);
         userRepository.save(user);
+
+        // Defense-in-depth Layer 2: Synchronize in-memory UserPrincipal to maintain session consistency
+        // without altering security-sensitive attributes (roles, admin status, credentials)
+        final Authentication auth = principal instanceof final Authentication a
+            ? a
+            : SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null && auth.getPrincipal() instanceof final UserPrincipal userPrincipal)
+        {
+            final User sessionUser = userPrincipal.getUser();
+            if (sessionUser != null)
+            {
+                sessionUser.setForename(user.getForename());
+                sessionUser.setSurname(user.getSurname());
+                sessionUser.setLanguage(user.getLanguage());
+            }
+        }
 
         LOG.info("Updated profile for user {}", user.getMail());
         return "redirect:/profile?updated";
