@@ -8,19 +8,20 @@
             <div>
                 <h4 class="fw-bold mb-1" th:text="${mail.subject}">Email Subject</h4>
                 <div class="text-muted small">
-                    <strong>From:</strong> <span th:text="${mail.sender}">sender@example.com</span>
+                    <strong th:text="#{mail.detail.from}">From:</strong> <span th:text="${mail.sender}">sender@example.com</span>
                     <span class="mx-2">&bull;</span>
-                    <strong>Date:</strong> <time class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(mail.receiveTime)) : T(java.time.Instant).ofEpochMilli(mail.receiveTime).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mail.receiveTime))}">2026-10-01 12:00:00</time>
+                    <strong th:text="#{mail.detail.date}">Date:</strong> <time class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(mail.receiveTime)) : T(java.time.Instant).ofEpochMilli(mail.receiveTime).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mail.receiveTime))}">2026-10-01 12:00:00</time>
                 </div>
             </div>
             <div class="btn-group btn-group-sm">
                 <a th:href="@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${mail.id} + '/raw'}"
-                   class="btn btn-outline-secondary" download>
+                   class="btn btn-outline-secondary" download th:text="#{mail.detail.downloadEml}">
                     Download .eml
                 </a>
                 <button class="btn btn-outline-danger" type="button"
-                        th:attr="hx-delete=@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${mail.id}},hx-target='#mail-viewer-pane',hx-swap='innerHTML',hx-confirm='Delete this email?'"
-                        onclick="const row = document.getElementById('mail-row-[[${mail.id}]]'); if(row) row.remove();">
+                        th:attr="hx-delete=@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${mail.id}},hx-target='#mail-viewer-pane',hx-swap='innerHTML',hx-confirm=#{mail.detail.deleteConfirm}"
+                        onclick="const row = document.getElementById('mail-row-[[${mail.id}]]'); if(row) row.remove();"
+                        th:text="#{mail.detail.delete}">
                     Delete
                 </button>
             </div>
@@ -28,7 +29,7 @@
 
         <!-- Attachments bar if any -->
         <div th:if="${not #lists.isEmpty(attachments)}" class="mt-3 pt-2 border-top">
-            <span class="text-muted small fw-semibold me-2">Attachments:</span>
+            <span class="text-muted small fw-semibold me-2" th:text="#{mail.detail.attachments}">Attachments:</span>
             <div class="d-inline-flex flex-wrap gap-2">
                 <a th:each="att : ${attachments}"
                    th:href="@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${mail.id} + '/attachments/' + ${att.index}}"
@@ -44,18 +45,18 @@
         <!-- Nav tabs for Content types (Sanitized HTML / Plain Text / Headers) -->
         <ul class="nav nav-tabs px-3 pt-2 bg-light border-bottom" role="tablist">
             <li class="nav-item" role="presentation" th:if="${sanitizedHtml != null}">
-                <button class="nav-link active" id="html-tab" data-bs-toggle="tab" data-bs-target="#html-pane" type="button" role="tab">
+                <button class="nav-link active" id="html-tab" data-bs-toggle="tab" data-bs-target="#html-pane" type="button" role="tab" th:text="#{mail.detail.tabHtml}">
                     HTML
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" th:classappend="${sanitizedHtml == null ? 'active' : ''}"
-                        id="plain-tab" data-bs-toggle="tab" data-bs-target="#plain-pane" type="button" role="tab">
+                        id="plain-tab" data-bs-toggle="tab" data-bs-target="#plain-pane" type="button" role="tab" th:text="#{mail.detail.tabPlain}">
                     Plain Text
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="headers-tab" data-bs-toggle="tab" data-bs-target="#headers-pane" type="button" role="tab">
+                <button class="nav-link" id="headers-tab" data-bs-toggle="tab" data-bs-target="#headers-pane" type="button" role="tab" th:text="#{mail.detail.tabHeaders}">
                     Headers
                 </button>
             </li>
@@ -73,7 +74,7 @@
             <div class="tab-pane fade" th:classappend="${sanitizedHtml == null ? 'show active' : ''}"
                  id="plain-pane" role="tabpanel">
                 <pre class="bg-light p-3 rounded border text-break mb-0" style="white-space: pre-wrap; font-family: monospace; font-size: 0.95rem;"
-                     th:text="${plainText != null ? plainText : '(No plain text body)'}"></pre>
+                     th:text="${plainText != null ? plainText : #messages.msg('mail.detail.noPlainText')}"></pre>
             </div>
 
             <!-- Headers tab -->

@@ -18,13 +18,14 @@
             <thead class="table-light">
                 <tr class="align-middle">
                     <th scope="col" style="width: 40px;" class="text-center">
-                        <input type="checkbox" id="selectAllMailboxes" class="form-check-input" aria-label="Select all mailboxes">
+                        <input type="checkbox" id="selectAllMailboxes" class="form-check-input" th:aria-label="#{mailbox.table.column.selectAll}" aria-label="Select all mailboxes">
                     </th>
                     <th scope="col">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='address', dir=${sort == 'address' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:title="#{mailbox.table.sort.address}"
                            title="Sort by Address">
-                            <span>Address</span>
+                            <span th:text="#{mailbox.table.column.address}">Address</span>
                             <i th:if="${sort != 'address'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'address' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'address' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
@@ -33,8 +34,9 @@
                     <th scope="col" class="d-none d-sm-table-cell" style="width: 105px;">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='status', dir=${sort == 'status' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:title="#{mailbox.table.sort.status}"
                            title="Sort by Status">
-                            <span>Status</span>
+                            <span th:text="#{mailbox.table.column.status}">Status</span>
                             <i th:if="${sort != 'status'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'status' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'status' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
@@ -43,8 +45,9 @@
                     <th scope="col" class="d-none d-lg-table-cell" style="width: 150px;">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='expires', dir=${sort == 'expires' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:title="#{mailbox.table.sort.expires}"
                            title="Sort by Expiration">
-                            <span>Expires</span>
+                            <span th:text="#{mailbox.table.column.expires}">Expires</span>
                             <i th:if="${sort != 'expires'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'expires' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'expires' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
@@ -53,8 +56,9 @@
                     <th scope="col" class="text-center d-none d-md-table-cell" style="width: 85px;">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='forwards', dir=${sort == 'forwards' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:title="#{mailbox.table.sort.forwards}"
                            title="Total forwarded emails">
-                            <span>Forwards</span>
+                            <span th:text="#{mailbox.table.column.forwards}">Forwards</span>
                             <i th:if="${sort != 'forwards'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'forwards' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'forwards' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
@@ -63,33 +67,36 @@
                     <th scope="col" class="text-center d-none d-md-table-cell" style="width: 95px;">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
                            th:attr="hx-get=@{/mailboxes(sort='suppressions', dir=${sort == 'suppressions' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:title="#{mailbox.table.sort.suppressed}"
                            title="Suppressed incoming emails while inactive">
-                            <span>Suppressed</span>
+                            <span th:text="#{mailbox.table.column.suppressed}">Suppressed</span>
                             <i th:if="${sort != 'suppressions'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'suppressions' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
                             <i th:if="${sort == 'suppressions' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
                         </a>
                     </th>
-                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;"><span class="d-inline-flex align-items-center py-1">Actions</span></th>
+                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;"><span class="d-inline-flex align-items-center py-1" th:text="#{mailbox.table.column.actions}">Actions</span></th>
                 </tr>
             </thead>
             <tbody id="mailbox-rows">
                 <tr th:if="${#lists.isEmpty(mailboxes)}">
                     <td colspan="7" class="text-center text-muted py-4">
-                        <em>No mailboxes found matching the criteria.</em>
+                        <em th:text="#{mailbox.table.empty}">No mailboxes found matching the criteria.</em>
                     </td>
                 </tr>
 
                 <tr th:each="box : ${mailboxes}" th:id="'mailbox-row-' + ${box.id}">
                     <td class="text-center align-middle">
-                        <input type="checkbox" name="mailboxIds" th:value="${box.id}" class="form-check-input mailbox-select" aria-label="Select mailbox">
+                        <input type="checkbox" name="mailboxIds" th:value="${box.id}" class="form-check-input mailbox-select" th:aria-label="#{mailbox.table.column.selectSingle}" aria-label="Select mailbox">
                     </td>
                     <td>
                         <div class="d-flex align-items-center">
                             <a th:href="@{'/mailboxes/' + ${box.id} + '/mails'}" class="mailbox-address-link text-break"
-                               th:text="${box.fullAddress}" title="View mailbox emails">test@example.com</a>
+                               th:text="${box.fullAddress}" th:title="#{mailbox.action.inbox}" title="View mailbox emails">test@example.com</a>
                             <button class="btn-copy ms-1" type="button"
                                     th:attr="onclick='navigator.clipboard.writeText(\'' + ${box.fullAddress} + '\'); const i = this.querySelector(\'i\'); i.className=\'bi bi-check2 text-success\'; setTimeout(() => i.className=\'bi bi-clipboard\', 1500);'"
+                                    th:title="#{mailbox.table.copyTooltip}"
+                                    th:aria-label="#{common.button.copy}"
                                     title="Copy address to clipboard" aria-label="Copy address">
                                 <i class="bi bi-clipboard"></i>
                             </button>
@@ -99,37 +106,37 @@
                             <span class="d-inline d-sm-none me-2">
                                 <span th:if="${box.active}" class="status-dot status-dot-active"></span>
                                 <span th:unless="${box.active}" class="status-dot status-dot-expired"></span>
-                                <span th:text="${box.active ? 'Active' : 'Expired'}">Active</span>
+                                <span th:text="${box.active ? #messages.msg('common.status.active') : #messages.msg('common.status.expired')}">Active</span>
                                 &bull;
                             </span>
                             <!-- Expiration visible in subline on < 992px (d-lg-none) -->
                             <span class="d-inline d-lg-none me-2">
                                 <i class="bi bi-clock me-1"></i>
-                                <span th:if="${box.ts_Active == 0}">Unlimited</span>
+                                <span th:if="${box.ts_Active == 0}" th:text="#{common.status.unlimited}">Unlimited</span>
                                 <time th:unless="${box.ts_Active == 0}" class="local-time" th:datetime="${isoFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}">2026-10-01 12:00</time>
                                 &bull;
                             </span>
                             <!-- Forwarding indicator -->
                             <span th:if="${box.forwardEmails}">
-                                <i class="bi bi-arrow-right-short"></i> forwards
+                                <i class="bi bi-arrow-right-short"></i> <span th:text="#{mailbox.table.forwardsIndicator}">forwards</span>
                             </span>
                             <span th:unless="${box.forwardEmails}" class="text-secondary">
-                                <i class="bi bi-slash-circle me-1"></i> forwarding off
+                                <i class="bi bi-slash-circle me-1"></i> <span th:text="#{mailbox.table.forwardingOffIndicator}">forwarding off</span>
                             </span>
                         </div>
                     </td>
 
                     <td class="d-none d-sm-table-cell">
                         <span th:if="${box.active}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill">
-                            <span class="status-dot status-dot-active"></span>Active
+                            <span class="status-dot status-dot-active"></span><span th:text="#{common.status.active}">Active</span>
                         </span>
                         <span th:unless="${box.active}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill">
-                            <span class="status-dot status-dot-expired"></span>Expired
+                            <span class="status-dot status-dot-expired"></span><span th:text="#{common.status.expired}">Expired</span>
                         </span>
                     </td>
 
                     <td class="d-none d-lg-table-cell text-nowrap">
-                        <span th:if="${box.ts_Active == 0}" class="text-success-emphasis fw-medium">Unlimited</span>
+                        <span th:if="${box.ts_Active == 0}" class="text-success-emphasis fw-medium" th:text="#{common.status.unlimited}">Unlimited</span>
                         <time th:unless="${box.ts_Active == 0}" class="local-time text-body-secondary" th:datetime="${isoFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(box.ts_Active))}">2026-10-01 12:00</time>
                     </td>
 
@@ -141,8 +148,8 @@
                             <!-- Toggle Active/Inactive (Compact icon button visible on md and up: >= 768px) -->
                             <button class="btn btn-outline-secondary d-none d-md-inline-flex align-items-center" type="button"
                                     th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/toggle'},hx-swap='none'"
-                                    th:title="${box.active ? 'Disable mailbox' : 'Enable mailbox'}"
-                                    th:aria-label="${box.active ? 'Disable mailbox' : 'Enable mailbox'}">
+                                    th:title="${box.active ? #messages.msg('mailbox.action.disableTooltip') : #messages.msg('mailbox.action.enableTooltip')}"
+                                    th:aria-label="${box.active ? #messages.msg('mailbox.action.disableTooltip') : #messages.msg('mailbox.action.enableTooltip')}">
                                 <i th:if="${box.active}" class="bi bi-power"></i>
                                 <i th:unless="${box.active}" class="bi bi-play-fill"></i>
                             </button>
@@ -150,6 +157,8 @@
                             <!-- Quick Extend 24h (Compact +1d button visible on md and up: >= 768px) -->
                             <button class="btn btn-outline-secondary d-none d-md-inline-flex align-items-center fw-semibold small" type="button"
                                     th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=24'},hx-swap='none'"
+                                    th:title="#{mailbox.action.extendTooltip}"
+                                    th:aria-label="#{mailbox.action.extendTooltip}"
                                     title="Extend validity by 24 hours (+1d)"
                                     aria-label="Extend validity by 24 hours (+1d)">
                                 +1d
@@ -157,7 +166,9 @@
 
                             <!-- Dropdown for more actions (Always visible; serves as kebab menu on desktop and consolidated action menu on mobile) -->
                             <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="More actions" aria-label="More actions">
+                                <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"
+                                        th:title="#{mailbox.action.moreTooltip}" th:aria-label="#{mailbox.action.moreTooltip}"
+                                        title="More actions" aria-label="More actions">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow">
@@ -166,13 +177,13 @@
                                         <button class="dropdown-item" type="button"
                                                 th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/toggle'},hx-swap='none'">
                                             <i class="bi bi-power me-2"></i>
-                                            <span th:text="${box.active ? 'Disable Mailbox' : 'Enable Mailbox'}">Disable</span>
+                                            <span th:text="${box.active ? #messages.msg('mailbox.action.disable') : #messages.msg('mailbox.action.enable')}">Disable</span>
                                         </button>
                                     </li>
                                     <li class="d-md-none">
                                         <button class="dropdown-item" type="button"
                                                 th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=24'},hx-swap='none'">
-                                            <i class="bi bi-clock-history me-2"></i> Extend 24 Hours (+1d)
+                                            <i class="bi bi-clock-history me-2"></i> <span th:text="#{mailbox.action.extend}">Extend 24 Hours (+1d)</span>
                                         </button>
                                     </li>
                                     <li class="d-md-none"><hr class="dropdown-divider"></li>
@@ -180,27 +191,27 @@
                                     <!-- Common items -->
                                     <li>
                                         <a class="dropdown-item" th:href="@{'/mailboxes/' + ${box.id} + '/mails'}">
-                                            <i class="bi bi-inbox me-2"></i> Inbox Mails
+                                            <i class="bi bi-inbox me-2"></i> <span th:text="#{mailbox.action.inbox}">Inbox Mails</span>
                                         </a>
                                     </li>
                                     <li>
                                         <button class="dropdown-item" type="button"
                                                 th:attr="hx-get=@{'/mailboxes/' + ${box.id} + '/edit'},hx-target='#modal-container',hx-swap='innerHTML'"
                                                 data-bs-toggle="modal" data-bs-target="#actionModal">
-                                            <i class="bi bi-gear me-2"></i> Edit Settings
+                                            <i class="bi bi-gear me-2"></i> <span th:text="#{mailbox.action.edit}">Edit Settings</span>
                                         </button>
                                     </li>
                                     <li>
                                         <button class="dropdown-item" type="button"
                                                 th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/reset-counters'},hx-swap='none'">
-                                            <i class="bi bi-arrow-counterclockwise me-2"></i> Reset Counters
+                                            <i class="bi bi-arrow-counterclockwise me-2"></i> <span th:text="#{mailbox.action.resetCounters}">Reset Counters</span>
                                         </button>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <button class="dropdown-item text-danger" type="button"
-                                                th:attr="hx-delete=@{'/mailboxes/' + ${box.id}},hx-swap='none',hx-confirm='Are you sure you want to delete ' + ${box.fullAddress} + ' and all its stored emails?'">
-                                            <i class="bi bi-trash me-2"></i> Delete Mailbox
+                                                th:attr="hx-delete=@{'/mailboxes/' + ${box.id}},hx-swap='none',hx-confirm=#{mailbox.action.deleteConfirm(${box.fullAddress})}">
+                                            <i class="bi bi-trash me-2"></i> <span th:text="#{mailbox.action.delete}">Delete Mailbox</span>
                                         </button>
                                     </li>
                                 </ul>
@@ -223,10 +234,10 @@
                 Showing 1–15 of 17 mailboxes
             </span>
             <span class="text-muted small">
-                Export:
-                <a th:href="@{/mailboxes/export/all}" class="link-secondary text-decoration-none">All (.txt)</a>
+                <span th:text="#{mailbox.export.label}">Export:</span>
+                <a th:href="@{/mailboxes/export/all}" class="link-secondary text-decoration-none" th:text="#{mailbox.export.all}">All (.txt)</a>
                 &middot;
-                <a th:href="@{/mailboxes/export/active}" class="link-secondary text-decoration-none">Active (.txt)</a>
+                <a th:href="@{/mailboxes/export/active}" class="link-secondary text-decoration-none" th:text="#{mailbox.export.active}">Active (.txt)</a>
             </span>
         </div>
 
@@ -234,7 +245,8 @@
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
                     <button class="page-link" type="button"
-                            th:attr="hx-get=@{/mailboxes(page=${page.number - 1}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                            th:attr="hx-get=@{/mailboxes(page=${page.number - 1}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                            th:text="#{common.pagination.previous}">
                         Previous
                     </button>
                 </li>
@@ -249,7 +261,8 @@
 
                 <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
                     <button class="page-link" type="button"
-                            th:attr="hx-get=@{/mailboxes(page=${page.number + 1}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                            th:attr="hx-get=@{/mailboxes(page=${page.number + 1}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                            th:text="#{common.pagination.next}">
                         Next
                     </button>
                 </li>
@@ -261,9 +274,11 @@
     <div id="floatingBatchBar" class="floating-batch-bar d-none" role="toolbar" aria-label="Bulk mailbox actions">
         <div class="d-flex align-items-center gap-2 pe-2 border-end border-secondary-subtle">
             <span class="badge bg-primary text-white rounded-pill px-2 py-1">
-                <span id="bulkSelectionCount">0</span> selected
+                <span id="bulkSelectionCount">0</span> <span th:text="#{mailbox.batch.selected}">selected</span>
             </span>
-            <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" id="bulkDeselectBtn" title="Deselect all mailboxes" aria-label="Deselect all">
+            <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0" id="bulkDeselectBtn"
+                    th:title="#{mailbox.batch.deselectAll}" th:aria-label="#{mailbox.batch.deselectAll}"
+                    title="Deselect all mailboxes" aria-label="Deselect all">
                 <i class="bi bi-x-circle-fill"></i>
             </button>
         </div>
@@ -274,8 +289,9 @@
                     hx-post="/mailboxes/bulk/enable"
                     hx-include="input.mailbox-select:checked"
                     hx-swap="none"
+                    th:title="#{mailbox.batch.enable}"
                     title="Enable selected mailboxes">
-                <i class="bi bi-play-fill me-1"></i> Enable
+                <i class="bi bi-play-fill me-1"></i> <span th:text="#{mailbox.batch.enable}">Enable</span>
             </button>
 
             <!-- Bulk Disable -->
@@ -283,8 +299,9 @@
                     hx-post="/mailboxes/bulk/disable"
                     hx-include="input.mailbox-select:checked"
                     hx-swap="none"
+                    th:title="#{mailbox.batch.disable}"
                     title="Disable selected mailboxes">
-                <i class="bi bi-power me-1"></i> Disable
+                <i class="bi bi-power me-1"></i> <span th:text="#{mailbox.batch.disable}">Disable</span>
             </button>
 
             <!-- Bulk Extend (+24h) -->
@@ -292,8 +309,9 @@
                     hx-post="/mailboxes/bulk/extend?hours=24"
                     hx-include="input.mailbox-select:checked"
                     hx-swap="none"
+                    th:title="#{mailbox.action.extendTooltip}"
                     title="Extend validity by 24 hours (+1d)">
-                <i class="bi bi-clock-history me-1"></i> +24h
+                <i class="bi bi-clock-history me-1"></i> <span th:text="#{mailbox.batch.extend}">+24h</span>
             </button>
 
             <!-- Bulk Reset Counters -->
@@ -301,15 +319,18 @@
                     hx-post="/mailboxes/bulk/reset-counters"
                     hx-include="input.mailbox-select:checked"
                     hx-swap="none"
+                    th:title="#{mailbox.action.resetCounters}"
                     title="Reset forwards and suppressions counters">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                <i class="bi bi-arrow-counterclockwise me-1"></i> <span th:text="#{mailbox.batch.reset}">Reset</span>
             </button>
 
             <!-- Bulk Text Export -->
             <form id="bulkExportForm" method="post" th:action="@{/mailboxes/bulk/export}" class="d-inline mb-0">
                 <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button type="button" class="btn btn-sm btn-outline-secondary border-0" id="bulkExportBtn" title="Export selected addresses as plain text file">
-                    <i class="bi bi-download me-1"></i> Export
+                <button type="button" class="btn btn-sm btn-outline-secondary border-0" id="bulkExportBtn"
+                        th:title="#{mailbox.batch.export}"
+                        title="Export selected addresses as plain text file">
+                    <i class="bi bi-download me-1"></i> <span th:text="#{mailbox.batch.export}">Export</span>
                 </button>
             </form>
 
@@ -317,10 +338,12 @@
             <button type="button" class="btn btn-sm btn-outline-danger border-0" id="bulkDeleteBtn"
                     hx-delete="/mailboxes/bulk"
                     hx-include="input.mailbox-select:checked"
+                    th:attr="hx-confirm=#{mailbox.batch.deleteConfirm}"
                     hx-confirm="Are you sure you want to delete the selected mailboxes and all their emails?"
                     hx-swap="none"
+                    th:title="#{mailbox.batch.delete}"
                     title="Delete selected mailboxes">
-                <i class="bi bi-trash me-1"></i> Delete
+                <i class="bi bi-trash me-1"></i> <span th:text="#{mailbox.batch.delete}">Delete</span>
             </button>
         </div>
     </div>

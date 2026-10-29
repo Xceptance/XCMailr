@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:fragment="layout(content)"
+      th:lang="${#locale.language}"
       lang="en"
       data-bs-theme="light">
 <head>
@@ -18,8 +19,8 @@
     <script>
         (() => {
             const storedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const activeTheme = storedTheme ? storedTheme : (systemPrefersDark ? 'dark' : 'light');
+            const systemPrefers dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const activeTheme = storedTheme ? storedTheme : (systemPrefers dark ? 'dark' : 'light');
             document.documentElement.setAttribute('data-bs-theme', activeTheme);
         })();
     </script>
@@ -45,7 +46,8 @@
 
         <!-- Mobile Controls: Theme Switcher & Offcanvas Hamburger Button -->
         <div class="d-flex align-items-center d-lg-none gap-2">
-            <button class="theme-toggle-btn" type="button" aria-label="Toggle color theme" title="Toggle theme">
+            <button class="theme-toggle-btn" type="button" aria-label="Toggle color theme" title="Toggle theme"
+                    th:aria-label="#{common.theme.toggle}" th:title="#{common.theme.toggle}">
                 <i class="bi bi-moon-stars theme-toggle-icon"></i>
             </button>
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvas"
@@ -60,24 +62,24 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:href="@{/}">
-                        <i class="bi bi-mailbox me-1"></i> Mailboxes
+                        <i class="bi bi-mailbox me-1"></i> <span th:text="#{layout.nav.mailboxes}">Mailboxes</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:href="@{/mails}">
-                        <i class="bi bi-inbox me-1"></i> All Mails
+                        <i class="bi bi-inbox me-1"></i> <span th:text="#{layout.nav.allMails}">All Mails</span>
                     </a>
                 </li>
                 <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
                     <!--/* Admin Tools Dropdown */-->
                     <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-shield-lock me-1"></i> Administration
+                        <i class="bi bi-shield-lock me-1"></i> <span th:text="#{layout.nav.administration}">Administration</span>
                     </a>
                     <ul class="dropdown-menu shadow-sm" aria-labelledby="adminDropdown">
-                        <li><a class="dropdown-item" th:href="@{/admin/users}"><i class="bi bi-people me-2"></i> User Management</a></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/domains}"><i class="bi bi-globe me-2"></i> Domain Whitelist</a></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/transactions}"><i class="bi bi-journal-text me-2"></i> Audit Log (Transactions)</a></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/statistics}"><i class="bi bi-bar-chart me-2"></i> Email Statistics</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/users}"><i class="bi bi-people me-2"></i> <span th:text="#{layout.nav.userManagement}">User Management</span></a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/domains}"><i class="bi bi-globe me-2"></i> <span th:text="#{layout.nav.domainWhitelist}">Domain Whitelist</span></a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/transactions}"><i class="bi bi-journal-text me-2"></i> <span th:text="#{layout.nav.auditLog}">Audit Log (Transactions)</span></a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/statistics}"><i class="bi bi-bar-chart me-2"></i> <span th:text="#{layout.nav.emailStatistics}">Email Statistics</span></a></li>
                     </ul>
                 </li>
             </ul>
@@ -86,17 +88,18 @@
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
                 <!-- Theme Mode Toggle Button -->
                 <li class="nav-item me-2">
-                    <button class="theme-toggle-btn" id="themeToggle" type="button" aria-label="Toggle color theme" title="Toggle theme">
+                    <button class="theme-toggle-btn" id="themeToggle" type="button" aria-label="Toggle color theme" title="Toggle theme"
+                            th:aria-label="#{common.theme.toggle}" th:title="#{common.theme.toggle}">
                         <i class="bi bi-moon-stars theme-toggle-icon"></i>
                     </button>
                 </li>
 
                 <!-- Anonymous Visitor Links -->
                 <li class="nav-item" sec:authorize="isAnonymous()">
-                    <a class="nav-link" th:href="@{/login}">Login</a>
+                    <a class="nav-link" th:href="@{/login}" th:text="#{layout.nav.login}">Login</a>
                 </li>
                 <li class="nav-item" sec:authorize="isAnonymous()">
-                    <a class="btn btn-primary btn-sm ms-lg-2" th:href="@{/register}">Register</a>
+                    <a class="btn btn-primary btn-sm ms-lg-2" th:href="@{/register}" th:text="#{layout.nav.register}">Register</a>
                 </li>
 
                 <!-- Authenticated User Dropdown -->
@@ -106,13 +109,13 @@
                         <span sec:authentication="name">User</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-sliders me-2"></i> Profile & API Tokens</a></li>
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-sliders me-2"></i> <span th:text="#{layout.nav.profile}">Profile & API Tokens</span></a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form th:action="@{/logout}" method="post" class="px-2 py-1">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                 <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                                    <i class="bi bi-box-arrow-right me-1"></i> Log Out
+                                    <i class="bi bi-box-arrow-right me-1"></i> <span th:text="#{layout.nav.logout}">Log Out</span>
                                 </button>
                             </form>
                         </li>
@@ -127,21 +130,22 @@
                 <h5 class="offcanvas-title fw-bold" id="navbarOffcanvasLabel">
                     <i class="bi bi-envelope-at text-primary me-1"></i> XCMailr
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"
+                        th:aria-label="#{common.button.close}"></button>
             </div>
             <div class="offcanvas-body">
                 <!--/* Section: Navigation */-->
                 <div sec:authorize="isAuthenticated()">
-                    <div class="offcanvas-section-title">Navigation</div>
+                    <div class="offcanvas-section-title" th:text="#{layout.offcanvas.navigation}">Navigation</div>
                     <ul class="offcanvas-nav-list">
                         <li>
                             <a class="nav-link" th:href="@{/}" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-mailbox text-primary"></i> Mailboxes
+                                <i class="bi bi-mailbox text-primary"></i> <span th:text="#{layout.nav.mailboxes}">Mailboxes</span>
                             </a>
                         </li>
                         <li>
                             <a class="nav-link" th:href="@{/mails}" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-inbox text-primary"></i> All Mails
+                                <i class="bi bi-inbox text-primary"></i> <span th:text="#{layout.nav.allMails}">All Mails</span>
                             </a>
                         </li>
                     </ul>
@@ -149,26 +153,26 @@
 
                 <!--/* Section: Administration (Admins only) */-->
                 <div sec:authorize="hasRole('ADMIN')">
-                    <div class="offcanvas-section-title">Administration</div>
+                    <div class="offcanvas-section-title" th:text="#{layout.offcanvas.administration}">Administration</div>
                     <ul class="offcanvas-nav-list">
                         <li>
                             <a class="nav-link" th:href="@{/admin/users}" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-people text-primary"></i> User Management
+                                <i class="bi bi-people text-primary"></i> <span th:text="#{layout.nav.userManagement}">User Management</span>
                             </a>
                         </li>
                         <li>
                             <a class="nav-link" th:href="@{/admin/domains}" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-globe text-primary"></i> Domain Whitelist
+                                <i class="bi bi-globe text-primary"></i> <span th:text="#{layout.nav.domainWhitelist}">Domain Whitelist</span>
                             </a>
                         </li>
                         <li>
                             <a class="nav-link" th:href="@{/admin/transactions}" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-journal-text text-primary"></i> Audit Log
+                                <i class="bi bi-journal-text text-primary"></i> <span th:text="#{layout.nav.auditLog}">Audit Log</span>
                             </a>
                         </li>
                         <li>
                             <a class="nav-link" th:href="@{/admin/statistics}" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-bar-chart text-primary"></i> Statistics
+                                <i class="bi bi-bar-chart text-primary"></i> <span th:text="#{layout.nav.emailStatistics}">Statistics</span>
                             </a>
                         </li>
                     </ul>
@@ -176,17 +180,17 @@
 
                 <!-- Section: Account Controls -->
                 <div>
-                    <div class="offcanvas-section-title">Account</div>
+                    <div class="offcanvas-section-title" th:text="#{layout.offcanvas.account}">Account</div>
                     <!-- Anonymous Guest Options -->
                     <ul class="offcanvas-nav-list" sec:authorize="isAnonymous()">
                         <li>
                             <a class="nav-link" th:href="@{/login}" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-box-arrow-in-right text-primary"></i> Login
+                                <i class="bi bi-box-arrow-in-right text-primary"></i> <span th:text="#{layout.nav.login}">Login</span>
                             </a>
                         </li>
                         <li>
                             <a class="nav-link" th:href="@{/register}" data-bs-dismiss="offcanvas">
-                                <i class="bi bi-person-plus text-primary"></i> Register
+                                <i class="bi bi-person-plus text-primary"></i> <span th:text="#{layout.nav.register}">Register</span>
                             </a>
                         </li>
                     </ul>
@@ -200,14 +204,14 @@
                         <ul class="offcanvas-nav-list">
                             <li>
                                 <a class="nav-link" th:href="@{/profile}" data-bs-dismiss="offcanvas">
-                                    <i class="bi bi-sliders text-primary"></i> Profile & API Tokens
+                                    <i class="bi bi-sliders text-primary"></i> <span th:text="#{layout.nav.profile}">Profile & API Tokens</span>
                                 </a>
                             </li>
                             <li class="mt-2">
                                 <form th:action="@{/logout}" method="post" class="w-100">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                     <button type="submit" class="btn btn-outline-danger btn-sm w-100">
-                                        <i class="bi bi-box-arrow-right me-1"></i> Log Out
+                                        <i class="bi bi-box-arrow-right me-1"></i> <span th:text="#{layout.nav.logout}">Log Out</span>
                                     </button>
                                 </form>
                             </li>
@@ -224,15 +228,18 @@
     <!-- Flash Messages & Alerts -->
     <div th:if="${successMessage != null}" class="alert alert-success alert-dismissible fade show" role="alert">
         <span th:text="${successMessage}">Operation successful</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                th:aria-label="#{common.button.close}"></button>
     </div>
     <div th:if="${errorMessage != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
         <span th:text="${errorMessage}">An error occurred</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                th:aria-label="#{common.button.close}"></button>
     </div>
     <div th:if="${infoMessage != null}" class="alert alert-info alert-dismissible fade show" role="alert">
         <span th:text="${infoMessage}">Information notice</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                th:aria-label="#{common.button.close}"></button>
     </div>
 
     <!-- Target content injected here -->
@@ -244,7 +251,7 @@
 <!-- Corporate Footer -->
 <footer class="footer-xceptance text-center">
     <div class="container">
-        <p class="mb-1">&copy; <a href="https://www.xceptance.com" target="_blank">Xceptance Software Technologies GmbH</a>. All rights reserved.</p>
+        <p class="mb-1">&copy; <a href="https://www.xceptance.com" target="_blank">Xceptance Software Technologies GmbH</a>. <th:block th:text="#{layout.footer.copyright}">All rights reserved.</th:block></p>
         <p class="small mb-0">XCMailr Modernized &bull; Java 25 &bull; Spring Boot 4.x &bull; HTMX</p>
     </div>
 </footer>

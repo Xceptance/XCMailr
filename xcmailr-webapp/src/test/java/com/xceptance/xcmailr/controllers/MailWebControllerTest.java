@@ -994,4 +994,302 @@ public class MailWebControllerTest
                .andExpect(content().string(containsString("üüü Untyped HTML reception: äöß")))
                .andExpect(content().string(not(containsString("Ã¼Ã¼Ã¼"))));
     }
+
+    // =========================================================================
+    // Localization & Testing Pyramid (Happy Path, Special Cases, Security)
+    // =========================================================================
+
+    /**
+     * Testing Pyramid: Web Controller Happy Path Test.
+     * Verifies that an authenticated German user accessing their mailbox inbox (/mailboxes/{id}/mails)
+     * receives a fully localized German view with correct breadcrumbs, action buttons, status indicators,
+     * empty list notifications, and email selection prompt.
+     */
+    @Test
+    @DisplayName("Localization: German user views single mailbox inbox rendered in German")
+    public void testMailboxInboxLocalizedGerman() throws Exception
+    {
+        // GIVEN a German user owning an active mailbox with no mails
+        final User germanUser = new User("Hans", "Müller", "hans@xcmailr.test", "Password123", "de");
+        germanUser.setActive(true);
+        userRepository.save(germanUser);
+
+        final MBox germanBox = new MBox("postfach", "xcmailr.test", System.currentTimeMillis() + 7200000L, false, germanUser);
+        mailboxRepository.save(germanBox);
+
+        // WHEN accessing the mailbox inbox with German user credentials
+        // THEN all layout, action buttons, table elements, and empty state strings render in German
+        mockMvc.perform(get("/mailboxes/" + germanBox.getId() + "/mails")
+               .with(user("hans@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/mails"))
+               .andExpect(content().string(containsString("Postfächer")))
+               .andExpect(content().string(containsString("Posteingang aktualisieren")))
+               .andExpect(content().string(containsString("Alle E-Mails leeren")))
+               .andExpect(content().string(containsString("Aktiv")))
+               .andExpect(content().string(containsString("Läuft ab:")))
+               .andExpect(content().string(containsString("Weiterleitungen:")))
+               .andExpect(content().string(containsString("Unterdrückt:")))
+               .andExpect(content().string(containsString("Posteingangs-Nachrichten")))
+               .andExpect(content().string(containsString("E-Mail zum Anzeigen auswählen")))
+               .andExpect(content().string(containsString("Noch keine E-Mails für dieses Postfach empfangen.")));
+    }
+
+    /**
+     * Testing Pyramid: Web Controller Happy Path Test.
+     * Verifies that an authenticated English user accessing their mailbox inbox (/mailboxes/{id}/mails)
+     * receives a fully localized English view with correct breadcrumbs, action buttons, status indicators,
+     * and email selection prompt.
+     */
+    @Test
+    @DisplayName("Localization: English user views single mailbox inbox rendered in English")
+    public void testMailboxInboxLocalizedEnglish() throws Exception
+    {
+        // GIVEN an authenticated English user owning an active empty mailbox
+        final User englishUser = new User("Edward", "King", "edward@xcmailr.test", "Password123", "en");
+        englishUser.setActive(true);
+        userRepository.save(englishUser);
+
+        final MBox emptyBox = new MBox("emptybox", "xcmailr.test", System.currentTimeMillis() + 7200000L, false, englishUser);
+        mailboxRepository.save(emptyBox);
+
+        // WHEN accessing the mailbox inbox with English credentials
+        // THEN English layout, action buttons, and empty state strings render
+        mockMvc.perform(get("/mailboxes/" + emptyBox.getId() + "/mails")
+               .with(user("edward@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/mails"))
+               .andExpect(content().string(containsString("Mailboxes")))
+               .andExpect(content().string(containsString("Refresh Inbox")))
+               .andExpect(content().string(containsString("Purge All Mails")))
+               .andExpect(content().string(containsString("Active")))
+               .andExpect(content().string(containsString("Expires:")))
+               .andExpect(content().string(containsString("Forwards:")))
+               .andExpect(content().string(containsString("Suppressed:")))
+               .andExpect(content().string(containsString("Inbox Messages")))
+               .andExpect(content().string(containsString("Select an email to view")))
+               .andExpect(content().string(containsString("No emails received in this mailbox yet.")));
+    }
+
+    /**
+     * Testing Pyramid: Web Controller Happy Path Test.
+     * Verifies that an authenticated German user accessing the unified inbox (/mails)
+     * receives a fully localized German view with unified headers, breadcrumbs, total counters,
+     * and empty state guidance.
+     */
+    @Test
+    @DisplayName("Localization: German user views unified inbox rendered in German")
+    public void testUnifiedInboxLocalizedGerman() throws Exception
+    {
+        // GIVEN a German user owning an active mailbox
+        final User germanUser = new User("Greta", "Weber", "greta@xcmailr.test", "Password123", "de");
+        germanUser.setActive(true);
+        userRepository.save(germanUser);
+
+        final MBox gretaBox = new MBox("greta", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, germanUser);
+        mailboxRepository.save(gretaBox);
+
+        // WHEN accessing /mails with German user credentials
+        // THEN unified inbox title, subtitle, breadcrumbs, badges, and empty placeholders render in German
+        mockMvc.perform(get("/mails")
+               .with(user("greta@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/all-mails"))
+               .andExpect(content().string(containsString("Alle E-Mails")))
+               .andExpect(content().string(containsString("Einheitlicher Posteingang")))
+               .andExpect(content().string(containsString("Startseite")))
+               .andExpect(content().string(containsString("Postfächer")))
+               .andExpect(content().string(containsString("0 Gesamt")))
+               .andExpect(content().string(containsString("Posteingang aktualisieren")))
+               .andExpect(content().string(containsString("E-Mail zum Anzeigen auswählen")))
+               .andExpect(content().string(containsString("Wählen Sie eine E-Mail aus der Liste aus")))
+               .andExpect(content().string(containsString("Noch keine E-Mails in Ihren Postfächern empfangen.")));
+    }
+
+    /**
+     * Testing Pyramid: Web Controller Happy Path Test.
+     * Verifies that an authenticated English user accessing the unified inbox (/mails)
+     * receives a fully localized English view.
+     */
+    @Test
+    @DisplayName("Localization: English user views unified inbox rendered in English")
+    public void testUnifiedInboxLocalizedEnglish() throws Exception
+    {
+        // GIVEN a dedicated English user owning an active mailbox with no emails
+        final User englishUser = new User("Fiona", "Green", "fiona@xcmailr.test", "Password123", "en");
+        englishUser.setActive(true);
+        userRepository.save(englishUser);
+
+        final MBox fionaBox = new MBox("fionabox", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, englishUser);
+        mailboxRepository.save(fionaBox);
+
+        // WHEN accessing /mails with English credentials
+        // THEN English unified inbox title, subtitle, breadcrumbs, and empty states render
+        mockMvc.perform(get("/mails")
+               .with(user("fiona@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/all-mails"))
+               .andExpect(content().string(containsString("All Mails")))
+               .andExpect(content().string(containsString("Unified inbox displaying messages")))
+               .andExpect(content().string(containsString("Home")))
+               .andExpect(content().string(containsString("Mailboxes")))
+               .andExpect(content().string(containsString("0 Total")))
+               .andExpect(content().string(containsString("Refresh Inbox")))
+               .andExpect(content().string(containsString("Select an email to view")))
+               .andExpect(content().string(containsString("Choose an email from the list")))
+               .andExpect(content().string(containsString("No messages received across your mailboxes yet.")));
+    }
+
+    /**
+     * Testing Pyramid: Web Controller Happy Path Test.
+     * Verifies that inspecting an email detail fragment via HTMX (/mailboxes/{boxId}/mails/{mailId})
+     * renders localized action buttons, tab titles (HTML, Klartext, Header), and attachment labels in German.
+     */
+    @Test
+    @DisplayName("Localization: German user views email detail preview in German")
+    public void testMailDetailPreviewLocalizedGerman() throws Exception
+    {
+        // GIVEN a German user with a received email containing attachments
+        final User germanUser = new User("Lukas", "Fischer", "lukas@xcmailr.test", "Password123", "de");
+        germanUser.setActive(true);
+        userRepository.save(germanUser);
+
+        final MBox lukasBox = new MBox("lukas", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, germanUser);
+        mailboxRepository.save(lukasBox);
+
+        final Session session = Session.getInstance(new java.util.Properties());
+        final MimeMessage msg = new MimeMessage(session);
+        msg.setFrom(new InternetAddress("partner@extern.de"));
+        msg.setRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress("lukas@xcmailr.test"));
+        msg.setSubject("Rechnung 2026");
+
+        final MimeMultipart multipart = new MimeMultipart("mixed");
+        final MimeBodyPart htmlPart = new MimeBodyPart();
+        htmlPart.setContent("<p>Vielen Dank für Ihre Bestellung!</p>", "text/html; charset=utf-8");
+        multipart.addBodyPart(htmlPart);
+
+        final MimeBodyPart attachPart = new MimeBodyPart();
+        final ByteArrayDataSource ds = new ByteArrayDataSource("rechnung-pdf-inhalt".getBytes(StandardCharsets.UTF_8), "application/pdf");
+        attachPart.setDataHandler(new DataHandler(ds));
+        attachPart.setFileName("rechnung.pdf");
+        multipart.addBodyPart(attachPart);
+
+        msg.setContent(multipart);
+        msg.saveChanges();
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        msg.writeTo(baos);
+
+        final Mail lukasMail = new Mail();
+        lukasMail.setSender("partner@extern.de");
+        lukasMail.setSubject("Rechnung 2026");
+        lukasMail.setReceiveTime(System.currentTimeMillis());
+        lukasMail.setMessage(baos.toByteArray());
+        lukasMail.setMailbox(lukasBox);
+        mailRepository.save(lukasMail);
+
+        // WHEN retrieving the email detail fragment via HTMX for the German user
+        // THEN detail labels, action buttons, tab headers, and attachment labels render in German
+        mockMvc.perform(get("/mailboxes/" + lukasBox.getId() + "/mails/" + lukasMail.getId())
+               .header("HX-Request", "true")
+               .with(user("lukas@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mail-detail :: detail"))
+               .andExpect(content().string(containsString("Von:")))
+               .andExpect(content().string(containsString("Datum:")))
+               .andExpect(content().string(containsString(".eml herunterladen")))
+               .andExpect(content().string(containsString("Löschen")))
+               .andExpect(content().string(containsString("Anhänge:")))
+               .andExpect(content().string(containsString("Klartext")))
+               .andExpect(content().string(containsString("Header")));
+    }
+
+    /**
+     * Testing Pyramid: Web Controller Happy Path Test.
+     * Verifies that inspecting an email detail fragment via HTMX (/mailboxes/{boxId}/mails/{mailId})
+     * renders English action buttons, tab titles (HTML, Plain Text, Headers), and attachment labels.
+     */
+    @Test
+    @DisplayName("Localization: English user views email detail preview in English")
+    public void testMailDetailPreviewLocalizedEnglish() throws Exception
+    {
+        // GIVEN English user (Alice) and testMail
+        // WHEN retrieving the email detail fragment via HTMX
+        // THEN detail labels, buttons, tab titles, and attachment labels render in English
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + testMail.getId())
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mail-detail :: detail"))
+               .andExpect(content().string(containsString("From:")))
+               .andExpect(content().string(containsString("Date:")))
+               .andExpect(content().string(containsString("Download .eml")))
+               .andExpect(content().string(containsString("Delete")))
+               .andExpect(content().string(containsString("Attachments:")))
+               .andExpect(content().string(containsString("Plain Text")))
+               .andExpect(content().string(containsString("Headers")));
+    }
+
+    /**
+     * Testing Pyramid: Special Case / Fallback Test.
+     * Verifies that when an unsupported locale (e.g. Accept-Language: it-IT) is provided,
+     * the system gracefully falls back to default English messages without raising runtime exceptions.
+     */
+    @Test
+    @DisplayName("Special case: fallback to default English when unsupported locale is supplied")
+    public void testMailboxInboxFallbackToEnglishOnUnsupportedLocale() throws Exception
+    {
+        // GIVEN an authenticated user whose language is unset/unsupported
+        final User italianUser = new User("Marco", "Rossi", "marco@xcmailr.test", "Password123", "it");
+        italianUser.setActive(true);
+        userRepository.save(italianUser);
+
+        final MBox italianBox = new MBox("marco", "xcmailr.test", System.currentTimeMillis() + 3600000L, false, italianUser);
+        mailboxRepository.save(italianBox);
+
+        // WHEN accessing the mailbox inbox with an unsupported language
+        // THEN the application resolves default English without errors
+        mockMvc.perform(get("/mailboxes/" + italianBox.getId() + "/mails")
+               .header("Accept-Language", "it-IT,it;q=0.9")
+               .with(user("marco@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/mails"))
+               .andExpect(content().string(containsString("Mailboxes")))
+               .andExpect(content().string(containsString("Refresh Inbox")))
+               .andExpect(content().string(containsString("Active")));
+    }
+
+    /**
+     * Testing Pyramid: Security Test (OWASP XSS Prevention).
+     * Verifies that dynamic email metadata containing script injection vectors (e.g., in sender or subject)
+     * are strictly HTML-escaped by Thymeleaf when rendered in localized views, preventing script execution.
+     */
+    @Test
+    @DisplayName("Security: OWASP XSS prevention on sender and subject in localized mail views")
+    public void testMailDetailXssSanitizationInLocalizedView() throws Exception
+    {
+        // GIVEN an email with malicious XSS payloads in sender and subject
+        final String maliciousSender = "<script>alert('xss-sender')</script>";
+        final String maliciousSubject = "\"><img src=x onerror=alert('xss-subject')>";
+
+        final Mail xssMail = new Mail();
+        xssMail.setSender(maliciousSender);
+        xssMail.setSubject(maliciousSubject);
+        xssMail.setReceiveTime(System.currentTimeMillis());
+        xssMail.setMessage("Body text".getBytes(StandardCharsets.UTF_8));
+        xssMail.setMailbox(aliceBox);
+        mailRepository.save(xssMail);
+
+        // WHEN viewing the mail detail in German locale
+        // THEN the malicious tags are escaped and unescaped script tags are not rendered in the DOM
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails/" + xssMail.getId())
+               .header("HX-Request", "true")
+               .header("Accept-Language", "de")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(not(containsString("<script>alert('xss-sender')</script>"))))
+               .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;xss-sender&#39;)&lt;/script&gt;")))
+               .andExpect(content().string(not(containsString("\"><img src=x onerror=alert('xss-subject')>"))))
+               .andExpect(content().string(containsString("&quot;&gt;&lt;img src=x onerror=alert(&#39;xss-subject&#39;)&gt;")));
+    }
 }

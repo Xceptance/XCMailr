@@ -7,26 +7,26 @@
 <div th:fragment="content">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-            <h2 class="fw-bold mb-1">Mailboxes</h2>
-            <p class="text-muted mb-0">Manage your temporary email addresses, forwarding, and expiration policies.</p>
+            <h2 class="fw-bold mb-1" th:text="#{mailbox.index.title}">Mailboxes</h2>
+            <p class="text-muted mb-0" th:text="#{mailbox.index.subtitle}">Manage your temporary email addresses, forwarding, and expiration policies.</p>
         </div>
         <div>
             <button class="btn btn-primary" type="button"
                     th:attr="hx-get=@{/mailboxes/new},hx-target='#modal-container',hx-swap='innerHTML'"
                     data-bs-toggle="modal" data-bs-target="#actionModal">
-                <i class="bi bi-plus-lg me-1"></i> New Mailbox
+                <i class="bi bi-plus-lg me-1"></i> <span th:text="#{mailbox.index.newButton}">New Mailbox</span>
             </button>
         </div>
     </div>
 
     <!-- Alert / notification banners if any -->
     <div th:if="${param.created}" class="alert alert-success alert-dismissible fade show" role="alert">
-        Mailbox created successfully.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <span th:text="#{mailbox.index.alert.created}">Mailbox created successfully.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{common.button.close}" aria-label="Close"></button>
     </div>
-    <div th:if="${param.error == 'mailboxExists'}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        A mailbox with this address already exists. Please choose a different local part.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div th:if="${param.error != null and (param.error[0] == 'mailboxExists' or param.error == 'mailboxExists')}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="#{mailbox.index.alert.exists}">A mailbox with this address already exists. Please choose a different local part.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{common.button.close}" aria-label="Close"></button>
     </div>
 
     <!-- Filter & Live Search Bar -->
@@ -38,6 +38,7 @@
                     <div class="input-group">
                         <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-muted"></i></span>
                         <input type="search" class="form-control border-start-0" name="search"
+                               th:placeholder="#{mailbox.index.searchPlaceholder}"
                                placeholder="Live search by address or domain..."
                                th:value="${search}"
                                hx-get="/mailboxes"
@@ -51,7 +52,7 @@
                 <!-- Status Filter Dropdown -->
                 <div class="col-12 col-md-5 col-lg-4">
                     <div class="d-flex align-items-center justify-content-start justify-content-md-end">
-                        <label for="statusFilterSelect" class="form-label text-muted small me-2 mb-0 text-nowrap">Filter:</label>
+                        <label for="statusFilterSelect" class="form-label text-muted small me-2 mb-0 text-nowrap" th:text="#{mailbox.index.filterLabel}">Filter:</label>
                         <select class="form-select form-select-sm" id="statusFilterSelect" name="status"
                                 style="max-width: 180px;"
                                 hx-get="/mailboxes"
@@ -59,11 +60,11 @@
                                 hx-target="#mailbox-table-container"
                                 hx-swap="outerHTML"
                                 hx-include="[name='search'], [name='sort'], [name='dir']">
-                            <option value="ALL" th:selected="${status == 'ALL'}">All Statuses</option>
-                            <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Active Only</option>
-                            <option value="EXPIRED" th:selected="${status == 'EXPIRED'}">Expired Only</option>
-                            <option value="EXPIRING" th:selected="${status == 'EXPIRING'}">Expiring Only</option>
-                            <option value="UNLIMITED" th:selected="${status == 'UNLIMITED'}">Unlimited Only</option>
+                            <option value="ALL" th:selected="${status == 'ALL'}" th:text="#{mailbox.index.filter.all}">All Statuses</option>
+                            <option value="ACTIVE" th:selected="${status == 'ACTIVE'}" th:text="#{mailbox.index.filter.active}">Active Only</option>
+                            <option value="EXPIRED" th:selected="${status == 'EXPIRED'}" th:text="#{mailbox.index.filter.expired}">Expired Only</option>
+                            <option value="EXPIRING" th:selected="${status == 'EXPIRING'}" th:text="#{mailbox.index.filter.expiring}">Expiring Only</option>
+                            <option value="UNLIMITED" th:selected="${status == 'UNLIMITED'}" th:text="#{mailbox.index.filter.unlimited}">Unlimited Only</option>
                         </select>
                     </div>
                 </div>

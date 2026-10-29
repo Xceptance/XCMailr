@@ -116,4 +116,19 @@ class MessageSourceTest
         final String germanMessage = messageSource.getMessage("mailbox.table.showingRange", germanArgs, Locale.GERMAN);
         assertEquals("Zeige 16–30 von 333 Postfächern", germanMessage);
     }
+
+    /**
+     * Verifies fallback behavior: When a locale is not explicitly provided with a dedicated bundle
+     * (e.g. Italian or French), the message source gracefully falls back to the default English
+     * message bundle without throwing {@link org.springframework.context.NoSuchMessageException}.
+     */
+    @Test
+    @DisplayName("Fallback Case: Unsupported locale falls back to default English message")
+    void resolveFallbackToDefaultEnglishOnUnsupportedLocale()
+    {
+        final Object[] args = new Object[]{1, 10, 25};
+        final String message = messageSource.getMessage("mailbox.table.showingRange", args, Locale.ITALIAN);
+
+        assertEquals("Showing 1–10 of 25 mailboxes", message, "Expected fallback to default English message for Italian locale");
+    }
 }

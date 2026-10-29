@@ -7,8 +7,8 @@
 <div th:fragment="content">
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <h2 class="fw-bold mb-1">User Management</h2>
-            <p class="text-muted mb-0">Manage registered user accounts, activation states, and administrator privileges.</p>
+            <h2 class="fw-bold mb-1" th:text="#{admin.users.title}">User Management</h2>
+            <p class="text-muted mb-0" th:text="#{admin.users.subtitle}">Manage registered user accounts, activation states, and administrator privileges.</p>
         </div>
     </div>
 
@@ -18,6 +18,7 @@
             <div class="input-group">
                 <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-muted"></i></span>
                 <input type="search" class="form-control border-start-0" name="search"
+                       th:placeholder="#{admin.users.searchPlaceholder}"
                        placeholder="Search users by email, first name, or last name..."
                        th:value="${search}"
                        hx-get="/admin/users"

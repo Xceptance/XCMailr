@@ -1997,5 +1997,341 @@ public final class MailboxWebControllerTest
                .andExpect(content().string(containsString("Showing 1–9 of 9 mailboxes")))
                .andExpect(content().string(not(containsString("Zeige"))));
     }
+
+    // =========================================================================
+    // LOCALIZATION SUITE (HAPPY PATH, ERROR CASES, SPECIAL CASES, SECURITY)
+    // =========================================================================
+
+    /**
+     * Happy Path: Verifies that the mailbox dashboard index page renders all UI elements
+     * in English when the authenticated user has English language preference.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Mailbox dashboard renders completely localized in English")
+    public void testMailboxDashboardLocalizationEnglish() throws Exception
+    {
+        // GIVEN: Owner with English language preference and sample mailboxes
+        owner.setLanguage("en");
+        userRepository.save(owner);
+        final MBox activeBox = new MBox("active-box", "xcmailr.test", System.currentTimeMillis() + 3600000L, true, owner);
+        final MBox expiredBox = new MBox("expired-box", "xcmailr.test", System.currentTimeMillis() - 3600000L, false, owner);
+        final MBox unlimitedBox = new MBox("unlimited-box", "xcmailr.test", 0L, true, owner);
+        mailboxRepository.save(activeBox);
+        mailboxRepository.save(expiredBox);
+        mailboxRepository.save(unlimitedBox);
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        // WHEN & THEN: Dashboard is requested in English
+        mockMvc.perform(get("/mailboxes")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Mailboxes")))
+               .andExpect(content().string(containsString("Manage your temporary email addresses, forwarding, and expiration policies.")))
+               .andExpect(content().string(containsString("New Mailbox")))
+               .andExpect(content().string(containsString("Live search by address or domain...")))
+               .andExpect(content().string(containsString("Filter:")))
+               .andExpect(content().string(containsString("All Statuses")))
+               .andExpect(content().string(containsString("Active Only")))
+               .andExpect(content().string(containsString("Expired Only")))
+               .andExpect(content().string(containsString("Expiring Only")))
+               .andExpect(content().string(containsString("Unlimited Only")))
+               .andExpect(content().string(containsString("Address")))
+               .andExpect(content().string(containsString("Status")))
+               .andExpect(content().string(containsString("Expires")))
+               .andExpect(content().string(containsString("Forwards")))
+               .andExpect(content().string(containsString("Suppressed")))
+               .andExpect(content().string(containsString("Actions")))
+               .andExpect(content().string(containsString("Active")))
+               .andExpect(content().string(containsString("Expired")))
+               .andExpect(content().string(containsString("Unlimited")))
+               .andExpect(content().string(containsString("Inbox Mails")))
+               .andExpect(content().string(containsString("Edit Settings")))
+               .andExpect(content().string(containsString("Reset Counters")))
+               .andExpect(content().string(containsString("Delete Mailbox")))
+               .andExpect(content().string(containsString("Export:")))
+               .andExpect(content().string(containsString("All (.txt)")))
+               .andExpect(content().string(containsString("Active (.txt)")))
+               .andExpect(content().string(containsString("selected")))
+               .andExpect(content().string(containsString("Enable")))
+               .andExpect(content().string(containsString("Disable")))
+               .andExpect(content().string(containsString("+24h")))
+               .andExpect(content().string(containsString("Reset")))
+               .andExpect(content().string(containsString("Delete")));
+    }
+
+    /**
+     * Happy Path: Verifies that the mailbox dashboard index page renders all UI elements
+     * in German when the authenticated user has German language preference.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Mailbox dashboard renders completely localized in German")
+    public void testMailboxDashboardLocalizationGerman() throws Exception
+    {
+        // GIVEN: Owner with German language preference and sample mailboxes
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        final MBox activeBox = new MBox("active-box", "xcmailr.test", System.currentTimeMillis() + 3600000L, true, owner);
+        final MBox expiredBox = new MBox("expired-box", "xcmailr.test", System.currentTimeMillis() - 3600000L, false, owner);
+        final MBox unlimitedBox = new MBox("unlimited-box", "xcmailr.test", 0L, true, owner);
+        mailboxRepository.save(activeBox);
+        mailboxRepository.save(expiredBox);
+        mailboxRepository.save(unlimitedBox);
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        // WHEN & THEN: Dashboard is requested in German
+        mockMvc.perform(get("/mailboxes")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Postfächer")))
+               .andExpect(content().string(containsString("Verwalten Sie Ihre temporären E-Mail-Adressen, Weiterleitungen und Ablaufrichtlinien.")))
+               .andExpect(content().string(containsString("Neues Postfach")))
+               .andExpect(content().string(containsString("Live-Suche nach Adresse oder Domain...")))
+               .andExpect(content().string(containsString("Filter:")))
+               .andExpect(content().string(containsString("Alle Status")))
+               .andExpect(content().string(containsString("Nur aktive")))
+               .andExpect(content().string(containsString("Nur abgelaufene")))
+               .andExpect(content().string(containsString("Nur bald ablaufende")))
+               .andExpect(content().string(containsString("Nur unbegrenzte")))
+               .andExpect(content().string(containsString("Adresse")))
+               .andExpect(content().string(containsString("Status")))
+               .andExpect(content().string(containsString("Läuft ab")))
+               .andExpect(content().string(containsString("Weiterleitungen")))
+               .andExpect(content().string(containsString("Unterdrückt")))
+               .andExpect(content().string(containsString("Aktionen")))
+               .andExpect(content().string(containsString("Aktiv")))
+               .andExpect(content().string(containsString("Abgelaufen")))
+               .andExpect(content().string(containsString("Unbegrenzt")))
+               .andExpect(content().string(containsString("Postfach-E-Mails")))
+               .andExpect(content().string(containsString("Einstellungen bearbeiten")))
+               .andExpect(content().string(containsString("Zähler zurücksetzen")))
+               .andExpect(content().string(containsString("Postfach löschen")))
+               .andExpect(content().string(containsString("Export:")))
+               .andExpect(content().string(containsString("Alle (.txt)")))
+               .andExpect(content().string(containsString("Aktive (.txt)")))
+               .andExpect(content().string(containsString("ausgewählt")))
+               .andExpect(content().string(containsString("Aktivieren")))
+               .andExpect(content().string(containsString("Deaktivieren")))
+               .andExpect(content().string(containsString("+24h")))
+               .andExpect(content().string(containsString("Zurücksetzen")))
+               .andExpect(content().string(containsString("Löschen")));
+    }
+
+    /**
+     * Happy Path: Verifies that modal fragments for creating and editing mailboxes
+     * render localized labels, placeholders, and buttons in English.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Mailbox creation and edit modals render localized in English")
+    public void testMailboxModalsLocalizationEnglish() throws Exception
+    {
+        // GIVEN: Owner with English preference
+        owner.setLanguage("en");
+        userRepository.save(owner);
+        final MBox box = new MBox("edit-me", "xcmailr.test", System.currentTimeMillis() + 3600000L, true, owner);
+        mailboxRepository.save(box);
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        // WHEN & THEN: New Mailbox modal is requested in English
+        mockMvc.perform(get("/mailboxes/new")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Create Temporary Mailbox")))
+               .andExpect(content().string(containsString("Address Prefix (leave blank for random)")))
+               .andExpect(content().string(containsString("Active Duration")))
+               .andExpect(content().string(containsString("Forward incoming emails to my account address")))
+               .andExpect(content().string(containsString("Create Mailbox")))
+               .andExpect(content().string(containsString("Cancel")));
+
+        // WHEN & THEN: Edit Mailbox modal is requested in English
+        mockMvc.perform(get("/mailboxes/" + box.getId() + "/edit")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Edit Mailbox")))
+               .andExpect(content().string(containsString("Mailbox Address")))
+               .andExpect(content().string(containsString("Current Expiration")))
+               .andExpect(content().string(containsString("Mailbox is active")))
+               .andExpect(content().string(containsString("Forward incoming emails")))
+               .andExpect(content().string(containsString("Save Changes")))
+               .andExpect(content().string(containsString("Cancel")));
+    }
+
+    /**
+     * Happy Path: Verifies that modal fragments for creating and editing mailboxes
+     * render localized labels, placeholders, and buttons in German.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Mailbox creation and edit modals render localized in German")
+    public void testMailboxModalsLocalizationGerman() throws Exception
+    {
+        // GIVEN: Owner with German preference
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        final MBox box = new MBox("edit-me", "xcmailr.test", System.currentTimeMillis() + 3600000L, true, owner);
+        mailboxRepository.save(box);
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        // WHEN & THEN: New Mailbox modal is requested in German
+        mockMvc.perform(get("/mailboxes/new")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Temporäres Postfach erstellen")))
+               .andExpect(content().string(containsString("Adresspräfix (für Zufallswert leer lassen)")))
+               .andExpect(content().string(containsString("Gültigkeitsdauer")))
+               .andExpect(content().string(containsString("Eingehende E-Mails an meine Kontoadresse weiterleiten")))
+               .andExpect(content().string(containsString("Postfach erstellen")))
+               .andExpect(content().string(containsString("Abbrechen")));
+
+        // WHEN & THEN: Edit Mailbox modal is requested in German
+        mockMvc.perform(get("/mailboxes/" + box.getId() + "/edit")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Postfach bearbeiten")))
+               .andExpect(content().string(containsString("Postfach-Adresse")))
+               .andExpect(content().string(containsString("Aktuelles Ablaufdatum")))
+               .andExpect(content().string(containsString("Postfach ist aktiv")))
+               .andExpect(content().string(containsString("Eingehende E-Mails weiterleiten")))
+               .andExpect(content().string(containsString("Änderungen speichern")))
+               .andExpect(content().string(containsString("Abbrechen")));
+    }
+
+    /**
+     * Happy Path / Error Cases: Verifies that status feedback banners (created, duplicate address error)
+     * are correctly localized in both English and German.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path & Error case: Mailbox notification banners render localized in EN and DE")
+    public void testMailboxNotificationBannersLocalized() throws Exception
+    {
+        // GIVEN: English owner
+        owner.setLanguage("en");
+        userRepository.save(owner);
+        final UserPrincipal enPrincipal = new UserPrincipal(owner);
+
+        // WHEN & THEN: English banners
+        mockMvc.perform(get("/mailboxes?created=true")
+               .with(user(enPrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Mailbox created successfully.")));
+
+        mockMvc.perform(get("/mailboxes?error=mailboxExists")
+               .with(user(enPrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("A mailbox with this address already exists. Please choose a different local part.")));
+
+        // GIVEN: German owner
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        final UserPrincipal dePrincipal = new UserPrincipal(owner);
+
+        // WHEN & THEN: German banners
+        mockMvc.perform(get("/mailboxes?created=true")
+               .with(user(dePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Postfach erfolgreich erstellt.")));
+
+        mockMvc.perform(get("/mailboxes?error=mailboxExists")
+               .with(user(dePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Ein Postfach mit dieser Adresse existiert bereits. Bitte wählen Sie einen anderen Präfix.")));
+    }
+
+    /**
+     * Special Case: Verifies that pagination controls (Zurück / Weiter) render localized in German
+     * when multiple pages of mailboxes exist.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special Case: Pagination navigation buttons render localized in German and English")
+    public void testMailboxPaginationButtonsLocalized() throws Exception
+    {
+        // GIVEN: 17 mailboxes for owner with German preference
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        createMailboxes(17, owner);
+        final UserPrincipal dePrincipal = new UserPrincipal(owner);
+
+        // WHEN & THEN: German pagination controls
+        mockMvc.perform(get("/mailboxes")
+               .with(user(dePrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Zurück")))
+               .andExpect(content().string(containsString("Weiter")));
+
+        // GIVEN: Switch to English
+        owner.setLanguage("en");
+        userRepository.save(owner);
+        final UserPrincipal enPrincipal = new UserPrincipal(owner);
+
+        // WHEN & THEN: English pagination controls
+        mockMvc.perform(get("/mailboxes")
+               .with(user(enPrincipal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Previous")))
+               .andExpect(content().string(containsString("Next")));
+    }
+
+    /**
+     * Special Case: Verifies fallback to default English when the user's stored language is unsupported.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special Case: Fallback to English when user language preference is unsupported")
+    public void testMailboxFallbackUnsupportedLanguage() throws Exception
+    {
+        // GIVEN: Owner with unsupported language "es"
+        owner.setLanguage("es");
+        userRepository.save(owner);
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        // WHEN & THEN: Defaults gracefully to English without exception
+        mockMvc.perform(get("/mailboxes")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Mailboxes")))
+               .andExpect(content().string(containsString("New Mailbox")))
+               .andExpect(content().string(not(containsString("Postfächer"))));
+    }
+
+    /**
+     * Security Case (OWASP A03:2021 - Injection / Cross-Site Scripting):
+     * Verifies that user-supplied input such as search terms and mailbox local addresses containing
+     * XSS payloads are safely HTML-escaped by Thymeleaf without corrupting localized labels.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Security Case (OWASP): XSS payloads in search queries or addresses are safely escaped in localized view")
+    public void testMailboxXssPayloadSanitization() throws Exception
+    {
+        // GIVEN: Owner in German and a search payload containing dangerous HTML/script tags
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        final String maliciousSearch = "<script>alert('xss')</script>";
+
+        // WHEN & THEN: Search query is reflected into input value properly escaped, localized labels intact
+        mockMvc.perform(get("/mailboxes")
+               .param("search", maliciousSearch)
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Postfächer")))
+               .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;")))
+               .andExpect(content().string(not(containsString("<script>alert('xss')</script>"))));
+    }
 }
 

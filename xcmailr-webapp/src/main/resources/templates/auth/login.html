@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: layout(~{::content})}">
 <head>
-    <title>Log In - XCMailr</title>
+    <title th:text="#{auth.login.title} + ' - XCMailr'">Sign In - XCMailr</title>
 </head>
 <body>
 <div th:fragment="content" class="row justify-content-center">
@@ -10,43 +10,43 @@
         <div class="card shadow-sm border-0 mt-4">
             <div class="card-body p-4 p-md-5">
                 <div class="text-center mb-4">
-                    <h2 class="fw-bold">Sign In</h2>
-                    <p class="text-muted">Access your temporary and disposable mailboxes</p>
+                    <h2 class="fw-bold" th:text="#{auth.login.title}">Sign In</h2>
+                    <p class="text-muted" th:text="#{auth.login.subtitle}">Access your temporary and disposable mailboxes</p>
                 </div>
 
                 <!-- Status banners -->
-                <div th:if="${param.error != null}" class="alert alert-danger" role="alert">
+                <div th:if="${param.error != null}" class="alert alert-danger" role="alert" th:text="#{auth.login.alert.error}">
                     Invalid email address or password. Please try again.
                 </div>
-                <div th:if="${param.logout != null}" class="alert alert-info" role="alert">
+                <div th:if="${param.logout != null}" class="alert alert-info" role="alert" th:text="#{auth.login.alert.logout}">
                     You have been logged out successfully.
                 </div>
-                <div th:if="${param.accountDeleted != null}" class="alert alert-info" role="alert">
+                <div th:if="${param.accountDeleted != null}" class="alert alert-info" role="alert" th:text="#{auth.login.alert.accountDeleted}">
                     Your account and all associated mailboxes and emails have been successfully deleted.
                 </div>
 
-                <div th:if="${param.registered != null}" class="alert alert-info" role="alert">
+                <div th:if="${param.registered != null}" class="alert alert-info" role="alert" th:text="#{auth.login.alert.registered}">
                     Registration successful! Please check your email to activate your account before logging in.
                 </div>
-                <div th:if="${param.ready != null}" class="alert alert-success" role="alert">
+                <div th:if="${param.ready != null}" class="alert alert-success" role="alert" th:text="#{auth.login.alert.ready}">
                     Registration successful! You may now log in.
                 </div>
-                <div th:if="${param.unconfirmed != null}" class="alert alert-warning" role="alert">
+                <div th:if="${param.unconfirmed != null}" class="alert alert-warning" role="alert" th:text="#{auth.login.alert.unconfirmed}">
                     Your account has not been activated yet. Please check your email for the confirmation link.
                 </div>
-                <div th:if="${param.confirmed != null}" class="alert alert-success" role="alert">
+                <div th:if="${param.confirmed != null}" class="alert alert-success" role="alert" th:text="#{auth.login.alert.confirmed}">
                     Your account has been activated! Please log in.
                 </div>
-                <div th:if="${param.resetRequested != null}" class="alert alert-info" role="alert">
+                <div th:if="${param.resetRequested != null}" class="alert alert-info" role="alert" th:text="#{auth.login.alert.resetRequested}">
                     If the email matches an account, password reset instructions have been sent.
                 </div>
-                <div th:if="${param.passwordReset != null}" class="alert alert-success" role="alert">
+                <div th:if="${param.passwordReset != null}" class="alert alert-success" role="alert" th:text="#{auth.login.alert.passwordReset}">
                     Your password has been reset successfully. Please log in with your new password.
                 </div>
-                <div th:if="${param.invalidToken != null}" class="alert alert-danger" role="alert">
+                <div th:if="${param.invalidToken != null}" class="alert alert-danger" role="alert" th:text="#{auth.login.alert.invalidToken}">
                     The confirmation or reset link is invalid or has already been used.
                 </div>
-                <div th:if="${param.expiredToken != null}" class="alert alert-danger" role="alert">
+                <div th:if="${param.expiredToken != null}" class="alert alert-danger" role="alert" th:text="#{auth.login.alert.expiredToken}">
                     The confirmation link has expired. Please register again or request a new link.
                 </div>
 
@@ -54,24 +54,25 @@
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
                     <div class="mb-3">
-                        <label for="mail" class="form-label fw-semibold">Email address</label>
-                        <input type="email" class="form-control" id="mail" name="mail" required autofocus placeholder="name@example.com">
+                        <label for="mail" class="form-label fw-semibold" th:text="#{auth.login.email}">Email address</label>
+                        <input type="email" class="form-control" id="mail" name="mail" required autofocus placeholder="name@example.com" th:placeholder="#{auth.login.email.placeholder}">
                     </div>
 
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label for="password" class="form-label fw-semibold mb-0">Password</label>
-                            <a th:href="@{/forgot-password}" class="small text-decoration-none">Forgot password?</a>
+                            <label for="password" class="form-label fw-semibold mb-0" th:text="#{auth.login.password}">Password</label>
+                            <a th:href="@{/forgot-password}" class="small text-decoration-none" th:text="#{auth.login.forgotPassword}">Forgot password?</a>
                         </div>
                         <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 py-2 mt-3 fw-semibold">Log In</button>
+                    <button type="submit" class="btn btn-primary w-100 py-2 mt-3 fw-semibold" th:text="#{auth.login.button}">Log In</button>
                 </form>
 
                 <div class="text-center mt-4 pt-2 border-top">
                     <p class="text-muted small mb-0">
-                        Don't have an account? <a th:href="@{/register}" class="text-decoration-none fw-semibold">Register here</a>
+                        <span th:text="#{auth.login.noAccount}">Don't have an account?</span>
+                        <a th:href="@{/register}" class="text-decoration-none fw-semibold" th:text="#{auth.login.registerHere}">Register here</a>
                     </p>
                 </div>
             </div>

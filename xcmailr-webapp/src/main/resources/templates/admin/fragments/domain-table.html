@@ -11,14 +11,14 @@
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th scope="col">Domain Name</th>
-                    <th scope="col" class="text-end" style="width: 120px;">Actions</th>
+                    <th scope="col" th:text="#{admin.domains.column.domain}">Domain Name</th>
+                    <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.domains.column.actions}">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:if="${#lists.isEmpty(domains)}">
                     <td colspan="2" class="text-center text-muted py-4">
-                        <em>No domains configured in whitelist.</em>
+                        <em th:text="#{admin.domains.empty}">No domains configured in whitelist.</em>
                     </td>
                 </tr>
 
@@ -28,7 +28,9 @@
                     </td>
                     <td class="text-end">
                         <button class="btn btn-sm btn-outline-danger" type="button"
-                                th:attr="hx-delete=@{'/admin/domains/' + ${d.id}},hx-swap='none',hx-confirm='Remove domain ' + ${d.domainname} + ' from the whitelist?'"
+                                th:attr="hx-delete=@{'/admin/domains/' + ${d.id}},hx-swap='none',hx-confirm=#{admin.domains.action.removeConfirm(${d.domainname})}"
+                                th:title="#{admin.domains.action.remove}"
+                                th:text="#{admin.domains.action.remove}"
                                 title="Remove domain">
                             Remove
                         </button>

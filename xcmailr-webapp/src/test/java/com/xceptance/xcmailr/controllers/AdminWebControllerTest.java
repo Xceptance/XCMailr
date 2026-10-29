@@ -15,6 +15,8 @@
  */
 package com.xceptance.xcmailr.controllers;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -25,6 +27,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -81,6 +84,7 @@ public class AdminWebControllerTest
     private MailRepository mailRepository;
 
     private User admin;
+    private User adminDe;
     private User regularUser;
 
     @BeforeEach
@@ -101,6 +105,11 @@ public class AdminWebControllerTest
         admin.setActive(true);
         admin.setAdmin(true);
         userRepository.save(admin);
+
+        adminDe = new User("German", "Admin", "admin-de@xcmailr.test", "AdminPass123", "de");
+        adminDe.setActive(true);
+        adminDe.setAdmin(true);
+        userRepository.save(adminDe);
 
         regularUser = new User("Regular", "User", "user@xcmailr.test", "UserPass123", "en");
         regularUser.setActive(true);
@@ -246,5 +255,219 @@ public class AdminWebControllerTest
                .andExpect(model().attributeExists("totalMailboxes"))
                .andExpect(model().attributeExists("totalMails"))
                .andExpect(model().attributeExists("totalTransactions"));
+    }
+
+    // =========================================================================
+    // Testing Pyramid: Tier 2 - Localization Happy Path (English & German)
+    // =========================================================================
+
+    /**
+     * Verifies that the user management view renders localized text in English.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin users list renders localized strings in English (Happy Path)")
+    public void testAdminUsersLocalizedEnglish() throws Exception
+    {
+        mockMvc.perform(get("/admin/users")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/users"))
+               .andExpect(content().string(containsString("User Management")))
+               .andExpect(content().string(containsString("Manage registered user accounts")))
+               .andExpect(content().string(containsString("Email")))
+               .andExpect(content().string(containsString("Actions")))
+               .andExpect(content().string(containsString("You")));
+    }
+
+    /**
+     * Verifies that the user management view renders localized text in German.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin users list renders localized strings in German (Happy Path)")
+    public void testAdminUsersLocalizedGerman() throws Exception
+    {
+        mockMvc.perform(get("/admin/users")
+               .with(user(adminDe.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/users"))
+               .andExpect(content().string(containsString("Benutzerverwaltung")))
+               .andExpect(content().string(containsString("Registrierte Benutzerkonten")))
+               .andExpect(content().string(containsString("E-Mail")))
+               .andExpect(content().string(containsString("Aktionen")))
+               .andExpect(content().string(containsString("Sie")));
+    }
+
+    /**
+     * Verifies that the domain whitelist view renders localized text in English.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin domains whitelist renders localized strings in English (Happy Path)")
+    public void testAdminDomainsLocalizedEnglish() throws Exception
+    {
+        mockMvc.perform(get("/admin/domains")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/domains"))
+               .andExpect(content().string(containsString("Domain Whitelist")))
+               .andExpect(content().string(containsString("Add Domain")))
+               .andExpect(content().string(containsString("Domain Name")));
+    }
+
+    /**
+     * Verifies that the domain whitelist view renders localized text in German.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin domains whitelist renders localized strings in German (Happy Path)")
+    public void testAdminDomainsLocalizedGerman() throws Exception
+    {
+        mockMvc.perform(get("/admin/domains")
+               .with(user(adminDe.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/domains"))
+               .andExpect(content().string(containsString("Domain-Positivliste")))
+               .andExpect(content().string(containsString("Domain hinzufügen")))
+               .andExpect(content().string(containsString("Domain-Name")));
+    }
+
+    /**
+     * Verifies that the transaction audit view renders localized text in English.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin transactions audit log renders localized strings in English (Happy Path)")
+    public void testAdminTransactionsLocalizedEnglish() throws Exception
+    {
+        mockMvc.perform(get("/admin/transactions")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/transactions"))
+               .andExpect(content().string(containsString("Transaction Audit Log")))
+               .andExpect(content().string(containsString("Older than 7 days")))
+               .andExpect(content().string(containsString("Purge")))
+               .andExpect(content().string(containsString("Status Overview:")));
+    }
+
+    /**
+     * Verifies that the transaction audit view renders localized text in German.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin transactions audit log renders localized strings in German (Happy Path)")
+    public void testAdminTransactionsLocalizedGerman() throws Exception
+    {
+        mockMvc.perform(get("/admin/transactions")
+               .with(user(adminDe.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/transactions"))
+               .andExpect(content().string(containsString("Transaktions-Audit-Protokoll")))
+               .andExpect(content().string(containsString("Älter als 7 Tage")))
+               .andExpect(content().string(containsString("Bereinigen")))
+               .andExpect(content().string(containsString("Statusübersicht:")));
+    }
+
+    /**
+     * Verifies that the system statistics dashboard renders localized text in English.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin statistics dashboard renders localized strings in English (Happy Path)")
+    public void testAdminStatisticsLocalizedEnglish() throws Exception
+    {
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/statistics"))
+               .andExpect(content().string(containsString("Email Statistics")))
+               .andExpect(content().string(containsString("Registered Users")))
+               .andExpect(content().string(containsString("Active Mailboxes")))
+               .andExpect(content().string(containsString("Stored Messages")))
+               .andExpect(content().string(containsString("Logged Transactions")))
+               .andExpect(content().string(containsString("Transaction Delivery Breakdown")));
+    }
+
+    /**
+     * Verifies that the system statistics dashboard renders localized text in German.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin statistics dashboard renders localized strings in German (Happy Path)")
+    public void testAdminStatisticsLocalizedGerman() throws Exception
+    {
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(adminDe.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/statistics"))
+               .andExpect(content().string(containsString("E-Mail-Statistiken")))
+               .andExpect(content().string(containsString("Registrierte Benutzer")))
+               .andExpect(content().string(containsString("Aktive Postfächer")))
+               .andExpect(content().string(containsString("Gespeicherte Nachrichten")))
+               .andExpect(content().string(containsString("Protokollierte Transaktionen")))
+               .andExpect(content().string(containsString("Transaktions-Zustellungsübersicht")));
+    }
+
+    // =========================================================================
+    // Testing Pyramid: Tier 2 - Special Cases & Fallback Behavior
+    // =========================================================================
+
+    /**
+     * Verifies that admin views gracefully fall back to default English when requested by a user
+     * with an unsupported locale.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin views fall back to English on unsupported locale (Special Case)")
+    public void testAdminFallbackToEnglishOnUnsupportedLocale() throws Exception
+    {
+        final User adminUnsupported = new User("Italian", "Admin", "admin-it@xcmailr.test", "AdminPass123", "it");
+        adminUnsupported.setActive(true);
+        adminUnsupported.setAdmin(true);
+        userRepository.save(adminUnsupported);
+
+        mockMvc.perform(get("/admin/users")
+               .with(user(adminUnsupported.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/users"))
+               .andExpect(content().string(containsString("User Management")))
+               .andExpect(content().string(containsString("Manage registered user accounts")));
+    }
+
+    // =========================================================================
+    // Testing Pyramid: Tier 2 - Security (OWASP XSS Sanitization)
+    // =========================================================================
+
+    /**
+     * Verifies that potentially malicious XSS payloads stored in user attributes are strictly escaped
+     * in the rendered administrative HTML table, preventing cross-site scripting vulnerabilities.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin user list sanitizes XSS payloads in user attributes (Security Case)")
+    public void testAdminUserXssSanitizationInLocalizedView() throws Exception
+    {
+        final String xssPayload = "<script>alert('xss-admin')</script>";
+        final User maliciousUser = new User("Malicious", xssPayload, "malicious@xcmailr.test", "UserPass123", "de");
+        maliciousUser.setActive(true);
+        maliciousUser.setAdmin(false);
+        userRepository.save(maliciousUser);
+
+        mockMvc.perform(get("/admin/users")
+               .with(user(adminDe.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(not(containsString("<script>alert('xss-admin')</script>"))))
+               .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;xss-admin&#39;)&lt;/script&gt;")));
     }
 }

@@ -38,6 +38,10 @@ import com.xceptance.xcmailr.XcmailrApplication;
 
 import jakarta.servlet.RequestDispatcher;
 
+/**
+ * Controller integration tests verifying localized error handling and view resolution
+ * for HTTP 404, HTTP 500, and generic HTTP error responses across English and German locales.
+ */
 @SpringBootTest(classes = XcmailrApplication.class)
 @ActiveProfiles("test")
 public class WebErrorHandlingTest
@@ -56,6 +60,15 @@ public class WebErrorHandlingTest
                 .build();
     }
 
+    // =========================================================================
+    // Testing Pyramid: Error Cases - Route Not Found (404)
+    // =========================================================================
+
+    /**
+     * Verifies that authenticated access to a non-existent route returns HTTP 404 status.
+     *
+     * @throws Exception if request execution fails
+     */
     @Test
     @DisplayName("Authenticated access to non-existent route should return 404 status")
     public void testNonExistentRouteReturns404() throws Exception
@@ -66,8 +79,17 @@ public class WebErrorHandlingTest
                .andExpect(status().isNotFound());
     }
 
+    // =========================================================================
+    // Testing Pyramid: Happy Path - English Localized Error Views
+    // =========================================================================
+
+    /**
+     * Verifies that the /error endpoint resolves the English error/404 view when ERROR_STATUS_CODE is 404.
+     *
+     * @throws Exception if request execution fails
+     */
     @Test
-    @DisplayName("Error endpoint with 404 status attribute should resolve error/404 view")
+    @DisplayName("Error endpoint with 404 status attribute should resolve error/404 view in English")
     public void testErrorEndpointResolves404View() throws Exception
     {
         mockMvc.perform(get("/error")
@@ -81,8 +103,13 @@ public class WebErrorHandlingTest
                .andExpect(content().string(containsString("Return to Dashboard")));
     }
 
+    /**
+     * Verifies that the /error endpoint resolves the English error/500 view when ERROR_STATUS_CODE is 500.
+     *
+     * @throws Exception if request execution fails
+     */
     @Test
-    @DisplayName("Error endpoint with 500 status attribute should resolve error/500 view")
+    @DisplayName("Error endpoint with 500 status attribute should resolve error/500 view in English")
     public void testErrorEndpointResolves500View() throws Exception
     {
         mockMvc.perform(get("/error")
@@ -96,8 +123,13 @@ public class WebErrorHandlingTest
                .andExpect(content().string(containsString("Return to Dashboard")));
     }
 
+    /**
+     * Verifies that the /error endpoint resolves the English generic error view for other status codes.
+     *
+     * @throws Exception if request execution fails
+     */
     @Test
-    @DisplayName("Error endpoint with other status attribute should resolve generic error view")
+    @DisplayName("Error endpoint with other status attribute should resolve generic error view in English")
     public void testErrorEndpointResolvesGenericErrorView() throws Exception
     {
         mockMvc.perform(get("/error")
@@ -109,5 +141,73 @@ public class WebErrorHandlingTest
                .andExpect(view().name("error"))
                .andExpect(content().string(containsString("HTTP 400")))
                .andExpect(content().string(containsString("Return to Dashboard")));
+    }
+
+    // =========================================================================
+    // Testing Pyramid: Special Cases - German Localized Error Views
+    // =========================================================================
+
+    /**
+     * Verifies that the /error endpoint resolves the German error/404 view when requested with Accept-Language: de.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Error endpoint with 404 status attribute should resolve error/404 view in German")
+    public void testErrorEndpointResolves404ViewInGerman() throws Exception
+    {
+        mockMvc.perform(get("/error")
+               .header("Accept-Language", "de")
+               .accept(MediaType.TEXT_HTML)
+               .requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 404)
+               .requestAttr(RequestDispatcher.ERROR_REQUEST_URI, "/unknown-page"))
+               .andExpect(status().isNotFound())
+               .andExpect(view().name("error/404"))
+               .andExpect(content().string(containsString("Seite nicht gefunden")))
+               .andExpect(content().string(containsString("HTTP 404")))
+               .andExpect(content().string(containsString("Zurück zur Übersicht")));
+    }
+
+    /**
+     * Verifies that the /error endpoint resolves the German error/500 view when requested with Accept-Language: de.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Error endpoint with 500 status attribute should resolve error/500 view in German")
+    public void testErrorEndpointResolves500ViewInGerman() throws Exception
+    {
+        mockMvc.perform(get("/error")
+               .header("Accept-Language", "de")
+               .accept(MediaType.TEXT_HTML)
+               .requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 500)
+               .requestAttr(RequestDispatcher.ERROR_REQUEST_URI, "/broken-action"))
+               .andExpect(status().isInternalServerError())
+               .andExpect(view().name("error/500"))
+               .andExpect(content().string(containsString("Interner Serverfehler")))
+               .andExpect(content().string(containsString("HTTP 500")))
+               .andExpect(content().string(containsString("Zurück zur Übersicht")))
+               .andExpect(content().string(containsString("Erneut versuchen")));
+    }
+
+    /**
+     * Verifies that the /error endpoint resolves the German generic error view when requested with Accept-Language: de.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Error endpoint with other status attribute should resolve generic error view in German")
+    public void testErrorEndpointResolvesGenericErrorViewInGerman() throws Exception
+    {
+        mockMvc.perform(get("/error")
+               .header("Accept-Language", "de")
+               .accept(MediaType.TEXT_HTML)
+               .requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 400)
+               .requestAttr(RequestDispatcher.ERROR_MESSAGE, "Bad Request")
+               .requestAttr(RequestDispatcher.ERROR_REQUEST_URI, "/malformed"))
+               .andExpect(status().isBadRequest())
+               .andExpect(view().name("error"))
+               .andExpect(content().string(containsString("HTTP 400")))
+               .andExpect(content().string(containsString("Zurück zur Übersicht")));
     }
 }

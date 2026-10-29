@@ -7,19 +7,19 @@
 <div th:fragment="content">
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <h2 class="fw-bold mb-1">Domain Whitelist</h2>
-            <p class="text-muted mb-0">Configure domains allowed for virtual mailboxes and user accounts.</p>
+            <h2 class="fw-bold mb-1" th:text="#{admin.domains.title}">Domain Whitelist</h2>
+            <p class="text-muted mb-0" th:text="#{admin.domains.subtitle}">Configure domains allowed for virtual mailboxes and user accounts.</p>
         </div>
     </div>
 
     <!-- Alert banners -->
     <div th:if="${param.created}" class="alert alert-success alert-dismissible fade show" role="alert">
-        Domain added to whitelist successfully.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <span th:text="#{admin.domains.alert.created}">Domain added to whitelist successfully.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{common.action.close}" aria-label="Close"></button>
     </div>
-    <div th:if="${param.error == 'duplicateDomain'}" class="alert alert-warning alert-dismissible fade show" role="alert">
-        This domain already exists in the whitelist.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div th:if="${param.error != null and (param.error == 'duplicateDomain' or param.error[0] == 'duplicateDomain')}" class="alert alert-warning alert-dismissible fade show" role="alert">
+        <span th:text="#{admin.domains.alert.duplicate}">This domain already exists in the whitelist.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{common.action.close}" aria-label="Close"></button>
     </div>
 
     <!-- Add Domain Form -->
@@ -32,6 +32,7 @@
                     <div class="input-group">
                         <span class="input-group-text bg-white">@</span>
                         <input type="text" class="form-control" id="domainInput" name="domainName"
+                               th:placeholder="#{admin.domains.addPlaceholder}"
                                placeholder="e.g. mail.example.com"
                                pattern="^[a-zA-Z0-9]+([\-\.]{1}[a-zA-Z0-9]+)*\.[a-zA-Z]{2,63}$"
                                title="Valid fully qualified domain name"
@@ -39,7 +40,7 @@
                     </div>
                 </div>
                 <div class="col-sm-4 col-md-3">
-                    <button type="submit" class="btn btn-primary w-100">Add Domain</button>
+                    <button type="submit" class="btn btn-primary w-100" th:text="#{admin.domains.addButton}">Add Domain</button>
                 </div>
             </form>
         </div>

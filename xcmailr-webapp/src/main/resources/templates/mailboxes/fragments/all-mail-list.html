@@ -8,16 +8,16 @@
         <table class="table table-hover table-middle mb-0" id="mail-list-table">
             <thead class="table-light">
                 <tr>
-                    <th scope="col" class="d-none d-md-table-cell" style="width: 140px;">Received</th>
-                    <th scope="col">Message &amp; Recipient</th>
-                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;">Actions</th>
+                    <th scope="col" class="d-none d-md-table-cell" style="width: 140px;" th:text="#{mail.table.column.received}">Received</th>
+                    <th scope="col" th:text="#{mail.table.column.messageAndRecipient}">Message &amp; Recipient</th>
+                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;" th:text="#{mail.table.column.actions}">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:if="${(mailPage != null and totalElements == 0) or #lists.isEmpty(mails)}">
                     <td colspan="3" class="text-center text-muted py-5 empty-inbox-state">
                         <i class="bi bi-envelope-open display-6 d-block mb-2 text-secondary opacity-50"></i>
-                        <em>No messages received across your mailboxes yet.</em>
+                        <em th:text="#{mail.all.empty}">No messages received across your mailboxes yet.</em>
                     </td>
                 </tr>
 
@@ -31,7 +31,7 @@
                     <td>
                         <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
                             <span class="badge bg-light text-dark border recipient-badge"
-                                  th:text="${mailboxAddressMap != null and mailboxAddressMap.containsKey(m.mailboxId) ? mailboxAddressMap.get(m.mailboxId) : 'Unknown Mailbox'}">
+                                  th:text="${mailboxAddressMap != null and mailboxAddressMap.containsKey(m.mailboxId) ? mailboxAddressMap.get(m.mailboxId) : #messages.msg('mail.unknownMailbox')}">
                                 mailbox@example.com
                             </span>
                             <span class="small text-muted d-md-none ms-auto">
@@ -49,11 +49,12 @@
                     <td class="text-end text-nowrap align-middle" onclick="event.stopPropagation();">
                         <div class="btn-group btn-group-sm">
                             <a th:href="@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}}"
-                               class="btn btn-outline-secondary btn-touch-target p-2" title="Open full view">
+                               class="btn btn-outline-secondary btn-touch-target p-2" th:title="#{mail.action.openTooltip}" title="Open full view">
                                 <i class="bi bi-box-arrow-up-right"></i>
                             </a>
                             <button class="btn btn-outline-danger btn-touch-target p-2" type="button"
-                                    th:attr="hx-delete=@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}},hx-swap='none',hx-confirm='Delete this email?'"
+                                    th:attr="hx-delete=@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}},hx-swap='none',hx-confirm=#{mail.detail.deleteConfirm}"
+                                    th:title="#{mail.action.deleteTooltip}"
                                     title="Delete email">
                                 <i class="bi bi-trash"></i>
                             </button>
@@ -66,7 +67,7 @@
         <!-- HTMX Pagination Controls -->
         <nav th:if="${mailPage != null and totalPages != null and totalPages > 0}" aria-label="Mail pagination" class="d-flex justify-content-between align-items-center p-3 border-top flex-wrap gap-2">
             <div class="text-muted small">
-                Showing <span class="fw-semibold" th:text="${mailPage.numberOfElements}">1</span> of <span class="fw-semibold" th:text="${totalElements}">1</span> messages
+                <th:block th:text="#{mail.table.showingPrefix}">Showing</th:block> <span class="fw-semibold" th:text="${mailPage.numberOfElements}">1</span> <th:block th:text="#{mail.table.showingOf}">of</th:block> <span class="fw-semibold" th:text="${totalElements}">1</span> <th:block th:text="#{mail.table.showingMessages}">messages</th:block>
             </div>
             <ul class="pagination pagination-sm mb-0">
                 <!-- First Page -->
@@ -74,6 +75,7 @@
                     <a class="page-link pagination-first"
                        th:href="@{/mails(page=0, size=${pageSize != null ? pageSize : 25})}"
                        th:attr="hx-get=@{/mails(page=0, size=${pageSize != null ? pageSize : 25})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                       th:aria-label="#{mail.pagination.first}"
                        aria-label="First">&laquo;</a>
                 </li>
                 <!-- Previous Page -->
@@ -81,6 +83,7 @@
                     <a class="page-link pagination-prev"
                        th:href="@{/mails(page=${currentPage != null and currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize != null ? pageSize : 25})}"
                        th:attr="hx-get=@{/mails(page=${currentPage != null and currentPage > 0 ? currentPage - 1 : 0}, size=${pageSize != null ? pageSize : 25})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                       th:aria-label="#{common.pagination.previous}"
                        aria-label="Previous">&lsaquo;</a>
                 </li>
                 <!-- Page Numbers -->
@@ -97,6 +100,7 @@
                     <a class="page-link pagination-next"
                        th:href="@{/mails(page=${currentPage != null and currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1}, size=${pageSize != null ? pageSize : 25})}"
                        th:attr="hx-get=@{/mails(page=${currentPage != null and currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1}, size=${pageSize != null ? pageSize : 25})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                       th:aria-label="#{common.pagination.next}"
                        aria-label="Next">&rsaquo;</a>
                 </li>
                 <!-- Last Page -->
@@ -104,6 +108,7 @@
                     <a class="page-link pagination-last"
                        th:href="@{/mails(page=${totalPages - 1}, size=${pageSize != null ? pageSize : 25})}"
                        th:attr="hx-get=@{/mails(page=${totalPages - 1}, size=${pageSize != null ? pageSize : 25})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                       th:aria-label="#{mail.pagination.last}"
                        aria-label="Last">&raquo;</a>
                 </li>
             </ul>
