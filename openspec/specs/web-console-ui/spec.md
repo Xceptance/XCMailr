@@ -79,7 +79,7 @@ The system SHALL provide web views for user registration, email verification, se
 - **THEN** the system rejects the request with an HTTP 403 Forbidden response and preserves all account data untouched
 
 ### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with case-insensitive natural alphabetical ordering for email addresses, displaying clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`), providing uniform vertical alignment across all table header elements, and presenting a streamlined 7-column layout without redundant calculated mail counts.
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with case-insensitive natural alphabetical ordering for email addresses, displaying clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`), providing uniform vertical alignment across all table header elements, presenting a streamlined 7-column layout without redundant calculated mail counts, and displaying a localized item range pagination summary (e.g., `Showing 1–15 of 17 mailboxes` or `Zeige 1–15 von 17 Postfächern`) matching the authenticated user's preferred language.
 
 #### Scenario: Live Search and Filter
 - **WHEN** the user types into the mailbox filter input
@@ -149,6 +149,39 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 #### Scenario: Table Footer Utility Export Links
 - **WHEN** the mailbox table is rendered
 - **THEN** subtle secondary text export links ("All (.txt)" and "Active (.txt)") are rendered within the table footer utility and pagination area below the table, remaining accessible without competing with primary page actions
+
+#### Scenario: Localized Item Range Display for Multi-Page Datasets (Happy Path)
+- **WHEN** an authenticated user views a mailbox table containing items across multiple pages (e.g., 17 items with page size 15)
+- **THEN** the table footer renders an item range indicator indicating the starting item, ending item, and total count (e.g., `Showing 1–15 of 17 mailboxes` on page 1, and `Showing 16–17 of 17 mailboxes` on page 2)
+- **AND** the summary renders alongside the pagination controls and export utility links
+
+#### Scenario: Localized Item Range Display for Single-Page Datasets (Happy Path)
+- **WHEN** an authenticated user views a mailbox table where all items fit on a single page (e.g., 3 items with page size 15)
+- **THEN** the footer displays `Showing 1–3 of 3 mailboxes`
+
+#### Scenario: Singular Phrasing for Single-Item Mailbox Dataset (Special Case)
+- **WHEN** an authenticated user views a mailbox table containing exactly one mailbox
+- **THEN** the footer displays singular phrasing `Showing 1 of 1 mailbox` rather than plural range phrasing
+
+#### Scenario: Localized Item Range Display with German User Language Preference (Happy Path)
+- **WHEN** an authenticated user whose account profile specifies German (`language = 'de'`) views the mailbox table or performs pagination/filter swaps via HTMX
+- **THEN** the system resolves German localization and displays the item range in German (e.g., `Zeige 1–15 von 17 Postfächern` or `Zeige 1 von 1 Postfach`)
+
+#### Scenario: Locale Resolution Fallback for Unknown or Missing Language Preference (Error / Fallback Case)
+- **WHEN** an authenticated user whose account profile contains a null, empty, or unsupported language code (e.g., `language = null`, `language = ""`, or `language = "fr"`) accesses the mailbox table
+- **THEN** the system safely falls back to standard English localization and renders `Showing 1–15 of 17 mailboxes` without throwing exceptions
+
+#### Scenario: Locale Resolution for Unauthenticated Request (Special Case)
+- **WHEN** an unauthenticated or anonymous request accesses a localized view or partial fragment
+- **THEN** the locale resolver delegates to standard header-based locale resolution using the HTTP `Accept-Language` header, defaulting to English if the header is absent or unrecognized
+
+#### Scenario: Localized Range Indicator Preservation During HTMX Table Refreshes (Special Case)
+- **WHEN** an authenticated user changes pages, updates a status filter, or executes an inline/bulk mailbox action that triggers an HTMX partial table refresh
+- **THEN** the refreshed mailbox table fragment retains the correct localized range indicator matching the user's active language and current page slice
+
+#### Scenario: Localized Item Range Display with Empty Mailbox Dataset (Edge Case)
+- **WHEN** an authenticated user views the mailbox table with zero matching mailboxes
+- **THEN** the table renders the empty state view without displaying active pagination ranges
 
 #### Scenario: Responsive Mobile Table Viewport
 - **WHEN** a user views the mailbox table on a mobile viewport narrower than 576px

@@ -215,12 +215,12 @@
     <!-- Table Footer & Pagination Controls -->
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3" th:if="${page.totalElements > 0}">
         <div class="d-flex flex-wrap align-items-center gap-3">
-            <span class="text-muted small" th:if="${page.totalPages > 1}">
-                Page <strong th:text="${page.number + 1}">1</strong> of <strong th:text="${page.totalPages}">1</strong>
-                (<span th:text="${page.totalElements}">0</span> total mailboxes)
+            <span class="text-muted small" th:if="${page.totalElements == 1}" th:text="#{mailbox.table.showingSingle}">
+                Showing 1 of 1 mailbox
             </span>
-            <span class="text-muted small" th:unless="${page.totalPages > 1}">
-                <span th:text="${page.totalElements}">0</span> total mailboxes
+            <span class="text-muted small" th:if="${page.totalElements > 1}"
+                  th:text="#{mailbox.table.showingRange(${page.number * page.size + 1}, ${page.number * page.size + page.numberOfElements}, ${page.totalElements})}">
+                Showing 1–15 of 17 mailboxes
             </span>
             <span class="text-muted small">
                 Export:

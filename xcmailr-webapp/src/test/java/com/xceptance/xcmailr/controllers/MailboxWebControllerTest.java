@@ -1589,5 +1589,209 @@ public final class MailboxWebControllerTest
         assertNotNull(blankSort.getOrderFor("id"));
         assertEquals(Sort.Direction.DESC, blankSort.getOrderFor("id").getDirection());
     }
+
+    // =========================================================================
+    // LOCALIZED PAGINATION RANGE INTEGRATION TESTS (TIER 2)
+    // =========================================================================
+
+    /**
+     * Helper method to populate a given number of distinct test mailboxes for the specified user.
+     *
+     * @param count the number of mailboxes to create
+     * @param targetUser the owning user
+     */
+    private void createMailboxes(final int count, final User targetUser)
+    {
+        final List<MBox> boxes = new ArrayList<>(count);
+        for (int i = 1; i <= count; i++)
+        {
+            final MBox box = new MBox("box-" + i, "xcmailr.test", System.currentTimeMillis() + 3600000L, false, targetUser);
+            boxes.add(box);
+        }
+        mailboxRepository.saveAll(boxes);
+    }
+
+    /**
+     * Verifies happy path: multi-page dataset (17 mailboxes, default page size 15) renders
+     * the item range summary "Showing 1–15 of 17 mailboxes" on page 1 for an English-preference user.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Multi-page mailbox table renders 'Showing 1–15 of 17 mailboxes' on page 1")
+    public void testListMailboxes_HappyPath_MultiPageRangeDisplayEnglish() throws Exception
+    {
+        // GIVEN: 17 mailboxes owned by Alice (English locale preference)
+        createMailboxes(17, owner);
+
+        // WHEN: requesting the first page (page 0) of the mailbox dashboard
+        // THEN: verify HTTP 200 and localized range summary in table footer
+        mockMvc.perform(get("/mailboxes")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/index"))
+               .andExpect(content().string(containsString("Showing 1–15 of 17 mailboxes")))
+               .andExpect(content().string(not(containsString("total mailboxes"))));
+    }
+
+    /**
+     * Verifies special case: subsequent page (page 2 of 2) displays the correct offset range
+     * "Showing 16–17 of 17 mailboxes" for an English-preference user.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special Case: Page 2 of multi-page mailbox table renders 'Showing 16–17 of 17 mailboxes'")
+    public void testListMailboxes_SpecialCase_SubsequentPageRangeDisplayEnglish() throws Exception
+    {
+        // GIVEN: 17 mailboxes owned by Alice
+        createMailboxes(17, owner);
+
+        // WHEN: navigating to the second page (page 1)
+        // THEN: verify HTTP 200 and localized range summary reflecting elements 16 to 17
+        mockMvc.perform(get("/mailboxes")
+               .param("page", "1")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/index"))
+               .andExpect(content().string(containsString("Showing 16–17 of 17 mailboxes")));
+    }
+
+    /**
+     * Verifies special case: single mailbox dataset displays singular phrasing
+     * "Showing 1 of 1 mailbox" rather than range phrasing.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special Case: Single mailbox dataset renders singular phrasing 'Showing 1 of 1 mailbox'")
+    public void testListMailboxes_SpecialCase_SingleItemDisplayEnglish() throws Exception
+    {
+        // GIVEN: exactly 1 mailbox owned by Alice
+        createMailboxes(1, owner);
+
+        // WHEN: requesting the mailbox dashboard
+        // THEN: verify singular phrasing is displayed and range phrasing is absent
+        mockMvc.perform(get("/mailboxes")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Showing 1 of 1 mailbox")))
+               .andExpect(content().string(not(containsString("Showing 1–1"))));
+    }
+
+    /**
+     * Verifies happy path: multi-page dataset renders German range string
+     * "Zeige 1–15 von 17 Postfächern" when user account language is configured to German ("de").
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: User with German language preference receives 'Zeige 1–15 von 17 Postfächern'")
+    public void testListMailboxes_HappyPath_GermanLocaleRangeDisplay() throws Exception
+    {
+        // GIVEN: user profile set to German language preference and 17 mailboxes
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        createMailboxes(17, owner);
+
+        // WHEN: requesting the mailbox dashboard
+        // THEN: verify German localized pagination summary
+        mockMvc.perform(get("/mailboxes")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Zeige 1–15 von 17 Postfächern")));
+    }
+
+    /**
+     * Verifies special case: single mailbox dataset renders German singular phrasing
+     * "Zeige 1 von 1 Postfach" when user language is German ("de").
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special Case: User with German language preference receives singular 'Zeige 1 von 1 Postfach'")
+    public void testListMailboxes_SpecialCase_GermanLocaleSingleItemDisplay() throws Exception
+    {
+        // GIVEN: user profile set to German language preference and 1 mailbox
+        owner.setLanguage("de");
+        userRepository.save(owner);
+        createMailboxes(1, owner);
+
+        // WHEN: requesting the mailbox dashboard
+        // THEN: verify German singular pagination summary
+        mockMvc.perform(get("/mailboxes")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Zeige 1 von 1 Postfach")));
+    }
+
+    /**
+     * Verifies error / fallback case: unsupported user language preference (e.g. "fr")
+     * safely falls back to standard English localization without errors.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error/Fallback Case: Unsupported language code falls back to English range display")
+    public void testListMailboxes_ErrorCase_UnsupportedLocaleFallsBackToEnglish() throws Exception
+    {
+        // GIVEN: user profile with unsupported language "fr" and 17 mailboxes
+        owner.setLanguage("fr");
+        userRepository.save(owner);
+        createMailboxes(17, owner);
+
+        // WHEN: requesting the mailbox dashboard
+        // THEN: verify fallback to English pagination summary
+        mockMvc.perform(get("/mailboxes")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Showing 1–15 of 17 mailboxes")));
+    }
+
+    /**
+     * Verifies special case: HTMX partial table swaps (header HX-Request: true) return
+     * the table fragment with the correct localized item range summary.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Special Case: HTMX partial table swap retains localized range display")
+    public void testListMailboxes_SpecialCase_HtmxPaginationPartialSwapPreservesRange() throws Exception
+    {
+        // GIVEN: 17 mailboxes owned by Alice
+        createMailboxes(17, owner);
+
+        // WHEN: requesting second page via asynchronous HTMX request
+        // THEN: verify partial table fragment is returned containing the range summary
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("page", "1")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+               .andExpect(content().string(containsString("Showing 16–17 of 17 mailboxes")));
+    }
+
+    /**
+     * Verifies edge case: empty mailbox dataset renders empty state view
+     * and completely omits the pagination range summary.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Edge Case: Empty mailbox dataset renders empty state and omits range summary")
+    public void testListMailboxes_EdgeCase_EmptyDatasetRendersEmptyStateWithoutPaginationSummary() throws Exception
+    {
+        // GIVEN: zero mailboxes for Alice (empty dataset)
+
+        // WHEN: requesting the mailbox dashboard
+        // THEN: verify empty state message is present and pagination range summaries are omitted
+        mockMvc.perform(get("/mailboxes")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("No mailboxes found matching the criteria.")))
+               .andExpect(content().string(not(containsString("Showing"))))
+               .andExpect(content().string(not(containsString("Zeige"))));
+    }
 }
 

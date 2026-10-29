@@ -41,6 +41,9 @@ spring:
     cache: false
     mode: HTML
     encoding: UTF-8
+  messages:
+    basename: conf/messages
+    encoding: UTF-8
 
 logging:
   file:
