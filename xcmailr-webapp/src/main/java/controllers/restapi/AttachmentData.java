@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package controllers.restapi;
 
 import java.io.IOException;
 
-import javax.activation.DataSource;
+import jakarta.activation.DataSource;
 
 /**
  * The data object that represents the details of a mail attachment.

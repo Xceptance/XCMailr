@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::content})}">
+<body>
+
+<div th:fragment="content">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" th:text="#{mailbox.index.title}">Mailboxes</h2>
+            <p class="text-muted mb-0" th:text="#{mailbox.index.subtitle}">Manage your temporary email addresses, forwarding, and expiration policies.</p>
+        </div>
+        <div>
+            <button class="btn btn-primary" type="button"
+                    th:attr="hx-get=@{/mailboxes/new},hx-target='#modal-container',hx-swap='innerHTML'"
+                    data-bs-toggle="modal" data-bs-target="#actionModal">
+                <i class="bi bi-plus-lg me-1"></i> <span th:text="#{mailbox.index.newButton}">New Mailbox</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert / notification banners if any -->
+    <div th:if="${param.created}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="#{mailbox.index.alert.created}">Mailbox created successfully.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{common.button.close}" aria-label="Close"></button>
+    </div>
+    <div th:if="${param.error != null and (param.error[0] == 'mailboxExists' or param.error == 'mailboxExists')}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="#{mailbox.index.alert.exists}">A mailbox with this address already exists. Please choose a different local part.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{common.button.close}" aria-label="Close"></button>
+    </div>
+
+    <!-- Filter & Live Search Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row g-2 align-items-center">
+                <!-- Search Input with HTMX live search (triggers on keyup with 300ms debounce) -->
+                <div class="col-12 col-md-7 col-lg-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="search" class="form-control border-start-0" name="search"
+                               th:placeholder="#{mailbox.index.searchPlaceholder}"
+                               placeholder="Live search by address or domain..."
+                               th:value="${search}"
+                               hx-get="/mailboxes"
+                               hx-trigger="keyup changed delay:300ms, search"
+                               hx-target="#mailbox-table-container"
+                               hx-swap="outerHTML"
+                               hx-include="#statusFilterSelect, [name='sort'], [name='dir']">
+                    </div>
+                </div>
+
+                <!-- Status Filter Dropdown -->
+                <div class="col-12 col-md-5 col-lg-4">
+                    <div class="d-flex align-items-center justify-content-start justify-content-md-end">
+                        <label for="statusFilterSelect" class="form-label text-muted small me-2 mb-0 text-nowrap" th:text="#{mailbox.index.filterLabel}">Filter:</label>
+                        <select class="form-select form-select-sm" id="statusFilterSelect" name="status"
+                                style="max-width: 180px;"
+                                hx-get="/mailboxes"
+                                hx-trigger="change"
+                                hx-target="#mailbox-table-container"
+                                hx-swap="outerHTML"
+                                hx-include="[name='search'], [name='sort'], [name='dir']">
+                            <option value="ALL" th:selected="${status == 'ALL'}" th:text="#{mailbox.index.filter.all}">All Statuses</option>
+                            <option value="ACTIVE" th:selected="${status == 'ACTIVE'}" th:text="#{mailbox.index.filter.active}">Active Only</option>
+                            <option value="EXPIRED" th:selected="${status == 'EXPIRED'}" th:text="#{mailbox.index.filter.expired}">Expired Only</option>
+                            <option value="EXPIRING" th:selected="${status == 'EXPIRING'}" th:text="#{mailbox.index.filter.expiring}">Expiring Only</option>
+                            <option value="UNLIMITED" th:selected="${status == 'UNLIMITED'}" th:text="#{mailbox.index.filter.unlimited}">Unlimited Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mailbox Table Container (Updated dynamically via HTMX) -->
+    <div th:replace="~{mailboxes/fragments/mailbox-table :: table}"></div>
+
+    <!-- Client-side Selection Synchronization & Bulk Actions Script -->
+    <script>
+        (function () {
+            'use strict';
+
+            /**
+             * Recalculates selection count, updates the master checkbox (checked / indeterminate),
+             * and shows or hides the floating batch bar.
+             */
+            function updateSelectionState() {
+                const rowCheckboxes = document.querySelectorAll('input.mailbox-select');
+                const checkedCheckboxes = document.querySelectorAll('input.mailbox-select:checked');
+                const masterCheckbox = document.getElementById('selectAllMailboxes');
+                const floatingBar = document.getElementById('floatingBatchBar');
+                const countSpan = document.getElementById('bulkSelectionCount');
+
+                const totalCount = rowCheckboxes.length;
+                const checkedCount = checkedCheckboxes.length;
+
+                // Update master checkbox state
+                if (masterCheckbox) {
+                    if (checkedCount === 0 || totalCount === 0) {
+                        masterCheckbox.checked = false;
+                        masterCheckbox.indeterminate = false;
+                    } else if (checkedCount === totalCount) {
+                        masterCheckbox.checked = true;
+                        masterCheckbox.indeterminate = false;
+                    } else {
+                        masterCheckbox.checked = false;
+                        masterCheckbox.indeterminate = true;
+                    }
+                }
+
+                // Update floating batch bar visibility and counter
+                if (floatingBar) {
+                    if (checkedCount > 0) {
+                        if (countSpan) {
+                            countSpan.textContent = checkedCount;
+                        }
+                        floatingBar.classList.remove('d-none');
+                    } else {
+                        floatingBar.classList.add('d-none');
+                    }
+                }
+            }
+
+            /**
+             * Deselects all mailboxes and hides the floating batch bar.
+             */
+            function deselectAll() {
+                const rowCheckboxes = document.querySelectorAll('input.mailbox-select');
+                rowCheckboxes.forEach(function (cb) {
+                    cb.checked = false;
+                });
+                const masterCheckbox = document.getElementById('selectAllMailboxes');
+                if (masterCheckbox) {
+                    masterCheckbox.checked = false;
+                    masterCheckbox.indeterminate = false;
+                }
+                const floatingBar = document.getElementById('floatingBatchBar');
+                if (floatingBar) {
+                    floatingBar.classList.add('d-none');
+                }
+            }
+
+            // Master and row checkbox change handlers using document-level event delegation
+            document.addEventListener('change', function (e) {
+                if (e.target && e.target.id === 'selectAllMailboxes') {
+                    const isChecked = e.target.checked;
+                    const rowCheckboxes = document.querySelectorAll('input.mailbox-select');
+                    rowCheckboxes.forEach(function (cb) {
+                        cb.checked = isChecked;
+                    });
+                    updateSelectionState();
+                } else if (e.target && e.target.classList.contains('mailbox-select')) {
+                    updateSelectionState();
+                }
+            });
+
+            // Click handlers for deselect all button and bulk export form submission
+            document.addEventListener('click', function (e) {
+                if (e.target && e.target.closest('#bulkDeselectBtn')) {
+                    deselectAll();
+                } else if (e.target && e.target.closest('#bulkExportBtn')) {
+                    const checkedBoxes = document.querySelectorAll('input.mailbox-select:checked');
+                    const form = document.getElementById('bulkExportForm');
+                    if (form && checkedBoxes.length > 0) {
+                        form.querySelectorAll('input[data-dynamic-id="true"]').forEach(function (el) {
+                            el.remove();
+                        });
+                        checkedBoxes.forEach(function (cb) {
+                            const hidden = document.createElement('input');
+                            hidden.type = 'hidden';
+                            hidden.name = 'mailboxIds';
+                            hidden.value = cb.value;
+                            hidden.setAttribute('data-dynamic-id', 'true');
+                            form.appendChild(hidden);
+                        });
+                        form.submit();
+                    }
+                }
+            });
+
+            // HTMX after-swap listener: re-synchronize selection when table container updates
+            document.addEventListener('htmx:afterSwap', function (e) {
+                if (e.detail && e.detail.target && (e.detail.target.id === 'mailbox-table-container' || e.detail.target.closest('#mailbox-table-container'))) {
+                    updateSelectionState();
+                }
+            });
+
+            // Initial state calculation on page load
+            document.addEventListener('DOMContentLoaded', function () {
+                updateSelectionState();
+            });
+        })();
+    </script>
+</div>
+
+</body>
+</html>

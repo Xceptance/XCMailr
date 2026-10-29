@@ -1,0 +1,50 @@
+name: xcmailr-test-environment
+
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: xcmailr-test-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"   # Web UI for inspecting forwarded & outbound emails
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: ""  # In-memory storage for test simplicity
+    networks:
+      - xcmailr-test-net
+
+  xcmailr:
+    image: ${XCMAILR_IMAGE:-ghcr.io/xceptance/xcmailr:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xcmailr-test-app
+    restart: unless-stopped
+    depends_on:
+      - mailpit
+    ports:
+      - "${PORT:-8080}:8080"
+      - "${MBOX_PORT:-25000}:${MBOX_PORT:-25000}"
+    environment:
+      PORT: 8080
+      MBOX_PORT: ${MBOX_PORT:-25000}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-xcmailr-admin-api-token-2026}
+      # Route outbound mail (forwarding and user confirmations) to Mailpit mock relay
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_AUTH: "false"
+      SMTP_TLS: "false"
+      SMTP_STARTTLS: "false"
+    volumes:
+      - xcmailr-test-data:/data
+    networks:
+      - xcmailr-test-net
+
+volumes:
+  xcmailr-test-data:
+
+networks:
+  xcmailr-test-net:
+    driver: bridge
+

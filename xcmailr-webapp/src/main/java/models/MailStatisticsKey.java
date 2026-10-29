@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,10 @@ public class MailStatisticsKey implements Serializable
 
     @Column(name = "TARGET_DOMAIN", nullable = false)
     private String targetDomain;
+
+    public MailStatisticsKey()
+    {
+    }
 
     public MailStatisticsKey(Date date, int quarterHour, String fromDomain, String targetDomain)
     {

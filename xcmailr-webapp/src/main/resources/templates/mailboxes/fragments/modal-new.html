@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="modal" class="modal-content">
+    <form hx-post="/mailboxes" hx-target="#modal-container" hx-swap="innerHTML">
+        <div class="modal-header">
+            <h5 class="modal-title" th:text="#{mailbox.modal.new.title}">Create Temporary Mailbox</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" th:aria-label="#{common.button.close}" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <!-- Inline error alert if validation fails -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${error}">Validation error</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{common.button.close}" aria-label="Close"></button>
+            </div>
+
+            <div class="mb-3">
+                <label for="addressInput" class="form-label" th:text="#{mailbox.modal.new.addressPrefix}">Address Prefix (leave blank for random)</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="addressInput" name="address"
+                           th:value="${address}"
+                           th:placeholder="${suggestedAddress}"
+                           pattern="[a-zA-Z0-9!#$%&'*+/=?^_`{|}~.-]*"
+                           th:title="#{mailbox.modal.new.addressPattern}"
+                           title="Letters, digits, and standard email characters">
+                    <span class="input-group-text">@</span>
+                    <select class="form-select" id="domainSelect" name="domain" required>
+                        <option th:each="d : ${domains}" th:value="${d.domainname}" th:text="${d.domainname}"
+                                th:selected="${d.domainname == selectedDomain}">
+                            example.com
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label d-block" th:text="#{mailbox.modal.new.duration}">Active Duration</label>
+                <div class="btn-group w-100 flex-wrap" role="group" aria-label="Mailbox active duration presets" th:aria-label="#{common.aria.toolbar.durationPresets}">
+                    <input type="radio" class="btn-check" name="durationHours" id="duration-1" value="1" autocomplete="off"
+                           th:checked="${selectedDuration == 1}">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="duration-1">1h</label>
+
+                    <input type="radio" class="btn-check" name="durationHours" id="duration-2" value="2" autocomplete="off"
+                           th:checked="${selectedDuration == null or selectedDuration == 2}">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="duration-2">2h</label>
+
+                    <input type="radio" class="btn-check" name="durationHours" id="duration-24" value="24" autocomplete="off"
+                           th:checked="${selectedDuration == 24}">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="duration-24">1d</label>
+
+                    <input type="radio" class="btn-check" name="durationHours" id="duration-168" value="168" autocomplete="off"
+                           th:checked="${selectedDuration == 168}">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="duration-168">7d</label>
+
+                    <input type="radio" class="btn-check" name="durationHours" id="duration-720" value="720" autocomplete="off"
+                           th:checked="${selectedDuration == 720}">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="duration-720">30d</label>
+
+                    <input type="radio" class="btn-check" name="durationHours" id="duration-0" value="0" autocomplete="off"
+                           th:checked="${selectedDuration == 0}">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="duration-0" th:text="#{common.status.unlimited}">Unlimited</label>
+                </div>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="forwardCheck" name="forwardEmails" value="true"
+                       th:checked="${forwardEmails == null or forwardEmails}">
+                <label class="form-check-label" for="forwardCheck" th:text="#{mailbox.modal.new.forwardEmails}">
+                    Forward incoming emails to my account address
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{common.button.cancel}">Cancel</button>
+            <button type="submit" class="btn btn-primary" th:text="#{mailbox.modal.new.submit}">Create Mailbox</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
