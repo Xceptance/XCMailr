@@ -49,8 +49,8 @@ import models.User;
 /**
  * Contract tests for layout rendering across the testing pyramid, verifying:
  * <ul>
- *   <li>Happy path: Public (/login) and authenticated (/mailboxes) views render the yearless copyright notice referencing Xceptance without year numbers (2013, 2026).</li>
- *   <li>Error case: Styled error views (e.g. 404) render the base layout with the yearless copyright notice.</li>
+ *   <li>Happy path: Public (/login) and authenticated (/mailboxes) views render the yearless copyright notice referencing Xceptance without year numbers (2013, 2026) and without internal technology stack metadata.</li>
+ *   <li>Error case: Styled error views (e.g. 404) render the base layout with the yearless copyright notice and without technology stack metadata.</li>
  *   <li>Special case: Base template markup contains the resilient closeModal event listener binding to #actionModal.</li>
  * </ul>
  */
@@ -62,6 +62,9 @@ public class BaseLayoutFooterContractTest
     private static final String TEST_DOMAIN_NAME = "xcmailr.test";
     private static final String YEARLESS_COPYRIGHT_SNIPPET = "&copy; <a href=\"https://www.xceptance.com\" target=\"_blank\">Xceptance Software Technologies GmbH</a>. All rights reserved.";
     private static final String TECH_STACK_SNIPPET = "XCMailr Modernized &bull; Java 25 &bull; Spring Boot 4.x &bull; HTMX";
+    private static final String TECH_STACK_MODERNIZED = "XCMailr Modernized";
+    private static final String TECH_STACK_JAVA = "Java 25";
+    private static final String TECH_STACK_SPRING_BOOT = "Spring Boot 4.x";
     private static final String LEGACY_YEAR_RANGE = "2013-2026";
     private static final String YEAR_2013 = "2013";
     private static final String YEAR_2026 = "2026";
@@ -126,7 +129,10 @@ public class BaseLayoutFooterContractTest
                .andExpect(status().isOk())
                .andExpect(view().name("auth/login"))
                .andExpect(content().string(containsString(YEARLESS_COPYRIGHT_SNIPPET)))
-               .andExpect(content().string(containsString(TECH_STACK_SNIPPET)))
+               .andExpect(content().string(not(containsString(TECH_STACK_SNIPPET))))
+               .andExpect(content().string(not(containsString(TECH_STACK_MODERNIZED))))
+               .andExpect(content().string(not(containsString(TECH_STACK_JAVA))))
+               .andExpect(content().string(not(containsString(TECH_STACK_SPRING_BOOT))))
                .andExpect(content().string(not(containsString(LEGACY_YEAR_RANGE))))
                .andExpect(content().string(not(containsString(YEAR_2013))))
                .andExpect(content().string(not(containsString(YEAR_2026))));
@@ -142,7 +148,10 @@ public class BaseLayoutFooterContractTest
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/index"))
                .andExpect(content().string(containsString(YEARLESS_COPYRIGHT_SNIPPET)))
-               .andExpect(content().string(containsString(TECH_STACK_SNIPPET)))
+               .andExpect(content().string(not(containsString(TECH_STACK_SNIPPET))))
+               .andExpect(content().string(not(containsString(TECH_STACK_MODERNIZED))))
+               .andExpect(content().string(not(containsString(TECH_STACK_JAVA))))
+               .andExpect(content().string(not(containsString(TECH_STACK_SPRING_BOOT))))
                .andExpect(content().string(not(containsString(LEGACY_YEAR_RANGE))))
                .andExpect(content().string(not(containsString(YEAR_2013))))
                .andExpect(content().string(not(containsString(YEAR_2026))));
@@ -165,7 +174,10 @@ public class BaseLayoutFooterContractTest
                .andExpect(content().string(containsString("Page Not Found")))
                .andExpect(content().string(containsString("HTTP 404")))
                .andExpect(content().string(containsString(YEARLESS_COPYRIGHT_SNIPPET)))
-               .andExpect(content().string(containsString(TECH_STACK_SNIPPET)))
+               .andExpect(content().string(not(containsString(TECH_STACK_SNIPPET))))
+               .andExpect(content().string(not(containsString(TECH_STACK_MODERNIZED))))
+               .andExpect(content().string(not(containsString(TECH_STACK_JAVA))))
+               .andExpect(content().string(not(containsString(TECH_STACK_SPRING_BOOT))))
                .andExpect(content().string(not(containsString(LEGACY_YEAR_RANGE))))
                .andExpect(content().string(not(containsString(YEAR_2013))))
                .andExpect(content().string(not(containsString(YEAR_2026))));

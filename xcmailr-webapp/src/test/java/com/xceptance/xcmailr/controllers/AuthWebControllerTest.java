@@ -104,7 +104,8 @@ public class AuthWebControllerTest
             .andExpect(content().string(containsString("Register here")))
             // Common layout elements
             .andExpect(content().string(containsString("All rights reserved.")))
-            .andExpect(content().string(containsString("XCMailr Modernized")));
+            .andExpect(content().string(containsString("Xceptance Software Technologies GmbH")))
+            .andExpect(content().string(not(containsString("XCMailr Modernized"))));
     }
 
     @Test
@@ -129,7 +130,8 @@ public class AuthWebControllerTest
             .andExpect(content().string(containsString("Hier registrieren")))
             // Common layout elements
             .andExpect(content().string(containsString("Alle Rechte vorbehalten.")))
-            .andExpect(content().string(containsString("XCMailr Modernized")));
+            .andExpect(content().string(containsString("Xceptance Software Technologies GmbH")))
+            .andExpect(content().string(not(containsString("XCMailr Modernized"))));
     }
 
     @Test

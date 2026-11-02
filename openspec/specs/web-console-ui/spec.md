@@ -572,12 +572,12 @@ The system SHALL provide an interactive, paginated email inspection view for ind
 - **THEN** Spring MVC type conversion rejects the non-numeric path variable with HTTP 400 Bad Request before any database query is formulated
 
 ### Requirement: Corporate Footer and Brand Notice
-The system SHALL display a standardized corporate footer on all application views containing a yearless copyright notice and platform metadata, preventing recurring annual copyright maintenance churn.
+The system SHALL display a standardized corporate footer on all application views containing a yearless copyright notice, preventing recurring annual copyright maintenance churn and omitting internal technology stack metadata.
 
 #### Scenario: Standardized Yearless Copyright Display
 - **WHEN** any web application view is rendered using the base layout
 - **THEN** the footer renders a yearless copyright notice referencing Xceptance Software Technologies GmbH without hardcoded year ranges
-- **AND** the technology stack summary line is rendered accurately underneath
+- **AND** internal technology stack details (including runtime, framework, and library versions) are omitted from the footer display
 
 ### Requirement: Comprehensive Web Console Internationalization
 The system SHALL render all user-facing web console views, layouts, navigation menus, modals, form controls, placeholders, tooltips, ARIA accessibility landmarks, status banners, validation error messages, table headers, and error pages dynamically using message bundles corresponding to the active user's locale (`en` or `de`), falling back to default English when a key is absent, while strictly escaping localized text to prevent Cross-Site Scripting (XSS).
