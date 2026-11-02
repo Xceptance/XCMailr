@@ -33,6 +33,11 @@ public class MailboxData
 
     public boolean forwardEnabled;
 
+    /**
+     * Optional comment or note documenting the purpose of this mailbox (max. 255 characters).
+     */
+    public String comment;
+
     public MailboxData()
     {
     }
@@ -42,5 +47,6 @@ public class MailboxData
         address = mailbox.getFullAddress();
         deactivationTime = mailbox.getTs_Active();
         forwardEnabled = mailbox.isForwardEmails();
+        comment = mailbox.getComment();
     }
 }

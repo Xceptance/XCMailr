@@ -74,14 +74,14 @@ public interface MailboxRepository extends JpaRepository<MBox, Long>
     Page<MBox> findByUsr(final User usr, final Pageable pageable);
 
     /**
-     * Searches a user's mailboxes matching an address or domain search substring.
+     * Searches a user's mailboxes matching an address, domain, or comment search substring.
      *
      * @param usr owning user
      * @param search search pattern
      * @param pageable pagination parameters
      * @return page of matching mailboxes
      */
-    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')))")
+    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')) OR (b.comment IS NOT NULL AND LOWER(b.comment) LIKE LOWER(CONCAT('%', :search, '%'))))")
     Page<MBox> findByUsrAndSearch(@Param("usr") final User usr, @Param("search") final String search, final Pageable pageable);
 
     /**
@@ -95,7 +95,7 @@ public interface MailboxRepository extends JpaRepository<MBox, Long>
     Page<MBox> findByUsrAndExpired(final User usr, final boolean expired, final Pageable pageable);
 
     /**
-     * Searches a user's mailboxes matching an address or domain search substring with expiration filter.
+     * Searches a user's mailboxes matching an address, domain, or comment search substring with expiration filter.
      *
      * @param usr owning user
      * @param expired expiration status
@@ -103,7 +103,7 @@ public interface MailboxRepository extends JpaRepository<MBox, Long>
      * @param pageable pagination parameters
      * @return page of matching mailboxes
      */
-    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = :expired AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')))")
+    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = :expired AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')) OR (b.comment IS NOT NULL AND LOWER(b.comment) LIKE LOWER(CONCAT('%', :search, '%'))))")
     Page<MBox> findByUsrAndExpiredAndSearch(@Param("usr") final User usr, @Param("expired") final boolean expired, @Param("search") final String search, final Pageable pageable);
 
     /**
@@ -118,15 +118,15 @@ public interface MailboxRepository extends JpaRepository<MBox, Long>
     Page<MBox> findExpiringByUsr(@Param("usr") final User usr, final Pageable pageable);
 
     /**
-     * Searches active mailboxes with a finite expiration deadline matching an address or domain substring.
+     * Searches active mailboxes with a finite expiration deadline matching an address, domain, or comment substring.
      * Filters for records where {@code expired = false} and {@code ts_Active > 0}.
      *
      * @param usr owning user
-     * @param search search pattern (matched case-insensitively against address and domain)
+     * @param search search pattern (matched case-insensitively against address, domain, and comment)
      * @param pageable pagination and sorting parameters
      * @return page of matching active expiring mailboxes
      */
-    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = false AND b.ts_Active > 0 AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')))")
+    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = false AND b.ts_Active > 0 AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')) OR (b.comment IS NOT NULL AND LOWER(b.comment) LIKE LOWER(CONCAT('%', :search, '%'))))")
     Page<MBox> findExpiringByUsrAndSearch(@Param("usr") final User usr, @Param("search") final String search, final Pageable pageable);
 
     /**
@@ -141,15 +141,15 @@ public interface MailboxRepository extends JpaRepository<MBox, Long>
     Page<MBox> findUnlimitedByUsr(@Param("usr") final User usr, final Pageable pageable);
 
     /**
-     * Searches active permanent (unlimited duration) mailboxes matching an address or domain substring.
+     * Searches active permanent (unlimited duration) mailboxes matching an address, domain, or comment substring.
      * Filters for records where {@code expired = false} and {@code ts_Active = 0}.
      *
      * @param usr owning user
-     * @param search search pattern (matched case-insensitively against address and domain)
+     * @param search search pattern (matched case-insensitively against address, domain, and comment)
      * @param pageable pagination and sorting parameters
      * @return page of matching active unlimited mailboxes
      */
-    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = false AND b.ts_Active = 0 AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')))")
+    @Query("SELECT b FROM MBox b WHERE b.usr = :usr AND b.expired = false AND b.ts_Active = 0 AND (LOWER(b.address) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.domain) LIKE LOWER(CONCAT('%', :search, '%')) OR (b.comment IS NOT NULL AND LOWER(b.comment) LIKE LOWER(CONCAT('%', :search, '%'))))")
     Page<MBox> findUnlimitedByUsrAndSearch(@Param("usr") final User usr, @Param("search") final String search, final Pageable pageable);
 
     /**

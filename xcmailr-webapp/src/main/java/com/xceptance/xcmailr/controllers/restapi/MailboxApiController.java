@@ -115,6 +115,12 @@ public class MailboxApiController
                                  .body(new ApiErrors(List.of(new ApiError("address", "Invalid email address."))));
         }
 
+        if (mailboxData.comment != null && mailboxData.comment.length() > 255)
+        {
+            return ResponseEntity.badRequest()
+                                 .body(new ApiErrors(List.of(new ApiError("comment", "Comment must not exceed 255 characters."))));
+        }
+
         final String[] parts = HelperUtils.splitMailAddress(mailboxData.address);
         final String localPart = parts[0];
         final String domainPart = parts[1];
@@ -141,6 +147,7 @@ public class MailboxApiController
             mailbox.setTs_Active(mailboxData.deactivationTime);
             mailbox.setExpired(isExpired(mailboxData.deactivationTime));
             mailbox.setForwardEmails(mailboxData.forwardEnabled);
+            mailbox.setComment(mailboxData.comment);
             mailboxRepository.save(mailbox);
 
             return ResponseEntity.ok(new MailboxData(mailbox));
@@ -152,6 +159,7 @@ public class MailboxApiController
                                           isExpired(mailboxData.deactivationTime),
                                           principal.getUser());
             mailbox.setForwardEmails(mailboxData.forwardEnabled);
+            mailbox.setComment(mailboxData.comment);
             mailboxRepository.save(mailbox);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(new MailboxData(mailbox));
@@ -233,6 +241,12 @@ public class MailboxApiController
                                  .body(new ApiErrors(List.of(new ApiError("address", "Invalid email address."))));
         }
 
+        if (mailboxData.comment != null && mailboxData.comment.length() > 255)
+        {
+            return ResponseEntity.badRequest()
+                                 .body(new ApiErrors(List.of(new ApiError("comment", "Comment must not exceed 255 characters."))));
+        }
+
         final String[] newParts = HelperUtils.splitMailAddress(mailboxData.address);
         final String newLocal = newParts[0];
         final String newDomain = newParts[1];
@@ -255,6 +269,7 @@ public class MailboxApiController
         mailbox.setTs_Active(mailboxData.deactivationTime);
         mailbox.setExpired(isExpired(mailboxData.deactivationTime));
         mailbox.setForwardEmails(mailboxData.forwardEnabled);
+        mailbox.setComment(mailboxData.comment);
         mailboxRepository.save(mailbox);
 
         return ResponseEntity.ok(new MailboxData(mailbox));

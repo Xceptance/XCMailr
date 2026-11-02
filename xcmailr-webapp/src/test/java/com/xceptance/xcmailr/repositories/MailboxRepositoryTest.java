@@ -17,6 +17,8 @@ package com.xceptance.xcmailr.repositories;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
@@ -347,5 +349,156 @@ public class MailboxRepositoryTest
         final List<String> matchedAddresses = searchResult.getContent().stream().map(MBox::getAddress).toList();
         assertTrue(matchedAddresses.contains("findme-perm"));
         assertTrue(matchedAddresses.contains("otherperm"));
+    }
+
+    /**
+     * Tier 2 Repository Slice Test: Verifies persistence and retrieval of comments containing
+     * special characters, symbols, and German umlauts (ä, ö, ü, ß).
+     */
+    @Test
+    @DisplayName("Persist and retrieve mailbox with comment containing German umlauts and special characters")
+    public void testPersistAndRetrieveMailboxWithComment_UmlautsAndSpecialChars()
+    {
+        final String commentText = "Projekt Q4: Prüfung für Überweisung & Großkunden (äöüß!@#$%^&*?)";
+        final MBox box = new MBox("test-comment-umlauts", "xcmailr.test", 0L, false, primaryUser);
+        box.setComment(commentText);
+
+        final MBox saved = mailboxRepository.saveAndFlush(box);
+        assertNotNull(saved.getId(), "Mailbox ID should be generated upon save");
+
+        final MBox retrieved = mailboxRepository.findById(saved.getId()).orElse(null);
+        assertNotNull(retrieved, "Mailbox should be retrievable by ID");
+        assertEquals(commentText, retrieved.getComment(), "Comment with umlauts and symbols must be preserved exactly");
+    }
+
+    /**
+     * Tier 2 Repository Slice Test: Verifies that blank strings are normalized to null on setComment.
+     */
+    @Test
+    @DisplayName("Blank and empty comment strings are normalized to null")
+    public void testNormalizeBlankCommentToNull()
+    {
+        final MBox box = new MBox("test-comment-blank", "xcmailr.test", 0L, false, primaryUser);
+        box.setComment("   ");
+        assertNull(box.getComment(), "Whitespace-only comment must be normalized to null");
+
+        box.setComment("");
+        assertNull(box.getComment(), "Empty comment string must be normalized to null");
+
+        box.setComment("Valid note");
+        final MBox saved = mailboxRepository.saveAndFlush(box);
+        assertEquals("Valid note", saved.getComment());
+
+        // Update to blank and verify cleared
+        saved.setComment("   ");
+        final MBox updated = mailboxRepository.saveAndFlush(saved);
+        assertNull(updated.getComment(), "Comment should be cleared to null in database");
+    }
+
+    /**
+     * Tier 2 Repository Slice Test: Verifies case-insensitive search by comment substring across
+     * all search query methods in MailboxRepository.
+     */
+    @Test
+    @DisplayName("Search queries match mailboxes by comment substring case-insensitively")
+    public void testSearchByCommentSubstringCaseInsensitive()
+    {
+        final long futureEpoch = System.currentTimeMillis() + 86_400_000L;
+
+        // Box 1: Expiring mailbox with comment
+        final MBox box1 = new MBox("alpha", "xcmailr.test", futureEpoch, false, primaryUser);
+        box1.setComment("Kundenportal Abrechnung Staging");
+        mailboxRepository.save(box1);
+
+        // Box 2: Unlimited permanent mailbox with comment
+        final MBox box2 = new MBox("beta", "xcmailr.test", 0L, false, primaryUser);
+        box2.setComment("Produktions-Monitoring E2E");
+        mailboxRepository.save(box2);
+
+        // Box 3: Expired mailbox with comment
+        final MBox box3 = new MBox("gamma", "xcmailr.test", 0L, true, primaryUser);
+        box3.setComment("Archiviertes Projekt Staging");
+        mailboxRepository.save(box3);
+
+        // Box 4: Foreign user mailbox with same comment (tenant isolation)
+        final MBox foreignBox = new MBox("delta", "xcmailr.test", 0L, false, foreignUser);
+        foreignBox.setComment("Kundenportal Abrechnung Staging");
+        mailboxRepository.save(foreignBox);
+
+        final Pageable pageable = PageRequest.of(0, 10);
+
+        // 1. findByUsrAndSearch matches case-insensitively and respects tenant boundary
+        final Page<MBox> searchLower = mailboxRepository.findByUsrAndSearch(primaryUser, "abrechnung", pageable);
+        assertEquals(1, searchLower.getTotalElements(), "Should match primaryUser's box with Abrechnung");
+        assertEquals("alpha", searchLower.getContent().get(0).getAddress());
+
+        final Page<MBox> searchUpper = mailboxRepository.findByUsrAndSearch(primaryUser, "ABRECHNUNG", pageable);
+        assertEquals(1, searchUpper.getTotalElements(), "Case-insensitive match should succeed with uppercase search query");
+
+        final Page<MBox> searchShared = mailboxRepository.findByUsrAndSearch(primaryUser, "staging", pageable);
+        assertEquals(2, searchShared.getTotalElements(), "Should match both active and expired box of primaryUser with 'staging'");
+
+        // 2. findByUsrAndExpiredAndSearch
+        final Page<MBox> searchActive = mailboxRepository.findByUsrAndExpiredAndSearch(primaryUser, false, "staging", pageable);
+        assertEquals(1, searchActive.getTotalElements(), "Should only return active mailbox matching comment 'staging'");
+        assertEquals("alpha", searchActive.getContent().get(0).getAddress());
+
+        final Page<MBox> searchExpired = mailboxRepository.findByUsrAndExpiredAndSearch(primaryUser, true, "staging", pageable);
+        assertEquals(1, searchExpired.getTotalElements(), "Should only return expired mailbox matching comment 'staging'");
+        assertEquals("gamma", searchExpired.getContent().get(0).getAddress());
+
+        // 3. findExpiringByUsrAndSearch
+        final Page<MBox> searchExpiring = mailboxRepository.findExpiringByUsrAndSearch(primaryUser, "abrechnung", pageable);
+        assertEquals(1, searchExpiring.getTotalElements(), "Should match expiring mailbox by comment");
+        assertEquals("alpha", searchExpiring.getContent().get(0).getAddress());
+
+        // 4. findUnlimitedByUsrAndSearch
+        final Page<MBox> searchUnlimited = mailboxRepository.findUnlimitedByUsrAndSearch(primaryUser, "monitoring", pageable);
+        assertEquals(1, searchUnlimited.getTotalElements(), "Should match permanent mailbox by comment substring");
+        assertEquals("beta", searchUnlimited.getContent().get(0).getAddress());
+    }
+
+    /**
+     * Tier 2 Repository Slice Test: Verifies that SQL injection payloads in the search string are treated
+     * strictly as literal text without altering SQL syntax or exposing data across tenant boundaries.
+     */
+    @Test
+    @DisplayName("Search queries handle SQL injection payloads safely as literal text")
+    public void testSearchWithSqlInjectionPayloads_SafeLiteralExecution()
+    {
+        final MBox legitimateBox = new MBox("legit", "xcmailr.test", 0L, false, primaryUser);
+        legitimateBox.setComment("Standard Note");
+        mailboxRepository.save(legitimateBox);
+
+        final MBox foreignBox = new MBox("secret", "xcmailr.test", 0L, false, foreignUser);
+        foreignBox.setComment("Sensitive Corporate Data");
+        mailboxRepository.save(foreignBox);
+
+        final Pageable pageable = PageRequest.of(0, 10);
+
+        final List<String> maliciousPayloads = List.of(
+            "' OR '1'='1",
+            "'; DROP TABLE mailboxes; --",
+            "\" OR \"\"=\"",
+            "' UNION SELECT * FROM users --",
+            "admin'--",
+            "%' OR b.usr IS NOT NULL --"
+        );
+
+        for (final String payload : maliciousPayloads)
+        {
+            final Page<MBox> results = mailboxRepository.findByUsrAndSearch(primaryUser, payload, pageable);
+            assertEquals(0, results.getTotalElements(), "SQL injection payload '" + payload + "' must yield zero matches");
+
+            final Page<MBox> expiringResults = mailboxRepository.findExpiringByUsrAndSearch(primaryUser, payload, pageable);
+            assertEquals(0, expiringResults.getTotalElements(), "SQL injection payload in expiring search must yield zero matches");
+
+            final Page<MBox> unlimitedResults = mailboxRepository.findUnlimitedByUsrAndSearch(primaryUser, payload, pageable);
+            assertEquals(0, unlimitedResults.getTotalElements(), "SQL injection payload in unlimited search must yield zero matches");
+        }
+
+        // Verify that after all injection attempts, legitimate data is completely intact
+        assertTrue(mailboxRepository.findById(legitimateBox.getId()).isPresent(), "Legitimate mailbox must remain intact");
+        assertTrue(mailboxRepository.findById(foreignBox.getId()).isPresent(), "Foreign mailbox must remain intact");
     }
 }

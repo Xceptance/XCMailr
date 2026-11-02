@@ -34,6 +34,13 @@
                                   th:text="${mailboxAddressMap != null and mailboxAddressMap.containsKey(m.mailboxId) ? mailboxAddressMap.get(m.mailboxId) : #messages.msg('mail.unknownMailbox')}">
                                 mailbox@example.com
                             </span>
+                            <span th:if="${mailboxCommentMap != null and mailboxCommentMap.containsKey(m.mailboxId)}"
+                                  class="badge bg-secondary-subtle text-secondary-emphasis border comment-badge text-truncate"
+                                  style="max-width: 220px;"
+                                  th:text="${mailboxCommentMap.get(m.mailboxId)}"
+                                  th:title="${mailboxCommentMap.get(m.mailboxId)}">
+                                Comment
+                            </span>
                             <span class="small text-muted d-md-none ms-auto">
                                 <i class="bi bi-clock me-1"></i>
                                 <time class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime)) : T(java.time.Instant).ofEpochMilli(m.receiveTime).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">12:00</time>

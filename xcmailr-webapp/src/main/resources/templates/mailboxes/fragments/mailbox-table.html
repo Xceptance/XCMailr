@@ -101,6 +101,11 @@
                                 <i class="bi bi-clipboard"></i>
                             </button>
                         </div>
+                        <div th:if="${box.comment != null and !box.comment.isBlank()}"
+                             class="small text-body-secondary text-truncate"
+                             style="max-width: 320px;"
+                             th:text="${box.comment}"
+                             th:title="${box.comment}"></div>
                         <div class="small text-muted mt-1">
                             <!-- Status visible in subline only on xs (< 576px) where Status col is hidden -->
                             <span class="d-inline d-sm-none me-2">

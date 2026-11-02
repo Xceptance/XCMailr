@@ -22,6 +22,15 @@
             </div>
 
             <div class="mb-3">
+                <label for="commentEditInput" class="form-label" th:text="#{mailbox.modal.edit.comment}">Comment / Note</label>
+                <input type="text" class="form-control" id="commentEditInput" name="comment"
+                       th:value="${mailbox.comment}"
+                       maxlength="255"
+                       th:placeholder="#{mailbox.modal.new.commentPlaceholder}"
+                       placeholder="Optional note on test address usage or project context (max. 255 chars)">
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label text-muted" th:text="#{mailbox.modal.edit.currentExpiration}">Current Expiration</label>
                 <div class="fw-semibold">
                     <span th:if="${mailbox.ts_Active == 0}" class="text-success" th:text="#{common.status.unlimited}">Unlimited</span>

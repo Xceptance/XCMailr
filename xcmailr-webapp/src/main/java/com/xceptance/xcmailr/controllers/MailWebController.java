@@ -137,6 +137,10 @@ public class MailWebController
         final Map<Long, String> mailboxAddressMap = userMailboxes.stream()
             .collect(Collectors.toMap(MBox::getId, MBox::getFullAddress, (a, b) -> a));
 
+        final Map<Long, String> mailboxCommentMap = userMailboxes.stream()
+            .filter(b -> b.getComment() != null && !b.getComment().isBlank())
+            .collect(Collectors.toMap(MBox::getId, MBox::getComment, (a, b) -> a));
+
         model.addAttribute("mails", mailPage.getContent());
         model.addAttribute("page", mailPage);
         model.addAttribute("mailPage", mailPage);
@@ -145,6 +149,7 @@ public class MailWebController
         model.addAttribute("totalElements", mailPage.getTotalElements());
         model.addAttribute("pageSize", normalizedSize);
         model.addAttribute("mailboxAddressMap", mailboxAddressMap);
+        model.addAttribute("mailboxCommentMap", mailboxCommentMap);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
         model.addAttribute("isoFormatter", ISO_FORMATTER);
 

@@ -88,6 +88,10 @@ public class MBox extends AbstractEntity implements Serializable
     /** should emails forwarded for this address */
     private boolean forwardEmails;
 
+    /** optional comment or note documenting the purpose of this mailbox */
+    @Size(max = 255)
+    private String comment;
+
     /**
      * Default-Constructor
      */
@@ -463,5 +467,24 @@ public class MBox extends AbstractEntity implements Serializable
     public void setForwardEmails(boolean forwardEmails)
     {
         this.forwardEmails = forwardEmails;
+    }
+
+    /**
+     * @return the optional comment or note documenting the purpose of this mailbox
+     */
+    public String getComment()
+    {
+        return comment;
+    }
+
+    /**
+     * Sets the optional comment or note for this mailbox, normalizing blank strings to null.
+     *
+     * @param comment
+     *            the comment or note to set
+     */
+    public void setComment(final String comment)
+    {
+        this.comment = (comment != null && !comment.trim().isEmpty()) ? comment.trim() : null;
     }
 }

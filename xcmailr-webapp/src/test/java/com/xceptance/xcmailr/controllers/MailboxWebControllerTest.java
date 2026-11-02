@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -2332,6 +2333,217 @@ public final class MailboxWebControllerTest
                .andExpect(content().string(containsString("Postfächer")))
                .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;")))
                .andExpect(content().string(not(containsString("<script>alert('xss')</script>"))));
+    }
+
+    /**
+     * Happy Path: Verifies mailbox creation with comment containing German umlauts and special characters.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Create mailbox with comment containing German umlauts and symbols via HTMX")
+    public void testCreateMailboxWithComment_UmlautsAndSymbols() throws Exception
+    {
+        final String comment = "Projekt Q4: Überweisung & Prüfung (äöüß)";
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user(principal))
+               .with(csrf())
+               .param("address", "comment-box")
+               .param("domain", "xcmailr.test")
+               .param("durationHours", "2")
+               .param("forwardEmails", "true")
+               .param("comment", comment))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", containsString("mailboxChanged")));
+
+        final MBox created = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("comment-box", "xcmailr.test").orElse(null);
+        assertNotNull(created, "Mailbox must be persisted in repository");
+        assertEquals(comment, created.getComment(), "Comment with German umlauts must be saved faithfully");
+    }
+
+    /**
+     * Happy Path: Verifies that omitting comment parameter stores null in repository.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Create mailbox without comment parameter stores null comment")
+    public void testCreateMailboxWithoutComment() throws Exception
+    {
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user(principal))
+               .with(csrf())
+               .param("address", "no-comment-box")
+               .param("domain", "xcmailr.test")
+               .param("durationHours", "2")
+               .param("forwardEmails", "true"))
+               .andExpect(status().isOk());
+
+        final MBox created = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("no-comment-box", "xcmailr.test").orElse(null);
+        assertNotNull(created);
+        assertNull(created.getComment(), "Omitted comment must be stored as null");
+    }
+
+    /**
+     * Happy Path: Verifies editing mailbox comment and clearing it to null with blank string.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Update mailbox comment and clear it to null via HTMX")
+    public void testUpdateAndClearMailboxComment() throws Exception
+    {
+        final MBox box = new MBox("edit-comment-box", "xcmailr.test", 0L, false, owner);
+        box.setComment("Initial Comment");
+        mailboxRepository.save(box);
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        // 1. Update comment
+        final String updatedComment = "Aktualisierter Kommentar für Tests";
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user(principal))
+               .with(csrf())
+               .param("active", "true")
+               .param("forwardEmails", "true")
+               .param("comment", updatedComment))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", containsString("mailboxChanged")));
+
+        MBox refreshed = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertEquals(updatedComment, refreshed.getComment());
+
+        // 2. Clear comment with blank string
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user(principal))
+               .with(csrf())
+               .param("active", "true")
+               .param("forwardEmails", "true")
+               .param("comment", "   "))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", containsString("mailboxChanged")));
+
+        refreshed = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertNull(refreshed.getComment(), "Blank comment must be cleared to null");
+    }
+
+    /**
+     * Happy Path: Verifies that mailbox comment renders as a subtitle under address link in dashboard table.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Dashboard table renders comment subtitle and tooltip")
+    public void testMailboxTableRendersCommentSubtitle() throws Exception
+    {
+        final MBox boxWithComment = new MBox("subtitle-box", "xcmailr.test", 0L, false, owner);
+        boxWithComment.setComment("Wichtige Testadresse für Jenkins");
+        mailboxRepository.save(boxWithComment);
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("subtitle-box@xcmailr.test")))
+               .andExpect(content().string(containsString("Wichtige Testadresse für Jenkins")));
+    }
+
+    /**
+     * Error Case: Verifies rejection when comment exceeds 255 characters on creation and preserves input.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error Case: Comment exceeding 255 characters returns validation error and preserves input")
+    public void testCreateMailboxCommentExceedsMaxLength() throws Exception
+    {
+        final String longComment = "A".repeat(256);
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        mockMvc.perform(post("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user(principal))
+               .with(csrf())
+               .param("address", "long-comment-box")
+               .param("domain", "xcmailr.test")
+               .param("durationHours", "2")
+               .param("forwardEmails", "true")
+               .param("comment", longComment))
+               .andExpect(status().isOk())
+               .andExpect(view().name("mailboxes/fragments/modal-new :: modal"))
+               .andExpect(model().attribute("error", "Comment must not exceed 255 characters."))
+               .andExpect(model().attribute("comment", longComment));
+
+        assertNull(mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("long-comment-box", "xcmailr.test").orElse(null));
+    }
+
+    /**
+     * Security Case: Verifies SQL injection payloads in mailbox search query execute safely without database errors.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Security Case: SQL injection payloads in search query parameter execute safely as literal text")
+    public void testSearchMailboxesWithSqlInjectionPayloads() throws Exception
+    {
+        final MBox box = new MBox("safe-box", "xcmailr.test", 0L, false, owner);
+        box.setComment("Standard Note");
+        mailboxRepository.save(box);
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        final List<String> sqlPayloads = List.of(
+            "' OR '1'='1",
+            "'; DROP TABLE mailboxes; --",
+            "\" OR \"\"=\"",
+            "' UNION SELECT * FROM users --"
+        );
+
+        for (final String payload : sqlPayloads)
+        {
+            mockMvc.perform(get("/mailboxes")
+                   .header("HX-Request", "true")
+                   .param("search", payload)
+                   .with(user(principal)))
+                   .andExpect(status().isOk())
+                   .andExpect(model().attributeExists("mailboxes"));
+        }
+
+        assertTrue(mailboxRepository.findById(box.getId()).isPresent(), "Legitimate mailbox must remain intact");
+    }
+
+    /**
+     * Security Case: Verifies XSS payloads in mailbox comment are safely HTML-escaped when rendered.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Security Case: XSS payloads in mailbox comment are safely escaped in table rendering")
+    public void testCommentXssPayloadSanitizationInTable() throws Exception
+    {
+        final String xssComment = "<script>alert('xss-comment')</script>";
+        final MBox box = new MBox("xss-comment-box", "xcmailr.test", 0L, false, owner);
+        box.setComment(xssComment);
+        mailboxRepository.save(box);
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;xss-comment&#39;)&lt;/script&gt;")))
+               .andExpect(content().string(not(containsString("<script>alert('xss-comment')</script>"))));
     }
 }
 

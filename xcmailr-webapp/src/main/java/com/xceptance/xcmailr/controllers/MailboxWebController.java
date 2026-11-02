@@ -326,6 +326,7 @@ public class MailboxWebController
      * @param domain domain name
      * @param durationHours validity duration in hours (0 for unlimited, defaults to 2 hours)
      * @param forwardEmails whether to forward emails to user's registered address
+     * @param comment optional comment or note documenting the purpose of this mailbox
      * @param hxRequest header indicating HTMX request
      * @param principal authenticated user
      * @param model template model
@@ -336,6 +337,7 @@ public class MailboxWebController
                                 @RequestParam("domain") final String domain,
                                 @RequestParam(value = "durationHours", defaultValue = "2") final int durationHours,
                                 @RequestParam(value = "forwardEmails", defaultValue = "false") final boolean forwardEmails,
+                                @RequestParam(value = "comment", required = false) final String comment,
                                 @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
                                 final Principal principal,
                                 final Model model)
@@ -349,6 +351,22 @@ public class MailboxWebController
             localAddress = RandomStringUtils.randomAlphanumeric(7).toLowerCase();
         }
 
+        if (comment != null && comment.length() > 255)
+        {
+            if ("true".equalsIgnoreCase(hxRequest))
+            {
+                model.addAttribute("error", "Comment must not exceed 255 characters.");
+                model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
+                model.addAttribute("address", localAddress);
+                model.addAttribute("comment", comment);
+                model.addAttribute("selectedDomain", cleanDomain);
+                model.addAttribute("selectedDuration", durationHours);
+                model.addAttribute("forwardEmails", forwardEmails);
+                return "mailboxes/fragments/modal-new :: modal";
+            }
+            return "redirect:/mailboxes?error=invalidComment";
+        }
+
         if (!ADDRESS_PATTERN.matcher(localAddress).matches())
         {
             if ("true".equalsIgnoreCase(hxRequest))
@@ -356,6 +374,7 @@ public class MailboxWebController
                 model.addAttribute("error", "Invalid mailbox address characters.");
                 model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
                 model.addAttribute("address", localAddress);
+                model.addAttribute("comment", comment);
                 model.addAttribute("selectedDomain", cleanDomain);
                 model.addAttribute("selectedDuration", durationHours);
                 model.addAttribute("forwardEmails", forwardEmails);
@@ -371,6 +390,7 @@ public class MailboxWebController
                 model.addAttribute("error", "Specified domain is not configured or whitelisted.");
                 model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
                 model.addAttribute("address", localAddress);
+                model.addAttribute("comment", comment);
                 model.addAttribute("selectedDomain", cleanDomain);
                 model.addAttribute("selectedDuration", durationHours);
                 model.addAttribute("forwardEmails", forwardEmails);
@@ -386,6 +406,7 @@ public class MailboxWebController
                 model.addAttribute("error", "A mailbox with this address already exists.");
                 model.addAttribute("domains", domainRepository.findAllByOrderByDomainnameAsc());
                 model.addAttribute("address", localAddress);
+                model.addAttribute("comment", comment);
                 model.addAttribute("selectedDomain", cleanDomain);
                 model.addAttribute("selectedDuration", durationHours);
                 model.addAttribute("forwardEmails", forwardEmails);
@@ -399,6 +420,7 @@ public class MailboxWebController
 
         final MBox mailbox = new MBox(localAddress, cleanDomain, expirationTs, false, user);
         mailbox.setForwardEmails(forwardEmails);
+        mailbox.setComment(comment);
         mailboxRepository.save(mailbox);
 
         LOG.info("Created mailbox {}@{} for user {}", localAddress, cleanDomain, user.getMail());
@@ -441,22 +463,41 @@ public class MailboxWebController
      * @param id mailbox ID
      * @param forwardEmails whether forwarding is active
      * @param active whether the mailbox is enabled
+     * @param comment optional comment or note documenting the purpose of this mailbox
      * @param hxRequest header indicating HTMX request
      * @param principal authenticated user
+     * @param model template model
      * @return redirect or HTMX response
      */
     @PostMapping("/mailboxes/{id}/edit")
     public Object updateMailbox(@PathVariable("id") final long id,
                                 @RequestParam(value = "forwardEmails", defaultValue = "false") final boolean forwardEmails,
                                 @RequestParam(value = "active", defaultValue = "false") final boolean active,
+                                @RequestParam(value = "comment", required = false) final String comment,
                                 @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
-                                final Principal principal)
+                                final Principal principal,
+                                final Model model)
     {
         final User user = getUser(principal);
         final MBox mailbox = getMailboxForUser(id, user);
 
+        if (comment != null && comment.length() > 255)
+        {
+            if ("true".equalsIgnoreCase(hxRequest))
+            {
+                mailbox.setComment(comment);
+                model.addAttribute("mailbox", mailbox);
+                model.addAttribute("dateFormatter", DATE_FORMATTER);
+                model.addAttribute("isoFormatter", ISO_FORMATTER);
+                model.addAttribute("error", "Comment must not exceed 255 characters.");
+                return "mailboxes/fragments/modal-edit :: modal";
+            }
+            return "redirect:/mailboxes?error=invalidComment";
+        }
+
         mailbox.setForwardEmails(forwardEmails);
         mailbox.setExpired(!active);
+        mailbox.setComment(comment);
         mailboxRepository.save(mailbox);
 
         LOG.info("Updated mailbox {} (id: {}) for user {}", mailbox.getFullAddress(), id, user.getMail());

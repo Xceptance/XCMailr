@@ -18,8 +18,10 @@ package com.xceptance.xcmailr.controllers.restapi;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -452,5 +454,147 @@ public class MailboxApiIT
         assertFalse(updated.isExpired(), "Mailbox updated with deactivationTime: 0 must not be expired");
         assertTrue(updated.isActive(), "Mailbox updated with deactivationTime: 0 must be active");
         assertEquals(0L, updated.getTs_Active());
+    }
+
+    @Test
+    @DisplayName("createMailbox with comment containing German umlauts and symbols stores and returns comment")
+    public void testCreateMailboxWithComment_UmlautsAndSymbols() throws Exception
+    {
+        final String commentText = "Projekt Q4: Überweisung & Prüfung (äöüß!@#$%^&*?)";
+        final MailboxData data = new MailboxData();
+        data.address = "commentapi@xcmailr.test";
+        data.deactivationTime = 0L;
+        data.forwardEnabled = true;
+        data.comment = commentText;
+
+        mockMvc.perform(post(API_PREFIX)
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(data)))
+               .andExpect(status().isCreated())
+               .andExpect(jsonPath("$.address", is("commentapi@xcmailr.test")))
+               .andExpect(jsonPath("$.comment", is(commentText)));
+
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("commentapi", "xcmailr.test").orElseThrow();
+        assertEquals(commentText, box.getComment(), "Comment with German umlauts must be preserved in database");
+    }
+
+    @Test
+    @DisplayName("createMailbox omitting comment field ensures 100% backward compatibility")
+    public void testCreateMailboxWithoutComment_BackwardCompatibility() throws Exception
+    {
+        // Legacy payload omitting 'comment' field entirely
+        final String legacyJson = "{\"address\":\"legacyapi@xcmailr.test\",\"deactivationTime\":0,\"forwardEnabled\":false}";
+
+        mockMvc.perform(post(API_PREFIX)
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(legacyJson))
+               .andExpect(status().isCreated())
+               .andExpect(jsonPath("$.address", is("legacyapi@xcmailr.test")))
+               .andExpect(jsonPath("$.comment", nullValue()));
+
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("legacyapi", "xcmailr.test").orElseThrow();
+        assertNull(box.getComment(), "Mailbox created via legacy payload must have null comment");
+    }
+
+    @Test
+    @DisplayName("updateMailbox updates comment and clears comment to null when blank")
+    public void testUpdateMailboxCommentAndClear() throws Exception
+    {
+        final MBox box = new MBox("updatablecomment", "xcmailr.test", 0L, false, testUser);
+        box.setComment("Old Comment");
+        mailboxRepository.save(box);
+
+        // 1. Update with new comment
+        final MailboxData updateData = new MailboxData();
+        updateData.address = "updatablecomment@xcmailr.test";
+        updateData.deactivationTime = 0L;
+        updateData.forwardEnabled = false;
+        updateData.comment = "New Updated Comment";
+
+        mockMvc.perform(put(API_PREFIX + "/updatablecomment@xcmailr.test")
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(updateData)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.comment", is("New Updated Comment")));
+
+        MBox refreshed = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertEquals("New Updated Comment", refreshed.getComment());
+
+        // 2. Clear comment with blank string
+        updateData.comment = "   ";
+        mockMvc.perform(put(API_PREFIX + "/updatablecomment@xcmailr.test")
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(updateData)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.comment", nullValue()));
+
+        refreshed = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertNull(refreshed.getComment(), "Blank comment must be normalized and stored as null");
+    }
+
+    @Test
+    @DisplayName("getMailbox and listMailboxes return comment field")
+    public void testGetAndListMailboxesReturnComment() throws Exception
+    {
+        final MBox box = new MBox("getcommentbox", "xcmailr.test", 0L, false, testUser);
+        box.setComment("Retrievable Note");
+        mailboxRepository.save(box);
+
+        // GET single mailbox
+        mockMvc.perform(get(API_PREFIX + "/getcommentbox@xcmailr.test")
+               .header("Authorization", "Bearer " + token))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.address", is("getcommentbox@xcmailr.test")))
+               .andExpect(jsonPath("$.comment", is("Retrievable Note")));
+
+        // GET list mailboxes
+        mockMvc.perform(get(API_PREFIX)
+               .header("Authorization", "Bearer " + token))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$[0].comment", is("Retrievable Note")));
+    }
+
+    @Test
+    @DisplayName("createMailbox handles SQL injection payload in comment safely as literal string")
+    public void testCreateMailboxWithSqlInjectionPayloadInComment_Safe() throws Exception
+    {
+        final String sqlPayload = "'; DROP TABLE mailboxes; -- ' OR '1'='1";
+        final MailboxData data = new MailboxData();
+        data.address = "sqlinjectioncomment@xcmailr.test";
+        data.deactivationTime = 0L;
+        data.forwardEnabled = true;
+        data.comment = sqlPayload;
+
+        mockMvc.perform(post(API_PREFIX)
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(data)))
+               .andExpect(status().isCreated())
+               .andExpect(jsonPath("$.comment", is(sqlPayload)));
+
+        final MBox box = mailboxRepository.findByAddressIgnoreCaseAndDomainIgnoreCase("sqlinjectioncomment", "xcmailr.test").orElseThrow();
+        assertEquals(sqlPayload, box.getComment(), "SQL payload must be stored as literal text without execution");
+    }
+
+    @Test
+    @DisplayName("createMailbox with comment exceeding 255 characters returns 400 Bad Request")
+    public void testCreateMailboxCommentExceedsLimitReturnsBadRequest() throws Exception
+    {
+        final MailboxData data = new MailboxData();
+        data.address = "toolongcomment@xcmailr.test";
+        data.deactivationTime = 0L;
+        data.forwardEnabled = true;
+        data.comment = "C".repeat(256);
+
+        mockMvc.perform(post(API_PREFIX)
+               .header("Authorization", "Bearer " + token)
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(data)))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.errors[0].parameter", is("comment")));
     }
 }
