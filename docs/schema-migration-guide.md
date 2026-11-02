@@ -63,12 +63,13 @@ V<Version>__<Description>.sql
 | `V1__Initial_Setup.sql` | Baseline schema: tables (`users`, `mailboxes`, `mail`, `register_domains`, etc.) and sequences. |
 | `V2__Change_Mail_Message_Type.sql` | Upgraded `mail.message` storage to `BLOB`. |
 | `V3__Remove_Mail2MailBox_Reference.sql` | Removed foreign key constraint from `mail` to `mailboxes`. |
-| **`V4__<Your_Feature>.sql`** | **Next available migration version.** |
+| `V4__Add_Mailbox_Comment.sql` | Added optional `comment` column (`VARCHAR(255)`) to `mailboxes` table. |
+| **`V5__<Your_Feature>.sql`** | **Next available migration version.** |
 
 ### Immutability Rule
 Once a migration script has been merged or applied to any database (including local development databases):
 - **Never edit or rename an existing migration file.** Flyway stores a cryptographic checksum in `flyway_schema_history` and will refuse to start if a previously executed migration file changes.
-- Always create a new version (`V4`, `V5`, etc.) to apply corrections or additions.
+- Always create a new version (`V5`, `V6`, etc.) to apply corrections or additions.
 
 ---
 
@@ -77,10 +78,10 @@ Once a migration script has been merged or applied to any database (including lo
 Suppose a new feature requires adding an optional user-defined `notes` field to the `mailboxes` table.
 
 ### Step 1: Author the Migration Script
-Create `xcmailr-webapp/src/main/resources/db/migration/V4__Add_Mailbox_Notes.sql`:
+Create `xcmailr-webapp/src/main/resources/db/migration/V5__Add_Mailbox_Notes.sql`:
 
 ```sql
--- V4__Add_Mailbox_Notes.sql
+-- V5__Add_Mailbox_Notes.sql
 ALTER TABLE mailboxes ADD COLUMN notes VARCHAR(500);
 ```
 
@@ -132,10 +133,10 @@ List<MBox> findByNotesContainingIgnoreCase(final String search);
 Suppose a new feature introduces custom mailbox tagging via a new `mailbox_tags` table.
 
 ### Step 1: Author the Table Migration Script
-Create `xcmailr-webapp/src/main/resources/db/migration/V4__Create_Mailbox_Tags.sql`:
+Create `xcmailr-webapp/src/main/resources/db/migration/V5__Create_Mailbox_Tags.sql`:
 
 ```sql
--- V4__Create_Mailbox_Tags.sql
+-- V5__Create_Mailbox_Tags.sql
 
 CREATE TABLE IF NOT EXISTS mailbox_tags (
     id          BIGINT NOT NULL,
@@ -260,8 +261,8 @@ mvn spring-boot:run -pl xcmailr-webapp -Dspring-boot.run.profiles=dev
 ```
 Verify the startup logs:
 ```text
-o.f.core.internal.command.DbMigrate : Current version of schema: 3
-o.f.core.internal.command.DbMigrate : Migrating schema to version 4 - <Description>
+o.f.core.internal.command.DbMigrate : Current version of schema: 4
+o.f.core.internal.command.DbMigrate : Migrating schema to version 5 - <Description>
 o.f.core.internal.command.DbMigrate : Successfully applied 1 migration to schema (execution time ...)
 ```
 
@@ -271,6 +272,6 @@ o.f.core.internal.command.DbMigrate : Successfully applied 1 migration to schema
 
 When deploying the updated application to production:
 
-1. **Automatic Execution**: No manual SQL execution is required. Upon launch, Spring Boot's Flyway integration detects that the production database is at version 3 and automatically executes `V4` inside a database transaction.
+1. **Automatic Execution**: No manual SQL execution is required. Upon launch, Spring Boot's Flyway integration detects that the production database is at version 4 and automatically executes `V5` inside a database transaction.
 2. **Transaction Rollback**: If the migration script encounters a syntax error or constraint failure, Flyway automatically rolls back the migration transaction and halts application startup, leaving existing data untouched.
 3. **Audit Record**: Once applied successfully, Flyway inserts a row into `flyway_schema_history` recording the version number, description, script name, checksum, execution timestamp, and success status.

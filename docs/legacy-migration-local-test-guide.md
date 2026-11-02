@@ -216,21 +216,23 @@ mvn spring-boot:run -pl xcmailr-webapp -Dspring-boot.run.profiles=dev
 Verify the console output for the following critical milestones:
 1. **Flyway Schema Check**:
    - **Initial Migration Cutover (First Run)**:
-     Legacy XCMailr managed its schema via Ebean ORM rather than Flyway, so `flyway_schema_history` does not exist yet. On the first run, Flyway baselines the legacy schema at version `0` and applies migrations V1–V3 (all statements use non-destructive `IF NOT EXISTS` / `IF EXISTS` logic, preserving all legacy data and completing in milliseconds):
+     Legacy XCMailr managed its schema via Ebean ORM rather than Flyway, so `flyway_schema_history` does not exist yet. On the first run, Flyway baselines the legacy schema at version `0` and applies migrations V1–V4 (all statements use non-destructive `IF NOT EXISTS` / `IF EXISTS` logic, preserving all legacy data and completing in milliseconds):
      ```text
      o.f.c.i.database.base.BaseDatabaseType   : Database: jdbc:h2:../../XCMailr-legacy/xcmailr-webapp/target/xcmailr (H2 2.3)
+     o.f.core.internal.command.DbValidate     : Successfully validated 4 migrations (execution time 00:00.007s)
      o.f.core.internal.command.DbBaseline     : Creating Schema History table "PUBLIC"."flyway_schema_history" with baseline ...
      o.f.core.internal.command.DbBaseline     : Successfully baselined schema with version: 0
      o.f.core.internal.command.DbMigrate      : Current version of schema "PUBLIC": 0
      o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "1 - Initial Setup"
      o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "2 - Change Mail Message Type"
      o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "3 - Remove Mail2MailBox Reference"
-     o.f.core.internal.command.DbMigrate      : Successfully applied 3 migrations to schema "PUBLIC", now at version v3
+     o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "4 - Add Mailbox Comment"
+     o.f.core.internal.command.DbMigrate      : Successfully applied 4 migrations to schema "PUBLIC", now at version v4
      ```
    - **Subsequent Application Restarts**:
-     Once baselined and migrated, subsequent runs report schema version 3 is already up to date:
+     Once baselined and migrated, subsequent runs report schema version 4 is already up to date:
      ```text
-     o.f.core.internal.command.DbMigrate      : Current version of schema "PUBLIC": 3
+     o.f.core.internal.command.DbMigrate      : Current version of schema "PUBLIC": 4
      o.f.core.internal.command.DbMigrate      : Schema "PUBLIC" is up to date. No migration necessary.
      ```
 2. **Hibernate Schema Validation**:
@@ -252,7 +254,7 @@ Verify the console output for the following critical milestones:
 3. Verify:
    - **Authentication**: Password succeeds immediately via `BCryptPasswordEncoder` verifying the legacy `$2a$` hash without requiring a password reset.
    - **Role**: Only standard user controls are visible (no Admin navigation).
-   - **Mailbox**: `jane-box@xcmailr.test` is listed.
+   - **Mailbox**: `jane-box@xcmailr.test` is listed (the `comment` column default of `NULL` renders cleanly without placeholder or error).
    - **Email Content**: Click `jane-box@xcmailr.test` $\rightarrow$ historical email `"Legacy Mail for Jane"` renders sender, subject, timestamp, and message body intact.
 
 ---
@@ -260,8 +262,8 @@ Verify the console output for the following critical milestones:
 ### Checkpoint 3: Sequence Continuity & Inbound SMTP Delivery
 With Jane still logged in:
 1. **Create a New Mailbox**:
-   - Add mailbox `jane-modern@xcmailr.test`.
-   - Confirm it saves successfully (validates that `mailboxes_seq` advances past legacy IDs without primary key collision).
+   - Add mailbox `jane-modern@xcmailr.test` with an optional comment (e.g. `Test address for modern cutover verification`).
+   - Confirm it saves successfully (validates that `mailboxes_seq` advances past legacy IDs without primary key collision, and that the comment subtitle renders under the address in the mailbox list).
 2. **Receive an Email on Modernized Port 25000**:
    - In a separate terminal, dispatch an email to the new address:
    ```bash

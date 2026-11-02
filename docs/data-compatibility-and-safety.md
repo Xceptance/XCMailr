@@ -16,7 +16,7 @@ XCMailr enforces multi-layer data protection designed specifically for zero-data
 |                                   Strict validation only: NO create/alter/drop.   |
 |                                                                                   |
 |  2. Flyway Migration Match   -->  baseline-on-migrate: true, baseline-version: 0  |
-|                                   Identical V1-V3 history; 0 new migrations run.  |
+|                                   V1-V4 migration chain; non-destructive DDL only.|
 |                                                                                   |
 |  3. 1:1 Entity Mappings      -->  Exact table names, column types & sequences     |
 |                                   No renamed tables, dropped fields, or schema drift|
@@ -54,11 +54,12 @@ spring:
 
 ## 3. Flyway Migration Idempotency & Baseline Compatibility
 
-The database schema in legacy XCMailr was managed via Flyway starting with version 1.0 through 3.0. The modernized application carries the exact same migration scripts in [`xcmailr-webapp/src/main/resources/db/migration/`](../xcmailr-webapp/src/main/resources/db/migration/):
+The database schema in legacy XCMailr was managed via Flyway starting with version 1.0 through 3.0. The modernized application carries the exact same legacy migration scripts in [`xcmailr-webapp/src/main/resources/db/migration/`](../xcmailr-webapp/src/main/resources/db/migration/) along with non-destructive schema enhancements:
 
 - `V1__Initial_Setup.sql`: Defines tables (`users`, `mailboxes`, `mail`, `register_domains`, `mailtransactions`, `MAIL_STATISTICS`) and sequences.
 - `V2__Change_Mail_Message_Type.sql`: Standardizes `mail.message` storage to `BLOB`.
 - `V3__Remove_Mail2MailBox_Reference.sql`: Removes foreign key from `mail` to `mailboxes` to allow independent mailbox lifecycles.
+- `V4__Add_Mailbox_Comment.sql`: Adds optional `comment` column (`VARCHAR(255)`) to `mailboxes` using non-destructive `IF NOT EXISTS` DDL.
 
 ### Flyway Configuration:
 ```yaml
@@ -71,8 +72,8 @@ spring:
 ```
 
 ### Protection on an existing production database:
-1. **Existing Flyway History**: Production databases that already contain a `flyway_schema_history` table at version 3 will be recognized as up-to-date. Flyway executes **zero** SQL statements.
-2. **Idempotent Statements**: All statements in `V1__Initial_Setup.sql` employ `IF NOT EXISTS` syntax (`CREATE TABLE IF NOT EXISTS ...`, `CREATE SEQUENCE IF NOT EXISTS ...`). Even if executed against an un-baselined existing database, no tables or existing rows are overwritten.
+1. **Existing Flyway History**: Production databases that already contain a `flyway_schema_history` table at version 3 will automatically apply `V4__Add_Mailbox_Comment.sql` (a non-destructive addition using `IF NOT EXISTS` logic that preserves all existing rows and indexes). Databases already at version 4 execute **zero** SQL statements.
+2. **Idempotent Statements**: All statements in `V1__Initial_Setup.sql` and subsequent migrations employ idempotent syntax (`IF NOT EXISTS` / `IF EXISTS`). Even if executed against an un-baselined existing database, no tables or existing rows are overwritten.
 
 ---
 
@@ -83,7 +84,7 @@ All domain entities in `models.*` maintain strict 1:1 compatibility with the leg
 | Entity | Target Table | Primary Columns Preserved | Notes |
 | :--- | :--- | :--- | :--- |
 | [`models.User`](../xcmailr-webapp/src/main/java/models/User.java) | `users` | `id`, `forename`, `surname`, `mail`, `passwd`, `admin`, `active`, `confirmation`, `ts_confirm`, `bad_pw_count`, `language`, `apitoken`, `api_token_creation_timestamp` | Full legacy account lifecycle preserved. |
-| [`models.MBox`](../xcmailr-webapp/src/main/java/models/MBox.java) | `mailboxes` | `id`, `address`, `ts_active`, `expired`, `domain`, `forwards`, `suppressions`, `usr_id`, `forward_emails`, `version` | Optimistic locking (`version`) and user foreign key maintained. |
+| [`models.MBox`](../xcmailr-webapp/src/main/java/models/MBox.java) | `mailboxes` | `id`, `address`, `ts_active`, `expired`, `domain`, `forwards`, `suppressions`, `usr_id`, `forward_emails`, `version`, `comment` | Optimistic locking (`version`) and user foreign key maintained; nullable `comment` added in V4. |
 | [`models.Mail`](../xcmailr-webapp/src/main/java/models/Mail.java) | `mail` | `id`, `sender`, `subject`, `receive_time`, `message` (BLOB), `mailbox_id`, `uuid` | MIME payloads stored as raw byte arrays. |
 | [`models.Domain`](../xcmailr-webapp/src/main/java/models/Domain.java) | `register_domains` | `id`, `domainname` | Allowed domain whitelist table. |
 | [`models.MailTransaction`](../xcmailr-webapp/src/main/java/models/MailTransaction.java) | `mailtransactions` | `id`, `ts`, `status`, `sourceaddr`, `relayaddr`, `targetaddr` | Transaction history table. |

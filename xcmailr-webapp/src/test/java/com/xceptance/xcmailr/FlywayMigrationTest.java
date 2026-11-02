@@ -30,7 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Verifies that Flyway auto-migration executes cleanly against existing
- * {@code V1}, {@code V2}, and {@code V3} database migration scripts and validates
+ * {@code V1}, {@code V2}, {@code V3}, and {@code V4} database migration scripts and validates
  * that all migrations are in a {@link MigrationState#SUCCESS} state.
  *
  * @author Xceptance Software Technologies GmbH
@@ -43,14 +43,14 @@ public class FlywayMigrationTest
     private Flyway flyway;
 
     @Test
-    @DisplayName("Verify Flyway migrations V1, V2, V3 are applied and valid")
+    @DisplayName("Verify Flyway migrations V1 through V4 are applied and valid")
     public void testFlywayMigrationsAppliedSuccessfully()
     {
         assertNotNull(flyway, "Flyway bean must be configured and available in Spring context");
 
         final MigrationInfo[] appliedMigrations = flyway.info().applied();
         assertNotNull(appliedMigrations, "Applied migrations must not be null");
-        assertTrue(appliedMigrations.length >= 3, "At least 3 migrations (V1, V2, V3) must be applied");
+        assertTrue(appliedMigrations.length >= 4, "At least 4 migrations (V1, V2, V3, V4) must be applied");
 
         for (final MigrationInfo info : appliedMigrations)
         {
