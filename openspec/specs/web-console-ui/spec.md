@@ -344,6 +344,11 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **WHEN** an authenticated user with zero mailboxes applies a column sort or filter
 - **THEN** the table renders the standard empty state message with active sort headers intact without throwing errors
 
+#### Scenario: Mailbox Row Action Binding Integrity Across Sort Orders (Special Case / Issue #83)
+- **WHEN** an authenticated user sorts the mailbox table by any column in ascending or descending direction
+- **THEN** each rendered table row binds its inline and modal management action endpoints (`edit`, `delete`, `toggle`, `extend`, `reset-counters`) strictly to the primary key (`id`) of the mailbox displayed in that specific row
+- **AND** triggering any management action on a row operates exclusively on the mailbox rendered in that row, regardless of original insertion order or display sort order, preventing actions from targeting the wrong mailbox due to view sorting desynchronization
+
 ### Requirement: Admin Management Console
 The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist.
 

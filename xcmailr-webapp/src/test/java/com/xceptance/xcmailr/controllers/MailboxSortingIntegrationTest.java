@@ -19,9 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -943,5 +946,62 @@ public final class MailboxSortingIntegrationTest
         @SuppressWarnings("unchecked")
         final Page<MBox> sortDescPage = (Page<MBox>) sortDescResult.getModelAndView().getModel().get("page");
         assertEquals(3, sortDescPage.getTotalElements(), "Expires DESC sorting must succeed and return all 3 unlimited mailboxes");
+    }
+
+    /**
+     * Verifies that after requesting a sorted mailbox view, executing a deletion
+     * using the top row's mailbox ID targets and deletes strictly that mailbox,
+     * leaving the second mailbox intact in the database.
+     * <p>
+     * Proves resolution of legacy Issue #83 ("Management operations may target the wrong mailbox")
+     * at the integration and persistence layer: when mailboxes are sorted in reverse insertion
+     * order (address DESC: 'zebra' first, 'alpha' second), deleting the first row deletes 'zebra'
+     * and preserves 'alpha'.
+     * </p>
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Issue #83 regression: Deleting top row from sorted view deletes strictly displayed mailbox and preserves others")
+    public void testSorting_Issue83_DeleteTopRow_DeletesDisplayedMailboxAndPreservesOthers() throws Exception
+    {
+        // GIVEN two mailboxes: alpha (created first) and zebra (created second)
+        final MBox alpha = createMailbox("alpha", testUser, 0, 0, 0L, false);
+        final MBox zebra = createMailbox("zebra", testUser, 0, 0, 0L, false);
+
+        // WHEN querying sorted by address DESC
+        final MvcResult sortResult = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()).roles("USER"))
+                .param("sort", "address")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        @SuppressWarnings("unchecked")
+        final Page<MBox> page = (Page<MBox>) sortResult.getModelAndView().getModel().get("page");
+        assertEquals(2, page.getTotalElements(), "Should return both mailboxes");
+
+        // The first mailbox in the sorted list must be zebra
+        final MBox topBox = page.getContent().get(0);
+        assertEquals(zebra.getId(), topBox.getId(), "In address DESC sort, top row mailbox must be Zebra");
+        assertEquals("zebra", topBox.getAddress());
+
+        final MBox secondBox = page.getContent().get(1);
+        assertEquals(alpha.getId(), secondBox.getId(), "In address DESC sort, second row mailbox must be Alpha");
+
+        // WHEN executing delete on the top mailbox ID (as embedded in row 1 action attributes)
+        mockMvc.perform(delete("/mailboxes/" + topBox.getId())
+                .header("HX-Request", "true")
+                .with(user(testUser.getMail()).roles("USER"))
+                .with(csrf()))
+            .andExpect(status().isOk())
+            .andExpect(header().string("HX-Trigger", "mailboxChanged"));
+
+        // THEN: zebra is deleted from the database
+        assertFalse(mailboxRepository.existsById(zebra.getId()), "Zebra mailbox must be deleted");
+
+        // AND: alpha remains intact in the database (proves Issue #83 cannot occur)
+        assertTrue(mailboxRepository.existsById(alpha.getId()), "Alpha mailbox must remain intact");
     }
 }

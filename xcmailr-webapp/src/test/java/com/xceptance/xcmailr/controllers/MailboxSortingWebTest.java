@@ -17,6 +17,8 @@ package com.xceptance.xcmailr.controllers;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -35,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -507,5 +510,159 @@ public final class MailboxSortingWebTest
             .andExpect(content().string(containsString("<span class=\"d-inline-flex align-items-center py-1\">Actions</span>")))
             .andExpect(content().string(containsString("<td colspan=\"7\" class=\"text-center text-muted py-4\">")))
             .andExpect(content().string(not(containsString("Mails"))));
+    }
+
+    /**
+     * Verifies that when mailboxes are sorted by Address descending, the rendered table
+     * fragment places the alphabetically highest mailbox ('zebra') in the first row and
+     * the lowest ('alpha') in the second row, and that all row action endpoints
+     * (delete, edit, toggle, extend, counter reset, inbox) in Row 1 strictly bind to
+     * zebra's primary key with zero references to alpha's primary key, and vice versa.
+     * <p>
+     * Proves resolution of legacy Issue #83 ("Management operations may target the wrong mailbox").
+     * </p>
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Issue #83 regression: Address DESC binds row action endpoints strictly to displayed mailbox ID (Zebra in Row 1)")
+    public void testSorting_Issue83_AddressDescending_BindsRowActionsStrictlyToDisplayedMailbox() throws Exception
+    {
+        final MBox boxAlpha = new MBox("alpha", "xcmailr.test", 0L, false, owner);
+        final MBox boxZebra = new MBox("zebra", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(boxAlpha);
+        mailboxRepository.save(boxZebra);
+
+        final MvcResult result = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user("alice@xcmailr.test"))
+                .param("sort", "address")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+            .andExpect(model().attribute("sort", "address"))
+            .andExpect(model().attribute("dir", "desc"))
+            .andReturn();
+
+        final String html = result.getResponse().getContentAsString();
+
+        // Locate row starts
+        final String zebraRowMarker = "id=\"mailbox-row-" + boxZebra.getId() + "\"";
+        final String alphaRowMarker = "id=\"mailbox-row-" + boxAlpha.getId() + "\"";
+
+        final int zebraIdx = html.indexOf(zebraRowMarker);
+        final int alphaIdx = html.indexOf(alphaRowMarker);
+
+        assertTrue(zebraIdx != -1, "Zebra mailbox row must be rendered in table");
+        assertTrue(alphaIdx != -1, "Alpha mailbox row must be rendered in table");
+        assertTrue(zebraIdx < alphaIdx, "In DESC address sort, 'zebra' must appear before 'alpha'");
+
+        // Slice rows to verify action binding isolation
+        final String zebraRow = html.substring(zebraIdx, alphaIdx);
+        final int tbodyEndIdx = html.indexOf("</tbody>", alphaIdx);
+        final String alphaRow = html.substring(alphaIdx, tbodyEndIdx != -1 ? tbodyEndIdx : html.length());
+
+        // Validate Row 1 (Zebra): All actions must target Zebra's ID and none may reference Alpha's ID
+        assertTrue(zebraRow.contains(boxZebra.getFullAddress()), "Row 1 must display Zebra's address");
+        assertTrue(zebraRow.contains("hx-delete=\"/mailboxes/" + boxZebra.getId() + "\""), "Row 1 hx-delete must target Zebra ID");
+        assertTrue(zebraRow.contains("hx-get=\"/mailboxes/" + boxZebra.getId() + "/edit\""), "Row 1 hx-get edit must target Zebra ID");
+        assertTrue(zebraRow.contains("hx-post=\"/mailboxes/" + boxZebra.getId() + "/toggle\""), "Row 1 hx-post toggle must target Zebra ID");
+        assertTrue(zebraRow.contains("hx-post=\"/mailboxes/" + boxZebra.getId() + "/extend?hours=24\""), "Row 1 hx-post extend must target Zebra ID");
+        assertTrue(zebraRow.contains("hx-post=\"/mailboxes/" + boxZebra.getId() + "/reset-counters\""), "Row 1 hx-post reset must target Zebra ID");
+        assertTrue(zebraRow.contains("href=\"/mailboxes/" + boxZebra.getId() + "/mails\""), "Row 1 inbox link must target Zebra ID");
+
+        assertFalse(zebraRow.contains(boxAlpha.getFullAddress()), "Row 1 must not contain Alpha's address");
+        assertFalse(zebraRow.contains("/mailboxes/" + boxAlpha.getId() + "/"), "Row 1 must not contain sub-paths for Alpha ID");
+        assertFalse(zebraRow.contains("/mailboxes/" + boxAlpha.getId() + "\""), "Row 1 must not contain delete path for Alpha ID");
+
+        // Validate Row 2 (Alpha): All actions must target Alpha's ID and none may reference Zebra's ID
+        assertTrue(alphaRow.contains(boxAlpha.getFullAddress()), "Row 2 must display Alpha's address");
+        assertTrue(alphaRow.contains("hx-delete=\"/mailboxes/" + boxAlpha.getId() + "\""), "Row 2 hx-delete must target Alpha ID");
+        assertTrue(alphaRow.contains("hx-get=\"/mailboxes/" + boxAlpha.getId() + "/edit\""), "Row 2 hx-get edit must target Alpha ID");
+        assertTrue(alphaRow.contains("hx-post=\"/mailboxes/" + boxAlpha.getId() + "/toggle\""), "Row 2 hx-post toggle must target Alpha ID");
+        assertTrue(alphaRow.contains("hx-post=\"/mailboxes/" + boxAlpha.getId() + "/extend?hours=24\""), "Row 2 hx-post extend must target Alpha ID");
+        assertTrue(alphaRow.contains("hx-post=\"/mailboxes/" + boxAlpha.getId() + "/reset-counters\""), "Row 2 hx-post reset must target Alpha ID");
+        assertTrue(alphaRow.contains("href=\"/mailboxes/" + boxAlpha.getId() + "/mails\""), "Row 2 inbox link must target Alpha ID");
+
+        assertFalse(alphaRow.contains(boxZebra.getFullAddress()), "Row 2 must not contain Zebra's address");
+        assertFalse(alphaRow.contains("/mailboxes/" + boxZebra.getId() + "/"), "Row 2 must not contain sub-paths for Zebra ID");
+        assertFalse(alphaRow.contains("/mailboxes/" + boxZebra.getId() + "\""), "Row 2 must not contain delete path for Zebra ID");
+    }
+
+    /**
+     * Verifies that when mailboxes are sorted by Address ascending, the rendered table
+     * fragment places the alphabetically lowest mailbox ('alpha') in the first row and
+     * the highest ('zebra') in the second row, and that all row action endpoints
+     * (delete, edit, toggle, extend, counter reset, inbox) in Row 1 strictly bind to
+     * alpha's primary key with zero references to zebra's primary key, and vice versa.
+     * <p>
+     * Proves resolution of legacy Issue #83 ("Management operations may target the wrong mailbox").
+     * </p>
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Issue #83 regression: Address ASC binds row action endpoints strictly to displayed mailbox ID (Alpha in Row 1)")
+    public void testSorting_Issue83_AddressAscending_BindsRowActionsStrictlyToDisplayedMailbox() throws Exception
+    {
+        final MBox boxAlpha = new MBox("alpha", "xcmailr.test", 0L, false, owner);
+        final MBox boxZebra = new MBox("zebra", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(boxAlpha);
+        mailboxRepository.save(boxZebra);
+
+        final MvcResult result = mockMvc.perform(get("/mailboxes")
+                .header("HX-Request", "true")
+                .with(user("alice@xcmailr.test"))
+                .param("sort", "address")
+                .param("dir", "asc"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("mailboxes/fragments/mailbox-table :: table"))
+            .andExpect(model().attribute("sort", "address"))
+            .andExpect(model().attribute("dir", "asc"))
+            .andReturn();
+
+        final String html = result.getResponse().getContentAsString();
+
+        // Locate row starts
+        final String alphaRowMarker = "id=\"mailbox-row-" + boxAlpha.getId() + "\"";
+        final String zebraRowMarker = "id=\"mailbox-row-" + boxZebra.getId() + "\"";
+
+        final int alphaIdx = html.indexOf(alphaRowMarker);
+        final int zebraIdx = html.indexOf(zebraRowMarker);
+
+        assertTrue(alphaIdx != -1, "Alpha mailbox row must be rendered in table");
+        assertTrue(zebraIdx != -1, "Zebra mailbox row must be rendered in table");
+        assertTrue(alphaIdx < zebraIdx, "In ASC address sort, 'alpha' must appear before 'zebra'");
+
+        // Slice rows to verify action binding isolation
+        final String alphaRow = html.substring(alphaIdx, zebraIdx);
+        final int tbodyEndIdx = html.indexOf("</tbody>", zebraIdx);
+        final String zebraRow = html.substring(zebraIdx, tbodyEndIdx != -1 ? tbodyEndIdx : html.length());
+
+        // Validate Row 1 (Alpha): All actions must target Alpha's ID and none may reference Zebra's ID
+        assertTrue(alphaRow.contains(boxAlpha.getFullAddress()), "Row 1 must display Alpha's address");
+        assertTrue(alphaRow.contains("hx-delete=\"/mailboxes/" + boxAlpha.getId() + "\""), "Row 1 hx-delete must target Alpha ID");
+        assertTrue(alphaRow.contains("hx-get=\"/mailboxes/" + boxAlpha.getId() + "/edit\""), "Row 1 hx-get edit must target Alpha ID");
+        assertTrue(alphaRow.contains("hx-post=\"/mailboxes/" + boxAlpha.getId() + "/toggle\""), "Row 1 hx-post toggle must target Alpha ID");
+        assertTrue(alphaRow.contains("hx-post=\"/mailboxes/" + boxAlpha.getId() + "/extend?hours=24\""), "Row 1 hx-post extend must target Alpha ID");
+        assertTrue(alphaRow.contains("hx-post=\"/mailboxes/" + boxAlpha.getId() + "/reset-counters\""), "Row 1 hx-post reset must target Alpha ID");
+        assertTrue(alphaRow.contains("href=\"/mailboxes/" + boxAlpha.getId() + "/mails\""), "Row 1 inbox link must target Alpha ID");
+
+        assertFalse(alphaRow.contains(boxZebra.getFullAddress()), "Row 1 must not contain Zebra's address");
+        assertFalse(alphaRow.contains("/mailboxes/" + boxZebra.getId() + "/"), "Row 1 must not contain sub-paths for Zebra ID");
+        assertFalse(alphaRow.contains("/mailboxes/" + boxZebra.getId() + "\""), "Row 1 must not contain delete path for Zebra ID");
+
+        // Validate Row 2 (Zebra): All actions must target Zebra's ID and none may reference Alpha's ID
+        assertTrue(zebraRow.contains(boxZebra.getFullAddress()), "Row 2 must display Zebra's address");
+        assertTrue(zebraRow.contains("hx-delete=\"/mailboxes/" + boxZebra.getId() + "\""), "Row 2 hx-delete must target Zebra ID");
+        assertTrue(zebraRow.contains("hx-get=\"/mailboxes/" + boxZebra.getId() + "/edit\""), "Row 2 hx-get edit must target Zebra ID");
+        assertTrue(zebraRow.contains("hx-post=\"/mailboxes/" + boxZebra.getId() + "/toggle\""), "Row 2 hx-post toggle must target Zebra ID");
+        assertTrue(zebraRow.contains("hx-post=\"/mailboxes/" + boxZebra.getId() + "/extend?hours=24\""), "Row 2 hx-post extend must target Zebra ID");
+        assertTrue(zebraRow.contains("hx-post=\"/mailboxes/" + boxZebra.getId() + "/reset-counters\""), "Row 2 hx-post reset must target Zebra ID");
+        assertTrue(zebraRow.contains("href=\"/mailboxes/" + boxZebra.getId() + "/mails\""), "Row 2 inbox link must target Zebra ID");
+
+        assertFalse(zebraRow.contains(boxAlpha.getFullAddress()), "Row 2 must not contain Alpha's address");
+        assertFalse(zebraRow.contains("/mailboxes/" + boxAlpha.getId() + "/"), "Row 2 must not contain sub-paths for Alpha ID");
+        assertFalse(zebraRow.contains("/mailboxes/" + boxAlpha.getId() + "\""), "Row 2 must not contain delete path for Alpha ID");
     }
 }
