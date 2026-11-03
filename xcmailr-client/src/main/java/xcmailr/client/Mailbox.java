@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,11 @@ public class Mailbox
     public boolean forwardEnabled;
 
     /**
+     * Optional comment or note documenting the purpose of this mailbox (max. 255 characters).
+     */
+    public String comment;
+
+    /**
      * Creates a new {@link Mailbox} instance.
      */
     public Mailbox()
@@ -65,14 +70,33 @@ public class Mailbox
     }
 
     /**
+     * Creates a new {@link Mailbox} instance and initializes it with the passed values.
+     * 
+     * @param address
+     *            the address of the mailbox
+     * @param deactivationTime
+     *            the time (in milliseconds since epoch) when the mailbox will automatically be deactivated
+     * @param forwardEnabled
+     *            whether or not XCMailr should forward mails arriving at this mailbox
+     * @param comment
+     *            optional comment or note documenting the purpose of this mailbox
+     */
+    public Mailbox(final String address, final long deactivationTime, final boolean forwardEnabled, final String comment)
+    {
+        this(address, deactivationTime, forwardEnabled);
+        this.comment = comment;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public String toString()
     {
-        return String.format("%s:{ address: '%s', deactivationTime: '%s', forwardEnabled: '%b' }",
+        return String.format("%s:{ address: '%s', deactivationTime: '%s', forwardEnabled: '%b', comment: '%s' }",
                              super.toString(),
                              address,
                              new Date(deactivationTime),
-                             forwardEnabled);
+                             forwardEnabled,
+                             comment);
     }
 }

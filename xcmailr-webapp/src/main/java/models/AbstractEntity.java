@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,6 @@ import jakarta.persistence.MappedSuperclass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.ebean.DB;
-
 
 @MappedSuperclass
 public abstract class AbstractEntity
@@ -55,30 +52,4 @@ public abstract class AbstractEntity
     {
         this.id = id;
     }
-
-    /**
-     * Deletes the object from the database
-     */
-    public void delete()
-    {
-        DB.delete(this);
-    }
-
-    /**
-     * Stores the object in the Database
-     */
-
-    public void save()
-    {
-        DB.save(this);
-    }
-
-    /**
-     * Updates the object in the DB
-     */
-    public void update()
-    {
-        DB.update(this);
-    }
-
 }

@@ -1,0 +1,2 @@
+ALTER TABLE mailboxes ADD COLUMN IF NOT EXISTS comment VARCHAR(255);
+
