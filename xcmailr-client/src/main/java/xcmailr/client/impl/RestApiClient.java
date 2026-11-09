@@ -74,8 +74,11 @@ public class RestApiClient
      *            the relative URL (to be appended to the base URL)
      * @return the HTTP response
      * @throws IOException
+     *             if an I/O error occurs when sending or receiving
      * @throws InterruptedException
+     *             if the request execution is interrupted
      * @throws URISyntaxException
+     *             if the constructed URI is invalid
      */
     public HttpResponse<String> executeRequest(final HttpMethod method, final String relativeUrl)
         throws IOException, InterruptedException, URISyntaxException
@@ -95,8 +98,11 @@ public class RestApiClient
      *            the request body in JSON format (may be <code>null</code>)
      * @return the HTTP response
      * @throws IOException
+     *             if an I/O error occurs when sending or receiving
      * @throws InterruptedException
+     *             if the request execution is interrupted
      * @throws URISyntaxException
+     *             if the constructed URI is invalid
      */
     public HttpResponse<String> executeRequest(final HttpMethod method, final String relativeUrl, final String jsonBody)
         throws IOException, InterruptedException, URISyntaxException
@@ -114,8 +120,11 @@ public class RestApiClient
      *            the relative URL (to be appended to the base URL)
      * @return the HTTP response
      * @throws IOException
+     *             if an I/O error occurs when sending or receiving
      * @throws InterruptedException
+     *             if the request execution is interrupted
      * @throws URISyntaxException
+     *             if the constructed URI is invalid
      */
     public HttpResponse<InputStream> executeRequest2(final HttpMethod method, final String relativeUrl)
         throws IOException, InterruptedException, URISyntaxException
@@ -136,8 +145,11 @@ public class RestApiClient
      *            the handler to use for the response body
      * @return the HTTP response
      * @throws IOException
+     *             if an I/O error occurs when sending or receiving
      * @throws InterruptedException
+     *             if the request execution is interrupted
      * @throws URISyntaxException
+     *             if the constructed URI is invalid
      */
     private <T> HttpResponse<T> executeRequest(final HttpMethod method, final String relativeUrl, final String jsonBody,
                                                final BodyHandler<T> responseBodyHandler)

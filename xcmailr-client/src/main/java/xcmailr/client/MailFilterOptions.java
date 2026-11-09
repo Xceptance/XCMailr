@@ -26,6 +26,13 @@ package xcmailr.client;
 public class MailFilterOptions
 {
     /**
+     * Creates a new mail filter options instance with default settings.
+     */
+    public MailFilterOptions()
+    {
+    }
+
+    /**
      * A regular expression for the sender of the mail.
      */
     public String senderPattern;
@@ -57,6 +64,10 @@ public class MailFilterOptions
 
     /**
      * Sets a regular expression for the sender of the mail.
+     * 
+     * @param senderPattern
+     *            the regular expression for the sender of the mail
+     * @return this instance for fluent method chaining
      */
     public MailFilterOptions senderPattern(final String senderPattern)
     {
@@ -66,6 +77,10 @@ public class MailFilterOptions
 
     /**
      * Sets a regular expression for the subject of the mail.
+     * 
+     * @param subjectPattern
+     *            the regular expression for the subject of the mail
+     * @return this instance for fluent method chaining
      */
     public MailFilterOptions subjectPattern(final String subjectPattern)
     {
@@ -75,6 +90,10 @@ public class MailFilterOptions
 
     /**
      * Sets a regular expression for the headers of the mail.
+     * 
+     * @param headersPattern
+     *            the regular expression for the headers of the mail
+     * @return this instance for fluent method chaining
      */
     public MailFilterOptions headersPattern(final String headersPattern)
     {
@@ -84,6 +103,10 @@ public class MailFilterOptions
 
     /**
      * Sets a regular expression for the HTML content of the mail.
+     * 
+     * @param htmlContentPattern
+     *            the regular expression for the HTML content of the mail
+     * @return this instance for fluent method chaining
      */
     public MailFilterOptions htmlContentPattern(final String htmlContentPattern)
     {
@@ -93,6 +116,10 @@ public class MailFilterOptions
 
     /**
      * Sets a regular expression for the text content of the mail.
+     * 
+     * @param textContentPattern
+     *            the regular expression for the text content of the mail
+     * @return this instance for fluent method chaining
      */
     public MailFilterOptions textContentPattern(final String textContentPattern)
     {
@@ -102,6 +129,10 @@ public class MailFilterOptions
 
     /**
      * Whether or not to return just the most recent matching mail instead of the whole list of matches.
+     * 
+     * @param lastMatchOnly
+     *            whether to return only the most recent matching mail
+     * @return this instance for fluent method chaining
      */
     public MailFilterOptions lastMatchOnly(final boolean lastMatchOnly)
     {

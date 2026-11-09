@@ -26,8 +26,14 @@ import xcmailr.client.XCMailrApiException;
  */
 public abstract class AbstractApiImpl
 {
+    /**
+     * The REST API client used to perform HTTP requests.
+     */
     protected final RestApiClient client;
 
+    /**
+     * The GSON instance used for serialization and deserialization.
+     */
     protected final Gson gson;
 
     /**

@@ -27,6 +27,13 @@ import java.util.List;
 public class Mail
 {
     /**
+     * Creates a new, empty mail instance.
+     */
+    public Mail()
+    {
+    }
+
+    /**
      * The mail ID.
      */
     public long id;

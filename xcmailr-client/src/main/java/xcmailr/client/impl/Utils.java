@@ -22,6 +22,13 @@ import java.nio.charset.StandardCharsets;
  */
 public class Utils
 {
+    /**
+     * Default constructor disabled to prevent instantiation of utility class.
+     */
+    private Utils()
+    {
+    }
+
     private static final String HEX = "0123456789ABCDEF";
 
     private static final String ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

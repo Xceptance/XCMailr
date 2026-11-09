@@ -24,6 +24,13 @@ package xcmailr.client;
 public class Attachment
 {
     /**
+     * Creates a new, empty attachment instance.
+     */
+    public Attachment()
+    {
+    }
+
+    /**
      * The name of the attachment.
      */
     public String name;
