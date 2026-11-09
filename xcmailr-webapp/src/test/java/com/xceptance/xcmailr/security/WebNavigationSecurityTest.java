@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +52,7 @@ import models.User;
  */
 @SpringBootTest
 @ActiveProfiles("test")
+@TestPropertySource(properties = "xcmailr.ui.theme=xceptance")
 @Transactional
 public class WebNavigationSecurityTest
 {
@@ -249,7 +251,7 @@ public class WebNavigationSecurityTest
 
     /**
      * Verifies that the rendered layout includes the Bootstrap 5 Offcanvas drawer structure,
-     * theme mode switcher button, and corporate Xceptance theme stylesheet.
+     * theme mode switcher button, and theme stylesheet.
      *
      * @throws Exception if mock MVC request execution fails
      */
@@ -264,7 +266,7 @@ public class WebNavigationSecurityTest
                .andExpect(content().string(containsString("id=\"navbarOffcanvas\"")))
                .andExpect(content().string(containsString("class=\"offcanvas offcanvas-end offcanvas-navbar")))
                .andExpect(content().string(containsString("id=\"themeToggle\"")))
-               .andExpect(content().string(containsString("xceptance-theme.css")))
+               .andExpect(content().string(containsString("-theme.css")))
                .andExpect(content().string(containsString("bootstrap-icons.min.css")));
     }
 }

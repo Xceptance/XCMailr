@@ -58,6 +58,7 @@ public class ThemeResolutionWebTest
     @Nested
     @SpringBootTest(classes = XcmailrApplication.class)
     @ActiveProfiles("test")
+    @TestPropertySource(properties = "xcmailr.ui.theme=xceptance")
     @NestedTestConfiguration(EnclosingConfiguration.OVERRIDE)
     @DisplayName("Default Theme Configuration")
     class DefaultThemeWebTest
@@ -76,6 +77,36 @@ public class ThemeResolutionWebTest
         @Test
         @DisplayName("Default configuration renders /css/xceptance-theme.css link tag")
         void testDefaultThemeRendered() throws Exception
+        {
+            mockMvc.perform(get("/login"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/css/xceptance-theme.css")))
+                .andExpect(content().string(not(containsString("/css/emerald-theme.css"))));
+        }
+    }
+
+    @Nested
+    @SpringBootTest(classes = XcmailrApplication.class)
+    @ActiveProfiles("test")
+    @TestPropertySource(properties = "xcmailr.ui.theme=")
+    @NestedTestConfiguration(EnclosingConfiguration.OVERRIDE)
+    @DisplayName("Blank/Unset Theme Fallback Configuration")
+    class FallbackThemeWebTest
+    {
+        @Autowired
+        private WebApplicationContext context;
+
+        private MockMvc mockMvc;
+
+        @BeforeEach
+        void setUp()
+        {
+            mockMvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+        }
+
+        @Test
+        @DisplayName("Blank theme configuration safely falls back to /css/xceptance-theme.css")
+        void testBlankThemeFallbackRendered() throws Exception
         {
             mockMvc.perform(get("/login"))
                 .andExpect(status().isOk())
