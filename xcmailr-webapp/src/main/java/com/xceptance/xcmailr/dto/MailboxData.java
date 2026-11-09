@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.xceptance.xcmailr.controllers.restapi;
+package com.xceptance.xcmailr.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -22,28 +22,46 @@ import jakarta.validation.constraints.Size;
 import com.xceptance.xcmailr.models.MBox;
 
 /**
- * The data object that represents the details of a mailbox.
+ * Data transfer object representing the configuration and state of a mailbox
+ * exchanged via the REST API endpoints.
  */
 public class MailboxData
 {
+    /**
+     * The full email address of the mailbox (e.g. {@code user@domain.org}).
+     */
     @NotEmpty
     @Email
     public String address;
 
+    /**
+     * The expiration timestamp in epoch milliseconds, or 0 if permanent.
+     */
     public long deactivationTime;
 
+    /**
+     * Whether incoming emails should be forwarded to the owner's primary address.
+     */
     public boolean forwardEnabled;
 
     /**
-     * Optional comment or note documenting the purpose of this mailbox (max. 255 characters).
+     * Optional comment or note documenting the purpose of this mailbox (maximum 255 characters).
      */
     @Size(max = 255, message = "{validation.comment.size}")
     public String comment;
 
+    /**
+     * Default no-argument constructor required for JSON deserialization by Jackson.
+     */
     public MailboxData()
     {
     }
 
+    /**
+     * Constructs a {@code MailboxData} DTO populated from a domain {@link MBox} entity.
+     *
+     * @param mailbox the persisted mailbox domain entity, must not be {@code null}
+     */
     public MailboxData(final MBox mailbox)
     {
         address = mailbox.getFullAddress();

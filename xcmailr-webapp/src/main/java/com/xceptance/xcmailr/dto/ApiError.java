@@ -13,37 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.xceptance.xcmailr.controllers.restapi;
+package com.xceptance.xcmailr.dto;
 
 /**
- * The data object that represents a single API error.
+ * Data transfer object representing an individual REST API validation or processing error.
  */
 public class ApiError
 {
-    // TODO?
-    // public String errorCode;
-    // public String originalValue;
-    // public String helpUrl;
-
     /**
-     * The name of the offending path or query parameter.
+     * The name of the offending field, path parameter, or query parameter.
      */
     public final String parameter;
 
     /**
-     * The message explaining the cause of the error.
+     * Human-readable description explaining the cause of the error.
      */
     public final String message;
 
     /**
      * Creates and initializes a new {@link ApiError} instance.
-     * 
-     * @param parameter
-     *            the parameter name
-     * @param message
-     *            the error message
+     *
+     * @param parameter the name of the offending parameter or field
+     * @param message the descriptive error message
      */
-    public ApiError(String parameter, String message)
+    public ApiError(final String parameter, final String message)
     {
         this.parameter = parameter;
         this.message = message;

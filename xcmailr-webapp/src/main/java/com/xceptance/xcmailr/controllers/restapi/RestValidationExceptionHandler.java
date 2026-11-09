@@ -30,6 +30,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.xceptance.xcmailr.dto.ApiError;
+import com.xceptance.xcmailr.dto.ApiErrors;
+
 /**
  * Global REST exception handler translating Spring MVC {@link MethodArgumentNotValidException} validation
  * failures into standard {@link ApiErrors} (HTTP 400 Bad Request) payloads.

@@ -37,6 +37,9 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
 import com.xceptance.xcmailr.config.XcmailrProperties;
+import com.xceptance.xcmailr.dto.ApiError;
+import com.xceptance.xcmailr.dto.ApiErrors;
+import com.xceptance.xcmailr.dto.MailboxData;
 import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;

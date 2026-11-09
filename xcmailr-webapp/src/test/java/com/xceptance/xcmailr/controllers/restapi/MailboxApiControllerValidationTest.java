@@ -42,6 +42,9 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xceptance.xcmailr.XcmailrApplication;
+import com.xceptance.xcmailr.dto.ApiError;
+import com.xceptance.xcmailr.dto.ApiErrors;
+import com.xceptance.xcmailr.dto.MailboxData;
 import com.xceptance.xcmailr.models.User;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;

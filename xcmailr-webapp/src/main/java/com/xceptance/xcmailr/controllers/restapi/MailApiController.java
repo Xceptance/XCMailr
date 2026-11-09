@@ -41,6 +41,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.xceptance.xcmailr.dto.ApiError;
+import com.xceptance.xcmailr.dto.ApiErrors;
+import com.xceptance.xcmailr.dto.AttachmentData;
+import com.xceptance.xcmailr.dto.MailData;
 import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.security.UserPrincipal;

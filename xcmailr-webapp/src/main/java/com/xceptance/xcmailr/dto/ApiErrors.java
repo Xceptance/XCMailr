@@ -13,18 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.xceptance.xcmailr.controllers.restapi;
+package com.xceptance.xcmailr.dto;
 
 import java.util.List;
 
 /**
- * The data object that represents a list of API errors.
+ * Data transfer object representing a collection of API errors returned
+ * when input validation fails or client requests are rejected.
  */
 public class ApiErrors
 {
+    /**
+     * The list of individual {@link ApiError} instances.
+     */
     public final List<ApiError> errors;
 
-    public ApiErrors(List<ApiError> errors)
+    /**
+     * Constructs a new {@code ApiErrors} wrapper containing the given list of errors.
+     *
+     * @param errors the list of API errors, must not be {@code null}
+     */
+    public ApiErrors(final List<ApiError> errors)
     {
         this.errors = errors;
     }

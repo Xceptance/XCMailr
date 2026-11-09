@@ -13,23 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.xceptance.xcmailr.controllers.restapi;
+package com.xceptance.xcmailr.dto;
 
 import java.io.IOException;
 
 import jakarta.activation.DataSource;
 
 /**
- * The data object that represents the details of a mail attachment.
+ * Data transfer object representing the metadata of an email attachment
+ * returned by the REST API.
  */
 public class AttachmentData
 {
+    /**
+     * The filename of the attachment.
+     */
     public final String name;
 
+    /**
+     * The MIME content type of the attachment (e.g. {@code application/pdf}, {@code image/png}).
+     */
     public final String contentType;
 
+    /**
+     * The size of the attachment content in bytes.
+     */
     public final int size;
 
+    /**
+     * Constructs an {@code AttachmentData} DTO extracting metadata from an activation {@link DataSource}.
+     *
+     * @param attachment the MIME message attachment data source, must not be {@code null}
+     * @throws IOException if an error occurs reading the attachment input stream length
+     */
     public AttachmentData(final DataSource attachment) throws IOException
     {
         name = attachment.getName();
