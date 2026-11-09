@@ -32,8 +32,7 @@
         <maven.compiler.release>25</maven.compiler.release>
         <spring-boot.version>4.1.1</spring-boot.version>
         <tomcat.version>11.0.25</tomcat.version>
-        <copyright>Copyright (c) ${project.organization.name}</copyright>
-        <license.skipFormat>true</license.skipFormat>
+        <copyright>Copyright (c) ${project.inceptionYear}-2026 ${project.organization.name}</copyright>
         <gpg.skip>true</gpg.skip>
     </properties>
 
@@ -132,17 +131,20 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <version>4.6</version>
                 <configuration>
-                    <header>../license-header.txt</header>
-                    <properties>
-                        <copyright>${copyright}</copyright>
-                    </properties>
-                    <includes>
-                        <include>**/*.java</include>
-                    </includes>
+                    <licenseSets>
+                        <licenseSet>
+                            <header>${maven.multiModuleProjectDirectory}/license-header.txt</header>
+                            <properties>
+                                <copyright>${copyright}</copyright>
+                            </properties>
+                            <includes>
+                                <include>**/*.java</include>
+                            </includes>
+                        </licenseSet>
+                    </licenseSets>
                     <mapping>
                         <java>SLASHSTAR_STYLE</java>
                     </mapping>
-                    <skip>${license.skipFormat}</skip>
                 </configuration>
             </plugin>
             <plugin>
