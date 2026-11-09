@@ -50,11 +50,11 @@ import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.Domain;
-import models.MBox;
-import models.MailTransaction;
-import models.Status;
-import models.User;
+import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.MailTransaction;
+import com.xceptance.xcmailr.models.Status;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Controller providing administrative controls including user management,

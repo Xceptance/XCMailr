@@ -13,32 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package etc;
+package com.xceptance.xcmailr.controllers.restapi;
 
 import java.io.IOException;
 
-public class SizeLimitExceededException extends IOException
+import jakarta.activation.DataSource;
+
+/**
+ * The data object that represents the details of a mail attachment.
+ */
+public class AttachmentData
 {
-    static final long serialVersionUID = -2495864848105342730L;
+    public final String name;
 
-    public SizeLimitExceededException()
+    public final String contentType;
+
+    public final int size;
+
+    public AttachmentData(final DataSource attachment) throws IOException
     {
-        super();
+        name = attachment.getName();
+        contentType = attachment.getContentType();
+        size = attachment.getInputStream().available();
     }
-
-    public SizeLimitExceededException(String arg0, Throwable arg1)
-    {
-        super(arg0, arg1);
-    }
-
-    public SizeLimitExceededException(String arg0)
-    {
-        super(arg0);
-    }
-
-    public SizeLimitExceededException(Throwable arg0)
-    {
-        super(arg0);
-    }
-
 }

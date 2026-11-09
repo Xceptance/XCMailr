@@ -42,7 +42,7 @@ import com.xceptance.xcmailr.XcmailrApplication;
 import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.UserPrincipal;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Controller-tier integration tests verifying localized HTML rendering for user profile views,

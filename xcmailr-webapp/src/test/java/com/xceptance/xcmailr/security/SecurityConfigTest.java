@@ -41,7 +41,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Tests verifying the Spring Security configuration:

@@ -15,7 +15,7 @@
  */
 package com.xceptance.xcmailr.security;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Contextual identity information of a user used during password validation to prevent

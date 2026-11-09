@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package controllers.restapi;
+package com.xceptance.xcmailr.controllers.restapi;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -25,9 +25,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.xceptance.xcmailr.util.JakartaMimeMessageParser;
 
-import etc.HelperUtils;
-import models.MBox;
-import models.Mail;
+import com.xceptance.xcmailr.util.HelperUtils;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
 
 /**
  * The data object that represents the details of a mail.

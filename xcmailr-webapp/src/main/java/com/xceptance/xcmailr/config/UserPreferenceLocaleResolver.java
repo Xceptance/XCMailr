@@ -29,7 +29,7 @@ import com.xceptance.xcmailr.security.UserPrincipal;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Resolves the request {@link Locale} based on the authenticated user's profile language preference,

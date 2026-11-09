@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package controllers.restapi;
+package com.xceptance.xcmailr.controllers.restapi;
 
-import java.io.IOException;
-
-import jakarta.activation.DataSource;
+import java.util.List;
 
 /**
- * The data object that represents the details of a mail attachment.
+ * The data object that represents a list of API errors.
  */
-public class AttachmentData
+public class ApiErrors
 {
-    public final String name;
+    public final List<ApiError> errors;
 
-    public final String contentType;
-
-    public final int size;
-
-    public AttachmentData(final DataSource attachment) throws IOException
+    public ApiErrors(List<ApiError> errors)
     {
-        name = attachment.getName();
-        contentType = attachment.getContentType();
-        size = attachment.getInputStream().available();
+        this.errors = errors;
     }
 }

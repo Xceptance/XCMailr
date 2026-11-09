@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Unit tests verifying role mapping, account status, and immutability invariants

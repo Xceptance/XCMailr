@@ -33,11 +33,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import models.Domain;
-import models.MBox;
-import models.Mail;
-import models.MailTransaction;
-import models.User;
+import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
+import com.xceptance.xcmailr.models.MailTransaction;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Verification test for Spring Data JPA repositories.

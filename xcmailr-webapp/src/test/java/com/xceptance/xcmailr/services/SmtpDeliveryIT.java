@@ -48,11 +48,11 @@ import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.Domain;
-import models.MBox;
-import models.Mail;
-import models.MailTransaction;
-import models.User;
+import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
+import com.xceptance.xcmailr.models.MailTransaction;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Full characterization integration test verifying inbound SubEthaSMTP delivery lifecycle,

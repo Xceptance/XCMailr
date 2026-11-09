@@ -17,9 +17,7 @@ package com.xceptance.xcmailr;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -30,22 +28,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *
  * @author Xceptance Software Technologies GmbH
  */
-@SpringBootApplication(scanBasePackages = {
-    "com.xceptance.xcmailr",
-    "controllers",
-    "services"
-})
-@EntityScan(basePackages = {
-    "models",
-    "com.xceptance.xcmailr.models"
-})
-@EnableJpaRepositories(basePackages = {
-    "repositories",
-    "com.xceptance.xcmailr.repositories"
-})
+@SpringBootApplication
 @EnableScheduling
 @EnableAsync
-@ConfigurationPropertiesScan(basePackages = "com.xceptance.xcmailr.config")
+@ConfigurationPropertiesScan
 public class XcmailrApplication
 {
     static

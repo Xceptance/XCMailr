@@ -25,7 +25,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Spring Data JPA repository for user accounts.

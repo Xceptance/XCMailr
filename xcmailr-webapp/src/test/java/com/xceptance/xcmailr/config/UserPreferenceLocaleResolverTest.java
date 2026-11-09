@@ -38,7 +38,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.UserPrincipal;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Unit tests verifying {@link UserPreferenceLocaleResolver} across the testing pyramid (Tier 1).

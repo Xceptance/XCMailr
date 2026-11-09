@@ -40,11 +40,8 @@ import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.security.UserPrincipal;
 
-import controllers.restapi.MailboxData;
-import controllers.restapi.util.ApiError;
-import controllers.restapi.util.ApiErrors;
-import etc.HelperUtils;
-import models.MBox;
+import com.xceptance.xcmailr.util.HelperUtils;
+import com.xceptance.xcmailr.models.MBox;
 
 /**
  * REST API controller managing user mailboxes under {@code /api/v1/mailboxes}.

@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.xceptance.xcmailr.repositories.projections.MailSummaryProjection;
 
-import models.Mail;
+import com.xceptance.xcmailr.models.Mail;
 
 /**
  * Spring Data JPA repository for persisted email messages.

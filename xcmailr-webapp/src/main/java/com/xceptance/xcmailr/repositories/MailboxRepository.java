@@ -27,8 +27,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import models.MBox;
-import models.User;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Spring Data JPA repository for mailboxes.

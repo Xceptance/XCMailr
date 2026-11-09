@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package models;
+package com.xceptance.xcmailr.models;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import etc.HelperUtils;
+import com.xceptance.xcmailr.util.HelperUtils;
 
 /**
  * Object for a virtual Mailbox (a Mail-Forward)

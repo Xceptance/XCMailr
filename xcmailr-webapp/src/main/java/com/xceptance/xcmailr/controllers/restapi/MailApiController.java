@@ -45,12 +45,9 @@ import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.security.UserPrincipal;
 
-import controllers.restapi.MailData;
-import controllers.restapi.util.ApiError;
-import controllers.restapi.util.ApiErrors;
-import etc.HelperUtils;
-import models.MBox;
-import models.Mail;
+import com.xceptance.xcmailr.util.HelperUtils;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
 
 /**
  * REST API controller for emails received by temporary mailboxes under {@code /api/v1/mails}.

@@ -38,12 +38,12 @@ import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import etc.HelperUtils;
-import models.MBox;
-import models.MailStatistics;
-import models.MailStatisticsKey;
-import models.MailTransaction;
-import models.User;
+import com.xceptance.xcmailr.util.HelperUtils;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.MailStatistics;
+import com.xceptance.xcmailr.models.MailStatisticsKey;
+import com.xceptance.xcmailr.models.MailTransaction;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Scheduled background service for mailbox expiration, retention cleanup, API token expiry,

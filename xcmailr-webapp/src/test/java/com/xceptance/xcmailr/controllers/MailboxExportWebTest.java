@@ -45,9 +45,9 @@ import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.Domain;
-import models.MBox;
-import models.User;
+import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Dedicated test suite verifying mailbox address export functionality and UI layout enhancements

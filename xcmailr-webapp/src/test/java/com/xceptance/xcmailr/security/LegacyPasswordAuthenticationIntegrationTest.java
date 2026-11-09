@@ -38,7 +38,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Integration test verifying backward compatibility for existing users in the production database.

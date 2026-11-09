@@ -43,9 +43,9 @@ import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.Domain;
-import models.MBox;
-import models.User;
+import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * UI template contract test suite for the mailbox creation modal dialog (Testing Pyramid Layer 3).

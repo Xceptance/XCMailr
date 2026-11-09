@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package controllers.restapi;
+package com.xceptance.xcmailr.controllers.restapi;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 
-import models.MBox;
+import com.xceptance.xcmailr.models.MBox;
 
 /**
  * The data object that represents the details of a mailbox.

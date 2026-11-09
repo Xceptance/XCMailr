@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.xceptance.xcmailr.models.User;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
 import jakarta.servlet.FilterChain;
@@ -67,7 +68,7 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter
             if (!token.isEmpty())
             {
                 userRepository.findByApiToken(token)
-                              .filter(models.User::isActive)
+                              .filter(User::isActive)
                               .ifPresent(user -> {
                                   final UserPrincipal principal = new UserPrincipal(user);
                                   final UsernamePasswordAuthenticationToken authentication =

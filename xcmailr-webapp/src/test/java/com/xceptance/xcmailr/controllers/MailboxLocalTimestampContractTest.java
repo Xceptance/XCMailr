@@ -44,10 +44,10 @@ import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.Domain;
-import models.MBox;
-import models.Mail;
-import models.User;
+import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Template contract test suite verifying client-side timestamp localization integration

@@ -39,7 +39,7 @@ import org.springframework.web.context.WebApplicationContext;
 import com.xceptance.xcmailr.XcmailrApplication;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Integration and web-tier tests verifying comprehensive internationalization (English and German)

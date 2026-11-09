@@ -36,7 +36,7 @@ import com.xceptance.xcmailr.security.PasswordValidationResult;
 import com.xceptance.xcmailr.security.PasswordValidator;
 import com.xceptance.xcmailr.services.OutboundMailService;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Isolated unit tests for {@link WebAuthController} verifying template message key setting,

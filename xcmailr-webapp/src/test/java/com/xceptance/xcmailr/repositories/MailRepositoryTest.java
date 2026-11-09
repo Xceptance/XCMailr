@@ -38,9 +38,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.xceptance.xcmailr.repositories.projections.MailSummaryProjection;
 
-import models.MBox;
-import models.Mail;
-import models.User;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Repository slice and integration tests for {@link MailRepository} paginated summary projections.

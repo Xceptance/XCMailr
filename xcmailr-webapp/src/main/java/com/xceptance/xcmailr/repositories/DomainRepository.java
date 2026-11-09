@@ -21,7 +21,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import models.Domain;
+import com.xceptance.xcmailr.models.Domain;
 
 /**
  * Spring Data JPA repository for managed and whitelisted email domains.

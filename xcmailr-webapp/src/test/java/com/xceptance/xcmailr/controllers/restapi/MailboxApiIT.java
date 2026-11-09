@@ -44,12 +44,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import controllers.restapi.MailboxData;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.MBox;
-import models.User;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Integration characterization tests for {@code /api/v1/mailboxes} endpoint verifying

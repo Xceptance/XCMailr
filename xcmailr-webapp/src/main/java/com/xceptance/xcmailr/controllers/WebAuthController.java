@@ -38,7 +38,7 @@ import com.xceptance.xcmailr.security.PasswordValidationResult;
 import com.xceptance.xcmailr.security.PasswordValidator;
 import com.xceptance.xcmailr.services.OutboundMailService;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Web controller handling user authentication and self-service lifecycle flows:

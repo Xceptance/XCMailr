@@ -60,9 +60,9 @@ import com.xceptance.xcmailr.util.JakartaMimeMessageParser;
 
 import jakarta.activation.DataSource;
 import jakarta.mail.internet.MimeMessage;
-import models.MBox;
-import models.Mail;
-import models.User;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Controller for viewing stored emails, inspecting sanitized message bodies,

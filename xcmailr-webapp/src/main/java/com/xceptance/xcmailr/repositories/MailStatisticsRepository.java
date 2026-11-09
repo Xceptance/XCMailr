@@ -25,8 +25,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import models.MailStatistics;
-import models.MailStatisticsKey;
+import com.xceptance.xcmailr.models.MailStatistics;
+import com.xceptance.xcmailr.models.MailStatisticsKey;
 
 /**
  * Spring Data JPA repository for aggregated 15-minute mail statistics.

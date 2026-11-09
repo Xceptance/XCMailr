@@ -38,11 +38,11 @@ import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.MBox;
-import models.Mail;
-import models.MailStatistics;
-import models.MailTransaction;
-import models.User;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
+import com.xceptance.xcmailr.models.MailStatistics;
+import com.xceptance.xcmailr.models.MailTransaction;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Integration and unit tests for {@link ExpirationScheduledService}.

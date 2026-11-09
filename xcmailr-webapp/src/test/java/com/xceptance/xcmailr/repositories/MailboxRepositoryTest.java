@@ -35,8 +35,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import models.MBox;
-import models.User;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Unit and integration tests for {@link MailboxRepository} batch methods and tenant boundaries.

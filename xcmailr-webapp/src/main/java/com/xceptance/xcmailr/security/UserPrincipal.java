@@ -22,7 +22,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Spring Security {@link UserDetails} implementation wrapping an XCMailr {@link User} entity.

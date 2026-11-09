@@ -26,8 +26,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import models.MailTransaction;
-import models.Status;
+import com.xceptance.xcmailr.models.MailTransaction;
+import com.xceptance.xcmailr.models.Status;
 
 /**
  * Spring Data JPA repository for inbound and relay transaction audit logs.
@@ -68,6 +68,6 @@ public interface MailTransactionRepository extends JpaRepository<MailTransaction
      *
      * @return list of Status objects representing grouped counts
      */
-    @Query("SELECT new models.Status(mt.status, COUNT(mt)) FROM MailTransaction mt GROUP BY mt.status")
+    @Query("SELECT new com.xceptance.xcmailr.models.Status(mt.status, COUNT(mt)) FROM MailTransaction mt GROUP BY mt.status")
     List<Status> getStatusCounts();
 }

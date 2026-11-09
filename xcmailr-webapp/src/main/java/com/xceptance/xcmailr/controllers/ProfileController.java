@@ -48,8 +48,8 @@ import com.xceptance.xcmailr.security.UserPrincipal;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import models.MBox;
-import models.User;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Controller for self-service user profile management and REST API token administration.

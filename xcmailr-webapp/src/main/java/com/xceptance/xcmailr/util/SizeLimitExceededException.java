@@ -13,19 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package controllers.restapi.util;
+package com.xceptance.xcmailr.util;
 
-import java.util.List;
+import java.io.IOException;
 
-/**
- * The data object that represents a list of API errors.
- */
-public class ApiErrors
+public class SizeLimitExceededException extends IOException
 {
-    public final List<ApiError> errors;
+    static final long serialVersionUID = -2495864848105342730L;
 
-    public ApiErrors(List<ApiError> errors)
+    public SizeLimitExceededException()
     {
-        this.errors = errors;
+        super();
     }
+
+    public SizeLimitExceededException(String arg0, Throwable arg1)
+    {
+        super(arg0, arg1);
+    }
+
+    public SizeLimitExceededException(String arg0)
+    {
+        super(arg0);
+    }
+
+    public SizeLimitExceededException(Throwable arg0)
+    {
+        super(arg0);
+    }
+
 }

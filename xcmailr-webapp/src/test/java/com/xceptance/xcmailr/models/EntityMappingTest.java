@@ -33,13 +33,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import models.Domain;
-import models.MBox;
-import models.Mail;
-import models.MailStatistics;
-import models.MailStatisticsKey;
-import models.MailTransaction;
-import models.User;
+import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
+import com.xceptance.xcmailr.models.MailStatistics;
+import com.xceptance.xcmailr.models.MailStatisticsKey;
+import com.xceptance.xcmailr.models.MailTransaction;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Verifies standard Spring Data JPA mapping integrity for all entity classes:

@@ -56,9 +56,9 @@ import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.PasswordValidator;
 import com.xceptance.xcmailr.security.UserPrincipal;
 
-import models.MBox;
-import models.Mail;
-import models.User;
+import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.Mail;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Tests for {@link ProfileController} verifying profile display, profile updating,

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package etc;
+package com.xceptance.xcmailr.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -109,8 +109,6 @@ public final class HelperUtils
         return PATTERN_DATEFORMAT.matcher(input).matches();
     }
 
-
-
     /**
      * Check the given mail address to match format "localpart@domain". Also checks if domain is configured in XCMailr
      * 
@@ -156,8 +154,6 @@ public final class HelperUtils
         }
         return null;
     }
-
-
 
     /**
      * Reads up to maxSize bytes from data input stream. If the limit is exceeded an {@link SizeLimitExceededException}

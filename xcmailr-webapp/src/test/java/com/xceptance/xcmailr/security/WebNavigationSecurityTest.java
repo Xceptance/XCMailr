@@ -42,7 +42,7 @@ import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Integration slice test verifying role-based navigation visibility, OWASP Broken Access Control

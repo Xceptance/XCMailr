@@ -28,8 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import etc.HelperUtils;
-import models.MBox;
+import com.xceptance.xcmailr.util.HelperUtils;
+import com.xceptance.xcmailr.models.MBox;
 
 /**
  * Unit test suite representing the lowest layer of the test pyramid.

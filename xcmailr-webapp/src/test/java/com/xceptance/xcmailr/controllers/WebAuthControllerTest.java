@@ -46,7 +46,7 @@ import com.xceptance.xcmailr.XcmailrApplication;
 import com.xceptance.xcmailr.config.XcmailrProperties;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
-import models.User;
+import com.xceptance.xcmailr.models.User;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 

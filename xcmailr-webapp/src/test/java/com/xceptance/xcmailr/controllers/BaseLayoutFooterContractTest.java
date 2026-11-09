@@ -43,8 +43,8 @@ import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
 
 import jakarta.servlet.RequestDispatcher;
-import models.Domain;
-import models.User;
+import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.User;
 
 /**
  * Contract tests for layout rendering across the testing pyramid, verifying:
