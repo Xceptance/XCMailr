@@ -24,6 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.time.Year;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,8 +51,8 @@ import com.xceptance.xcmailr.models.User;
 /**
  * Contract tests for layout rendering across the testing pyramid, verifying:
  * <ul>
- *   <li>Happy path: Public (/login) and authenticated (/mailboxes) views render the yearless copyright notice referencing Xceptance without year numbers (2013, 2026) and without internal technology stack metadata.</li>
- *   <li>Error case: Styled error views (e.g. 404) render the base layout with the yearless copyright notice and without technology stack metadata.</li>
+ *   <li>Happy path: Public (/login) and authenticated (/mailboxes) views render the corporate copyright notice with inception-to-current year range and application version, without internal technology stack metadata.</li>
+ *   <li>Error case: Styled error views (e.g. 404) render the base layout with the copyright notice, year range, and application version without technology stack metadata.</li>
  *   <li>Special case: Base template markup contains the resilient closeModal event listener binding to #actionModal.</li>
  * </ul>
  */
@@ -60,14 +62,15 @@ public class BaseLayoutFooterContractTest
 {
     private static final String TEST_USER_EMAIL = "testuser@xcmailr.test";
     private static final String TEST_DOMAIN_NAME = "xcmailr.test";
-    private static final String YEARLESS_COPYRIGHT_SNIPPET = "&copy; <a href=\"https://www.xceptance.com\" target=\"_blank\">Xceptance Software Technologies GmbH</a>. All rights reserved.";
+    private static final String EXPECTED_YEAR_RANGE = String.format("2013-%d", Year.now().getValue());
+    private static final String COMPANY_NAME = "Xceptance Software Technologies GmbH";
+    private static final String ALL_RIGHTS_RESERVED = "All rights reserved.";
+    private static final String VERSION_MARKER_CLASS = "xcmailr-version";
+    private static final String EXPECTED_VERSION = "4.0.0";
     private static final String TECH_STACK_SNIPPET = "XCMailr Modernized &bull; Java 25 &bull; Spring Boot 4.x &bull; HTMX";
     private static final String TECH_STACK_MODERNIZED = "XCMailr Modernized";
     private static final String TECH_STACK_JAVA = "Java 25";
     private static final String TECH_STACK_SPRING_BOOT = "Spring Boot 4.x";
-    private static final String LEGACY_YEAR_RANGE = "2013-2026";
-    private static final String YEAR_2013 = "2013";
-    private static final String YEAR_2026 = "2026";
 
     @Autowired
     private WebApplicationContext context;
@@ -121,25 +124,27 @@ public class BaseLayoutFooterContractTest
     // =========================================================================
 
     @Test
-    @DisplayName("Happy path: Public view (/login) renders base layout with yearless copyright notice and no hardcoded years")
+    @DisplayName("Happy path: Public view (/login) renders base layout with copyright year range, company notice, and version")
     public void testPublicLoginViewRendersYearlessCopyright() throws Exception
     {
         mockMvc.perform(get("/login")
                .accept(MediaType.TEXT_HTML))
                .andExpect(status().isOk())
                .andExpect(view().name("auth/login"))
-               .andExpect(content().string(containsString(YEARLESS_COPYRIGHT_SNIPPET)))
+               .andExpect(content().string(containsString(EXPECTED_YEAR_RANGE)))
+               .andExpect(content().string(containsString(COMPANY_NAME)))
+               .andExpect(content().string(containsString(ALL_RIGHTS_RESERVED)))
+               .andExpect(content().string(containsString("Version:")))
+               .andExpect(content().string(containsString(VERSION_MARKER_CLASS)))
+               .andExpect(content().string(containsString(EXPECTED_VERSION)))
                .andExpect(content().string(not(containsString(TECH_STACK_SNIPPET))))
                .andExpect(content().string(not(containsString(TECH_STACK_MODERNIZED))))
                .andExpect(content().string(not(containsString(TECH_STACK_JAVA))))
-               .andExpect(content().string(not(containsString(TECH_STACK_SPRING_BOOT))))
-               .andExpect(content().string(not(containsString(LEGACY_YEAR_RANGE))))
-               .andExpect(content().string(not(containsString(YEAR_2013))))
-               .andExpect(content().string(not(containsString(YEAR_2026))));
+               .andExpect(content().string(not(containsString(TECH_STACK_SPRING_BOOT))));
     }
 
     @Test
-    @DisplayName("Happy path: Authenticated view (/mailboxes) renders base layout with yearless copyright notice and no hardcoded years")
+    @DisplayName("Happy path: Authenticated view (/mailboxes) renders base layout with copyright year range, company notice, and version")
     public void testAuthenticatedMailboxesViewRendersYearlessCopyright() throws Exception
     {
         mockMvc.perform(get("/mailboxes")
@@ -147,14 +152,16 @@ public class BaseLayoutFooterContractTest
                .accept(MediaType.TEXT_HTML))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/index"))
-               .andExpect(content().string(containsString(YEARLESS_COPYRIGHT_SNIPPET)))
+               .andExpect(content().string(containsString(EXPECTED_YEAR_RANGE)))
+               .andExpect(content().string(containsString(COMPANY_NAME)))
+               .andExpect(content().string(containsString(ALL_RIGHTS_RESERVED)))
+               .andExpect(content().string(containsString("Version:")))
+               .andExpect(content().string(containsString(VERSION_MARKER_CLASS)))
+               .andExpect(content().string(containsString(EXPECTED_VERSION)))
                .andExpect(content().string(not(containsString(TECH_STACK_SNIPPET))))
                .andExpect(content().string(not(containsString(TECH_STACK_MODERNIZED))))
                .andExpect(content().string(not(containsString(TECH_STACK_JAVA))))
-               .andExpect(content().string(not(containsString(TECH_STACK_SPRING_BOOT))))
-               .andExpect(content().string(not(containsString(LEGACY_YEAR_RANGE))))
-               .andExpect(content().string(not(containsString(YEAR_2013))))
-               .andExpect(content().string(not(containsString(YEAR_2026))));
+               .andExpect(content().string(not(containsString(TECH_STACK_SPRING_BOOT))));
     }
 
     // =========================================================================
@@ -162,7 +169,7 @@ public class BaseLayoutFooterContractTest
     // =========================================================================
 
     @Test
-    @DisplayName("Error case: Styled 404 error view renders base layout with yearless copyright notice and no hardcoded years")
+    @DisplayName("Error case: Styled 404 error view renders base layout with copyright year range, company notice, and version")
     public void testStyled404ErrorViewRendersYearlessCopyright() throws Exception
     {
         mockMvc.perform(get("/error")
@@ -173,14 +180,16 @@ public class BaseLayoutFooterContractTest
                .andExpect(view().name("error/404"))
                .andExpect(content().string(containsString("Page Not Found")))
                .andExpect(content().string(containsString("HTTP 404")))
-               .andExpect(content().string(containsString(YEARLESS_COPYRIGHT_SNIPPET)))
+               .andExpect(content().string(containsString(EXPECTED_YEAR_RANGE)))
+               .andExpect(content().string(containsString(COMPANY_NAME)))
+               .andExpect(content().string(containsString(ALL_RIGHTS_RESERVED)))
+               .andExpect(content().string(containsString("Version:")))
+               .andExpect(content().string(containsString(VERSION_MARKER_CLASS)))
+               .andExpect(content().string(containsString(EXPECTED_VERSION)))
                .andExpect(content().string(not(containsString(TECH_STACK_SNIPPET))))
                .andExpect(content().string(not(containsString(TECH_STACK_MODERNIZED))))
                .andExpect(content().string(not(containsString(TECH_STACK_JAVA))))
-               .andExpect(content().string(not(containsString(TECH_STACK_SPRING_BOOT))))
-               .andExpect(content().string(not(containsString(LEGACY_YEAR_RANGE))))
-               .andExpect(content().string(not(containsString(YEAR_2013))))
-               .andExpect(content().string(not(containsString(YEAR_2026))));
+               .andExpect(content().string(not(containsString(TECH_STACK_SPRING_BOOT))));
     }
 
     // =========================================================================

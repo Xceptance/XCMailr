@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.time.Year;
 import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -55,6 +56,8 @@ import com.xceptance.xcmailr.models.User;
 @ActiveProfiles("test")
 public class AuthWebControllerTest
 {
+    private static final String EXPECTED_YEAR_RANGE = String.format("2013-%d", Year.now().getValue());
+
     @Autowired
     private WebApplicationContext context;
 
@@ -103,8 +106,12 @@ public class AuthWebControllerTest
             .andExpect(content().string(containsString("have an account?")))
             .andExpect(content().string(containsString("Register here")))
             // Common layout elements
+            .andExpect(content().string(containsString(EXPECTED_YEAR_RANGE)))
             .andExpect(content().string(containsString("All rights reserved.")))
             .andExpect(content().string(containsString("Xceptance Software Technologies GmbH")))
+            .andExpect(content().string(containsString("Version:")))
+            .andExpect(content().string(containsString("xcmailr-version")))
+            .andExpect(content().string(containsString("4.0.0")))
             .andExpect(content().string(not(containsString("XCMailr Modernized"))));
     }
 
@@ -129,8 +136,12 @@ public class AuthWebControllerTest
             .andExpect(content().string(containsString("Noch kein Konto?")))
             .andExpect(content().string(containsString("Hier registrieren")))
             // Common layout elements
+            .andExpect(content().string(containsString(EXPECTED_YEAR_RANGE)))
             .andExpect(content().string(containsString("Alle Rechte vorbehalten.")))
             .andExpect(content().string(containsString("Xceptance Software Technologies GmbH")))
+            .andExpect(content().string(containsString("Version:")))
+            .andExpect(content().string(containsString("xcmailr-version")))
+            .andExpect(content().string(containsString("4.0.0")))
             .andExpect(content().string(not(containsString("XCMailr Modernized"))));
     }
 
