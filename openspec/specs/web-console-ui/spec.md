@@ -33,6 +33,38 @@ The system SHALL provide web views for user registration, email verification, se
 - **WHEN** a user attempts to register with an email address that is already registered (case-insensitive)
 - **THEN** the system prevents account creation and displays a user-friendly error message
 
+#### Scenario: Server-Side Registration Validation for Blank Forename or Surname (Error Case)
+- **WHEN** an inbound registration request is submitted with a blank or whitespace-only forename or surname, bypassing client UI attributes
+- **THEN** the server-side validator rejects the registration immediately via form binding validation, displays localized field-specific error messages, and avoids database persistence and uncaught server errors
+
+#### Scenario: Server-Side Registration Validation for Malformed Email (Error Case)
+- **WHEN** an inbound registration request is submitted with a malformed email address (e.g. `invalid-email`, missing domain, or illegal characters), bypassing client UI attributes
+- **THEN** the server-side validator rejects the registration via email format validation, re-renders the registration view with a localized error message, and avoids database persistence
+
+#### Scenario: Server-Side Registration Validation for Field Length Limits (Boundary / Error Case)
+- **WHEN** an inbound registration request contains forename, surname, or email fields exceeding 255 characters
+- **THEN** the server-side validator rejects the registration with a size violation error, preventing database column truncation or unhandled database exceptions
+
+#### Scenario: Server-Side Registration Password Policy Enforcement (OWASP Error Case)
+- **WHEN** an inbound registration request contains a password that violates OWASP rules (fewer than 10 characters, exceeding 72 characters or 72 UTF-8 bytes, consisting of a single repeated character, or containing the user's name or email address)
+- **THEN** the server-side validator rejects the registration with the specific localized password policy error message without hashing or persisting credentials
+
+#### Scenario: Server-Side Profile Update Validation for Blank Names (Error Case)
+- **WHEN** an authenticated user submits a profile update request with blank or whitespace-only forename or surname
+- **THEN** the server-side validator rejects the update, retains current database state, and re-renders the profile view with localized validation error feedback without throwing an HTTP 500 error
+
+#### Scenario: Server-Side Profile Update Happy Path
+- **WHEN** an authenticated user submits valid non-blank forename, surname, and language preference
+- **THEN** the server persists the updated details, synchronizes the in-memory session principal, and redirects with a success confirmation parameter
+
+#### Scenario: Server-Side Profile Update Field Length Limits (Boundary / Error Case)
+- **WHEN** an authenticated user submits a profile update with forename or surname exceeding 255 characters
+- **THEN** the server-side validator rejects the update with a size validation error without modifying persisted data
+
+#### Scenario: Server-Side Form Input Sanitization and XSS Prevention (Special Case)
+- **WHEN** a user submits registration or profile fields containing HTML or script tags (e.g. `<script>alert('xss')</script>`)
+- **THEN** the system strictly escapes all user input values upon re-rendering validation errors, preventing Cross-Site Scripting (XSS)
+
 #### Scenario: Invalid or Nonexistent Confirmation Token
 - **WHEN** an unauthenticated request attempts to confirm an account with an invalid or non-existent token
 - **THEN** the system redirects to the login view with an invalid token error alert without activating any account

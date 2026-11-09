@@ -29,8 +29,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.ui.ConcurrentModel;
 import org.springframework.ui.Model;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindingResult;
 
 import com.xceptance.xcmailr.config.XcmailrProperties;
+import com.xceptance.xcmailr.dto.RegistrationForm;
 import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.PasswordValidationResult;
 import com.xceptance.xcmailr.security.PasswordValidator;
@@ -68,8 +71,16 @@ public class WebAuthControllerUnitTest
     public void testRegisterSubmitPasswordMismatchSetsErrorMessageKeyAndLanguage()
     {
         final Model model = new ConcurrentModel();
+        final RegistrationForm form = new RegistrationForm();
+        form.setForename("Jane");
+        form.setSurname("Doe");
+        form.setMail("jane@example.test");
+        form.setPassword("Secret12345!");
+        form.setConfirmPassword("Different!");
+        form.setLanguage("de");
+        final BindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
 
-        final String view = controller.registerSubmit("Jane", "Doe", "jane@example.test", "Secret12345!", "Different!", "de", model);
+        final String view = controller.registerSubmit(form, bindingResult, model);
 
         assertEquals("auth/register", view);
         assertEquals("auth.error.register.passwordMismatch", model.getAttribute("errorMessageKey"));
@@ -86,7 +97,16 @@ public class WebAuthControllerUnitTest
         final Model model = new ConcurrentModel();
         when(passwordValidator.validate(anyString(), any())).thenReturn(PasswordValidationResult.invalid("Too short", "auth.password.error.minLength"));
 
-        final String view = controller.registerSubmit("Jane", "Doe", "jane@example.test", "short", "short", "de", model);
+        final RegistrationForm form = new RegistrationForm();
+        form.setForename("Jane");
+        form.setSurname("Doe");
+        form.setMail("jane@example.test");
+        form.setPassword("short");
+        form.setConfirmPassword("short");
+        form.setLanguage("de");
+        final BindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
+
+        final String view = controller.registerSubmit(form, bindingResult, model);
 
         assertEquals("auth/register", view);
         assertEquals("auth.password.error.minLength", model.getAttribute("errorMessageKey"));
@@ -101,7 +121,16 @@ public class WebAuthControllerUnitTest
         when(passwordValidator.validate(anyString(), any())).thenReturn(PasswordValidationResult.valid());
         when(userRepository.existsByMailIgnoreCase("jane@example.test")).thenReturn(true);
 
-        final String view = controller.registerSubmit("Jane", "Doe", "jane@example.test", "ValidSecret123!", "ValidSecret123!", "de", model);
+        final RegistrationForm form = new RegistrationForm();
+        form.setForename("Jane");
+        form.setSurname("Doe");
+        form.setMail("jane@example.test");
+        form.setPassword("ValidSecret123!");
+        form.setConfirmPassword("ValidSecret123!");
+        form.setLanguage("de");
+        final BindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
+
+        final String view = controller.registerSubmit(form, bindingResult, model);
 
         assertEquals("auth/register", view);
         assertEquals("auth.error.register.emailExists", model.getAttribute("errorMessageKey"));

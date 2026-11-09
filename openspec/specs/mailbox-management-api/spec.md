@@ -33,6 +33,18 @@ The system SHALL provide REST endpoints under `/api/v1/mailboxes` for mailbox cr
 - **WHEN** an authenticated user issues a DELETE request for their mailbox
 - **THEN** the system removes the mailbox and its associated mails, returning HTTP 200
 
+#### Scenario: Server-Side Validation Rejection of Malformed Email Address (Error Case)
+- **WHEN** an authenticated client sends a POST or PUT request to `/api/v1/mailboxes` with a missing, blank, or malformed email address in the request body
+- **THEN** the server-side bean validator rejects the request immediately and returns HTTP 400 Bad Request with an `ApiErrors` object identifying the `address` field
+
+#### Scenario: Server-Side Validation Rejection of Comment Exceeding 255 Characters (Boundary / Error Case)
+- **WHEN** an authenticated client sends a POST or PUT request to `/api/v1/mailboxes` with a comment exceeding 255 characters
+- **THEN** the server-side bean validator rejects the request and returns HTTP 400 Bad Request with an `ApiErrors` object identifying the `comment` field
+
+#### Scenario: Server-Side Validation Rejection of Disallowed Domain (Error Case)
+- **WHEN** an authenticated client sends a POST or PUT request to `/api/v1/mailboxes` specifying a domain that is not present in the domain whitelist
+- **THEN** the system rejects the request with HTTP 403 Forbidden and an `ApiErrors` object identifying the `address` or `mailboxAddress` field
+
 ### Requirement: REST Mail Inspection and Attachment Download
 The system SHALL provide REST endpoints under `/api/v1/mails` for querying received emails and downloading file attachments, validating any client-supplied regular expression query filters against length, structural ReDoS, and syntax constraints.
 

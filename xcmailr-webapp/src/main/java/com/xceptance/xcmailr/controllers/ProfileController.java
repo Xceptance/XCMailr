@@ -33,11 +33,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.xceptance.xcmailr.dto.ProfileUpdateForm;
 import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
@@ -48,6 +51,7 @@ import com.xceptance.xcmailr.security.UserPrincipal;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import com.xceptance.xcmailr.models.MBox;
 import com.xceptance.xcmailr.models.User;
 
@@ -110,24 +114,31 @@ public class ProfileController
     }
 
     /**
-     * Updates user's personal details and synchronizes in-memory session state.
+     * Updates user's personal details and synchronizes in-memory session state after validating form input.
      *
-     * @param forename first name
-     * @param surname last name
-     * @param language preferred language
+     * @param form form backing bean containing validated profile fields
+     * @param bindingResult validation error results
      * @param principal authenticated user principal
-     * @return redirect to profile
+     * @param model template model
+     * @return redirect to profile on success, or profile view name on validation failure
      */
     @PostMapping("/update")
-    public String updateProfile(@RequestParam("forename") final String forename,
-                                @RequestParam("surname") final String surname,
-                                @RequestParam(value = "language", defaultValue = "en") final String language,
-                                final Principal principal)
+    public String updateProfile(@Valid @ModelAttribute("profileForm") final ProfileUpdateForm form,
+                                final BindingResult bindingResult,
+                                final Principal principal,
+                                final Model model)
     {
         final User user = getUser(principal);
-        user.setForename(forename.trim());
-        user.setSurname(surname.trim());
-        user.setLanguage(language);
+
+        if (bindingResult.hasErrors())
+        {
+            populateProfileModel(model, user);
+            return "user/profile";
+        }
+
+        user.setForename(form.getForename().trim());
+        user.setSurname(form.getSurname().trim());
+        user.setLanguage(form.getLanguage());
         userRepository.save(user);
 
         // Defense-in-depth Layer 2: Synchronize in-memory UserPrincipal to maintain session consistency
@@ -215,6 +226,10 @@ public class ProfileController
     private void populateProfileModel(final Model model, final User user)
     {
         model.addAttribute("user", user);
+        if (!model.containsAttribute("profileForm"))
+        {
+            model.addAttribute("profileForm", new ProfileUpdateForm(user.getForename(), user.getSurname(), user.getLanguage()));
+        }
         if (user.getApiTokenCreationTimestamp() > 0)
         {
             final String formatted = DATE_FORMATTER.format(Instant.ofEpochMilli(user.getApiTokenCreationTimestamp()));

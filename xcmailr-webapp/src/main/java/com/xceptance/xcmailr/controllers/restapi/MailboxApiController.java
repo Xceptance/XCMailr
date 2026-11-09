@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 import com.xceptance.xcmailr.config.XcmailrProperties;
 import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
@@ -104,7 +106,7 @@ public class MailboxApiController
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createMailbox(@AuthenticationPrincipal final UserPrincipal principal,
-                                          @RequestBody final MailboxData mailboxData)
+                                           @Valid @RequestBody final MailboxData mailboxData)
     {
         if (mailboxData == null || !isValidEmail(mailboxData.address))
         {
@@ -209,7 +211,7 @@ public class MailboxApiController
     @PutMapping(path = "/{mailboxAddress}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> updateMailbox(@AuthenticationPrincipal final UserPrincipal principal,
                                            @PathVariable("mailboxAddress") final String mailboxAddress,
-                                           @RequestBody final MailboxData mailboxData)
+                                           @Valid @RequestBody final MailboxData mailboxData)
     {
         if (!isValidEmail(mailboxAddress))
         {

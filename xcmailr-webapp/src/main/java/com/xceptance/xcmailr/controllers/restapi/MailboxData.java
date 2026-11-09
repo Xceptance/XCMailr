@@ -17,6 +17,7 @@ package com.xceptance.xcmailr.controllers.restapi;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 import com.xceptance.xcmailr.models.MBox;
 
@@ -36,6 +37,7 @@ public class MailboxData
     /**
      * Optional comment or note documenting the purpose of this mailbox (max. 255 characters).
      */
+    @Size(max = 255, message = "{validation.comment.size}")
     public String comment;
 
     public MailboxData()

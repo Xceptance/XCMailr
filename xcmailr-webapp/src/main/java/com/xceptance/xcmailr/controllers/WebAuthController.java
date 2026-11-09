@@ -23,15 +23,20 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.xceptance.xcmailr.config.XcmailrProperties;
+import com.xceptance.xcmailr.dto.RegistrationForm;
 import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.security.PasswordContext;
 import com.xceptance.xcmailr.security.PasswordValidationResult;
@@ -101,78 +106,91 @@ public class WebAuthController
     @GetMapping("/register")
     public String registerForm(final Model model)
     {
+        if (!model.containsAttribute("form"))
+        {
+            model.addAttribute("form", new RegistrationForm());
+        }
         return "auth/register";
     }
 
     /**
      * Processes self-service account registration.
      * <p>
+     * Validates inbound form data via Jakarta Bean Validation and the contextual {@link PasswordValidator}
+     * pipeline before creating and persisting the user account.
      * If {@code xcmailr.app.require-confirmation} is {@code true} (the default), the account is created with
      * {@code active = false}, an activation token is generated, and a confirmation email is dispatched asynchronously.
      * If {@code require-confirmation} is {@code false}, the account is activated immediately upon registration.
      * In accordance with CWE-532, bearer confirmation tokens are never written to application logs.
      * </p>
      *
-     * @param forename user's first name
-     * @param surname user's last name
-     * @param mail email address (target forwarding address)
-     * @param password user plaintext password
-     * @param confirmPassword repeated password confirmation
-     * @param language preferred UI language
+     * @param form form backing bean containing validated registration fields
+     * @param bindingResult validation error results
      * @param model template model
      * @return redirect or view name
      */
     @PostMapping("/register")
-    public String registerSubmit(@RequestParam("forename") final String forename,
-                                 @RequestParam("surname") final String surname,
-                                 @RequestParam("mail") final String mail,
-                                 @RequestParam("password") final String password,
-                                 @RequestParam("confirmPassword") final String confirmPassword,
-                                 @RequestParam(value = "language", defaultValue = "en") final String language,
+    public String registerSubmit(@Valid @ModelAttribute("form") final RegistrationForm form,
+                                 final BindingResult bindingResult,
                                  final Model model)
     {
-        if (!Objects.equals(password, confirmPassword))
+        // Stage 1: Jakarta Bean Validation failure check
+        if (bindingResult.hasErrors())
         {
-            model.addAttribute("errorMessageKey", "auth.error.register.passwordMismatch");
-            populateForm(model, forename, surname, mail, language);
+            populateForm(model, form.getForename(), form.getSurname(), form.getMail(), form.getLanguage());
             return "auth/register";
         }
 
-        final PasswordContext passwordContext = PasswordContext.of(forename, surname, mail);
-        final PasswordValidationResult validationResult = passwordValidator.validate(password, passwordContext);
+        // Stage 2: Password confirmation match validation
+        if (!Objects.equals(form.getPassword(), form.getConfirmPassword()))
+        {
+            bindingResult.rejectValue("confirmPassword", "auth.error.register.passwordMismatch", "Passwords do not match.");
+            model.addAttribute("errorMessageKey", "auth.error.register.passwordMismatch");
+            populateForm(model, form.getForename(), form.getSurname(), form.getMail(), form.getLanguage());
+            return "auth/register";
+        }
+
+        // Stage 3: Contextual OWASP ASVS v4.0 / NIST SP 800-63B password rules
+        final PasswordContext passwordContext = PasswordContext.of(form.getForename(), form.getSurname(), form.getMail());
+        final PasswordValidationResult validationResult = passwordValidator.validate(form.getPassword(), passwordContext);
         if (!validationResult.isValid())
         {
+            bindingResult.rejectValue("password", validationResult.messageKey(), validationResult.messageKey());
             model.addAttribute("errorMessageKey", validationResult.messageKey());
-            populateForm(model, forename, surname, mail, language);
+            populateForm(model, form.getForename(), form.getSurname(), form.getMail(), form.getLanguage());
             return "auth/register";
         }
 
-        final String cleanMail = mail.trim().toLowerCase();
+        // Stage 4: Duplicate email address verification
+        final String cleanMail = form.getMail().trim().toLowerCase();
         if (userRepository.existsByMailIgnoreCase(cleanMail))
         {
+            bindingResult.rejectValue("mail", "auth.error.register.emailExists", "An account with this email address already exists.");
             model.addAttribute("errorMessageKey", "auth.error.register.emailExists");
-            populateForm(model, forename, surname, cleanMail, language);
+            populateForm(model, form.getForename(), form.getSurname(), cleanMail, form.getLanguage());
             return "auth/register";
         }
 
+        // Stage 5: User persistence & account initialization
         final User user = new User();
-        user.setForename(forename.trim());
-        user.setSurname(surname.trim());
+        user.setForename(form.getForename().trim());
+        user.setSurname(form.getSurname().trim());
         user.setMail(cleanMail);
 
         try
         {
-            user.setPasswd(passwordEncoder.encode(password));
+            user.setPasswd(passwordEncoder.encode(form.getPassword()));
         }
         catch (final IllegalArgumentException e)
         {
             LOG.warn("Failed to encode password during registration for {}: {}", cleanMail, e.getMessage());
+            bindingResult.rejectValue("password", "auth.error.register.encoding", "Password encoding failed.");
             model.addAttribute("errorMessageKey", "auth.error.register.encoding");
-            populateForm(model, forename, surname, cleanMail, language);
+            populateForm(model, form.getForename(), form.getSurname(), cleanMail, form.getLanguage());
             return "auth/register";
         }
 
-        user.setLanguage(language);
+        user.setLanguage(form.getLanguage());
 
         final boolean requireConfirmation = properties.getApp().isRequireConfirmation();
         if (!requireConfirmation)
