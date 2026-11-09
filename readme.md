@@ -76,6 +76,7 @@ Application configuration is managed via standard Spring Boot properties in `xcm
 | Property | Default | Description |
 | :--- | :--- | :--- |
 | `server.port` | `8080` | HTTP listener port |
+| `xcmailr.ui.theme` | `xceptance` | Web console theme stylesheet slug (`xceptance`, `emerald`, or custom slug; overridable via `XCMAILR_UI_THEME`) |
 | `xcmailr.app.domain` | `localhost` | Default application domain |
 | `xcmailr.smtp.listen-port` | `25000` | Inbound SMTP server listener port |
 | `xcmailr.smtp.bind-address` | `0.0.0.0` | Inbound SMTP server bind address |
@@ -220,6 +221,61 @@ When `require-confirmation` is `false`:
 ### Security Guarantees
 * **Anti-Enumeration (CWE-204)**: During web login, credentials (email + password) are validated **before** checking account activation status. Attempting to log in with an unconfirmed email but an invalid password returns a generic error (`/login?error`) rather than an activation notice, preventing attackers from probing whether an email address is registered.
 * **Token Redaction (CWE-532)**: Confirmation tokens and activation URLs are strictly excluded from application logs to prevent bearer token leakage.
+
+## UI Theming & Custom Stylesheets
+
+XCMailr's web console features a configuration-driven theming architecture that dynamically loads theme stylesheets into the master layout without requiring template changes or Java recompilation.
+
+### Out-of-the-Box Themes
+
+* **`xceptance` (Default)**: Corporate blue theme (`#004682` primary, `#003868` hover, `#dc3545` accent) with Roboto typography.
+* **`emerald`**: Modern developer-tool theme (`#059669` primary, `#047857` hover, `#10b981` dark primary, `#f59e0b` amber accent) with clean Inter typography.
+
+Both themes provide complete light and dark mode color definitions (`[data-bs-theme="light"]` and `[data-bs-theme="dark"]`).
+
+### Switching Themes
+
+Configure the active theme slug via `application.yml` or the `XCMAILR_UI_THEME` environment variable:
+
+```bash
+# Run with the Emerald theme
+export XCMAILR_UI_THEME=emerald
+java -jar xcmailr-webapp.jar
+```
+
+Or configure in `application.yml`:
+
+```yaml
+xcmailr:
+  ui:
+    theme: emerald
+```
+
+### Adding a Custom Corporate Theme
+
+To add an organization-specific theme without modifying Java source code:
+
+1. **Create the Stylesheet**: Place a custom stylesheet named `{theme}-theme.css` in `xcmailr-webapp/src/main/resources/static/css/` (e.g. `acme-theme.css`).
+2. **Implement Design Tokens**: Override the standard `--xc-*` CSS custom properties for both light and dark modes:
+   ```css
+   :root, [data-bs-theme="light"] {
+       --xc-primary: #1e40af;
+       --xc-primary-hover: #1d4ed8;
+       --xc-accent: #f59e0b;
+       --xc-font-family: 'Inter', -apple-system, sans-serif;
+   }
+
+   [data-bs-theme="dark"] {
+       --xc-primary: #3b82f6;
+       --xc-primary-hover: #2563eb;
+   }
+   ```
+3. **Configure the Theme**: Set `XCMAILR_UI_THEME=acme` (or `xcmailr.ui.theme: acme`).
+
+### Safe Fallback & Path Traversal Resilience
+
+* **Safe Slug Sanitization**: Theme slugs are strictly validated against `^[a-zA-Z0-9_-]+$` with a maximum length limit of 32 characters. Directory traversal sequences (`../`, `..\\`, `/etc/passwd`), URL-encoded traversal (`..%2f`), null bytes, shell metacharacters, and HTML tags are rejected.
+* **Automatic Fallback**: If a configured theme stylesheet does not exist on the classpath or fails sanitization, XCMailr logs a descriptive `WARN` message and safely falls back to `xceptance`, ensuring views always render cleanly with the default styling.
 
 ## REST API & Client SDK
 XCMailr provides a full REST API for programmatic mailbox generation and email assertion in test suites.

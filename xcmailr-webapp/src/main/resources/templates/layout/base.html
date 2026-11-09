@@ -29,8 +29,8 @@
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css}">
 
-    <!-- Xceptance Corporate Theme Stylesheet -->
-    <link rel="stylesheet" th:href="@{/css/xceptance-theme.css}">
+    <!-- Active Web UI Theme Stylesheet -->
+    <link rel="stylesheet" th:href="@{'/css/' + ${activeTheme != null ? activeTheme : 'xceptance'} + '-theme.css'}">
     <link rel="shortcut icon" th:href="@{/assets/ico/favicon.ico}">
 </head>
 <body>

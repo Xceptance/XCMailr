@@ -74,6 +74,14 @@ xcmailr:
     # Defaults to true for production security. Set to false (e.g. via APP_REQUIRE_CONFIRMATION=false)
     # for offline development, local demos, or CI environments without an active SMTP server.
     require-confirmation: ${APP_REQUIRE_CONFIRMATION:true}
+  ui:
+    # Active web console theme stylesheet slug.
+    # Out-of-the-box themes:
+    #   - 'xceptance': Corporate blue theme with red accents (#004682 / #cf2027) (default)
+    #   - 'emerald': Alternative modern emerald theme with amber accents (#059669 / #f59e0b)
+    # Custom themes: Place '{theme}-theme.css' into classpath:/static/css/ (or external static resources)
+    # and configure its slug here. If invalid or missing, falls back safely to 'xceptance'.
+    theme: ${XCMAILR_UI_THEME:xceptance}
   admin:
     address: ${ADMIN_ADDRESS:admin@xcmailr.test}
     password: ${ADMIN_PASSWORD:1234}
