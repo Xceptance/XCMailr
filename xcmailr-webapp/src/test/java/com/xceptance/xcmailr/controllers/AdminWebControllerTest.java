@@ -727,22 +727,42 @@ public class AdminWebControllerTest
         assertEquals(Sort.Direction.ASC, nameDescOrders.get(2).getDirection());
         assertTrue(nameDescOrders.get(2).isIgnoreCase());
 
-        // 5. Status ASC: active ASC, tiebreaker mail ASC ignoreCase()
+        // 5. Status ASC: active DESC (active before inactive), tiebreaker mail ASC ignoreCase()
         final Sort statusAsc = AdminWebController.resolveSort("status", "asc");
         final List<Sort.Order> statusAscOrders = statusAsc.toList();
         assertEquals(2, statusAscOrders.size());
         assertEquals("active", statusAscOrders.get(0).getProperty());
-        assertEquals(Sort.Direction.ASC, statusAscOrders.get(0).getDirection());
+        assertEquals(Sort.Direction.DESC, statusAscOrders.get(0).getDirection());
         assertEquals("mail", statusAscOrders.get(1).getProperty());
         assertEquals(Sort.Direction.ASC, statusAscOrders.get(1).getDirection());
         assertTrue(statusAscOrders.get(1).isIgnoreCase());
 
-        // 6. Role DESC: admin DESC, tiebreaker mail ASC ignoreCase()
+        // 6. Status DESC: active ASC (inactive before active), tiebreaker mail ASC ignoreCase()
+        final Sort statusDesc = AdminWebController.resolveSort("status", "desc");
+        final List<Sort.Order> statusDescOrders = statusDesc.toList();
+        assertEquals(2, statusDescOrders.size());
+        assertEquals("active", statusDescOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.ASC, statusDescOrders.get(0).getDirection());
+        assertEquals("mail", statusDescOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.ASC, statusDescOrders.get(1).getDirection());
+        assertTrue(statusDescOrders.get(1).isIgnoreCase());
+
+        // 7. Role ASC: admin DESC (admin before user), tiebreaker mail ASC ignoreCase()
+        final Sort roleAsc = AdminWebController.resolveSort("role", "asc");
+        final List<Sort.Order> roleAscOrders = roleAsc.toList();
+        assertEquals(2, roleAscOrders.size());
+        assertEquals("admin", roleAscOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.DESC, roleAscOrders.get(0).getDirection());
+        assertEquals("mail", roleAscOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.ASC, roleAscOrders.get(1).getDirection());
+        assertTrue(roleAscOrders.get(1).isIgnoreCase());
+
+        // 8. Role DESC: admin ASC (user before admin), tiebreaker mail ASC ignoreCase()
         final Sort roleDesc = AdminWebController.resolveSort("role", "desc");
         final List<Sort.Order> roleDescOrders = roleDesc.toList();
         assertEquals(2, roleDescOrders.size());
         assertEquals("admin", roleDescOrders.get(0).getProperty());
-        assertEquals(Sort.Direction.DESC, roleDescOrders.get(0).getDirection());
+        assertEquals(Sort.Direction.ASC, roleDescOrders.get(0).getDirection());
         assertEquals("mail", roleDescOrders.get(1).getProperty());
         assertEquals(Sort.Direction.ASC, roleDescOrders.get(1).getDirection());
         assertTrue(roleDescOrders.get(1).isIgnoreCase());

@@ -289,22 +289,25 @@ public final class AdminUsersSortingWebTest
     }
 
     /**
-     * Verifies that sorting by Status ASC places inactive users before active users,
+     * Verifies that sorting by Status ASC places active users before inactive users,
      * applying the secondary mail ASC tiebreaker.
      *
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Happy path: Status ASC groups inactive users before active users with mail ASC tiebreaker")
-    public void testSorting_HappyPath_StatusAscending_GroupsInactiveBeforeActive() throws Exception
+    @DisplayName("Happy path: Status ASC groups active users before inactive users with mail ASC tiebreaker")
+    public void testSorting_HappyPath_StatusAscending_GroupsActiveBeforeInactive() throws Exception
     {
-        final User inactiveUser = new User("Inactive", "User", "inactive@xcmailr.test", "Pw123!", "en");
-        inactiveUser.setActive(false);
-        final User activeUser = new User("Active", "User", "active@xcmailr.test", "Pw123!", "en");
-        activeUser.setActive(true);
+        final User activeA = new User("Active", "Alpha", "active_alpha@xcmailr.test", "Pw123!", "en");
+        activeA.setActive(true);
+        final User activeZ = new User("Active", "Zulu", "active_zulu@xcmailr.test", "Pw123!", "en");
+        activeZ.setActive(true);
+        final User inactiveA = new User("Inactive", "Alpha", "inactive_alpha@xcmailr.test", "Pw123!", "en");
+        inactiveA.setActive(false);
+        final User inactiveZ = new User("Inactive", "Zulu", "inactive_zulu@xcmailr.test", "Pw123!", "en");
+        inactiveZ.setActive(false);
 
-        userRepository.save(inactiveUser);
-        userRepository.save(activeUser);
+        userRepository.saveAll(List.of(activeA, activeZ, inactiveA, inactiveZ));
 
         final MvcResult result = mockMvc.perform(get("/admin/users")
                 .header("HX-Request", "true")
@@ -319,27 +322,93 @@ public final class AdminUsersSortingWebTest
 
         final String html = result.getResponse().getContentAsString();
 
-        final int inactiveIdx = html.indexOf("id=\"user-row-" + inactiveUser.getId() + "\"");
-        final int activeIdx = html.indexOf("id=\"user-row-" + activeUser.getId() + "\"");
+        final int activeAIdx = html.indexOf("id=\"user-row-" + activeA.getId() + "\"");
+        final int activeZIdx = html.indexOf("id=\"user-row-" + activeZ.getId() + "\"");
+        final int inactiveAIdx = html.indexOf("id=\"user-row-" + inactiveA.getId() + "\"");
+        final int inactiveZIdx = html.indexOf("id=\"user-row-" + inactiveZ.getId() + "\"");
 
-        assertTrue(inactiveIdx != -1 && activeIdx != -1, "Both users must be rendered");
-        assertTrue(inactiveIdx < activeIdx, "In Status ASC, inactive (false) must precede active (true)");
+        assertTrue(activeAIdx != -1 && activeZIdx != -1 && inactiveAIdx != -1 && inactiveZIdx != -1,
+            "All tested user rows must be rendered in HTML");
+        // Status ASC: active (true) precedes inactive (false)
+        assertTrue(activeAIdx < inactiveAIdx, "In Status ASC, active users must precede inactive users");
+        assertTrue(activeZIdx < inactiveAIdx, "In Status ASC, active users must precede inactive users");
+        // Secondary tiebreaker mail ASC
+        assertTrue(activeAIdx < activeZIdx, "Within active users, tiebreaker mail ASC must order alpha before zulu");
+        assertTrue(inactiveAIdx < inactiveZIdx, "Within inactive users, tiebreaker mail ASC must order alpha before zulu");
     }
 
     /**
-     * Verifies that sorting by Role ASC groups standard users before administrators,
+     * Verifies that sorting by Status DESC places inactive users before active users,
      * applying the secondary mail ASC tiebreaker.
      *
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Happy path: Role ASC groups standard users before admins with mail ASC tiebreaker")
-    public void testSorting_HappyPath_RoleAscending_GroupsStandardUsersBeforeAdmins() throws Exception
+    @DisplayName("Happy path: Status DESC groups inactive users before active users with mail ASC tiebreaker")
+    public void testSorting_HappyPath_StatusDescending_GroupsInactiveBeforeActive() throws Exception
     {
-        final User regular = new User("Regular", "User", "regular@xcmailr.test", "Pw123!", "en");
-        regular.setActive(true);
-        regular.setAdmin(false);
-        userRepository.save(regular);
+        final User activeA = new User("Active", "Alpha", "active_alpha@xcmailr.test", "Pw123!", "en");
+        activeA.setActive(true);
+        final User activeZ = new User("Active", "Zulu", "active_zulu@xcmailr.test", "Pw123!", "en");
+        activeZ.setActive(true);
+        final User inactiveA = new User("Inactive", "Alpha", "inactive_alpha@xcmailr.test", "Pw123!", "en");
+        inactiveA.setActive(false);
+        final User inactiveZ = new User("Inactive", "Zulu", "inactive_zulu@xcmailr.test", "Pw123!", "en");
+        inactiveZ.setActive(false);
+
+        userRepository.saveAll(List.of(activeA, activeZ, inactiveA, inactiveZ));
+
+        final MvcResult result = mockMvc.perform(get("/admin/users")
+                .header("HX-Request", "true")
+                .with(user("admin@xcmailr.test").roles("ADMIN"))
+                .param("sort", "status")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("sort", "status"))
+            .andExpect(model().attribute("dir", "desc"))
+            .andExpect(content().string(containsString("bi bi-chevron-down sort-icon text-primary ms-1")))
+            .andReturn();
+
+        final String html = result.getResponse().getContentAsString();
+
+        final int activeAIdx = html.indexOf("id=\"user-row-" + activeA.getId() + "\"");
+        final int activeZIdx = html.indexOf("id=\"user-row-" + activeZ.getId() + "\"");
+        final int inactiveAIdx = html.indexOf("id=\"user-row-" + inactiveA.getId() + "\"");
+        final int inactiveZIdx = html.indexOf("id=\"user-row-" + inactiveZ.getId() + "\"");
+
+        assertTrue(activeAIdx != -1 && activeZIdx != -1 && inactiveAIdx != -1 && inactiveZIdx != -1,
+            "All tested user rows must be rendered in HTML");
+        // Status DESC: inactive (false) precedes active (true)
+        assertTrue(inactiveAIdx < activeAIdx, "In Status DESC, inactive users must precede active users");
+        assertTrue(inactiveZIdx < activeAIdx, "In Status DESC, inactive users must precede active users");
+        // Secondary tiebreaker mail ASC
+        assertTrue(inactiveAIdx < inactiveZIdx, "Within inactive users, tiebreaker mail ASC must order alpha before zulu");
+        assertTrue(activeAIdx < activeZIdx, "Within active users, tiebreaker mail ASC must order alpha before zulu");
+    }
+
+    /**
+     * Verifies that sorting by Role ASC groups administrators before standard users,
+     * applying the secondary mail ASC tiebreaker.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Role ASC groups admins before standard users with mail ASC tiebreaker")
+    public void testSorting_HappyPath_RoleAscending_GroupsAdminsBeforeStandardUsers() throws Exception
+    {
+        final User extraAdmin = new User("Second", "Admin", "admin_beta@xcmailr.test", "Pw123!", "en");
+        extraAdmin.setActive(true);
+        extraAdmin.setAdmin(true);
+
+        final User regularA = new User("Regular", "Alpha", "regular_alpha@xcmailr.test", "Pw123!", "en");
+        regularA.setActive(true);
+        regularA.setAdmin(false);
+
+        final User regularZ = new User("Regular", "Zulu", "regular_zulu@xcmailr.test", "Pw123!", "en");
+        regularZ.setActive(true);
+        regularZ.setAdmin(false);
+
+        userRepository.saveAll(List.of(extraAdmin, regularA, regularZ));
 
         final MvcResult result = mockMvc.perform(get("/admin/users")
                 .header("HX-Request", "true")
@@ -354,11 +423,71 @@ public final class AdminUsersSortingWebTest
 
         final String html = result.getResponse().getContentAsString();
 
-        final int regularIdx = html.indexOf("id=\"user-row-" + regular.getId() + "\"");
         final int adminIdx = html.indexOf("id=\"user-row-" + admin.getId() + "\"");
+        final int extraAdminIdx = html.indexOf("id=\"user-row-" + extraAdmin.getId() + "\"");
+        final int regularAIdx = html.indexOf("id=\"user-row-" + regularA.getId() + "\"");
+        final int regularZIdx = html.indexOf("id=\"user-row-" + regularZ.getId() + "\"");
 
-        assertTrue(regularIdx != -1 && adminIdx != -1, "Both users must be rendered");
-        assertTrue(regularIdx < adminIdx, "In Role ASC, standard user (admin=false) must precede admin (admin=true)");
+        assertTrue(adminIdx != -1 && extraAdminIdx != -1 && regularAIdx != -1 && regularZIdx != -1,
+            "All tested user rows must be rendered in HTML");
+        // Role ASC: admin (true) precedes regular user (false)
+        assertTrue(adminIdx < regularAIdx, "In Role ASC, admins must precede standard users");
+        assertTrue(extraAdminIdx < regularAIdx, "In Role ASC, admins must precede standard users");
+        // Secondary tiebreaker mail ASC
+        assertTrue(adminIdx < extraAdminIdx, "Within admins, tiebreaker mail ASC must order admin@ before admin_beta@");
+        assertTrue(regularAIdx < regularZIdx, "Within regular users, tiebreaker mail ASC must order alpha before zulu");
+    }
+
+    /**
+     * Verifies that sorting by Role DESC groups standard users before administrators,
+     * applying the secondary mail ASC tiebreaker.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: Role DESC groups standard users before admins with mail ASC tiebreaker")
+    public void testSorting_HappyPath_RoleDescending_GroupsStandardUsersBeforeAdmins() throws Exception
+    {
+        final User extraAdmin = new User("Second", "Admin", "admin_beta@xcmailr.test", "Pw123!", "en");
+        extraAdmin.setActive(true);
+        extraAdmin.setAdmin(true);
+
+        final User regularA = new User("Regular", "Alpha", "regular_alpha@xcmailr.test", "Pw123!", "en");
+        regularA.setActive(true);
+        regularA.setAdmin(false);
+
+        final User regularZ = new User("Regular", "Zulu", "regular_zulu@xcmailr.test", "Pw123!", "en");
+        regularZ.setActive(true);
+        regularZ.setAdmin(false);
+
+        userRepository.saveAll(List.of(extraAdmin, regularA, regularZ));
+
+        final MvcResult result = mockMvc.perform(get("/admin/users")
+                .header("HX-Request", "true")
+                .with(user("admin@xcmailr.test").roles("ADMIN"))
+                .param("sort", "role")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("sort", "role"))
+            .andExpect(model().attribute("dir", "desc"))
+            .andExpect(content().string(containsString("bi bi-chevron-down sort-icon text-primary ms-1")))
+            .andReturn();
+
+        final String html = result.getResponse().getContentAsString();
+
+        final int adminIdx = html.indexOf("id=\"user-row-" + admin.getId() + "\"");
+        final int extraAdminIdx = html.indexOf("id=\"user-row-" + extraAdmin.getId() + "\"");
+        final int regularAIdx = html.indexOf("id=\"user-row-" + regularA.getId() + "\"");
+        final int regularZIdx = html.indexOf("id=\"user-row-" + regularZ.getId() + "\"");
+
+        assertTrue(adminIdx != -1 && extraAdminIdx != -1 && regularAIdx != -1 && regularZIdx != -1,
+            "All tested user rows must be rendered in HTML");
+        // Role DESC: regular user (false) precedes admin (true)
+        assertTrue(regularAIdx < adminIdx, "In Role DESC, standard users must precede admins");
+        assertTrue(regularZIdx < adminIdx, "In Role DESC, standard users must precede admins");
+        // Secondary tiebreaker mail ASC
+        assertTrue(regularAIdx < regularZIdx, "Within regular users, tiebreaker mail ASC must order alpha before zulu");
+        assertTrue(adminIdx < extraAdminIdx, "Within admins, tiebreaker mail ASC must order admin@ before admin_beta@");
     }
 
     /**

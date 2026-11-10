@@ -407,8 +407,10 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 - **AND** applies `mail ASC` as a secondary tiebreaker to guarantee deterministic ordering across paginated views
 
 #### Scenario: User Table Column Sorting by Status and Role (Happy Path)
-- **WHEN** an administrator sorts the user table by status (`active`) or role (`admin`)
-- **THEN** the server groups boolean status or role flags in the requested direction (ASC or DESC)
+- **WHEN** an administrator sorts the user table by status (`active`) in ascending direction (`dir=asc`)
+- **THEN** the server orders active user accounts (`active = true`) before inactive accounts (`active = false`), matching the mailbox status ordering convention, and orders inactive accounts before active accounts on descending direction (`dir=desc`)
+- **WHEN** an administrator sorts the user table by role (`admin`) in ascending direction (`dir=asc`)
+- **THEN** the server orders administrator accounts (`admin = true`) before standard user accounts (`admin = false`), adhering to alphabetical and privilege hierarchy expectations, and orders standard user accounts before administrator accounts on descending direction (`dir=desc`)
 - **AND** applies `mail ASC` case-insensitively as a secondary tiebreaker for deterministic ordering
 
 #### Scenario: User Table Parameter Preservation Across Pagination (Happy Path)

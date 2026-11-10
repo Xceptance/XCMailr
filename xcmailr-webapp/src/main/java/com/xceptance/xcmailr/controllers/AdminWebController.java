@@ -154,8 +154,10 @@ public class AdminWebController
      *   <li>"email" maps to case-insensitive natural ordering by {@code mail}</li>
      *   <li>"name" maps to directory-style composite ordering by {@code surname} then {@code forename}
      *       both case-insensitive, with {@code mail ASC} as secondary tiebreaker</li>
-     *   <li>"status" maps to {@code active} boolean flag with {@code mail ASC} as secondary tiebreaker</li>
-     *   <li>"role" maps to {@code admin} boolean flag with {@code mail ASC} as secondary tiebreaker</li>
+     *   <li>"status" maps to {@code active} boolean flag (active accounts first on ASC to match mailbox status
+     *       ordering, inactive accounts first on DESC) with {@code mail ASC} as secondary tiebreaker</li>
+     *   <li>"role" maps to {@code admin} boolean flag (administrators first on ASC to match alphabetical and
+     *       privilege hierarchy, standard users first on DESC) with {@code mail ASC} as secondary tiebreaker</li>
      * </ul>
      * Any unrecognized or invalid sort parameter safely falls back to ordering by {@code mail} ascending.
      *
@@ -167,6 +169,10 @@ public class AdminWebController
     {
         final String effectiveField = resolveSortField(sort);
         final Sort.Direction direction = "asc".equals(resolveSortDirection(dir)) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        // Invert direction for boolean columns so that true (active, admin) precedes false (inactive, user) on ASC,
+        // matching the mailbox table behavior and alphabetical/privilege expectations.
+        final Sort.Direction booleanDirection = direction.isAscending() ? Sort.Direction.DESC : Sort.Direction.ASC;
 
         final Sort.Order mailTiebreaker = Sort.Order.by("mail").with(Sort.Direction.ASC).ignoreCase();
 
@@ -181,14 +187,14 @@ public class AdminWebController
                 Sort.Order.by("forename").with(direction).ignoreCase(),
                 mailTiebreaker);
 
-            // Boolean active status: false (inactive) then true (active) on ASC
+            // Boolean active status: true (active) first on ASC (matching mailbox status), false (inactive) first on DESC
             case "status" -> Sort.by(
-                Sort.Order.by("active").with(direction),
+                Sort.Order.by("active").with(booleanDirection),
                 mailTiebreaker);
 
-            // Boolean admin role: false (user) then true (admin) on ASC
+            // Boolean admin role: true (admin) first on ASC ("Admin" before "User"), false (user) first on DESC
             case "role" -> Sort.by(
-                Sort.Order.by("admin").with(direction),
+                Sort.Order.by("admin").with(booleanDirection),
                 mailTiebreaker);
 
             // Safe fallback to email ascending
