@@ -790,7 +790,7 @@ The system SHALL render pagination navigation bars across all paginated web cons
 - **THEN** the pagination bar and Display Count selector are omitted from the empty state view
 
 ### Requirement: Table Display Count Page Size Selector
-The system SHALL render a segmented Display Count button group styled symmetrically with the pagination bar on all paginated web console tables, providing preset sizes `5`, `15`, `25`, `50`, and `All`, highlighting the active page size with visual distinction, resetting the view to page 0 upon size change, and preserving active sorting, direction, and search or filter parameters.
+The system SHALL render a segmented Display Count button group styled symmetrically with the pagination bar on all paginated web console tables, providing preset sizes `5`, `15`, `25`, `50`, and `All`, highlighting the active page size with visual distinction using modern neutral monochrome styling tokens, resetting the view to page 0 upon size change, and preserving active sorting, direction, and search or filter parameters.
 
 #### Scenario: Display Count Preset Selection (Happy Path)
 - **WHEN** an authenticated user clicks a preset page size button (`5`, `15`, `25`, `50`, or `All`) on any paginated table
@@ -822,6 +822,7 @@ The system SHALL render a segmented Display Count button group styled symmetrica
 #### Scenario: Display Count Symmetrical Styling and Responsive Layout (Happy Path)
 - **WHEN** a paginated table is rendered across desktop and mobile viewports
 - **THEN** the pagination bar is positioned at the start (left) and the Display Count group is positioned at the end (right) using matching Bootstrap small pagination styling (`.pagination.pagination-sm mb-0`)
+- **AND** active page and page-size items render with dark charcoal background (`#212529` in light mode, `#334155` in dark mode) and crisp white text, while inactive items render with neutral body text (`var(--bs-body-color)`), avoiding electric blue styling
 - **AND** on mobile viewports narrower than 576px, the controls wrap cleanly without horizontal clipping or overflow
 
 

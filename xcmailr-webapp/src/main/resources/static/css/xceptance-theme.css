@@ -411,3 +411,41 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     transition: opacity 0.15s ease-in-out, color 0.15s ease-in-out;
 }
 
+/* ==========================================================================
+   Modernized Monochrome Pagination & Display Count Styling
+   ========================================================================== */
+
+.pagination {
+    --bs-pagination-color: var(--bs-body-color);
+    --bs-pagination-bg: var(--bs-body-bg);
+    --bs-pagination-border-color: var(--xc-border-color);
+    --bs-pagination-hover-color: var(--bs-body-color);
+    --bs-pagination-hover-bg: var(--bs-tertiary-bg);
+    --bs-pagination-hover-border-color: var(--xc-border-color);
+    --bs-pagination-focus-color: var(--bs-body-color);
+    --bs-pagination-focus-bg: var(--bs-tertiary-bg);
+    --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.15);
+    --bs-pagination-active-color: #ffffff;
+    --bs-pagination-active-bg: #212529;
+    --bs-pagination-active-border-color: #212529;
+    --bs-pagination-disabled-color: var(--xc-text-muted);
+    --bs-pagination-disabled-bg: var(--bs-tertiary-bg);
+    --bs-pagination-disabled-border-color: var(--xc-border-color);
+}
+
+.pagination .page-link {
+    font-weight: 500;
+}
+
+.pagination .page-item.active .page-link,
+.pagination .page-link.active {
+    font-weight: 600;
+}
+
+[data-bs-theme="dark"] .pagination {
+    --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.15);
+    --bs-pagination-active-bg: #334155;
+    --bs-pagination-active-border-color: #475569;
+}
+
+
