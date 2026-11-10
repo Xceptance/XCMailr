@@ -7,7 +7,8 @@
      hx-trigger="userListChanged from:body"
      hx-target="#user-table-container"
      hx-swap="outerHTML"
-     hx-include="[name='search']">
+     hx-include="[name='search'], [name='size']">
+    <input type="hidden" name="size" th:value="${page.size}" />
     <div class="table-responsive bg-white rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">
@@ -85,37 +86,89 @@
         </table>
     </div>
 
-    <!-- Pagination -->
-    <div class="d-flex justify-content-between align-items-center mt-3" th:if="${page.totalPages > 1}">
+    <!-- Pagination & Display Count Controls -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3" th:if="${page.totalElements > 0}">
         <span class="text-muted small">
             <span th:text="#{common.pagination.summary(${page.number + 1}, ${page.totalPages}, ${page.totalElements})}">Page 1 of 1 (0 total)</span>
         </span>
 
-        <nav aria-label="User pagination" th:aria-label="#{common.aria.pagination.users}">
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
-                    <button class="page-link" type="button"
-                            th:attr="hx-get=@{/admin/users(page=${page.number - 1}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
-                            th:text="#{common.pagination.previous}">
-                        Previous
-                    </button>
-                </li>
-                <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
-                    class="page-item" th:classappend="${i == page.number ? 'active' : ''}">
-                    <button class="page-link" type="button" th:text="${i + 1}"
-                            th:attr="hx-get=@{/admin/users(page=${i}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
-                        1
-                    </button>
-                </li>
-                <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
-                    <button class="page-link" type="button"
-                            th:attr="hx-get=@{/admin/users(page=${page.number + 1}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
-                            th:text="#{common.pagination.next}">
-                        Next
-                    </button>
-                </li>
-            </ul>
-        </nav>
+        <!-- Right: Pagination Bar and Display Count Bar -->
+        <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+            <!-- 7-Slot Pagination Bar -->
+            <nav aria-label="User pagination" th:aria-label="#{common.aria.pagination.users}">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/users(page=${page.number - 1}, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                th:disabled="${page.first}"
+                                th:text="#{common.pagination.previous}">
+                            Previous
+                        </button>
+                    </li>
+
+                    <th:block th:each="p : ${@paginationHelper.getPageSequence(page.number + 1, page.totalPages)}">
+                        <li th:if="${p == -1}" class="page-item disabled" aria-hidden="true">
+                            <span class="page-link">&hellip;</span>
+                        </li>
+                        <li th:if="${p != -1}" class="page-item" th:classappend="${p == page.number + 1 ? 'active' : ''}">
+                            <button class="page-link" type="button" th:text="${p}"
+                                    th:attr="hx-get=@{/admin/users(page=${p - 1}, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                                1
+                            </button>
+                        </li>
+                    </th:block>
+
+                    <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/users(page=${page.number + 1}, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                th:disabled="${page.last}"
+                                th:text="#{common.pagination.next}">
+                            Next
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Display Count Selector -->
+            <nav aria-label="Page size selector" th:aria-label="#{macro_EntriesPerPage}">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                        <span class="page-link text-muted" th:text="#{macro_EntriesPerPage}">Display Count</span>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 5 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/users(page=0, size=5, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                            5
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 15 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/users(page=0, size=15, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                            15
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 25 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/users(page=0, size=25, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                            25
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 50 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/users(page=0, size=50, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                            50
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size >= 1000 or (page.size >= page.totalElements and page.size != 5 and page.size != 15 and page.size != 25 and page.size != 50) ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/users(page=0, size=0, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                th:text="#{common.pagination.all}">
+                            all
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
 </div>
 

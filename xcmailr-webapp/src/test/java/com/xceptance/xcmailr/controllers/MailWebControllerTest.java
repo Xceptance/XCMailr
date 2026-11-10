@@ -380,31 +380,31 @@ public class MailWebControllerTest
     }
 
     @Test
-    @DisplayName("GET /mails clamps negative page to 0 and excessive size to 100")
+    @DisplayName("GET /mails clamps negative page to 0 and excessive size to 1000")
     public void testListAllMailsParameterNormalizationClamping() throws Exception
     {
         mockMvc.perform(get("/mails")
                .param("page", "-1")
-               .param("size", "500")
+               .param("size", "2000")
                .with(user("alice@xcmailr.test").roles("USER")))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/all-mails"))
                .andExpect(model().attribute("currentPage", 0))
-               .andExpect(model().attribute("pageSize", 100));
+               .andExpect(model().attribute("pageSize", 1000));
     }
 
     @Test
-    @DisplayName("GET /mailboxes/{boxId}/mails clamps negative page to 0 and excessive size to 100")
+    @DisplayName("GET /mailboxes/{boxId}/mails clamps negative page to 0 and excessive size to 1000")
     public void testListMailsParameterNormalizationClamping() throws Exception
     {
         mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
                .param("page", "-5")
-               .param("size", "200")
+               .param("size", "2000")
                .with(user("alice@xcmailr.test").roles("USER")))
                .andExpect(status().isOk())
                .andExpect(view().name("mailboxes/mails"))
                .andExpect(model().attribute("currentPage", 0))
-               .andExpect(model().attribute("pageSize", 100));
+               .andExpect(model().attribute("pageSize", 1000));
     }
 
     @Test
@@ -564,11 +564,9 @@ public class MailWebControllerTest
                .andExpect(content().string(containsString("Showing <span class=\"fw-semibold\">2</span> of <span class=\"fw-semibold\">5</span> messages")))
                .andExpect(content().string(containsString("hx-target=\"#mail-list-container\"")))
                .andExpect(content().string(containsString("hx-push-url=\"true\"")))
-               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-first\".*")))
-               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-prev\".*")))
-               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item active\">\\s*<a class=\"page-link pagination-num\".*")))
-               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-next\".*"))))
-               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-last\".*"))));
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<button class=\"page-link pagination-prev\".*")))
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item active\">\\s*<button class=\"page-link pagination-num\".*")))
+               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<button class=\"page-link pagination-next\".*"))));
     }
 
     @Test
@@ -592,10 +590,8 @@ public class MailWebControllerTest
                .with(user("alice@xcmailr.test").roles("USER")))
                .andExpect(status().isOk())
                .andExpect(content().string(containsString("Showing <span class=\"fw-semibold\">1</span> of <span class=\"fw-semibold\">5</span> messages")))
-               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-first\".*"))))
-               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-prev\".*"))))
-               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-next\".*")))
-               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-last\".*")));
+               .andExpect(content().string(not(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<button class=\"page-link pagination-prev\".*"))))
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<button class=\"page-link pagination-next\".*")));
     }
 
     @Test
@@ -622,8 +618,7 @@ public class MailWebControllerTest
                .andExpect(content().string(containsString("hx-target=\"#mail-list-container\"")))
                .andExpect(content().string(containsString("hx-push-url=\"true\"")))
                .andExpect(content().string(containsString("/mailboxes/" + aliceBox.getId() + "/mails?page=1&amp;size=2")))
-               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-first\".*")))
-               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<a class=\"page-link pagination-prev\".*")));
+               .andExpect(content().string(matchesPattern("(?s).*class=\"page-item disabled\">\\s*<button class=\"page-link pagination-prev\".*")));
     }
 
     @Test
@@ -653,6 +648,125 @@ public class MailWebControllerTest
                .andExpect(content().string(containsString("empty-inbox-state")))
                .andExpect(content().string(containsString("No emails received in this mailbox yet.")))
                .andExpect(content().string(not(containsString("aria-label=\"Mailbox pagination\""))));
+    }
+
+    @Test
+    @DisplayName("Happy Path: GET /mailboxes/{boxId}/mails renders 7-slot sliding pagination with ellipsis")
+    public void testMailboxMailsPagination7SlotSequenceWithEllipsis() throws Exception
+    {
+        for (int i = 1; i <= 18; i++)
+        {
+            final Mail m = new Mail();
+            m.setSender("sender" + i + "@external.com");
+            m.setSubject("Multi Page Subject " + i);
+            m.setReceiveTime(System.currentTimeMillis() + (i * 1000L));
+            m.setMessage(("body " + i).getBytes(StandardCharsets.UTF_8));
+            m.setMailbox(aliceBox);
+            mailRepository.save(m);
+        }
+
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
+               .header("HX-Request", "true")
+               .param("page", "4")
+               .param("size", "2")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("aria-label=\"Mailbox pagination\"")))
+               .andExpect(content().string(containsString("&hellip;")))
+               .andExpect(content().string(containsString("Display Count")));
+    }
+
+    @Test
+    @DisplayName("Happy Path: GET /mailboxes/{boxId}/mails Display Count presets switch page density")
+    public void testMailboxMailsDisplayCountPresets() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
+               .header("HX-Request", "true")
+               .param("size", "50")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("size", 50))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=50.*")));
+
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
+               .header("HX-Request", "true")
+               .param("size", "0")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("size", 1000))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=0.*")));
+    }
+
+    @Test
+    @DisplayName("Happy Path: GET /mailboxes/{boxId}/mails single page keeps controls visible with disabled Previous and Next")
+    public void testMailboxMailsSinglePageDisabledControls() throws Exception
+    {
+        mockMvc.perform(get("/mailboxes/" + aliceBox.getId() + "/mails")
+               .header("HX-Request", "true")
+               .param("size", "25")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("aria-label=\"Mailbox pagination\"")))
+               .andExpect(content().string(containsString("Display Count")))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item disabled[^\"]*\"[^>]*>\\s*<button[^>]*pagination-prev.*")))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item disabled[^\"]*\"[^>]*>\\s*<button[^>]*pagination-next.*")));
+    }
+
+    @Test
+    @DisplayName("Happy Path: GET /mails renders 7-slot sliding pagination with ellipsis and Display Count presets")
+    public void testAllMailsPagination7SlotSequenceAndDisplayCount() throws Exception
+    {
+        for (int i = 1; i <= 18; i++)
+        {
+            final Mail m = new Mail();
+            m.setSender("sender" + i + "@external.com");
+            m.setSubject("All Mails Subject " + i);
+            m.setReceiveTime(System.currentTimeMillis() + (i * 1000L));
+            m.setMessage(("body " + i).getBytes(StandardCharsets.UTF_8));
+            m.setMailbox(aliceBox);
+            mailRepository.save(m);
+        }
+
+        mockMvc.perform(get("/mails")
+               .header("HX-Request", "true")
+               .param("page", "4")
+               .param("size", "2")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("aria-label=\"Mailbox pagination\"")))
+               .andExpect(content().string(containsString("&hellip;")))
+               .andExpect(content().string(containsString("Display Count")));
+
+        mockMvc.perform(get("/mails")
+               .header("HX-Request", "true")
+               .param("size", "50")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("size", 50))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=50.*")));
+
+        mockMvc.perform(get("/mails")
+               .header("HX-Request", "true")
+               .param("size", "0")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("size", 1000))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=0.*")));
+    }
+
+    @Test
+    @DisplayName("Happy Path: GET /mails single page keeps controls visible with disabled Previous and Next")
+    public void testAllMailsSinglePageDisabledControls() throws Exception
+    {
+        mockMvc.perform(get("/mails")
+               .header("HX-Request", "true")
+               .param("size", "25")
+               .with(user("alice@xcmailr.test").roles("USER")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("aria-label=\"Mailbox pagination\"")))
+               .andExpect(content().string(containsString("Display Count")))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item disabled[^\"]*\"[^>]*>\\s*<button[^>]*pagination-prev.*")))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item disabled[^\"]*\"[^>]*>\\s*<button[^>]*pagination-next.*")));
     }
 
     /**

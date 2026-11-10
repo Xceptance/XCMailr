@@ -54,6 +54,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
+import com.xceptance.xcmailr.util.PaginationHelper;
 import com.xceptance.xcmailr.repositories.projections.MailSummaryProjection;
 import com.xceptance.xcmailr.services.EmailSanitizationService;
 import com.xceptance.xcmailr.util.JakartaMimeMessageParser;
@@ -118,7 +119,7 @@ public class MailWebController
 
         // Parameter normalization and defensive bounds clamping
         final int normalizedPage = Math.max(0, page);
-        final int normalizedSize = Math.min(Math.max(1, size), 100);
+        final int normalizedSize = PaginationHelper.clampPageSize(size, 25);
         // Compile-time static sorting strictly prevents dynamic SQL injection in ORDER BY clauses
         final Pageable pageable = PageRequest.of(normalizedPage, normalizedSize, Sort.by(Sort.Direction.DESC, "receiveTime"));
 
@@ -148,6 +149,7 @@ public class MailWebController
         model.addAttribute("totalPages", mailPage.getTotalPages());
         model.addAttribute("totalElements", mailPage.getTotalElements());
         model.addAttribute("pageSize", normalizedSize);
+        model.addAttribute("size", normalizedSize);
         model.addAttribute("mailboxAddressMap", mailboxAddressMap);
         model.addAttribute("mailboxCommentMap", mailboxCommentMap);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
@@ -187,7 +189,7 @@ public class MailWebController
 
         // Parameter normalization and defensive bounds clamping
         final int normalizedPage = Math.max(0, page);
-        final int normalizedSize = Math.min(Math.max(1, size), 100);
+        final int normalizedSize = PaginationHelper.clampPageSize(size, 25);
         // Compile-time static sorting strictly prevents dynamic SQL injection in ORDER BY clauses
         final Pageable pageable = PageRequest.of(normalizedPage, normalizedSize, Sort.by(Sort.Direction.DESC, "receiveTime"));
 
@@ -202,6 +204,7 @@ public class MailWebController
         model.addAttribute("totalPages", mailPage.getTotalPages());
         model.addAttribute("totalElements", mailPage.getTotalElements());
         model.addAttribute("pageSize", normalizedSize);
+        model.addAttribute("size", normalizedSize);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
         model.addAttribute("isoFormatter", ISO_FORMATTER);
 

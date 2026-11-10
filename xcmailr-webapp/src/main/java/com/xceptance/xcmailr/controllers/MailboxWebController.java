@@ -60,6 +60,7 @@ import com.xceptance.xcmailr.repositories.UserRepository;
 import com.xceptance.xcmailr.models.Domain;
 import com.xceptance.xcmailr.models.MBox;
 import com.xceptance.xcmailr.models.User;
+import com.xceptance.xcmailr.util.PaginationHelper;
 
 /**
  * Controller for interactive mailbox dashboard and management views.
@@ -130,7 +131,8 @@ public class MailboxWebController
         final String effectiveSort = resolveSortField(sort);
         final String effectiveDir = "id".equals(effectiveSort) ? "desc" : resolveSortDirection(dir);
         final Sort sortOrder = resolveSort(sort, dir);
-        final Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), sortOrder);
+        final int effectiveSize = PaginationHelper.clampPageSize(size, 15);
+        final Pageable pageable = PageRequest.of(Math.max(0, page), effectiveSize, sortOrder);
 
         // Normalize status filter via whitelist mapping
         final String effectiveStatus = resolveStatus(status);
@@ -165,6 +167,7 @@ public class MailboxWebController
         model.addAttribute("status", effectiveStatus);
         model.addAttribute("sort", effectiveSort);
         model.addAttribute("dir", effectiveDir);
+        model.addAttribute("size", effectiveSize);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
         model.addAttribute("isoFormatter", ISO_FORMATTER);
 

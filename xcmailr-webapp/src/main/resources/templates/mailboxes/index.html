@@ -45,7 +45,7 @@
                                hx-trigger="keyup changed delay:300ms, search"
                                hx-target="#mailbox-table-container"
                                hx-swap="outerHTML"
-                               hx-include="#statusFilterSelect, [name='sort'], [name='dir']">
+                               hx-include="#statusFilterSelect, [name='sort'], [name='dir'], [name='size']">
                     </div>
                 </div>
 
@@ -59,7 +59,7 @@
                                 hx-trigger="change"
                                 hx-target="#mailbox-table-container"
                                 hx-swap="outerHTML"
-                                hx-include="[name='search'], [name='sort'], [name='dir']">
+                                hx-include="[name='search'], [name='sort'], [name='dir'], [name='size']">
                             <option value="ALL" th:selected="${status == 'ALL'}" th:text="#{mailbox.index.filter.all}">All Statuses</option>
                             <option value="ACTIVE" th:selected="${status == 'ACTIVE'}" th:text="#{mailbox.index.filter.active}">Active Only</option>
                             <option value="EXPIRED" th:selected="${status == 'EXPIRED'}" th:text="#{mailbox.index.filter.expired}">Expired Only</option>

@@ -7,11 +7,12 @@
      hx-trigger="mailboxChanged from:body"
      hx-target="#mailbox-table-container"
      hx-swap="outerHTML"
-     hx-include="[name='search'], #statusFilterSelect, [name='sort'], [name='dir']">
+     hx-include="[name='search'], #statusFilterSelect, [name='sort'], [name='dir'], [name='size']">
 
-    <!-- Hidden state preservation inputs for active sort criteria -->
+    <!-- Hidden state preservation inputs for active sort criteria and page size -->
     <input type="hidden" name="sort" th:value="${sort}" />
     <input type="hidden" name="dir" th:value="${dir}" />
+    <input type="hidden" name="size" th:value="${page.size}" />
 
     <div class="table-responsive bg-white rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
@@ -22,7 +23,7 @@
                     </th>
                     <th scope="col">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
-                           th:attr="hx-get=@{/mailboxes(sort='address', dir=${sort == 'address' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:attr="hx-get=@{/mailboxes(sort='address', dir=${sort == 'address' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            th:title="#{mailbox.table.sort.address}"
                            title="Sort by Address">
                             <span th:text="#{mailbox.table.column.address}">Address</span>
@@ -33,7 +34,7 @@
                     </th>
                     <th scope="col" class="d-none d-sm-table-cell" style="width: 105px;">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
-                           th:attr="hx-get=@{/mailboxes(sort='status', dir=${sort == 'status' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:attr="hx-get=@{/mailboxes(sort='status', dir=${sort == 'status' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            th:title="#{mailbox.table.sort.status}"
                            title="Sort by Status">
                             <span th:text="#{mailbox.table.column.status}">Status</span>
@@ -44,7 +45,7 @@
                     </th>
                     <th scope="col" class="d-none d-lg-table-cell" style="width: 150px;">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
-                           th:attr="hx-get=@{/mailboxes(sort='expires', dir=${sort == 'expires' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:attr="hx-get=@{/mailboxes(sort='expires', dir=${sort == 'expires' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            th:title="#{mailbox.table.sort.expires}"
                            title="Sort by Expiration">
                             <span th:text="#{mailbox.table.column.expires}">Expires</span>
@@ -55,7 +56,7 @@
                     </th>
                     <th scope="col" class="text-center d-none d-md-table-cell" style="width: 85px;">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
-                           th:attr="hx-get=@{/mailboxes(sort='forwards', dir=${sort == 'forwards' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:attr="hx-get=@{/mailboxes(sort='forwards', dir=${sort == 'forwards' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            th:title="#{mailbox.table.sort.forwards}"
                            title="Total forwarded emails">
                             <span th:text="#{mailbox.table.column.forwards}">Forwards</span>
@@ -66,7 +67,7 @@
                     </th>
                     <th scope="col" class="text-center d-none d-md-table-cell" style="width: 95px;">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
-                           th:attr="hx-get=@{/mailboxes(sort='suppressions', dir=${sort == 'suppressions' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                           th:attr="hx-get=@{/mailboxes(sort='suppressions', dir=${sort == 'suppressions' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search}, status=${status})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
                            th:title="#{mailbox.table.sort.suppressed}"
                            title="Suppressed incoming emails while inactive">
                             <span th:text="#{mailbox.table.column.suppressed}">Suppressed</span>
@@ -246,33 +247,83 @@
             </span>
         </div>
 
-        <nav aria-label="Mailbox pagination" th:aria-label="#{common.aria.pagination.mailboxes}" th:if="${page.totalPages > 1}">
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
-                    <button class="page-link" type="button"
-                            th:attr="hx-get=@{/mailboxes(page=${page.number - 1}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
-                            th:text="#{common.pagination.previous}">
-                        Previous
-                    </button>
-                </li>
+        <!-- Right: Pagination Bar and Display Count Bar -->
+        <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+            <!-- 7-Slot Pagination Bar -->
+            <nav aria-label="Mailbox pagination" th:aria-label="#{common.aria.pagination.mailboxes}">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/mailboxes(page=${page.number - 1}, size=${page.size}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                                th:disabled="${page.first}"
+                                th:text="#{common.pagination.previous}">
+                            Previous
+                        </button>
+                    </li>
 
-                <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
-                    class="page-item" th:classappend="${i == page.number ? 'active' : ''}">
-                    <button class="page-link" type="button" th:text="${i + 1}"
-                            th:attr="hx-get=@{/mailboxes(page=${i}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
-                        1
-                    </button>
-                </li>
+                    <th:block th:each="p : ${@paginationHelper.getPageSequence(page.number + 1, page.totalPages)}">
+                        <li th:if="${p == -1}" class="page-item disabled" aria-hidden="true">
+                            <span class="page-link">&hellip;</span>
+                        </li>
+                        <li th:if="${p != -1}" class="page-item" th:classappend="${p == page.number + 1 ? 'active' : ''}">
+                            <button class="page-link" type="button" th:text="${p}"
+                                    th:attr="hx-get=@{/mailboxes(page=${p - 1}, size=${page.size}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                                1
+                            </button>
+                        </li>
+                    </th:block>
 
-                <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
-                    <button class="page-link" type="button"
-                            th:attr="hx-get=@{/mailboxes(page=${page.number + 1}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
-                            th:text="#{common.pagination.next}">
-                        Next
-                    </button>
-                </li>
-            </ul>
-        </nav>
+                    <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/mailboxes(page=${page.number + 1}, size=${page.size}, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                                th:disabled="${page.last}"
+                                th:text="#{common.pagination.next}">
+                            Next
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Display Count Selector -->
+            <nav aria-label="Page size selector" th:aria-label="#{macro_EntriesPerPage}">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                        <span class="page-link text-muted" th:text="#{macro_EntriesPerPage}">Display Count</span>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 5 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/mailboxes(page=0, size=5, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                            5
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 15 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/mailboxes(page=0, size=15, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                            15
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 25 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/mailboxes(page=0, size=25, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                            25
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 50 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/mailboxes(page=0, size=50, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'">
+                            50
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size >= 1000 or (page.size >= page.totalElements and page.size != 5 and page.size != 15 and page.size != 25 and page.size != 50) ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/mailboxes(page=0, size=0, search=${search}, status=${status}, sort=${sort}, dir=${dir})},hx-target='#mailbox-table-container',hx-swap='outerHTML'"
+                                th:text="#{common.pagination.all}">
+                            all
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
 
     <!-- Contextual Floating Bottom Batch Bar -->

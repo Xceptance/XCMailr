@@ -351,14 +351,14 @@ public final class MailboxSortingWebTest
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Happy path: Table container hx-include attribute includes [name='sort'] and [name='dir']")
+    @DisplayName("Happy path: Table container hx-include attribute includes [name='sort'], [name='dir'], and [name='size']")
     public void testSorting_HappyPath_ContainerHxInclude_PreservesSortAndDir() throws Exception
     {
         mockMvc.perform(get("/mailboxes")
                 .header("HX-Request", "true")
                 .with(user("alice@xcmailr.test")))
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("hx-include=\"[name='search'], #statusFilterSelect, [name='sort'], [name='dir']\"")));
+            .andExpect(content().string(containsString("hx-include=\"[name='search'], #statusFilterSelect, [name='sort'], [name='dir'], [name='size']\"")));
     }
 
     // =========================================================================
@@ -475,7 +475,7 @@ public final class MailboxSortingWebTest
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Special case: Full index page render includes sort and dir in search and filter hx-include")
+    @DisplayName("Special case: Full index page render includes sort, dir, and size in search and filter hx-include")
     public void testSorting_SpecialCase_FullPageRender_IndexIncludesSortInSearchAndFilter() throws Exception
     {
         mockMvc.perform(get("/mailboxes")
@@ -485,9 +485,9 @@ public final class MailboxSortingWebTest
             .andExpect(status().isOk())
             .andExpect(view().name("mailboxes/index"))
             .andExpect(content().string(containsString("name=\"search\"")))
-            .andExpect(content().string(containsString("hx-include=\"#statusFilterSelect, [name='sort'], [name='dir']\"")))
+            .andExpect(content().string(containsString("hx-include=\"#statusFilterSelect, [name='sort'], [name='dir'], [name='size']\"")))
             .andExpect(content().string(containsString("id=\"statusFilterSelect\"")))
-            .andExpect(content().string(containsString("hx-include=\"[name='search'], [name='sort'], [name='dir']\"")));
+            .andExpect(content().string(containsString("hx-include=\"[name='search'], [name='sort'], [name='dir'], [name='size']\"")));
     }
 
     /**

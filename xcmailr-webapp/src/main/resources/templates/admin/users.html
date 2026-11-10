@@ -24,7 +24,8 @@
                        hx-get="/admin/users"
                        hx-trigger="keyup changed delay:300ms, search"
                        hx-target="#user-table-container"
-                       hx-swap="outerHTML">
+                       hx-swap="outerHTML"
+                       hx-include="[name='size']">
             </div>
         </div>
     </div>

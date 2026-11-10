@@ -16,6 +16,7 @@
 package com.xceptance.xcmailr.controllers;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -471,5 +472,119 @@ public class AdminWebControllerTest
                .andExpect(status().isOk())
                .andExpect(content().string(not(containsString("<script>alert('xss-admin')</script>"))))
                .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;xss-admin&#39;)&lt;/script&gt;")));
+    }
+
+    // =========================================================================
+    // Table Pagination & Display Count Selector Tests (OpenSpec Task 5.2)
+    // =========================================================================
+
+    /**
+     * Happy Path: Verifies that /admin/users renders a 7-slot sliding window pagination bar
+     * with ellipsis when there are more than 7 pages.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: /admin/users renders 7-slot sliding pagination with ellipsis")
+    public void testAdminUsersPagination7SlotSequenceWithEllipsis() throws Exception
+    {
+        for (int i = 1; i <= 18; i++)
+        {
+            final User u = new User("Test" + i, "User" + i, "user" + i + "@xcmailr.test", "Pass1234", "en");
+            u.setActive(true);
+            userRepository.save(u);
+        }
+
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("page", "4")
+               .param("size", "2")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("aria-label=\"User pagination\"")))
+               .andExpect(content().string(containsString("&hellip;")))
+               .andExpect(content().string(containsString("Display Count")));
+    }
+
+    /**
+     * Happy Path: Verifies that /admin/users Display Count presets switch page density
+     * and clamp size safely (including size=0 clamping to 1000).
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: /admin/users Display Count presets switch page density")
+    public void testAdminUsersDisplayCountPresets() throws Exception
+    {
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("size", "50")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("size", 50))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=50.*")));
+
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("size", "0")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("size", 1000))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=0.*")));
+    }
+
+    /**
+     * Happy Path: Verifies that /admin/users preserves pagination bar and Display Count selector
+     * on single-page results while disabling Previous and Next buttons.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: /admin/users single page keeps controls visible with disabled Previous and Next")
+    public void testAdminUsersSinglePageDisabledControls() throws Exception
+    {
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("size", "15")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("aria-label=\"User pagination\"")))
+               .andExpect(content().string(containsString("Display Count")))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item disabled[^\"]*\"[^>]*>\\s*<button[^>]*page=-1.*")))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item disabled[^\"]*\"[^>]*>\\s*<button[^>]*page=1.*")));
+    }
+
+    /**
+     * Happy Path: Verifies that /admin/transactions renders 7-slot sliding pagination and Display Count selector.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: /admin/transactions renders 7-slot pagination and Display Count selector")
+    public void testAdminTransactionsPaginationAndDisplayCount() throws Exception
+    {
+        for (int i = 1; i <= 20; i++)
+        {
+            final MailTransaction tx = new MailTransaction(100, "sender" + i + "@ext.com", "target" + i + "@xcmailr.test", null);
+            transactionRepository.save(tx);
+        }
+
+        mockMvc.perform(get("/admin/transactions")
+               .header("HX-Request", "true")
+               .param("page", "4")
+               .param("size", "2")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("aria-label=\"Transaction pagination\"")))
+               .andExpect(content().string(containsString("&hellip;")))
+               .andExpect(content().string(containsString("Display Count")));
+
+        mockMvc.perform(get("/admin/transactions")
+               .header("HX-Request", "true")
+               .param("size", "50")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("size", 50))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=50.*")));
     }
 }

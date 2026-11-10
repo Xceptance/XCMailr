@@ -53,37 +53,89 @@
         </table>
     </div>
 
-    <!-- Pagination -->
-    <div class="d-flex justify-content-between align-items-center mt-3" th:if="${page.totalPages > 1}">
+    <!-- Pagination & Display Count Controls -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3" th:if="${page.totalElements > 0}">
         <span class="text-muted small">
             <span th:text="#{common.pagination.summary(${page.number + 1}, ${page.totalPages}, ${page.totalElements})}">Page 1 of 1 (0 total)</span>
         </span>
 
-        <nav aria-label="Transaction pagination" th:aria-label="#{common.aria.pagination.transactions}">
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
-                    <button class="page-link" type="button"
-                            th:attr="hx-get=@{/admin/transactions(page=${page.number - 1})},hx-target='#transaction-table-container',hx-swap='outerHTML'"
-                            th:text="#{common.pagination.previous}">
-                        Previous
-                    </button>
-                </li>
-                <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
-                    class="page-item" th:classappend="${i == page.number ? 'active' : ''}">
-                    <button class="page-link" type="button" th:text="${i + 1}"
-                            th:attr="hx-get=@{/admin/transactions(page=${i})},hx-target='#transaction-table-container',hx-swap='outerHTML'">
-                        1
-                    </button>
-                </li>
-                <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
-                    <button class="page-link" type="button"
-                            th:attr="hx-get=@{/admin/transactions(page=${page.number + 1})},hx-target='#transaction-table-container',hx-swap='outerHTML'"
-                            th:text="#{common.pagination.next}">
-                        Next
-                    </button>
-                </li>
-            </ul>
-        </nav>
+        <!-- Right: Pagination Bar and Display Count Bar -->
+        <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+            <!-- 7-Slot Pagination Bar -->
+            <nav aria-label="Transaction pagination" th:aria-label="#{common.aria.pagination.transactions}">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/transactions(page=${page.number - 1}, size=${page.size})},hx-target='#transaction-table-container',hx-swap='outerHTML'"
+                                th:disabled="${page.first}"
+                                th:text="#{common.pagination.previous}">
+                            Previous
+                        </button>
+                    </li>
+
+                    <th:block th:each="p : ${@paginationHelper.getPageSequence(page.number + 1, page.totalPages)}">
+                        <li th:if="${p == -1}" class="page-item disabled" aria-hidden="true">
+                            <span class="page-link">&hellip;</span>
+                        </li>
+                        <li th:if="${p != -1}" class="page-item" th:classappend="${p == page.number + 1 ? 'active' : ''}">
+                            <button class="page-link" type="button" th:text="${p}"
+                                    th:attr="hx-get=@{/admin/transactions(page=${p - 1}, size=${page.size})},hx-target='#transaction-table-container',hx-swap='outerHTML'">
+                                1
+                            </button>
+                        </li>
+                    </th:block>
+
+                    <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/transactions(page=${page.number + 1}, size=${page.size})},hx-target='#transaction-table-container',hx-swap='outerHTML'"
+                                th:disabled="${page.last}"
+                                th:text="#{common.pagination.next}">
+                            Next
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Display Count Selector -->
+            <nav aria-label="Page size selector" th:aria-label="#{macro_EntriesPerPage}">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                        <span class="page-link text-muted" th:text="#{macro_EntriesPerPage}">Display Count</span>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 5 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/transactions(page=0, size=5)},hx-target='#transaction-table-container',hx-swap='outerHTML'">
+                            5
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 15 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/transactions(page=0, size=15)},hx-target='#transaction-table-container',hx-swap='outerHTML'">
+                            15
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 25 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/transactions(page=0, size=25)},hx-target='#transaction-table-container',hx-swap='outerHTML'">
+                            25
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size == 50 ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/transactions(page=0, size=50)},hx-target='#transaction-table-container',hx-swap='outerHTML'">
+                            50
+                        </button>
+                    </li>
+                    <li class="page-item" th:classappend="${page.size >= 1000 or (page.size >= page.totalElements and page.size != 5 and page.size != 15 and page.size != 25 and page.size != 50) ? 'active' : ''}">
+                        <button class="page-link" type="button"
+                                th:attr="hx-get=@{/admin/transactions(page=0, size=0)},hx-target='#transaction-table-container',hx-swap='outerHTML'"
+                                th:text="#{common.pagination.all}">
+                            all
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
 </div>
 

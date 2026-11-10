@@ -55,6 +55,7 @@ import com.xceptance.xcmailr.models.MBox;
 import com.xceptance.xcmailr.models.MailTransaction;
 import com.xceptance.xcmailr.models.Status;
 import com.xceptance.xcmailr.models.User;
+import com.xceptance.xcmailr.util.PaginationHelper;
 
 /**
  * Controller providing administrative controls including user management,
@@ -118,7 +119,8 @@ public class AdminWebController
                             final Model model)
     {
         final User currentAdmin = getAdmin(principal);
-        final Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        final int effectiveSize = PaginationHelper.clampPageSize(size, 15);
+        final Pageable pageable = PageRequest.of(Math.max(0, page), effectiveSize);
 
         final boolean hasSearch = search != null && !search.trim().isEmpty();
         final String trimmedSearch = hasSearch ? search.trim() : "";
@@ -131,6 +133,7 @@ public class AdminWebController
         model.addAttribute("users", usersPage.getContent());
         model.addAttribute("page", usersPage);
         model.addAttribute("search", trimmedSearch);
+        model.addAttribute("size", effectiveSize);
 
         if ("true".equalsIgnoreCase(hxRequest))
         {
@@ -342,13 +345,15 @@ public class AdminWebController
                                    @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
                                    final Model model)
     {
-        final Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        final int effectiveSize = PaginationHelper.clampPageSize(size, 25);
+        final Pageable pageable = PageRequest.of(Math.max(0, page), effectiveSize);
         final Page<MailTransaction> txPage = transactionRepository.findAllByOrderByTsDesc(pageable);
         final List<Status> statusSummary = transactionRepository.getStatusCounts();
 
         model.addAttribute("transactions", txPage.getContent());
         model.addAttribute("page", txPage);
         model.addAttribute("statusSummary", statusSummary);
+        model.addAttribute("size", effectiveSize);
         model.addAttribute("dateFormatter", DATE_FORMATTER);
         model.addAttribute("isoFormatter", ISO_FORMATTER);
 

@@ -16,6 +16,7 @@
 package com.xceptance.xcmailr.controllers;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -2544,6 +2545,140 @@ public final class MailboxWebControllerTest
                .andExpect(status().isOk())
                .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;xss-comment&#39;)&lt;/script&gt;")))
                .andExpect(content().string(not(containsString("<script>alert('xss-comment')</script>"))));
+    }
+
+    /**
+     * Happy Path: Verifies that a dataset with more than 7 pages renders the 7-slot sliding
+     * pagination window with ellipsis truncation ('&hellip;') near the start and in the middle.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: 7-slot pagination bar truncates with ellipsis for large page counts")
+    public void testPagination7SlotRenderingWithEllipsisForLargePageCount() throws Exception
+    {
+        // Populate 20 mailboxes for owner to produce 10 pages when size=2
+        for (int i = 1; i <= 20; i++)
+        {
+            final MBox box = new MBox("paged-box-" + String.format("%02d", i), "xcmailr.test", 0L, false, owner);
+            mailboxRepository.save(box);
+        }
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        // Case 1: Start case (Page 0 -> human page 1, P <= 4 -> [1, 2, 3, 4, 5, ..., 10])
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("page", "0")
+               .param("size", "2")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("&hellip;")))
+               .andExpect(content().string(containsString("page=0&amp;size=2")))
+               .andExpect(content().string(containsString("page=9&amp;size=2")));
+
+        // Case 2: Middle case (Page 4 -> human page 5, 4 < P < 7 -> [1, ..., 4, 5, 6, ..., 10])
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("page", "4")
+               .param("size", "2")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("&hellip;")))
+               .andExpect(content().string(containsString("page=3&amp;size=2")))
+               .andExpect(content().string(containsString("page=4&amp;size=2")))
+               .andExpect(content().string(containsString("page=5&amp;size=2")));
+    }
+
+    /**
+     * Happy Path: Verifies that Display Count presets (5, 15, 25, 50, all) switch page density
+     * and correctly highlight the active preset button.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Display Count presets switch page density and mark active preset")
+    public void testDisplayCountPresetSwitching() throws Exception
+    {
+        final MBox box = new MBox("display-count-box", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(box);
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        // Verify switching to size=50
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("size", "50")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("size", 50))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=50.*")));
+
+        // Verify switching to "all" (size=0 clamps to 1000)
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("size", "0")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("size", 1000))
+               .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=0.*")));
+    }
+
+    /**
+     * Happy Path: Verifies that single-page table results (totalPages == 1 and totalElements > 0)
+     * keep pagination and Display Count controls visible with Previous and Next disabled.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Single-page table keeps pagination visible with disabled Previous and Next")
+    public void testSinglePageDisabledControlsVisibility() throws Exception
+    {
+        final MBox box = new MBox("single-page-box", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(box);
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("size", "15")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(model().attributeExists("page"))
+               .andExpect(content().string(containsString("aria-label=\"Mailbox pagination\"")))
+               .andExpect(content().string(containsString("Display Count")))
+               .andExpect(content().string(containsString("page=-1&amp;size=15")))
+               .andExpect(content().string(containsString("page=1&amp;size=15")));
+    }
+
+    /**
+     * Happy Path: Verifies that sortable column headers preserve active size, and pagination /
+     * size buttons preserve active sort and direction parameters.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Sort headers retain size and pagination links retain sorting state")
+    public void testSortingAndSizeStatePreservation() throws Exception
+    {
+        final MBox box = new MBox("state-box", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(box);
+
+        final UserPrincipal principal = new UserPrincipal(owner);
+
+        mockMvc.perform(get("/mailboxes")
+               .header("HX-Request", "true")
+               .param("size", "25")
+               .param("sort", "address")
+               .param("dir", "asc")
+               .with(user(principal)))
+               .andExpect(status().isOk())
+               // Column sort headers must preserve active size=25
+               .andExpect(content().string(containsString("sort=address&amp;dir=desc&amp;page=0&amp;size=25")))
+               // Pagination buttons must preserve sort and dir
+               .andExpect(content().string(containsString("sort=address&amp;dir=asc")))
+               // Display Count buttons must preserve sort and dir
+               .andExpect(content().string(containsString("size=50&amp;search=&amp;status=ALL&amp;sort=address&amp;dir=asc")));
     }
 }
 
