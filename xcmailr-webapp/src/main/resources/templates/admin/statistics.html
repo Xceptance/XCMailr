@@ -52,9 +52,35 @@
         </div>
     </div>
 
+    <!-- Last 24 Hours Activity Chart Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-body py-3 d-flex justify-content-between align-items-center">
+            <span class="fw-semibold" th:text="#{admin.stats.chart.24h.title}">Last 24 Hours Activity</span>
+            <span class="text-muted small" th:text="#{admin.stats.chart.24h.resolution}">Hourly resolution</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+                <canvas id="chart-last-24h"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last 7 Days Activity Chart Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-body py-3 d-flex justify-content-between align-items-center">
+            <span class="fw-semibold" th:text="#{admin.stats.chart.7d.title}">Last 7 Days Activity</span>
+            <span class="text-muted small" th:text="#{admin.stats.chart.7d.resolution}">Daily resolution</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+                <canvas id="chart-last-7d"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Status Breakdown Card -->
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3 fw-semibold" th:text="#{admin.stats.breakdownTitle}">
+        <div class="card-header bg-body py-3 fw-semibold" th:text="#{admin.stats.breakdownTitle}">
             Transaction Delivery Breakdown
         </div>
         <div class="card-body p-0">
@@ -87,6 +113,188 @@
             </table>
         </div>
     </div>
+
+    <!-- Chart.js Library via WebJar -->
+    <script th:src="@{/webjars/chart.js/4.6.1/dist/chart.umd.js}"></script>
+
+    <!-- Client-side Chart.js Initialization and Theme Synchronization -->
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    (() => {
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js library is not loaded. Admin statistics charts will not be rendered.');
+            return;
+        }
+
+        const chart24hData = /*[[${chart24h}]]*/ { labels: [], forwarded: [], dropped: [] };
+        const chart7dData = /*[[${chart7d}]]*/ { labels: [], forwarded: [], dropped: [] };
+        const labelForwarded = /*[[#{admin.stats.chart.forwarded}]]*/ 'Forwarded';
+        const labelDropped = /*[[#{admin.stats.chart.dropped}]]*/ 'Dropped';
+        const labelEmails = /*[[#{admin.stats.chart.emails}]]*/ 'Emails';
+        const labelTime = /*[[#{admin.stats.chart.time}]]*/ 'Time';
+        const labelDate = /*[[#{admin.stats.chart.date}]]*/ 'Date';
+
+        /**
+         * Resolves color tokens based on the current Bootstrap color theme.
+         */
+        function getThemeTokens() {
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            return {
+                isDark: isDark,
+                gridColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)',
+                textColor: isDark ? '#adb5bd' : '#495057',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'
+            };
+        }
+
+        // Palette matching corporate Bootstrap success and danger accents
+        const COLOR_FORWARDED_BORDER = '#198754';
+        const COLOR_FORWARDED_BG = 'rgba(25, 135, 84, 0.15)';
+        const COLOR_DROPPED_BORDER = '#dc3545';
+        const COLOR_DROPPED_BG = 'rgba(220, 53, 69, 0.15)';
+
+        function createChartConfig(chartData, xTitle) {
+            const theme = getThemeTokens();
+            return {
+                type: 'line',
+                data: {
+                    labels: (chartData && chartData.labels) ? chartData.labels : [],
+                    datasets: [
+                        {
+                            label: labelForwarded,
+                            data: (chartData && chartData.forwarded) ? chartData.forwarded : [],
+                            borderColor: COLOR_FORWARDED_BORDER,
+                            backgroundColor: COLOR_FORWARDED_BG,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: labelDropped,
+                            data: (chartData && chartData.dropped) ? chartData.dropped : [],
+                            borderColor: COLOR_DROPPED_BORDER,
+                            backgroundColor: COLOR_DROPPED_BG,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: theme.textColor,
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            theme: theme.isDark ? 'dark' : 'light'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: xTitle,
+                                color: theme.textColor
+                            },
+                            ticks: {
+                                color: theme.textColor,
+                                maxRotation: 45,
+                                autoSkip: true,
+                                maxTicksLimit: 24
+                            },
+                            grid: {
+                                color: theme.gridColor,
+                                borderColor: theme.borderColor
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: labelEmails,
+                                color: theme.textColor
+                            },
+                            ticks: {
+                                color: theme.textColor,
+                                precision: 0
+                            },
+                            grid: {
+                                color: theme.gridColor,
+                                borderColor: theme.borderColor
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        const canvas24h = document.getElementById('chart-last-24h');
+        const canvas7d = document.getElementById('chart-last-7d');
+        let chart24hInstance = null;
+        let chart7dInstance = null;
+
+        if (canvas24h) {
+            chart24hInstance = new Chart(canvas24h.getContext('2d'), createChartConfig(chart24hData, labelTime));
+        }
+        if (canvas7d) {
+            chart7dInstance = new Chart(canvas7d.getContext('2d'), createChartConfig(chart7dData, labelDate));
+        }
+
+        /**
+         * Updates chart axes, tick colors, and grid lines when theme changes.
+         */
+        function updateChartThemes() {
+            const theme = getThemeTokens();
+            [chart24hInstance, chart7dInstance].forEach(chart => {
+                if (!chart) return;
+                if (chart.options.plugins && chart.options.plugins.legend) {
+                    chart.options.plugins.legend.labels.color = theme.textColor;
+                }
+                if (chart.options.scales && chart.options.scales.x) {
+                    if (chart.options.scales.x.title) chart.options.scales.x.title.color = theme.textColor;
+                    if (chart.options.scales.x.ticks) chart.options.scales.x.ticks.color = theme.textColor;
+                    if (chart.options.scales.x.grid) {
+                        chart.options.scales.x.grid.color = theme.gridColor;
+                        chart.options.scales.x.grid.borderColor = theme.borderColor;
+                    }
+                }
+                if (chart.options.scales && chart.options.scales.y) {
+                    if (chart.options.scales.y.title) chart.options.scales.y.title.color = theme.textColor;
+                    if (chart.options.scales.y.ticks) chart.options.scales.y.ticks.color = theme.textColor;
+                    if (chart.options.scales.y.grid) {
+                        chart.options.scales.y.grid.color = theme.gridColor;
+                        chart.options.scales.y.grid.borderColor = theme.borderColor;
+                    }
+                }
+                chart.update('none');
+            });
+        }
+
+        const themeObserver = new MutationObserver(mutations => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+                    updateChartThemes();
+                    break;
+                }
+            }
+        });
+        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    })();
+    /*]]>*/
+    </script>
 </div>
 
 </body>

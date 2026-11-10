@@ -45,11 +45,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.xceptance.xcmailr.dto.ChartDataDto;
 import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
 import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
+import com.xceptance.xcmailr.services.EmailStatisticsService;
 
 import com.xceptance.xcmailr.models.Domain;
 import com.xceptance.xcmailr.models.MBox;
@@ -81,18 +83,21 @@ public class AdminWebController
     private final MailTransactionRepository transactionRepository;
     private final MailboxRepository mailboxRepository;
     private final MailRepository mailRepository;
+    private final EmailStatisticsService statisticsService;
 
     public AdminWebController(final UserRepository userRepository,
                               final DomainRepository domainRepository,
                               final MailTransactionRepository transactionRepository,
                               final MailboxRepository mailboxRepository,
-                              final MailRepository mailRepository)
+                              final MailRepository mailRepository,
+                              final EmailStatisticsService statisticsService)
     {
         this.userRepository = userRepository;
         this.domainRepository = domainRepository;
         this.transactionRepository = transactionRepository;
         this.mailboxRepository = mailboxRepository;
         this.mailRepository = mailRepository;
+        this.statisticsService = statisticsService;
     }
 
     /**
@@ -511,11 +516,16 @@ public class AdminWebController
         final long totalMailboxes = mailboxRepository.count();
         final long totalMails = mailRepository.count();
 
+        final ChartDataDto chart24h = statisticsService.getLast24HoursChartData();
+        final ChartDataDto chart7d = statisticsService.getLast7DaysChartData();
+
         model.addAttribute("statusSummary", statusSummary);
         model.addAttribute("totalTransactions", totalTransactions);
         model.addAttribute("totalUsers", totalUsers);
         model.addAttribute("totalMailboxes", totalMailboxes);
         model.addAttribute("totalMails", totalMails);
+        model.addAttribute("chart24h", chart24h);
+        model.addAttribute("chart7d", chart7d);
 
         return "admin/statistics";
     }

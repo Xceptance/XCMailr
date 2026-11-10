@@ -425,7 +425,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **AND** triggering any management action on a row operates exclusively on the mailbox rendered in that row, regardless of original insertion order or display sort order, preventing actions from targeting the wrong mailbox due to view sorting desynchronization
 
 ### Requirement: Admin Management Console
-The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons and parameter preservation across all user management table controls.
+The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, and presenting vertically stacked time-series line charts for email traffic activity over the past 24 hours (hourly resolution) and past 7 days (daily resolution) with zero-filled continuity and dynamic theme synchronization.
 
 #### Scenario: Domain Whitelist Configuration
 - **WHEN** an administrator adds or removes an allowed domain via the admin console
@@ -491,6 +491,32 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 #### Scenario: Empty Search Results Sorting Headers (Special Case)
 - **WHEN** an administrator searches for a query string that yields zero matching user accounts
 - **THEN** the table displays the localized empty state message while preserving sortable header links with their chevron indicators intact
+
+#### Scenario: Last 24 Hours Email Activity Chart (Happy Path)
+- **WHEN** an administrator views the statistics page (`/admin/statistics`)
+- **THEN** the system renders a line chart (`#chart-last-24h`) displaying email activity over the preceding 24 hours
+- **AND** the chart displays two distinct datasets: forwarded email counts and dropped email counts
+- **AND** the horizontal axis represents 24 continuous hourly buckets formatted with localized hour labels ending at the current hour
+
+#### Scenario: Last 7 Days Email Activity Chart (Happy Path)
+- **WHEN** an administrator views the statistics page (`/admin/statistics`)
+- **THEN** the system renders a line chart (`#chart-last-7d`) displaying email activity over the preceding 7 days
+- **AND** the chart displays two distinct datasets: forwarded email counts and dropped email counts
+- **AND** the horizontal axis represents 7 continuous daily buckets formatted with localized day labels ending on the current day
+
+#### Scenario: Chart Theme and Responsiveness (Happy Path)
+- **WHEN** an administrator views or toggles the application theme between light and dark modes
+- **THEN** the charts adapt responsively across viewport widths inside full-width card containers
+- **AND** grid line colors, axis ticks, and tooltip backgrounds dynamically synchronize with the active theme tokens (`data-bs-theme="light"` or `data-bs-theme="dark"`), avoiding unreadable contrast or fixed light-only canvas rendering
+
+#### Scenario: Empty Email Traffic Zero-Fill Continuity (Edge Case)
+- **WHEN** no email forwarding or drop transactions occurred within specific hours or days of the queried time windows
+- **THEN** the backend data model provides continuous time series buckets with count values set to `0` for inactive intervals
+- **AND** the charts render a continuous unbroken zero baseline without missing data points or jagged gaps
+
+#### Scenario: Localization of Chart Metrics (Happy Path)
+- **WHEN** an administrator views the statistics page in English or German
+- **THEN** chart card titles, dataset legend labels (`Forwarded` / `Weitergeleitet`, `Dropped` / `Verworfen`), and axis labels render using message bundles corresponding to the user's active locale
 
 ### Requirement: Role-Based Navigation Visibility
 The system SHALL conditionally render navigation links and action items based on the visitor's authentication state and granted roles, ensuring that administrative and personal account controls are never exposed to unauthorized sessions.

@@ -70,4 +70,23 @@ public interface MailTransactionRepository extends JpaRepository<MailTransaction
      */
     @Query("SELECT new com.xceptance.xcmailr.models.Status(mt.status, COUNT(mt)) FROM MailTransaction mt GROUP BY mt.status")
     List<Status> getStatusCounts();
+
+    /**
+     * Projection holding transaction timestamp and status code for statistical aggregation.
+     */
+    public interface TransactionStatEntry
+    {
+        Long getTs();
+        int getStatus();
+    }
+
+    /**
+     * Retrieves lightweight projection entries (timestamp and status) for transactions
+     * logged at or after the specified millisecond timestamp, ordered chronologically.
+     *
+     * @param ts start timestamp cutoff in epoch milliseconds
+     * @return list of matching transaction projection entries
+     */
+    @Query("SELECT mt.ts AS ts, mt.status AS status FROM MailTransaction mt WHERE mt.ts >= :ts ORDER BY mt.ts ASC")
+    List<TransactionStatEntry> findStatsSince(@Param("ts") final Long ts);
 }

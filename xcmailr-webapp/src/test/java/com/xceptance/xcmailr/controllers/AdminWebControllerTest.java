@@ -248,7 +248,7 @@ public class AdminWebControllerTest
     }
 
     @Test
-    @DisplayName("Admin can view system statistics dashboard")
+    @DisplayName("Admin can view system statistics dashboard including 24h and 7d chart series")
     public void testStatisticsDashboard() throws Exception
     {
         mockMvc.perform(get("/admin/statistics")
@@ -258,7 +258,61 @@ public class AdminWebControllerTest
                .andExpect(model().attributeExists("totalUsers"))
                .andExpect(model().attributeExists("totalMailboxes"))
                .andExpect(model().attributeExists("totalMails"))
-               .andExpect(model().attributeExists("totalTransactions"));
+               .andExpect(model().attributeExists("totalTransactions"))
+               .andExpect(model().attributeExists("chart24h"))
+               .andExpect(model().attributeExists("chart7d"))
+               .andExpect(content().string(containsString("id=\"chart-last-24h\"")))
+               .andExpect(content().string(containsString("id=\"chart-last-7d\"")))
+               .andExpect(content().string(containsString("/webjars/chart.js/4.6.1/dist/chart.umd.js")))
+               .andExpect(result -> {
+                   final Object c24 = result.getModelAndView().getModel().get("chart24h");
+                   assertNotNull(c24);
+                   assertTrue(c24 instanceof com.xceptance.xcmailr.dto.ChartDataDto);
+                   final com.xceptance.xcmailr.dto.ChartDataDto dto24 = (com.xceptance.xcmailr.dto.ChartDataDto) c24;
+                   assertEquals(24, dto24.labels().size());
+                   assertEquals(24, dto24.forwarded().size());
+                   assertEquals(24, dto24.dropped().size());
+
+                   final Object c7 = result.getModelAndView().getModel().get("chart7d");
+                   assertNotNull(c7);
+                   assertTrue(c7 instanceof com.xceptance.xcmailr.dto.ChartDataDto);
+                   final com.xceptance.xcmailr.dto.ChartDataDto dto7 = (com.xceptance.xcmailr.dto.ChartDataDto) c7;
+                   assertEquals(7, dto7.labels().size());
+                   assertEquals(7, dto7.forwarded().size());
+                   assertEquals(7, dto7.dropped().size());
+               });
+    }
+
+    /**
+     * Verifies that the admin statistics dashboard renders both canvas elements, includes the Chart.js
+     * WebJar asset, and embeds well-formed JSON datasets for both 24h and 7d series.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin statistics dashboard renders HTML with chart canvases, WebJar script, and JSON payloads (Happy Path)")
+    public void testAdminStatisticsChartRenderingAndPayloads() throws Exception
+    {
+        final long now = System.currentTimeMillis();
+        final MailTransaction fwdTx = new MailTransaction(300, "sender@ext.com", "target@xcmailr.test", null);
+        fwdTx.setTs(now - 3600_000L);
+        transactionRepository.save(fwdTx);
+
+        final MailTransaction dropTx = new MailTransaction(200, "sender@ext.com", "target@xcmailr.test", null);
+        dropTx.setTs(now - 7200_000L);
+        transactionRepository.save(dropTx);
+
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/statistics"))
+               .andExpect(content().string(containsString("<canvas id=\"chart-last-24h\"></canvas>")))
+               .andExpect(content().string(containsString("<canvas id=\"chart-last-7d\"></canvas>")))
+               .andExpect(content().string(containsString("/webjars/chart.js/4.6.1/dist/chart.umd.js")))
+               .andExpect(content().string(containsString("const chart24hData = {")))
+               .andExpect(content().string(containsString("const chart7dData = {")))
+               .andExpect(content().string(containsString("\"forwarded\":")))
+               .andExpect(content().string(containsString("\"dropped\":")));
     }
 
     // =========================================================================
@@ -399,6 +453,10 @@ public class AdminWebControllerTest
                .andExpect(content().string(containsString("Active Mailboxes")))
                .andExpect(content().string(containsString("Stored Messages")))
                .andExpect(content().string(containsString("Logged Transactions")))
+               .andExpect(content().string(containsString("Last 24 Hours Activity")))
+               .andExpect(content().string(containsString("Hourly resolution")))
+               .andExpect(content().string(containsString("Last 7 Days Activity")))
+               .andExpect(content().string(containsString("Daily resolution")))
                .andExpect(content().string(containsString("Transaction Delivery Breakdown")));
     }
 
@@ -420,6 +478,10 @@ public class AdminWebControllerTest
                .andExpect(content().string(containsString("Aktive Postfächer")))
                .andExpect(content().string(containsString("Gespeicherte Nachrichten")))
                .andExpect(content().string(containsString("Protokollierte Transaktionen")))
+               .andExpect(content().string(containsString("Aktivität der letzten 24 Stunden")))
+               .andExpect(content().string(containsString("Stündliche Auflösung")))
+               .andExpect(content().string(containsString("Aktivität der letzten 7 Tage")))
+               .andExpect(content().string(containsString("Tägliche Auflösung")))
                .andExpect(content().string(containsString("Transaktions-Zustellungsübersicht")));
     }
 
