@@ -19,8 +19,8 @@
     <script>
         (() => {
             const storedTheme = localStorage.getItem('theme');
-            const systemPrefers dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const activeTheme = storedTheme ? storedTheme : (systemPrefers dark ? 'dark' : 'light');
+            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const activeTheme = storedTheme ? storedTheme : (systemPrefersDark ? 'dark' : 'light');
             document.documentElement.setAttribute('data-bs-theme', activeTheme);
         })();
     </script>

@@ -308,11 +308,39 @@ public class AdminWebControllerTest
                .andExpect(view().name("admin/statistics"))
                .andExpect(content().string(containsString("<canvas id=\"chart-last-24h\"></canvas>")))
                .andExpect(content().string(containsString("<canvas id=\"chart-last-7d\"></canvas>")))
+               .andExpect(content().string(containsString("id=\"chart-fallback-24h\"")))
+               .andExpect(content().string(containsString("id=\"chart-fallback-7d\"")))
                .andExpect(content().string(containsString("/webjars/chart.js/4.6.1/dist/chart.umd.js")))
                .andExpect(content().string(containsString("const chart24hData = {")))
                .andExpect(content().string(containsString("const chart7dData = {")))
                .andExpect(content().string(containsString("\"forwarded\":")))
-               .andExpect(content().string(containsString("\"dropped\":")));
+               .andExpect(content().string(containsString("\"dropped\":")))
+               .andExpect(content().string(containsString("systemPrefersDark")))
+               .andExpect(content().string(containsString("function initCharts()")))
+               .andExpect(content().string(containsString("Chart library could not be loaded.")))
+               .andExpect(content().string(containsString("chart.options.scales.x.border.color = theme.borderColor;")))
+               .andExpect(content().string(containsString("backgroundColor: theme.isDark ? '#212529' : '#ffffff'")))
+               .andExpect(content().string(containsString("document.addEventListener('DOMContentLoaded', initCharts)")));
+    }
+
+    /**
+     * Verifies that the admin statistics dashboard renders localized German chart labels and fallback message.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin statistics dashboard renders localized German chart labels and fallback (Happy Path)")
+    public void testAdminStatisticsChartRenderingGerman() throws Exception
+    {
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(adminDe.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(view().name("admin/statistics"))
+               .andExpect(content().string(containsString("Aktivität der letzten 24 Stunden")))
+               .andExpect(content().string(containsString("Aktivität der letzten 7 Tage")))
+               .andExpect(content().string(containsString("Diagramm-Bibliothek konnte nicht geladen werden.")))
+               .andExpect(content().string(containsString("\"Weitergeleitet\"")))
+               .andExpect(content().string(containsString("\"Verworfen\"")));
     }
 
     // =========================================================================

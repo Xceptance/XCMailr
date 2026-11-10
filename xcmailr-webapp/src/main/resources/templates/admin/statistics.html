@@ -60,6 +60,7 @@
         </div>
         <div class="card-body">
             <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+                <div id="chart-fallback-24h" class="d-none alert alert-light text-center small text-muted my-auto" th:text="#{admin.stats.chart.unavailable}">Chart library could not be loaded.</div>
                 <canvas id="chart-last-24h"></canvas>
             </div>
         </div>
@@ -73,6 +74,7 @@
         </div>
         <div class="card-body">
             <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+                <div id="chart-fallback-7d" class="d-none alert alert-light text-center small text-muted my-auto" th:text="#{admin.stats.chart.unavailable}">Chart library could not be loaded.</div>
                 <canvas id="chart-last-7d"></canvas>
             </div>
         </div>
@@ -121,11 +123,6 @@
     <script th:inline="javascript">
     /*<![CDATA[*/
     (() => {
-        if (typeof Chart === 'undefined') {
-            console.warn('Chart.js library is not loaded. Admin statistics charts will not be rendered.');
-            return;
-        }
-
         const chart24hData = /*[[${chart24h}]]*/ { labels: [], forwarded: [], dropped: [] };
         const chart7dData = /*[[${chart7d}]]*/ { labels: [], forwarded: [], dropped: [] };
         const labelForwarded = /*[[#{admin.stats.chart.forwarded}]]*/ 'Forwarded';
@@ -199,7 +196,12 @@
                             }
                         },
                         tooltip: {
-                            theme: theme.isDark ? 'dark' : 'light'
+                            backgroundColor: theme.isDark ? '#212529' : '#ffffff',
+                            titleColor: theme.isDark ? '#f8f9fa' : '#212529',
+                            bodyColor: theme.isDark ? '#e9ecef' : '#495057',
+                            borderColor: theme.borderColor,
+                            borderWidth: 1,
+                            padding: 10
                         }
                     },
                     scales: {
@@ -215,9 +217,11 @@
                                 autoSkip: true,
                                 maxTicksLimit: 24
                             },
+                            border: {
+                                color: theme.borderColor
+                            },
                             grid: {
-                                color: theme.gridColor,
-                                borderColor: theme.borderColor
+                                color: theme.gridColor
                             }
                         },
                         y: {
@@ -231,9 +235,11 @@
                                 color: theme.textColor,
                                 precision: 0
                             },
+                            border: {
+                                color: theme.borderColor
+                            },
                             grid: {
-                                color: theme.gridColor,
-                                borderColor: theme.borderColor
+                                color: theme.gridColor
                             }
                         }
                     }
@@ -241,45 +247,88 @@
             };
         }
 
-        const canvas24h = document.getElementById('chart-last-24h');
-        const canvas7d = document.getElementById('chart-last-7d');
         let chart24hInstance = null;
         let chart7dInstance = null;
 
-        if (canvas24h) {
-            chart24hInstance = new Chart(canvas24h.getContext('2d'), createChartConfig(chart24hData, labelTime));
-        }
-        if (canvas7d) {
-            chart7dInstance = new Chart(canvas7d.getContext('2d'), createChartConfig(chart7dData, labelDate));
-        }
-
         /**
-         * Updates chart axes, tick colors, and grid lines when theme changes.
+         * Updates chart axes, tick colors, border, and grid lines when theme changes.
          */
         function updateChartThemes() {
             const theme = getThemeTokens();
             [chart24hInstance, chart7dInstance].forEach(chart => {
                 if (!chart) return;
-                if (chart.options.plugins && chart.options.plugins.legend) {
+                if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
                     chart.options.plugins.legend.labels.color = theme.textColor;
+                }
+                if (chart.options.plugins && chart.options.plugins.tooltip) {
+                    chart.options.plugins.tooltip.backgroundColor = theme.isDark ? '#212529' : '#ffffff';
+                    chart.options.plugins.tooltip.titleColor = theme.isDark ? '#f8f9fa' : '#212529';
+                    chart.options.plugins.tooltip.bodyColor = theme.isDark ? '#e9ecef' : '#495057';
+                    chart.options.plugins.tooltip.borderColor = theme.borderColor;
                 }
                 if (chart.options.scales && chart.options.scales.x) {
                     if (chart.options.scales.x.title) chart.options.scales.x.title.color = theme.textColor;
                     if (chart.options.scales.x.ticks) chart.options.scales.x.ticks.color = theme.textColor;
-                    if (chart.options.scales.x.grid) {
-                        chart.options.scales.x.grid.color = theme.gridColor;
-                        chart.options.scales.x.grid.borderColor = theme.borderColor;
-                    }
+                    if (chart.options.scales.x.border) chart.options.scales.x.border.color = theme.borderColor;
+                    if (chart.options.scales.x.grid) chart.options.scales.x.grid.color = theme.gridColor;
                 }
                 if (chart.options.scales && chart.options.scales.y) {
                     if (chart.options.scales.y.title) chart.options.scales.y.title.color = theme.textColor;
                     if (chart.options.scales.y.ticks) chart.options.scales.y.ticks.color = theme.textColor;
-                    if (chart.options.scales.y.grid) {
-                        chart.options.scales.y.grid.color = theme.gridColor;
-                        chart.options.scales.y.grid.borderColor = theme.borderColor;
-                    }
+                    if (chart.options.scales.y.border) chart.options.scales.y.border.color = theme.borderColor;
+                    if (chart.options.scales.y.grid) chart.options.scales.y.grid.color = theme.gridColor;
                 }
                 chart.update('none');
+            });
+        }
+
+        /**
+         * Instantiates Chart.js line charts when DOM layout is resolved.
+         */
+        function initCharts() {
+            const fallback24h = document.getElementById('chart-fallback-24h');
+            const fallback7d = document.getElementById('chart-fallback-7d');
+
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js library is not loaded. Admin statistics charts will not be rendered.');
+                if (fallback24h) fallback24h.classList.remove('d-none');
+                if (fallback7d) fallback7d.classList.remove('d-none');
+                return;
+            }
+
+            const canvas24h = document.getElementById('chart-last-24h');
+            const canvas7d = document.getElementById('chart-last-7d');
+
+            if (canvas24h) {
+                if (chart24hInstance) {
+                    chart24hInstance.destroy();
+                    chart24hInstance = null;
+                }
+                chart24hInstance = new Chart(canvas24h.getContext('2d'), createChartConfig(chart24hData, labelTime));
+                if (fallback24h) fallback24h.classList.add('d-none');
+            }
+            if (canvas7d) {
+                if (chart7dInstance) {
+                    chart7dInstance.destroy();
+                    chart7dInstance = null;
+                }
+                chart7dInstance = new Chart(canvas7d.getContext('2d'), createChartConfig(chart7dData, labelDate));
+                if (fallback7d) fallback7d.classList.add('d-none');
+            }
+        }
+
+        // Initialize when document layout is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initCharts);
+        } else {
+            initCharts();
+        }
+
+        if (window.htmx) {
+            htmx.onLoad(function (target) {
+                if (target && target.querySelector && target.querySelector('#chart-last-24h')) {
+                    initCharts();
+                }
             });
         }
 

@@ -425,7 +425,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **AND** triggering any management action on a row operates exclusively on the mailbox rendered in that row, regardless of original insertion order or display sort order, preventing actions from targeting the wrong mailbox due to view sorting desynchronization
 
 ### Requirement: Admin Management Console
-The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, and presenting vertically stacked time-series line charts for email traffic activity over the past 24 hours (hourly resolution) and past 7 days (daily resolution) with zero-filled continuity and dynamic theme synchronization.
+The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, and presenting vertically stacked time-series line charts for email traffic activity over the past 24 hours (hourly resolution) and past 7 days (daily resolution) with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling when client scripting is disabled or blocked.
 
 #### Scenario: Domain Whitelist Configuration
 - **WHEN** an administrator adds or removes an allowed domain via the admin console
@@ -507,7 +507,16 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 #### Scenario: Chart Theme and Responsiveness (Happy Path)
 - **WHEN** an administrator views or toggles the application theme between light and dark modes
 - **THEN** the charts adapt responsively across viewport widths inside full-width card containers
-- **AND** grid line colors, axis ticks, and tooltip backgrounds dynamically synchronize with the active theme tokens (`data-bs-theme="light"` or `data-bs-theme="dark"`), avoiding unreadable contrast or fixed light-only canvas rendering
+- **AND** grid line colors, axis border lines (`border.color`), axis ticks, and tooltip backgrounds dynamically synchronize with active theme tokens, conforming to Chart.js 4 specifications without console deprecation warnings
+
+#### Scenario: Chart Client Lifecycle and DOM Readiness (Happy Path)
+- **WHEN** an administrator navigates to the statistics page
+- **THEN** chart instantiation executes after DOM content is ready and element bounding dimensions are resolved
+- **AND** the chart canvases render with valid dimensions without execution race conditions
+
+#### Scenario: Chart.js Library Unavailable or Blocked Fallback (Degraded / Boundary Case)
+- **WHEN** the Chart.js library cannot be loaded or executed (e.g. script blocked or network failure)
+- **THEN** the statistics view displays an accessible fallback notification within the chart containers rather than an empty blank void
 
 #### Scenario: Empty Email Traffic Zero-Fill Continuity (Edge Case)
 - **WHEN** no email forwarding or drop transactions occurred within specific hours or days of the queried time windows
