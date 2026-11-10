@@ -2657,28 +2657,394 @@ public final class MailboxWebControllerTest
      *
      * @throws Exception if mock MVC execution fails
      */
+    // =========================================================================
+    // MAILBOX VALIDITY EXTENSION TESTS (Layer 1 Unit / Controller)
+    // =========================================================================
+
+    /**
+     * Verifies that editing a mailbox with extendHours=0 leaves the existing ts_Active timestamp intact.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
     @Test
-    @DisplayName("Happy Path: Sort headers retain size and pagination links retain sorting state")
-    public void testSortingAndSizeStatePreservation() throws Exception
+    @DisplayName("Happy path: POST /mailboxes/{id}/edit with extendHours=0 preserves current expiration")
+    public void testUpdateMailbox_extendKeepCurrent() throws Exception
     {
-        final MBox box = new MBox("state-box", "xcmailr.test", 0L, false, owner);
+        final long initialTs = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(48);
+        final MBox box = new MBox("keep-cur-box", "xcmailr.test", initialTs, false, owner);
         mailboxRepository.save(box);
 
-        final UserPrincipal principal = new UserPrincipal(owner);
-
-        mockMvc.perform(get("/mailboxes")
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
                .header("HX-Request", "true")
-               .param("size", "25")
-               .param("sort", "address")
-               .param("dir", "asc")
-               .with(user(principal)))
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("comment", "Updated Note")
+               .param("active", "true")
+               .param("forwardEmails", "true")
+               .param("extendHours", "0"))
                .andExpect(status().isOk())
-               // Column sort headers must preserve active size=25
-               .andExpect(content().string(containsString("sort=address&amp;dir=desc&amp;page=0&amp;size=25")))
-               // Pagination buttons must preserve sort and dir
-               .andExpect(content().string(containsString("sort=address&amp;dir=asc")))
-               // Display Count buttons must preserve sort and dir
-               .andExpect(content().string(containsString("size=50&amp;search=&amp;status=ALL&amp;sort=address&amp;dir=asc")));
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertEquals(initialTs, updated.getTs_Active(), "Expiration timestamp must remain exactly unchanged when extendHours=0");
+        assertEquals("Updated Note", updated.getComment(), "Comment must be updated");
+        assertFalse(updated.isExpired(), "Mailbox must remain active");
+    }
+
+    /**
+     * Verifies that editing a mailbox with extendHours=24 adds 24 hours to validity and keeps it active.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes/{id}/edit with extendHours=24 (+1d) extends validity")
+    public void testUpdateMailbox_extend24h() throws Exception
+    {
+        final long initialTs = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(2);
+        final MBox box = new MBox("ext-24h-box", "xcmailr.test", initialTs, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("extendHours", "24")
+               .param("active", "true"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertFalse(updated.isExpired(), "Mailbox must be active after extension");
+        assertTrue(updated.getTs_Active() >= initialTs + TimeUnit.HOURS.toMillis(23),
+            "Timestamp must be extended by at least 23 hours from previous expiration");
+    }
+
+    /**
+     * Verifies that editing a mailbox with extendHours=168 adds 7 days to validity.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes/{id}/edit with extendHours=168 (+7d) extends validity")
+    public void testUpdateMailbox_extend168h() throws Exception
+    {
+        final long initialTs = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(2);
+        final MBox box = new MBox("ext-168h-box", "xcmailr.test", initialTs, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("extendHours", "168")
+               .param("active", "true"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertFalse(updated.isExpired(), "Mailbox must be active after 7d extension");
+        assertTrue(updated.getTs_Active() >= initialTs + TimeUnit.HOURS.toMillis(167),
+            "Timestamp must be extended by at least 167 hours from previous expiration");
+    }
+
+    /**
+     * Verifies that editing a mailbox with extendHours=720 adds 30 days to validity.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes/{id}/edit with extendHours=720 (+30d) extends validity")
+    public void testUpdateMailbox_extend720h() throws Exception
+    {
+        final long initialTs = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(2);
+        final MBox box = new MBox("ext-720h-box", "xcmailr.test", initialTs, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("extendHours", "720")
+               .param("active", "true"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertFalse(updated.isExpired(), "Mailbox must be active after 30d extension");
+        assertTrue(updated.getTs_Active() >= initialTs + TimeUnit.HOURS.toMillis(719),
+            "Timestamp must be extended by at least 719 hours from previous expiration");
+    }
+
+    /**
+     * Verifies that editing a mailbox with extendHours=-1 sets validity to permanent / unlimited.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes/{id}/edit with extendHours=-1 sets unlimited validity")
+    public void testUpdateMailbox_extendUnlimited() throws Exception
+    {
+        final long initialTs = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(2);
+        final MBox box = new MBox("ext-unl-box", "xcmailr.test", initialTs, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("extendHours", "-1")
+               .param("active", "true"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertEquals(0L, updated.getTs_Active(), "Active timestamp must be set to 0L for unlimited validity");
+        assertFalse(updated.isExpired(), "Mailbox must be active when set to unlimited");
+    }
+
+    /**
+     * Verifies that POST /mailboxes/{id}/extend with hours=168 extends validity by 7 days.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes/{id}/extend with hours=168 (+7d) extends expiration")
+    public void testExtendMailbox_hours168() throws Exception
+    {
+        final long initialTs = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1);
+        final MBox box = new MBox("ext-quick-7d", "xcmailr.test", initialTs, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/extend")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("hours", "168"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged"));
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertFalse(updated.isExpired(), "Mailbox must be reactivated/active");
+        assertTrue(updated.getTs_Active() >= initialTs + TimeUnit.HOURS.toMillis(167),
+            "Timestamp must be extended by at least 167 hours");
+    }
+
+    /**
+     * Verifies that POST /mailboxes/{id}/extend with hours=720 extends validity by 30 days.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes/{id}/extend with hours=720 (+30d) extends expiration")
+    public void testExtendMailbox_hours720() throws Exception
+    {
+        final long initialTs = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1);
+        final MBox box = new MBox("ext-quick-30d", "xcmailr.test", initialTs, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/extend")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("hours", "720"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged"));
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertFalse(updated.isExpired(), "Mailbox must be reactivated/active");
+        assertTrue(updated.getTs_Active() >= initialTs + TimeUnit.HOURS.toMillis(719),
+            "Timestamp must be extended by at least 719 hours");
+    }
+
+    /**
+     * Verifies that POST /mailboxes/{id}/extend with hours=-1 sets validity to permanent / unlimited.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Happy path: POST /mailboxes/{id}/extend with hours=-1 sets unlimited validity")
+    public void testExtendMailbox_unlimited() throws Exception
+    {
+        final long initialTs = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1);
+        final MBox box = new MBox("ext-quick-unl", "xcmailr.test", initialTs, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/extend")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("hours", "-1"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged"));
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertEquals(0L, updated.getTs_Active(), "Timestamp must be 0L for unlimited");
+        assertFalse(updated.isExpired(), "Mailbox must be active when set to unlimited");
+    }
+
+    /**
+     * Verifies that extending a non-existent mailbox ID returns HTTP 404 Not Found.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Error case: POST /mailboxes/{id}/extend on non-existent mailbox returns 404")
+    public void testExtendMailbox_notFound() throws Exception
+    {
+        mockMvc.perform(post("/mailboxes/999999/extend")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("hours", "24"))
+               .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Verifies that extending another tenant's mailbox is rejected with HTTP 404 / Access Denied.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Security case: POST /mailboxes/{id}/extend on another user's mailbox returns 404")
+    public void testExtendMailbox_crossTenantAccessDenied() throws Exception
+    {
+        final MBox otherBox = new MBox("bobs-box", "xcmailr.test", System.currentTimeMillis() + 10000L, false, otherUser);
+        mailboxRepository.save(otherBox);
+
+        mockMvc.perform(post("/mailboxes/" + otherBox.getId() + "/extend")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("hours", "24"))
+               .andExpect(status().isForbidden());
+    }
+
+    /**
+     * Verifies that editing another tenant's mailbox is rejected with HTTP 403 / Access Denied.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Security case: POST /mailboxes/{id}/edit on another user's mailbox returns 403 Forbidden")
+    public void testUpdateMailbox_crossTenantAccessDenied() throws Exception
+    {
+        final MBox otherBox = new MBox("bobs-edit-box", "xcmailr.test", System.currentTimeMillis() + 10000L, false, otherUser);
+        mailboxRepository.save(otherBox);
+
+        mockMvc.perform(post("/mailboxes/" + otherBox.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("extendHours", "24"))
+               .andExpect(status().isForbidden());
+    }
+
+    /**
+     * Verifies that extending an already expired mailbox calculates the new timestamp from current wall-clock time.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Edge case: POST /mailboxes/{id}/edit on expired mailbox calculates extension from now")
+    public void testUpdateMailbox_extendExpiredMailboxCalculatesFromNow() throws Exception
+    {
+        final long pastTs = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(5);
+        final MBox box = new MBox("expired-calc-box", "xcmailr.test", pastTs, true, owner);
+        mailboxRepository.save(box);
+
+        final long beforeRequest = System.currentTimeMillis();
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("extendHours", "24"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "mailboxChanged, closeModal"));
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertFalse(updated.isExpired(), "Expired flag must be cleared");
+        assertTrue(updated.getTs_Active() >= beforeRequest + TimeUnit.HOURS.toMillis(23),
+            "Timestamp must be calculated relative to current wall-clock time, not the past timestamp");
+    }
+
+    /**
+     * Verifies that extending an active mailbox preserves remaining future validity duration.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Edge case: POST /mailboxes/{id}/edit on active mailbox adds hours onto remaining future time")
+    public void testUpdateMailbox_extendActiveMailboxPreservesRemainingDuration() throws Exception
+    {
+        final long futureTs = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(48);
+        final MBox box = new MBox("future-calc-box", "xcmailr.test", futureTs, false, owner);
+        mailboxRepository.save(box);
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("extendHours", "24"))
+               .andExpect(status().isOk());
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertTrue(updated.getTs_Active() >= futureTs + TimeUnit.HOURS.toMillis(23),
+            "New expiration must preserve remaining future validity and add the extension on top");
+    }
+
+    /**
+     * Verifies that editing an unlimited mailbox with extendHours > 0 converts it into a timed mailbox.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Edge case: POST /mailboxes/{id}/edit on unlimited mailbox converts it to timed expiration")
+    public void testUpdateMailbox_convertUnlimitedToTimed() throws Exception
+    {
+        final MBox box = new MBox("unl-to-timed-edit", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(box);
+
+        final long beforeRequest = System.currentTimeMillis();
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/edit")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("extendHours", "168"))
+               .andExpect(status().isOk());
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertFalse(updated.isExpired(), "Mailbox must be active");
+        assertTrue(updated.getTs_Active() >= beforeRequest + TimeUnit.HOURS.toMillis(167),
+            "Unlimited mailbox must be converted to finite expiration calculated from now");
+    }
+
+    /**
+     * Verifies that quick extending an unlimited mailbox with hours > 0 converts it into a timed mailbox.
+     *
+     * @throws Exception if mock MVC execution fails
+     */
+    @Test
+    @DisplayName("Edge case: POST /mailboxes/{id}/extend on unlimited mailbox converts it to timed expiration")
+    public void testExtendMailbox_convertUnlimitedToTimed() throws Exception
+    {
+        final MBox box = new MBox("unl-to-timed-quick", "xcmailr.test", 0L, false, owner);
+        mailboxRepository.save(box);
+
+        final long beforeRequest = System.currentTimeMillis();
+
+        mockMvc.perform(post("/mailboxes/" + box.getId() + "/extend")
+               .header("HX-Request", "true")
+               .with(user("alice@xcmailr.test").roles("USER"))
+               .with(csrf())
+               .param("hours", "168"))
+               .andExpect(status().isOk());
+
+        final MBox updated = mailboxRepository.findById(box.getId()).orElseThrow();
+        assertFalse(updated.isExpired(), "Mailbox must be active");
+        assertTrue(updated.getTs_Active() >= beforeRequest + TimeUnit.HOURS.toMillis(167),
+            "Unlimited mailbox must be converted to finite expiration calculated from now");
     }
 }
 

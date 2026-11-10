@@ -140,7 +140,7 @@ The system SHALL provide web views for user registration, email verification, se
 - **THEN** only non-security profile fields (`forename`, `surname`, `language`) are copied, while roles, authorities, admin privileges, password hashes, and account activation states remain strictly immutable and protected against tampering
 
 ### Requirement: Dynamic Mailbox Dashboard
-The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with case-insensitive natural alphabetical ordering for email addresses, displaying clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`), providing uniform vertical alignment across all table header elements, presenting a streamlined 7-column layout without redundant calculated mail counts, and displaying a localized item range pagination summary (e.g., `Showing 1–15 of 17 mailboxes` or `Zeige 1–15 von 17 Postfächern`) matching the authenticated user's preferred language.
+The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with case-insensitive natural alphabetical ordering for email addresses, displaying clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`), providing uniform vertical alignment across all table header elements, presenting a streamlined 7-column layout without redundant calculated mail counts, displaying a localized item range pagination summary (e.g., `Showing 1–15 of 17 mailboxes` or `Zeige 1–15 von 17 Postfächern`) matching the authenticated user's preferred language, offering direct 1-click validity extension buttons (`+1d`, `+7d`, `+30d`, `∞`) in table row quick actions, and providing an expiration extension selector with presets (`Keep current`, `+1d`, `+7d`, `+30d`, `Unlimited`) within the Edit Mailbox modal dialog.
 
 #### Scenario: Live Search and Filter
 - **WHEN** the user types into the mailbox filter input
@@ -191,12 +191,55 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **WHEN** the user clicks to edit, delete, or extend expiration on an existing mailbox
 - **THEN** HTMX loads the corresponding modal fragment dynamically into the shared modal host, and upon successful submission the modal dialog and its backdrop are dismissed cleanly and the table updates
 
+#### Scenario: Edit Mailbox Modal Expiration Extension Segmented Controls (Happy Path)
+- **WHEN** the user opens the Edit Mailbox modal for an existing mailbox
+- **THEN** the modal displays the current localized expiration timestamp (or "Unlimited") and renders an "Extend Validity By" segmented radio button pill group with presets: `Keep current` (`extendHours = 0`, checked by default), `+1d` (`24`), `+7d` (`168`), `+30d` (`720`), and `Unlimited` (`-1`)
+- **AND** the section label uses localized key `mailbox.modal.edit.extendBy`
+
+#### Scenario: Edit Mailbox Modal Extension Submission (Happy Path)
+- **WHEN** the user edits a mailbox, selects `+7d` (`extendHours = 168`), and submits the modal form
+- **THEN** the system extends the mailbox's expiration timestamp by 168 hours calculated from the current expiration (or from `now` if already expired), clears any expired state (`expired = false`), saves the record, and triggers an HTMX table refresh reflecting the updated expiration
+
+#### Scenario: Edit Mailbox Modal Set to Unlimited (Happy Path)
+- **WHEN** the user edits a mailbox, selects `Unlimited` (`extendHours = -1`), and submits the modal form
+- **THEN** the system sets `ts_Active = 0` (permanent) and `expired = false`, saves the record, and triggers an HTMX table refresh displaying "Unlimited" for expiration
+
+#### Scenario: Edit Mailbox Modal Keep Current Expiration (Happy Path)
+- **WHEN** the user edits a mailbox, keeps `Keep current` (`extendHours = 0`), and submits the modal form
+- **THEN** the mailbox's existing `ts_Active` timestamp remains unchanged while other edited attributes (`comment`, `forwardEmails`, `active`) are updated
+
+#### Scenario: Table Row Quick Action Direct Validity Extension (Happy Path)
+- **WHEN** an authenticated user clicks any of the 1-click extension buttons (`+1d`, `+7d`, `+30d`) on a mailbox table row
+- **THEN** HTMX sends an asynchronous `POST /mailboxes/{id}/extend?hours={hours}` request
+- **AND** the system extends the expiration timestamp by the specified hours, marks the mailbox as not expired (`expired = false`), and refreshes the table row via HTMX trigger without full page reload
+
+#### Scenario: Table Row Quick Action Direct Unlimited Validity (Happy Path)
+- **WHEN** an authenticated user clicks the `∞` (unlimited) action button on a mailbox table row
+- **THEN** HTMX sends an asynchronous `POST /mailboxes/{id}/extend?hours=-1` request
+- **AND** the system sets `ts_Active = 0` and `expired = false`, persisting the mailbox as permanent and refreshing the table row displaying "Unlimited"
+
+#### Scenario: Quick Action Validity Extension on Expired Mailbox (Edge Case)
+- **WHEN** an authenticated user clicks a quick extension button (`+1d`, `+7d`, `+30d`) on an already expired mailbox (`expired = true` or `ts_Active < now`)
+- **THEN** the new expiration timestamp is calculated from the current wall-clock time (`now + hours`) rather than the past expiration timestamp, and `expired` is reset to `false`
+
+#### Scenario: Quick Action Validity Extension on Active Mailbox (Edge Case)
+- **WHEN** an authenticated user clicks a quick extension button (`+1d`, `+7d`, `+30d`) on an active mailbox with a future expiration date
+- **THEN** the new expiration timestamp is calculated by adding the specified hours to the existing future expiration timestamp (`mailbox.ts_Active + hours`), preserving previously granted validity
+
+#### Scenario: Cross-Tenant Mailbox Extension Security Isolation (Security / Error Case)
+- **WHEN** an authenticated user attempts to extend or edit a mailbox ID belonging to another user via `POST /mailboxes/{id}/extend` or `POST /mailboxes/{id}/edit`
+- **THEN** the system rejects the operation with HTTP 404 / access denied, leaving the targeted mailbox completely unmodified
+
+#### Scenario: Extension on Non-Existent Mailbox (Error Case)
+- **WHEN** an authenticated user submits an extension request for a non-existent mailbox ID
+- **THEN** the system responds with HTTP 404 without throwing uncaught server exceptions
+
 #### Scenario: Mailbox Deletion UI Refresh
 - **WHEN** the user confirms deletion of a mailbox from the mailbox actions menu
 - **THEN** the mailbox and associated emails are deleted on the server, and the mailbox table automatically refreshes via HTMX without blanking out the page or removing the table container element from the DOM, displaying remaining mailboxes or the empty state if none remain
 
 #### Scenario: Inline Row Action UI Refresh
-- **WHEN** the user triggers an inline or dropdown action on a mailbox row (such as the compact status toggle icon button, +1d extension badge button, or counter reset from the overflow menu)
+- **WHEN** the user triggers an inline or dropdown action on a mailbox row (such as the compact status toggle icon button, direct extension buttons, or counter reset from the overflow menu)
 - **THEN** the action is processed and the mailbox table refreshes smoothly via HTMX without removing the table container or causing page content to disappear, and row button tooltips use native HTML title attributes so that no orphaned tooltip elements remain visible after the click or DOM swap
 
 #### Scenario: Preservation of Filter and Search on Table Refresh
@@ -252,7 +295,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 
 #### Scenario: Responsive Action Menu Consolidation
 - **WHEN** a user interacts with a mailbox row on a mobile viewport narrower than 768px
-- **THEN** standalone compact icon quick action buttons (toggle and +1d) are collapsed into the `[...]` kebab dropdown menu, presenting a single compact action button per row with all actions accessible within the dropdown
+- **THEN** standalone compact quick action buttons (toggle and extension presets) are collapsed into the `[...]` kebab dropdown menu, presenting a single compact action button per row with all actions (including `+1d`, `+7d`, `+30d`, and `Set Unlimited`) accessible within the dropdown
 
 #### Scenario: Subtle Visual Status and Mail Count Indicators
 - **WHEN** the mailbox table is rendered

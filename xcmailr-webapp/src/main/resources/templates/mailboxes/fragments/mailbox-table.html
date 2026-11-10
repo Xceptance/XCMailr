@@ -170,6 +170,36 @@
                                 +1d
                             </button>
 
+                            <!-- Quick Extend 7d (+7d button visible on md and up: >= 768px) -->
+                            <button class="btn btn-outline-secondary d-none d-md-inline-flex align-items-center fw-semibold small" type="button"
+                                    th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=168'},hx-swap='none'"
+                                    th:title="#{mailbox.action.extend7dTooltip}"
+                                    th:aria-label="#{mailbox.action.extend7dTooltip}"
+                                    title="Extend validity by 7 days (+7d)"
+                                    aria-label="Extend validity by 7 days (+7d)">
+                                +7d
+                            </button>
+
+                            <!-- Quick Extend 30d (+30d button visible on md and up: >= 768px) -->
+                            <button class="btn btn-outline-secondary d-none d-md-inline-flex align-items-center fw-semibold small" type="button"
+                                    th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=720'},hx-swap='none'"
+                                    th:title="#{mailbox.action.extend30dTooltip}"
+                                    th:aria-label="#{mailbox.action.extend30dTooltip}"
+                                    title="Extend validity by 30 days (+30d)"
+                                    aria-label="Extend validity by 30 days (+30d)">
+                                +30d
+                            </button>
+
+                            <!-- Quick Set Unlimited (∞ button visible on md and up: >= 768px) -->
+                            <button class="btn btn-outline-secondary d-none d-md-inline-flex align-items-center fw-semibold small" type="button"
+                                    th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=-1'},hx-swap='none'"
+                                    th:title="#{mailbox.action.extendUnlimitedTooltip}"
+                                    th:aria-label="#{mailbox.action.extendUnlimitedTooltip}"
+                                    title="Set validity to unlimited"
+                                    aria-label="Set validity to unlimited">
+                                <i class="bi bi-infinity"></i>
+                            </button>
+
                             <!-- Dropdown for more actions (Always visible; serves as kebab menu on desktop and consolidated action menu on mobile) -->
                             <div class="btn-group btn-group-sm" role="group">
                                 <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"
@@ -178,7 +208,7 @@
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow">
-                                    <!-- Mobile-only quick items: Toggle & Extend (visible when standalone buttons are collapsed on < 768px) -->
+                                    <!-- Mobile-only quick items: Toggle & Extend presets (visible when standalone buttons are collapsed on < 768px) -->
                                     <li class="d-md-none">
                                         <button class="dropdown-item" type="button"
                                                 th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/toggle'},hx-swap='none'">
@@ -190,6 +220,24 @@
                                         <button class="dropdown-item" type="button"
                                                 th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=24'},hx-swap='none'">
                                             <i class="bi bi-clock-history me-2"></i> <span th:text="#{mailbox.action.extend}">Extend 24 Hours (+1d)</span>
+                                        </button>
+                                    </li>
+                                    <li class="d-md-none">
+                                        <button class="dropdown-item" type="button"
+                                                th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=168'},hx-swap='none'">
+                                            <i class="bi bi-calendar-plus me-2"></i> <span th:text="#{mailbox.action.extend7d}">Extend 7 Days (+7d)</span>
+                                        </button>
+                                    </li>
+                                    <li class="d-md-none">
+                                        <button class="dropdown-item" type="button"
+                                                th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=720'},hx-swap='none'">
+                                            <i class="bi bi-calendar-month me-2"></i> <span th:text="#{mailbox.action.extend30d}">Extend 30 Days (+30d)</span>
+                                        </button>
+                                    </li>
+                                    <li class="d-md-none">
+                                        <button class="dropdown-item" type="button"
+                                                th:attr="hx-post=@{'/mailboxes/' + ${box.id} + '/extend?hours=-1'},hx-swap='none'">
+                                            <i class="bi bi-infinity me-2"></i> <span th:text="#{mailbox.action.extendUnlimited}">Set Unlimited</span>
                                         </button>
                                     </li>
                                     <li class="d-md-none"><hr class="dropdown-divider"></li>

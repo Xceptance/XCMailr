@@ -461,12 +461,13 @@ public class MailboxWebController
     }
 
     /**
-     * Updates an existing mailbox's settings.
+     * Updates an existing mailbox's settings including optional validity extension.
      *
      * @param id mailbox ID
      * @param forwardEmails whether forwarding is active
      * @param active whether the mailbox is enabled
      * @param comment optional comment or note documenting the purpose of this mailbox
+     * @param extendHours hours to extend validity by (0 = keep current, -1 = unlimited, >0 = add hours)
      * @param hxRequest header indicating HTMX request
      * @param principal authenticated user
      * @param model template model
@@ -477,6 +478,7 @@ public class MailboxWebController
                                 @RequestParam(value = "forwardEmails", defaultValue = "false") final boolean forwardEmails,
                                 @RequestParam(value = "active", defaultValue = "false") final boolean active,
                                 @RequestParam(value = "comment", required = false) final String comment,
+                                @RequestParam(value = "extendHours", defaultValue = "0") final int extendHours,
                                 @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
                                 final Principal principal,
                                 final Model model)
@@ -499,8 +501,30 @@ public class MailboxWebController
         }
 
         mailbox.setForwardEmails(forwardEmails);
-        mailbox.setExpired(!active);
         mailbox.setComment(comment);
+
+        if (extendHours == -1)
+        {
+            // Set mailbox to permanent / unlimited validity and mark active
+            mailbox.setTs_Active(0L);
+            mailbox.setExpired(false);
+        }
+        else if (extendHours > 0)
+        {
+            // Calculate new expiration timestamp relative to current expiry or current time
+            final long now = System.currentTimeMillis();
+            final long base = (mailbox.getTs_Active() == 0L || mailbox.isExpired() || mailbox.getTs_Active() < now)
+                ? now
+                : Math.max(now, mailbox.getTs_Active());
+            mailbox.setTs_Active(base + TimeUnit.HOURS.toMillis(extendHours));
+            mailbox.setExpired(false);
+        }
+        else
+        {
+            // extendHours == 0: preserve existing ts_Active timestamp and apply active toggle
+            mailbox.setExpired(!active);
+        }
+
         mailboxRepository.save(mailbox);
 
         LOG.info("Updated mailbox {} (id: {}) for user {}", mailbox.getFullAddress(), id, user.getMail());
@@ -516,10 +540,10 @@ public class MailboxWebController
     }
 
     /**
-     * Extends the expiration timestamp of a mailbox.
+     * Extends the expiration timestamp of a mailbox, or sets it to permanent/unlimited when hours is -1.
      *
      * @param id mailbox ID
-     * @param hours hours to add (defaults to 24)
+     * @param hours hours to add (defaults to 24, -1 for unlimited)
      * @param hxRequest header indicating HTMX request
      * @param principal authenticated user
      * @return redirect or HTMX response
@@ -533,13 +557,26 @@ public class MailboxWebController
         final User user = getUser(principal);
         final MBox mailbox = getMailboxForUser(id, user);
 
-        final long now = System.currentTimeMillis();
-        final long base = Math.max(now, mailbox.getTs_Active());
-        mailbox.setTs_Active(base + TimeUnit.HOURS.toMillis(hours));
-        mailbox.setExpired(false);
-        mailboxRepository.save(mailbox);
-
-        LOG.info("Extended mailbox {} (id: {}) by {} hours for user {}", mailbox.getFullAddress(), id, hours, user.getMail());
+        if (hours == -1)
+        {
+            // Make mailbox permanent (unlimited validity) and reactivate
+            mailbox.setTs_Active(0L);
+            mailbox.setExpired(false);
+            mailboxRepository.save(mailbox);
+            LOG.info("Set mailbox {} (id: {}) to unlimited for user {}", mailbox.getFullAddress(), id, user.getMail());
+        }
+        else if (hours > 0)
+        {
+            // Extend validity by specified hours relative to current expiry or current time
+            final long now = System.currentTimeMillis();
+            final long base = (mailbox.getTs_Active() == 0L || mailbox.isExpired() || mailbox.getTs_Active() < now)
+                ? now
+                : Math.max(now, mailbox.getTs_Active());
+            mailbox.setTs_Active(base + TimeUnit.HOURS.toMillis(hours));
+            mailbox.setExpired(false);
+            mailboxRepository.save(mailbox);
+            LOG.info("Extended mailbox {} (id: {}) by {} hours for user {}", mailbox.getFullAddress(), id, hours, user.getMail());
+        }
 
         if ("true".equalsIgnoreCase(hxRequest))
         {
