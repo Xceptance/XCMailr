@@ -95,12 +95,13 @@ public interface UserRepository extends JpaRepository<User, Long>
 
     /**
      * Searches users by email, forename, or surname substring matching.
+     * Dynamic sorting is driven by the {@link Pageable#getSort()} instance provided.
      *
-     * @param search search term
-     * @param pageable pagination parameters
+     * @param search search term to match against email, forename, or surname
+     * @param pageable pagination and sorting parameters
      * @return matching page of users
      */
-    @Query("SELECT u FROM User u WHERE LOWER(u.mail) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.forename) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.surname) LIKE LOWER(CONCAT('%', :search, '%')) ORDER BY u.mail ASC")
+    @Query("SELECT u FROM User u WHERE LOWER(u.mail) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.forename) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.surname) LIKE LOWER(CONCAT('%', :search, '%'))")
     Page<User> searchUsers(@Param("search") final String search, final Pageable pageable);
 
     /**

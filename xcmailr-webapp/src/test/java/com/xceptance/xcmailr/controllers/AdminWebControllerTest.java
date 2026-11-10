@@ -35,11 +35,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -586,5 +589,224 @@ public class AdminWebControllerTest
                .andExpect(status().isOk())
                .andExpect(model().attribute("size", 50))
                .andExpect(content().string(matchesPattern("(?s).*<li[^>]*class=\"[^\"]*page-item active[^\"]*\"[^>]*>\\s*<button[^>]*size=50.*")));
+    }
+
+    // =========================================================================
+    // Layer 1: Unit Tests for Whitelist Sorting Logic (Testing Pyramid)
+    // =========================================================================
+
+    /**
+     * Happy Path: Verifies that resolveSortField maps all whitelisted column keys correctly.
+     */
+    @Test
+    @DisplayName("Layer 1 Unit: resolveSortField maps whitelisted column names correctly")
+    public void testResolveSortField_HappyPath()
+    {
+        assertEquals("email", AdminWebController.resolveSortField("email"));
+        assertEquals("email", AdminWebController.resolveSortField("mail"));
+        assertEquals("name", AdminWebController.resolveSortField("name"));
+        assertEquals("status", AdminWebController.resolveSortField("status"));
+        assertEquals("role", AdminWebController.resolveSortField("role"));
+    }
+
+    /**
+     * Error Cases: Verifies that resolveSortField safely normalizes null, empty, or unknown columns to 'email'.
+     */
+    @Test
+    @DisplayName("Layer 1 Unit: resolveSortField safely falls back to 'email' on invalid or missing input")
+    public void testResolveSortField_ErrorCases()
+    {
+        assertEquals("email", AdminWebController.resolveSortField(null));
+        assertEquals("email", AdminWebController.resolveSortField(""));
+        assertEquals("email", AdminWebController.resolveSortField("   "));
+        assertEquals("email", AdminWebController.resolveSortField("unknown"));
+        assertEquals("email", AdminWebController.resolveSortField("password"));
+        assertEquals("email", AdminWebController.resolveSortField("id; DROP TABLE users;--"));
+    }
+
+    /**
+     * Special Cases: Verifies that resolveSortField handles whitespace and mixed-case strings.
+     */
+    @Test
+    @DisplayName("Layer 1 Unit: resolveSortField handles mixed-case and trimmed inputs")
+    public void testResolveSortField_SpecialCases()
+    {
+        assertEquals("email", AdminWebController.resolveSortField("EMAIL"));
+        assertEquals("email", AdminWebController.resolveSortField("  mAiL  "));
+        assertEquals("name", AdminWebController.resolveSortField("NaMe"));
+        assertEquals("status", AdminWebController.resolveSortField("STATUS "));
+        assertEquals("role", AdminWebController.resolveSortField("  RoLe  "));
+    }
+
+    /**
+     * Happy Path: Verifies that resolveSortDirection correctly resolves 'asc' and 'desc'.
+     */
+    @Test
+    @DisplayName("Layer 1 Unit: resolveSortDirection resolves 'asc' and 'desc'")
+    public void testResolveSortDirection_HappyPath()
+    {
+        assertEquals("asc", AdminWebController.resolveSortDirection("asc"));
+        assertEquals("desc", AdminWebController.resolveSortDirection("desc"));
+    }
+
+    /**
+     * Error Cases: Verifies that resolveSortDirection safely normalizes null, empty, or invalid directions to 'desc'.
+     */
+    @Test
+    @DisplayName("Layer 1 Unit: resolveSortDirection safely falls back to 'desc' on invalid or missing input")
+    public void testResolveSortDirection_ErrorCases()
+    {
+        assertEquals("desc", AdminWebController.resolveSortDirection(null));
+        assertEquals("desc", AdminWebController.resolveSortDirection(""));
+        assertEquals("desc", AdminWebController.resolveSortDirection("   "));
+        assertEquals("desc", AdminWebController.resolveSortDirection("invalid"));
+        assertEquals("desc", AdminWebController.resolveSortDirection("1; DROP TABLE users;--"));
+    }
+
+    /**
+     * Special Cases: Verifies that resolveSortDirection handles mixed-case direction strings.
+     */
+    @Test
+    @DisplayName("Layer 1 Unit: resolveSortDirection handles mixed-case inputs")
+    public void testResolveSortDirection_SpecialCases()
+    {
+        assertEquals("asc", AdminWebController.resolveSortDirection("ASC"));
+        assertEquals("asc", AdminWebController.resolveSortDirection("  AsC  "));
+        assertEquals("desc", AdminWebController.resolveSortDirection("DESC"));
+        assertEquals("desc", AdminWebController.resolveSortDirection("dEsC"));
+    }
+
+    /**
+     * Happy Path: Verifies that resolveSort constructs valid Sort instances for all whitelisted columns.
+     */
+    @Test
+    @DisplayName("Layer 1 Unit: resolveSort constructs Sort orders for all whitelisted columns")
+    public void testResolveSort_HappyPath()
+    {
+        // 1. Email ASC: single order by mail ASC ignoreCase()
+        final Sort emailAsc = AdminWebController.resolveSort("email", "asc");
+        final List<Sort.Order> emailAscOrders = emailAsc.toList();
+        assertEquals(1, emailAscOrders.size());
+        assertEquals("mail", emailAscOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.ASC, emailAscOrders.get(0).getDirection());
+        assertTrue(emailAscOrders.get(0).isIgnoreCase());
+
+        // 2. Email DESC: single order by mail DESC ignoreCase()
+        final Sort emailDesc = AdminWebController.resolveSort("email", "desc");
+        final List<Sort.Order> emailDescOrders = emailDesc.toList();
+        assertEquals(1, emailDescOrders.size());
+        assertEquals("mail", emailDescOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.DESC, emailDescOrders.get(0).getDirection());
+        assertTrue(emailDescOrders.get(0).isIgnoreCase());
+
+        // 3. Name ASC: composite surname ASC ignoreCase(), forename ASC ignoreCase(), tiebreaker mail ASC ignoreCase()
+        final Sort nameAsc = AdminWebController.resolveSort("name", "asc");
+        final List<Sort.Order> nameAscOrders = nameAsc.toList();
+        assertEquals(3, nameAscOrders.size());
+        assertEquals("surname", nameAscOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.ASC, nameAscOrders.get(0).getDirection());
+        assertTrue(nameAscOrders.get(0).isIgnoreCase());
+        assertEquals("forename", nameAscOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.ASC, nameAscOrders.get(1).getDirection());
+        assertTrue(nameAscOrders.get(1).isIgnoreCase());
+        assertEquals("mail", nameAscOrders.get(2).getProperty());
+        assertEquals(Sort.Direction.ASC, nameAscOrders.get(2).getDirection());
+        assertTrue(nameAscOrders.get(2).isIgnoreCase());
+
+        // 4. Name DESC: composite surname DESC ignoreCase(), forename DESC ignoreCase(), tiebreaker mail ASC ignoreCase()
+        final Sort nameDesc = AdminWebController.resolveSort("name", "desc");
+        final List<Sort.Order> nameDescOrders = nameDesc.toList();
+        assertEquals(3, nameDescOrders.size());
+        assertEquals("surname", nameDescOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.DESC, nameDescOrders.get(0).getDirection());
+        assertTrue(nameDescOrders.get(0).isIgnoreCase());
+        assertEquals("forename", nameDescOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.DESC, nameDescOrders.get(1).getDirection());
+        assertTrue(nameDescOrders.get(1).isIgnoreCase());
+        assertEquals("mail", nameDescOrders.get(2).getProperty());
+        assertEquals(Sort.Direction.ASC, nameDescOrders.get(2).getDirection());
+        assertTrue(nameDescOrders.get(2).isIgnoreCase());
+
+        // 5. Status ASC: active ASC, tiebreaker mail ASC ignoreCase()
+        final Sort statusAsc = AdminWebController.resolveSort("status", "asc");
+        final List<Sort.Order> statusAscOrders = statusAsc.toList();
+        assertEquals(2, statusAscOrders.size());
+        assertEquals("active", statusAscOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.ASC, statusAscOrders.get(0).getDirection());
+        assertEquals("mail", statusAscOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.ASC, statusAscOrders.get(1).getDirection());
+        assertTrue(statusAscOrders.get(1).isIgnoreCase());
+
+        // 6. Role DESC: admin DESC, tiebreaker mail ASC ignoreCase()
+        final Sort roleDesc = AdminWebController.resolveSort("role", "desc");
+        final List<Sort.Order> roleDescOrders = roleDesc.toList();
+        assertEquals(2, roleDescOrders.size());
+        assertEquals("admin", roleDescOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.DESC, roleDescOrders.get(0).getDirection());
+        assertEquals("mail", roleDescOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.ASC, roleDescOrders.get(1).getDirection());
+        assertTrue(roleDescOrders.get(1).isIgnoreCase());
+    }
+
+    /**
+     * Error Cases: Verifies that resolveSort handles null or invalid column names by falling back to email sort.
+     */
+    @Test
+    @DisplayName("Layer 1 Unit: resolveSort safely falls back on invalid parameters")
+    public void testResolveSort_ErrorCases()
+    {
+        final Sort invalidColumn = AdminWebController.resolveSort("nonexistent", "asc");
+        final List<Sort.Order> orders = invalidColumn.toList();
+        assertEquals(1, orders.size());
+        assertEquals("mail", orders.get(0).getProperty());
+        assertEquals(Sort.Direction.ASC, orders.get(0).getDirection());
+        assertTrue(orders.get(0).isIgnoreCase());
+    }
+
+    /**
+     * Special Cases: Verifies case-insensitivity of inputs and secondary tiebreaker stability.
+     */
+    @Test
+    @DisplayName("Layer 1 Unit: resolveSort normalizes mixed case and guarantees secondary tiebreakers")
+    public void testResolveSort_SpecialCases()
+    {
+        final Sort mixedCase = AdminWebController.resolveSort("  NAME  ", "DESC");
+        final List<Sort.Order> orders = mixedCase.toList();
+        assertEquals(3, orders.size());
+        assertEquals("surname", orders.get(0).getProperty());
+        assertEquals(Sort.Direction.DESC, orders.get(0).getDirection());
+        assertEquals("forename", orders.get(1).getProperty());
+        assertEquals(Sort.Direction.DESC, orders.get(1).getDirection());
+        assertEquals("mail", orders.get(2).getProperty());
+        assertEquals(Sort.Direction.ASC, orders.get(2).getDirection());
+        assertTrue(orders.get(2).isIgnoreCase());
+    }
+
+    /**
+     * Layer 1 Integration: Verifies that listUsers endpoint populates model attributes 'sort' and 'dir'.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Layer 1 Web: listUsers populates normalized sort and dir in model")
+    public void testListUsers_ModelAttributesPopulated() throws Exception
+    {
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("sort", "name")
+               .param("dir", "desc")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("sort", "name"))
+               .andExpect(model().attribute("dir", "desc"));
+
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("sort", "invalid_col")
+               .param("dir", "invalid_dir")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("sort", "email"))
+               .andExpect(model().attribute("dir", "desc"));
     }
 }

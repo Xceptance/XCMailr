@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -108,32 +109,137 @@ public class AdminWebController
     // =========================================================================
 
     /**
-     * Displays paginated user accounts with optional search query.
+     * Resolves and normalizes the requested sort column key against an allowed whitelist.
+     * Returns "email" if the input parameter is null, blank, or not in the allowed set.
+     *
+     * @param sort the requested sort column name
+     * @return the normalized whitelist property key ("email", "name", "status", "role"),
+     *         or "email" as the safe fallback
+     */
+    static String resolveSortField(final String sort)
+    {
+        if (sort == null)
+        {
+            return "email";
+        }
+        final String cleanSort = sort.trim().toLowerCase();
+        return switch (cleanSort)
+        {
+            case "email", "mail", "name", "status", "role" -> "mail".equals(cleanSort) ? "email" : cleanSort;
+            default -> "email";
+        };
+    }
+
+    /**
+     * Resolves the normalized sort direction ("asc" or "desc").
+     * Case-insensitively checks for "asc"; any other value (including null, empty, or invalid)
+     * safely defaults to "desc".
+     *
+     * @param dir the requested sort direction string
+     * @return "asc" if requested, otherwise "desc"
+     */
+    static String resolveSortDirection(final String dir)
+    {
+        if (dir == null)
+        {
+            return "desc";
+        }
+        return "asc".equalsIgnoreCase(dir.trim()) ? "asc" : "desc";
+    }
+
+    /**
+     * Constructs a Spring Data {@link Sort} instance corresponding to the requested column and direction.
+     * Only whitelisted column keys are mapped to entity attributes:
+     * <ul>
+     *   <li>"email" maps to case-insensitive natural ordering by {@code mail}</li>
+     *   <li>"name" maps to directory-style composite ordering by {@code surname} then {@code forename}
+     *       both case-insensitive, with {@code mail ASC} as secondary tiebreaker</li>
+     *   <li>"status" maps to {@code active} boolean flag with {@code mail ASC} as secondary tiebreaker</li>
+     *   <li>"role" maps to {@code admin} boolean flag with {@code mail ASC} as secondary tiebreaker</li>
+     * </ul>
+     * Any unrecognized or invalid sort parameter safely falls back to ordering by {@code mail} ascending.
+     *
+     * @param sort the requested sort column key
+     * @param dir the requested sort direction string ("asc" or "desc")
+     * @return a valid {@link Sort} instance ready for use in database queries
+     */
+    static Sort resolveSort(final String sort, final String dir)
+    {
+        final String effectiveField = resolveSortField(sort);
+        final Sort.Direction direction = "asc".equals(resolveSortDirection(dir)) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        final Sort.Order mailTiebreaker = Sort.Order.by("mail").with(Sort.Direction.ASC).ignoreCase();
+
+        return switch (effectiveField)
+        {
+            // Case-insensitive natural ordering by registered email address
+            case "email" -> Sort.by(Sort.Order.by("mail").with(direction).ignoreCase());
+
+            // Composite directory-style sort: surname first, forename second, both case-insensitive
+            case "name" -> Sort.by(
+                Sort.Order.by("surname").with(direction).ignoreCase(),
+                Sort.Order.by("forename").with(direction).ignoreCase(),
+                mailTiebreaker);
+
+            // Boolean active status: false (inactive) then true (active) on ASC
+            case "status" -> Sort.by(
+                Sort.Order.by("active").with(direction),
+                mailTiebreaker);
+
+            // Boolean admin role: false (user) then true (admin) on ASC
+            case "role" -> Sort.by(
+                Sort.Order.by("admin").with(direction),
+                mailTiebreaker);
+
+            // Safe fallback to email ascending
+            default -> Sort.by(mailTiebreaker);
+        };
+    }
+
+    /**
+     * Displays paginated user accounts with optional search query and column sorting.
+     *
+     * @param search optional text search query
+     * @param page zero-based page index
+     * @param size page size
+     * @param sort column sort key (email, name, status, role)
+     * @param dir sort direction (asc, desc)
+     * @param hxRequest header indicating HTMX request
+     * @param principal authenticated administrator
+     * @param model Spring MVC model
+     * @return view name or Thymeleaf fragment
      */
     @GetMapping("/users")
     public String listUsers(@RequestParam(value = "search", required = false) final String search,
                             @RequestParam(value = "page", defaultValue = "0") final int page,
                             @RequestParam(value = "size", defaultValue = "15") final int size,
+                            @RequestParam(value = "sort", defaultValue = "email") final String sort,
+                            @RequestParam(value = "dir", defaultValue = "asc") final String dir,
                             @RequestHeader(value = "HX-Request", required = false) final String hxRequest,
                             final Principal principal,
                             final Model model)
     {
         final User currentAdmin = getAdmin(principal);
+        final String effectiveSort = resolveSortField(sort);
+        final String effectiveDir = resolveSortDirection(dir);
+        final Sort sortOrder = resolveSort(sort, dir);
         final int effectiveSize = PaginationHelper.clampPageSize(size, 15);
-        final Pageable pageable = PageRequest.of(Math.max(0, page), effectiveSize);
+        final Pageable pageable = PageRequest.of(Math.max(0, page), effectiveSize, sortOrder);
 
         final boolean hasSearch = search != null && !search.trim().isEmpty();
         final String trimmedSearch = hasSearch ? search.trim() : "";
 
         final Page<User> usersPage = hasSearch
             ? userRepository.searchUsers(trimmedSearch, pageable)
-            : userRepository.findAllByOrderByMailAsc(pageable);
+            : userRepository.findAll(pageable);
 
         model.addAttribute("currentAdmin", currentAdmin);
         model.addAttribute("users", usersPage.getContent());
         model.addAttribute("page", usersPage);
         model.addAttribute("search", trimmedSearch);
         model.addAttribute("size", effectiveSize);
+        model.addAttribute("sort", effectiveSort);
+        model.addAttribute("dir", effectiveDir);
 
         if ("true".equalsIgnoreCase(hxRequest))
         {

@@ -7,17 +7,62 @@
      hx-trigger="userListChanged from:body"
      hx-target="#user-table-container"
      hx-swap="outerHTML"
-     hx-include="[name='search'], [name='size']">
+     hx-include="[name='search'], [name='sort'], [name='dir'], [name='size']">
+
+    <!-- Hidden state preservation inputs for active sort criteria and page size -->
+    <input type="hidden" name="sort" th:value="${sort}" />
+    <input type="hidden" name="dir" th:value="${dir}" />
     <input type="hidden" name="size" th:value="${page.size}" />
+
     <div class="table-responsive bg-white rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
             <thead class="table-light">
-                <tr>
-                    <th scope="col" th:text="#{admin.users.column.email}">Email</th>
-                    <th scope="col" class="d-none d-md-table-cell" th:text="#{admin.users.column.name}">Name</th>
-                    <th scope="col" style="width: 110px;" th:text="#{admin.users.column.status}">Status</th>
-                    <th scope="col" class="d-none d-sm-table-cell" style="width: 90px;" th:text="#{admin.users.column.role}">Role</th>
-                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;" th:text="#{admin.users.column.actions}">Actions</th>
+                <tr class="align-middle">
+                    <th scope="col">
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                           th:attr="hx-get=@{/admin/users(sort='email', dir=${sort == 'email' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                           th:title="#{admin.users.sort.email}"
+                           title="Sort by Email">
+                            <span th:text="#{admin.users.column.email}">Email</span>
+                            <i th:if="${sort != 'email'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'email' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'email' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="d-none d-md-table-cell">
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                           th:attr="hx-get=@{/admin/users(sort='name', dir=${sort == 'name' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                           th:title="#{admin.users.sort.name}"
+                           title="Sort by Name">
+                            <span th:text="#{admin.users.column.name}">Name</span>
+                            <i th:if="${sort != 'name'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'name' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'name' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col" style="width: 110px;">
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                           th:attr="hx-get=@{/admin/users(sort='status', dir=${sort == 'status' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                           th:title="#{admin.users.sort.status}"
+                           title="Sort by Status">
+                            <span th:text="#{admin.users.column.status}">Status</span>
+                            <i th:if="${sort != 'status'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'status' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'status' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="d-none d-sm-table-cell" style="width: 90px;">
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                           th:attr="hx-get=@{/admin/users(sort='role', dir=${sort == 'role' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                           th:title="#{admin.users.sort.role}"
+                           title="Sort by Role">
+                            <span th:text="#{admin.users.column.role}">Role</span>
+                            <i th:if="${sort != 'role'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'role' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'role' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;"><span class="d-inline-flex align-items-center py-1" th:text="#{admin.users.column.actions}">Actions</span></th>
                 </tr>
             </thead>
             <tbody>
@@ -99,7 +144,7 @@
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
                         <button class="page-link" type="button"
-                                th:attr="hx-get=@{/admin/users(page=${page.number - 1}, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                th:attr="hx-get=@{/admin/users(page=${page.number - 1}, size=${page.size}, search=${search}, sort=${sort}, dir=${dir})},hx-target='#user-table-container',hx-swap='outerHTML'"
                                 th:disabled="${page.first}"
                                 th:text="#{common.pagination.previous}">
                             Previous
@@ -112,7 +157,7 @@
                         </li>
                         <li th:if="${p != -1}" class="page-item" th:classappend="${p == page.number + 1 ? 'active' : ''}">
                             <button class="page-link" type="button" th:text="${p}"
-                                    th:attr="hx-get=@{/admin/users(page=${p - 1}, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                                    th:attr="hx-get=@{/admin/users(page=${p - 1}, size=${page.size}, search=${search}, sort=${sort}, dir=${dir})},hx-target='#user-table-container',hx-swap='outerHTML'">
                                 1
                             </button>
                         </li>
@@ -120,7 +165,7 @@
 
                     <li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
                         <button class="page-link" type="button"
-                                th:attr="hx-get=@{/admin/users(page=${page.number + 1}, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                th:attr="hx-get=@{/admin/users(page=${page.number + 1}, size=${page.size}, search=${search}, sort=${sort}, dir=${dir})},hx-target='#user-table-container',hx-swap='outerHTML'"
                                 th:disabled="${page.last}"
                                 th:text="#{common.pagination.next}">
                             Next
@@ -137,31 +182,31 @@
                     </li>
                     <li class="page-item" th:classappend="${page.size == 5 ? 'active' : ''}">
                         <button class="page-link" type="button"
-                                th:attr="hx-get=@{/admin/users(page=0, size=5, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                                th:attr="hx-get=@{/admin/users(page=0, size=5, search=${search}, sort=${sort}, dir=${dir})},hx-target='#user-table-container',hx-swap='outerHTML'">
                             5
                         </button>
                     </li>
                     <li class="page-item" th:classappend="${page.size == 15 ? 'active' : ''}">
                         <button class="page-link" type="button"
-                                th:attr="hx-get=@{/admin/users(page=0, size=15, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                                th:attr="hx-get=@{/admin/users(page=0, size=15, search=${search}, sort=${sort}, dir=${dir})},hx-target='#user-table-container',hx-swap='outerHTML'">
                             15
                         </button>
                     </li>
                     <li class="page-item" th:classappend="${page.size == 25 ? 'active' : ''}">
                         <button class="page-link" type="button"
-                                th:attr="hx-get=@{/admin/users(page=0, size=25, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                                th:attr="hx-get=@{/admin/users(page=0, size=25, search=${search}, sort=${sort}, dir=${dir})},hx-target='#user-table-container',hx-swap='outerHTML'">
                             25
                         </button>
                     </li>
                     <li class="page-item" th:classappend="${page.size == 50 ? 'active' : ''}">
                         <button class="page-link" type="button"
-                                th:attr="hx-get=@{/admin/users(page=0, size=50, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'">
+                                th:attr="hx-get=@{/admin/users(page=0, size=50, search=${search}, sort=${sort}, dir=${dir})},hx-target='#user-table-container',hx-swap='outerHTML'">
                             50
                         </button>
                     </li>
                     <li class="page-item" th:classappend="${page.size >= 1000 or (page.size >= page.totalElements and page.size != 5 and page.size != 15 and page.size != 25 and page.size != 50) ? 'active' : ''}">
                         <button class="page-link" type="button"
-                                th:attr="hx-get=@{/admin/users(page=0, size=0, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                                th:attr="hx-get=@{/admin/users(page=0, size=0, search=${search}, sort=${sort}, dir=${dir})},hx-target='#user-table-container',hx-swap='outerHTML'"
                                 th:text="#{common.pagination.all}">
                             all
                         </button>

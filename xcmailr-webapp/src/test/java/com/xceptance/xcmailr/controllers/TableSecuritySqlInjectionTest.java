@@ -274,6 +274,36 @@ public class TableSecuritySqlInjectionTest
     }
 
     /**
+     * Security Case: Verifies that SQL injection payloads on the 'sort' parameter
+     * on /admin/users are neutralized by whitelist normalization and safely fall back
+     * to the default 'email' sorting column with HTTP 200 OK and intact database state.
+     *
+     * @param payload SQL injection attack vector
+     * @throws Exception if mock MVC execution fails
+     */
+    @ParameterizedTest(name = "SQL Injection in /admin/users sort neutralized: {0}")
+    @ValueSource(strings = {
+        "mail; DROP TABLE users;--",
+        "mail, (SELECT CASE WHEN (1=1) THEN 1 ELSE 0 END)",
+        "extractvalue(1,concat(0x7e,(select user()),0x7e))",
+        "SLEEP(5)",
+        "' OR 1=1 --",
+        "nonexistent_column",
+        "1; DROP TABLE users;--"
+    })
+    @DisplayName("Security: SQL injection payloads in /admin/users 'sort' parameter safely fall back to 'email'")
+    public void testAdminUsersSqlInjectionInSortFallsBackToEmail(final String payload) throws Exception
+    {
+        mockMvc.perform(get("/admin/users")
+               .param("sort", payload)
+               .with(user(adminUser.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("sort", "email"));
+
+        assertTrue(userRepository.count() > 0, "Users table must remain intact after injection attempt");
+    }
+
+    /**
      * Security Case: Verifies that other endpoints safely ignore dynamic 'sort' parameters
      * and enforce compile-time static sort orders.
      *
@@ -284,12 +314,6 @@ public class TableSecuritySqlInjectionTest
     public void testSqlInjectionInSortIgnoredOnStaticEndpoints() throws Exception
     {
         final String maliciousSort = "receiveTime; DROP TABLE mail;--";
-
-        // /admin/users enforces findAllByOrderByMailAsc
-        mockMvc.perform(get("/admin/users")
-               .param("sort", maliciousSort)
-               .with(user(adminUser.getMail()).roles("ADMIN")))
-               .andExpect(status().isOk());
 
         // /admin/transactions enforces findAllByOrderByTsDesc
         mockMvc.perform(get("/admin/transactions")
@@ -341,6 +365,35 @@ public class TableSecuritySqlInjectionTest
                .with(user(userPrincipal)))
                .andExpect(status().isOk())
                .andExpect(model().attribute("dir", "desc"));
+    }
+
+    /**
+     * Security Case: Verifies that SQL injection payloads on the 'dir' parameter
+     * on /admin/users are neutralized by whitelist normalization and safely fall back
+     * to 'desc' with HTTP 200 OK and intact database state.
+     *
+     * @param payload SQL injection attack vector
+     * @throws Exception if mock MVC execution fails
+     */
+    @ParameterizedTest(name = "SQL Injection in /admin/users dir neutralized: {0}")
+    @ValueSource(strings = {
+        "asc; DROP TABLE users;--",
+        "desc, SLEEP(5)",
+        "' OR '1'='1",
+        "INVALID_DIR",
+        "1; DROP TABLE users;--"
+    })
+    @DisplayName("Security: SQL injection payloads in /admin/users 'dir' parameter safely fall back to 'desc'")
+    public void testAdminUsersSqlInjectionInDirFallsBackToDesc(final String payload) throws Exception
+    {
+        mockMvc.perform(get("/admin/users")
+               .param("sort", "name")
+               .param("dir", payload)
+               .with(user(adminUser.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("dir", "desc"));
+
+        assertTrue(userRepository.count() > 0, "Users table must remain intact after injection attempt");
     }
 
     // =========================================================================
