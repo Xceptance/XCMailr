@@ -539,7 +539,7 @@ public class AdminWebController
         final Date today = Date.valueOf(LocalDate.now());
         final Date weekAgo = Date.valueOf(LocalDate.now().minusDays(6));
         final List<DomainStatisticsDto> todaySenderDomains = mailStatisticsRepository.findDomainStatisticsSince(today);
-        final List<DomainStatisticsDto> weekSenderDomains = mailStatisticsRepository.findDomainStatisticsSince(weekAgo);
+        final List<DomainStatisticsDto> weekSenderDomains = mailStatisticsRepository.findDailyDomainStatisticsSince(weekAgo);
 
         model.addAttribute("statusSummary", statusSummary);
         model.addAttribute("totalTransactions", totalTransactions);

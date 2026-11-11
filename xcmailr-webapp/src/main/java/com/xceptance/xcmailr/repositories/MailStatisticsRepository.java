@@ -72,4 +72,23 @@ public interface MailStatisticsRepository extends JpaRepository<MailStatistics, 
            "GROUP BY ms.key.fromDomain " +
            "ORDER BY (COALESCE(SUM(ms.dropCount), 0L) + COALESCE(SUM(ms.forwardCount), 0L) + COALESCE(SUM(ms.storeCount), 0L)) DESC")
     List<DomainStatisticsDto> findDomainStatisticsSince(@Param("startDate") final Date startDate);
+
+    /**
+     * Aggregates email delivery statistics grouped by calendar date and sender domain since a given date.
+     * Orders the results by calendar date descending, and within each day by total traffic volume (drops + forwards + stores) descending.
+     *
+     * @param startDate earliest inclusive SQL date for statistics aggregation
+     * @return list of daily domain statistics records ordered by date DESC and total volume DESC
+     */
+    @Query("SELECT new com.xceptance.xcmailr.dto.DomainStatisticsDto(" +
+           "ms.key.date, " +
+           "ms.key.fromDomain, " +
+           "COALESCE(SUM(ms.dropCount), 0L), " +
+           "COALESCE(SUM(ms.forwardCount), 0L), " +
+           "COALESCE(SUM(ms.storeCount), 0L)) " +
+           "FROM MailStatistics ms " +
+           "WHERE ms.key.date >= :startDate " +
+           "GROUP BY ms.key.date, ms.key.fromDomain " +
+           "ORDER BY ms.key.date DESC, (COALESCE(SUM(ms.dropCount), 0L) + COALESCE(SUM(ms.forwardCount), 0L) + COALESCE(SUM(ms.storeCount), 0L)) DESC")
+    List<DomainStatisticsDto> findDailyDomainStatisticsSince(@Param("startDate") final Date startDate);
 }

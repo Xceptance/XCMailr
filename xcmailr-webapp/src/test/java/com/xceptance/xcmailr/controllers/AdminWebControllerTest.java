@@ -49,6 +49,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.xceptance.xcmailr.XcmailrApplication;
+import com.xceptance.xcmailr.dto.DomainStatisticsDto;
 import com.xceptance.xcmailr.models.Domain;
 import com.xceptance.xcmailr.models.MBox;
 import com.xceptance.xcmailr.models.MailStatistics;
@@ -602,6 +603,116 @@ public class AdminWebControllerTest
                .andExpect(status().isOk())
                .andExpect(content().string(containsString("alpha-sender.com")))
                .andExpect(content().string(containsString("30"))); // totalCount = 5 + 10 + 15 = 30
+    }
+
+    /**
+     * Verifies that the admin statistics dashboard populates {@code weekSenderDomains} in the model
+     * with daily breakdown information including non-null dates for sender domains.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin statistics dashboard model contains daily date breakdown in weekSenderDomains (Happy Path)")
+    public void testAdminStatisticsWeeklySenderDomainsContainsDateInformation() throws Exception
+    {
+        final java.time.LocalDate todayLd = java.time.LocalDate.now();
+        final java.sql.Date today = java.sql.Date.valueOf(todayLd);
+        final java.sql.Date twoDaysAgo = java.sql.Date.valueOf(todayLd.minusDays(2));
+
+        final MailStatisticsKey keyToday = new MailStatisticsKey(today, 10, "today-domain.com", "xcmailr.test");
+        final MailStatistics statToday = new MailStatistics(keyToday, 1, 2, 3);
+        mailStatisticsRepository.save(statToday);
+
+        final MailStatisticsKey keyPast = new MailStatisticsKey(twoDaysAgo, 20, "past-domain.com", "xcmailr.test");
+        final MailStatistics statPast = new MailStatistics(keyPast, 4, 5, 6);
+        mailStatisticsRepository.save(statPast);
+
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attributeExists("weekSenderDomains"))
+               .andExpect(result -> {
+                   final Object weekDomainsObj = result.getModelAndView().getModel().get("weekSenderDomains");
+                   assertNotNull(weekDomainsObj);
+                   assertTrue(weekDomainsObj instanceof List<?>);
+                   @SuppressWarnings("unchecked")
+                   final List<DomainStatisticsDto> weekDomains = (List<DomainStatisticsDto>) weekDomainsObj;
+                   assertFalse(weekDomains.isEmpty());
+                   assertEquals(2, weekDomains.size());
+
+                   // Verify first record (today, ordered by date DESC)
+                   final DomainStatisticsDto first = weekDomains.get(0);
+                   assertEquals(today, first.date());
+                   assertEquals("today-domain.com", first.domain());
+                   assertEquals(1L, first.dropCount());
+                   assertEquals(2L, first.forwardCount());
+                   assertEquals(3L, first.storeCount());
+
+                   // Verify second record (two days ago)
+                   final DomainStatisticsDto second = weekDomains.get(1);
+                   assertEquals(twoDaysAgo, second.date());
+                   assertEquals("past-domain.com", second.domain());
+                   assertEquals(4L, second.dropCount());
+                   assertEquals(5L, second.forwardCount());
+                   assertEquals(6L, second.storeCount());
+               });
+    }
+
+    /**
+     * Verifies that the admin statistics dashboard renders sortable table headers, chevron icons,
+     * ISO date sort attributes, and localized column headers and sort tooltips in both English
+     * and German locales.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin statistics dashboard renders sortable headers, chevrons, and localized date/domain columns (Happy Path)")
+    public void testAdminStatisticsSenderDomainsSortableMarkupAndLocalization() throws Exception
+    {
+        // 1. Empty state verification (before records exist)
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("colspan=\"6\"")))
+               .andExpect(content().string(containsString("colspan=\"5\"")));
+
+        // 2. Insert statistics record for today
+        final java.time.LocalDate todayLd = java.time.LocalDate.now();
+        final java.sql.Date sampleDate = java.sql.Date.valueOf(todayLd);
+
+        final MailStatisticsKey key = new MailStatisticsKey(sampleDate, 15, "sortable-domain.com", "xcmailr.test");
+        final MailStatistics stat = new MailStatistics(key, 10, 20, 30);
+        mailStatisticsRepository.save(stat);
+
+        // 3. English Locale Verification with data
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("table-sortable")))
+               .andExpect(content().string(containsString("sortable-header")))
+               .andExpect(content().string(containsString("data-sort-col=\"0\"")))
+               .andExpect(content().string(containsString("data-sort-type=\"date\"")))
+               .andExpect(content().string(containsString("data-sort-type=\"string\"")))
+               .andExpect(content().string(containsString("data-sort-type=\"number\"")))
+               .andExpect(content().string(containsString("bi-chevron-down sort-icon text-primary")))
+               .andExpect(content().string(containsString("bi-chevron-expand sort-icon text-body-secondary opacity-50")))
+               .andExpect(content().string(containsString("data-sort-value=\"" + todayLd.toString() + "\"")))
+               .andExpect(content().string(containsString("Date / Day")))
+               .andExpect(content().string(containsString("Sender Domain")))
+               .andExpect(content().string(containsString("Sort by Date")))
+               .andExpect(content().string(containsString("Sort by Sender Domain")))
+               .andExpect(content().string(containsString("Sort by Total")));
+
+        // 4. German Locale Verification with data
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(adminDe.getMail()).roles("ADMIN"))
+               .locale(java.util.Locale.GERMAN))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Datum / Tag")))
+               .andExpect(content().string(containsString("Absenderdomain")))
+               .andExpect(content().string(containsString("Nach Datum sortieren")))
+               .andExpect(content().string(containsString("Nach Absenderdomain sortieren")))
+               .andExpect(content().string(containsString("Nach Gesamtzahl sortieren")));
     }
 
     /**

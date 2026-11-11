@@ -115,14 +115,54 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover table-sortable mb-0">
                     <thead class="table-light">
-                        <tr>
-                            <th scope="col" th:text="#{admin.stats.domains.column.domain}">Sender Domain</th>
-                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.drops}">Drops</th>
-                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.forwards}">Forwards</th>
-                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.stored}">Stored</th>
-                            <th scope="col" class="text-end" style="width: 140px;" th:text="#{admin.stats.domains.column.total}">Total</th>
+                        <tr class="align-middle">
+                            <th scope="col">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                                   data-sort-col="0" data-sort-type="string"
+                                   th:title="#{admin.stats.domains.sort.domain}"
+                                   title="Sort by Sender Domain">
+                                    <span th:text="#{admin.stats.domains.column.domain}">Sender Domain</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="1" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.drops}"
+                                   title="Sort by Drops">
+                                    <span th:text="#{admin.stats.domains.column.drops}">Drops</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="2" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.forwards}"
+                                   title="Sort by Forwards">
+                                    <span th:text="#{admin.stats.domains.column.forwards}">Forwards</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="3" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.stored}"
+                                   title="Sort by Stored">
+                                    <span th:text="#{admin.stats.domains.column.stored}">Stored</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 140px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="4" data-sort-type="number" data-sort-dir="desc"
+                                   th:title="#{admin.stats.domains.sort.total}"
+                                   title="Sort by Total">
+                                    <span th:text="#{admin.stats.domains.column.total}">Total</span>
+                                    <i class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,10 +171,10 @@
                         </tr>
                         <tr th:each="d : ${todaySenderDomains}">
                             <td><span class="fw-semibold text-break" th:text="${d.domain}">example.com</span></td>
-                            <td class="text-end text-danger" th:text="${d.dropCount}">0</td>
-                            <td class="text-end text-success" th:text="${d.forwardCount}">0</td>
-                            <td class="text-end text-primary" th:text="${d.storeCount}">0</td>
-                            <td class="text-end fw-bold" th:text="${d.totalCount}">0</td>
+                            <td class="text-end text-danger" th:text="${d.dropCount}" th:attr="data-sort-value=${d.dropCount}">0</td>
+                            <td class="text-end text-success" th:text="${d.forwardCount}" th:attr="data-sort-value=${d.forwardCount}">0</td>
+                            <td class="text-end text-primary" th:text="${d.storeCount}" th:attr="data-sort-value=${d.storeCount}">0</td>
+                            <td class="text-end fw-bold" th:text="${d.totalCount}" th:attr="data-sort-value=${d.totalCount}">0</td>
                         </tr>
                     </tbody>
                 </table>
@@ -176,26 +216,78 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover table-sortable mb-0">
                     <thead class="table-light">
-                        <tr>
-                            <th scope="col" th:text="#{admin.stats.domains.column.domain}">Sender Domain</th>
-                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.drops}">Drops</th>
-                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.forwards}">Forwards</th>
-                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.stored}">Stored</th>
-                            <th scope="col" class="text-end" style="width: 140px;" th:text="#{admin.stats.domains.column.total}">Total</th>
+                        <tr class="align-middle">
+                            <th scope="col" style="width: 180px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                                   data-sort-col="0" data-sort-type="date" data-sort-dir="desc"
+                                   th:title="#{admin.stats.domains.sort.date}"
+                                   title="Sort by Date">
+                                    <span th:text="#{admin.stats.domains.column.date}">Date / Day</span>
+                                    <i class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                                   data-sort-col="1" data-sort-type="string"
+                                   th:title="#{admin.stats.domains.sort.domain}"
+                                   title="Sort by Sender Domain">
+                                    <span th:text="#{admin.stats.domains.column.domain}">Sender Domain</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="2" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.drops}"
+                                   title="Sort by Drops">
+                                    <span th:text="#{admin.stats.domains.column.drops}">Drops</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="3" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.forwards}"
+                                   title="Sort by Forwards">
+                                    <span th:text="#{admin.stats.domains.column.forwards}">Forwards</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="4" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.stored}"
+                                   title="Sort by Stored">
+                                    <span th:text="#{admin.stats.domains.column.stored}">Stored</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 140px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="5" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.total}"
+                                   title="Sort by Total">
+                                    <span th:text="#{admin.stats.domains.column.total}">Total</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(weekSenderDomains)}">
-                            <td colspan="5" class="text-center text-muted py-4" th:text="#{admin.stats.domains.empty}">No sender domain activity recorded for this time window.</td>
+                            <td colspan="6" class="text-center text-muted py-4" th:text="#{admin.stats.domains.empty}">No sender domain activity recorded for this time window.</td>
                         </tr>
                         <tr th:each="d : ${weekSenderDomains}">
+                            <td th:attr="data-sort-value=${d.date != null ? #dates.format(d.date, 'yyyy-MM-dd') : ''}">
+                                <span class="text-nowrap" th:text="${d.date != null ? #dates.format(d.date, #messages.msg('admin.stats.domains.date.format')) : '-'}">Wed, 11/11/2026</span>
+                            </td>
                             <td><span class="fw-semibold text-break" th:text="${d.domain}">example.com</span></td>
-                            <td class="text-end text-danger" th:text="${d.dropCount}">0</td>
-                            <td class="text-end text-success" th:text="${d.forwardCount}">0</td>
-                            <td class="text-end text-primary" th:text="${d.storeCount}">0</td>
-                            <td class="text-end fw-bold" th:text="${d.totalCount}">0</td>
+                            <td class="text-end text-danger" th:text="${d.dropCount}" th:attr="data-sort-value=${d.dropCount}">0</td>
+                            <td class="text-end text-success" th:text="${d.forwardCount}" th:attr="data-sort-value=${d.forwardCount}">0</td>
+                            <td class="text-end text-primary" th:text="${d.storeCount}" th:attr="data-sort-value=${d.storeCount}">0</td>
+                            <td class="text-end fw-bold" th:text="${d.totalCount}" th:attr="data-sort-value=${d.totalCount}">0</td>
                         </tr>
                     </tbody>
                 </table>
@@ -544,6 +636,101 @@
         themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
     })();
     /*]]>*/
+    </script>
+
+    <!-- Client-side Interactive Table Sorting -->
+    <script>
+    (() => {
+        function initSortableTables() {
+            const tables = document.querySelectorAll('table.table-sortable');
+            tables.forEach(table => {
+                const thead = table.querySelector('thead');
+                const tbody = table.querySelector('tbody');
+                if (!thead || !tbody) return;
+
+                const headers = thead.querySelectorAll('a.sortable-header[data-sort-col]');
+                headers.forEach(header => {
+                    if (header.dataset.sortBound === 'true') return;
+                    header.dataset.sortBound = 'true';
+
+                    header.addEventListener('click', e => {
+                        e.preventDefault();
+                        const colIndex = parseInt(header.dataset.sortCol, 10);
+                        const sortType = header.dataset.sortType || 'string';
+                        const currentDir = header.dataset.sortDir;
+                        const nextDir = currentDir === 'asc' ? 'desc' : (currentDir === 'desc' ? 'asc' : (sortType === 'string' ? 'asc' : 'desc'));
+
+                        // Update icons across all headers in this table
+                        headers.forEach(h => {
+                            delete h.dataset.sortDir;
+                            const icon = h.querySelector('.sort-icon');
+                            if (icon) {
+                                icon.className = 'bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1';
+                            }
+                        });
+
+                        // Set active direction and icon on clicked header
+                        header.dataset.sortDir = nextDir;
+                        const activeIcon = header.querySelector('.sort-icon');
+                        if (activeIcon) {
+                            activeIcon.className = nextDir === 'asc'
+                                ? 'bi bi-chevron-up sort-icon text-primary ms-1'
+                                : 'bi bi-chevron-down sort-icon text-primary ms-1';
+                        }
+
+                        // Collect and sort data rows
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+                        if (rows.length <= 1 && rows[0] && rows[0].querySelector('td[colspan]')) {
+                            return; // empty state row, nothing to sort
+                        }
+
+                        rows.sort((rowA, rowB) => {
+                            const cellA = rowA.children[colIndex];
+                            const cellB = rowB.children[colIndex];
+                            if (!cellA || !cellB) return 0;
+
+                            const rawA = (cellA.dataset.sortValue !== undefined && cellA.dataset.sortValue !== '')
+                                ? cellA.dataset.sortValue
+                                : cellA.textContent.trim();
+                            const rawB = (cellB.dataset.sortValue !== undefined && cellB.dataset.sortValue !== '')
+                                ? cellB.dataset.sortValue
+                                : cellB.textContent.trim();
+
+                            let diff = 0;
+                            if (sortType === 'number') {
+                                const numA = parseInt(rawA.replace(/[^\d.-]/g, ''), 10) || 0;
+                                const numB = parseInt(rawB.replace(/[^\d.-]/g, ''), 10) || 0;
+                                diff = numA - numB;
+                            } else if (sortType === 'date') {
+                                diff = rawA.localeCompare(rawB);
+                            } else {
+                                diff = rawA.toLowerCase().localeCompare(rawB.toLowerCase());
+                            }
+
+                            return nextDir === 'desc' ? -diff : diff;
+                        });
+
+                        // Re-insert rows in sorted order
+                        rows.forEach(row => tbody.appendChild(row));
+                    });
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSortableTables);
+        } else {
+            initSortableTables();
+        }
+
+        if (window.htmx) {
+            htmx.onLoad(function (target) {
+                if (target && target.querySelector && target.querySelector('table.table-sortable')) {
+                    initSortableTables();
+                }
+            });
+        }
+    })();
     </script>
 </div>
 

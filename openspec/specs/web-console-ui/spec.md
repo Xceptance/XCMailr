@@ -425,7 +425,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **AND** triggering any management action on a row operates exclusively on the mailbox rendered in that row, regardless of original insertion order or display sort order, preventing actions from targeting the wrong mailbox due to view sorting desynchronization
 
 ### Requirement: Admin Management Console
-The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, presenting structured time-series email traffic activity views over the past 24 hours (hourly line chart) and past 7 days (daily stacked bar chart) covering forwarded, stored, and dropped categories with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, organizing activity into distinct sections with modern monochrome badges and standard icons, displaying top metric cards with accurate values and granular breakdowns for administrators/users and active/expired mailboxes, presenting an aggregate transaction delivery status badge distribution, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS`, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
+The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, presenting structured time-series email traffic activity views over the past 24 hours (hourly line chart) and past 7 days (daily stacked bar chart) covering forwarded, stored, and dropped categories with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, organizing activity into distinct sections with modern monochrome badges and standard icons, displaying top metric cards with accurate values and granular breakdowns for administrators/users and active/expired mailboxes, presenting an aggregate transaction delivery status badge distribution, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS` with daily date and weekday breakdowns in the 7-day view and client-side case-insensitive column sorting with directional visual chevrons across both tables, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
 
 #### Scenario: Domain Whitelist Configuration
 - **WHEN** an administrator adds or removes an allowed domain via the admin console
@@ -552,8 +552,27 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 
 #### Scenario: Last 7 Days Sender Domains Breakdown Table (Happy Path)
 - **WHEN** an administrator views the statistics page (`/admin/statistics`)
-- **THEN** beneath the 7-day activity chart, the system displays a card containing a table of sender domains active over the last 7 days
-- **AND** the table lists each sender domain alongside counts for stored, forwarded, and dropped emails, ordered by total email volume descending
+- **THEN** beneath the 7-day activity chart, the system displays a card containing a table of sender domains active over the last 7 days grouped by calendar date and sender domain
+- **AND** the table provides a `Datum / Tag` (Date / Day) column displaying the localized date and weekday (e.g., `Mi, 11.11.2026`) formatted according to the user's active locale
+- **AND** each row carries an ISO date sort attribute (`data-sort-value="yyyy-MM-dd"`) ensuring deterministic chronological sorting
+- **AND** the table is ordered initially by date descending and total email volume descending
+
+#### Scenario: Sender Domain Client-Side Column Sorting (Happy Path)
+- **WHEN** an administrator clicks a column header in either the 24-hour or 7-day sender domain breakdown table
+- **THEN** the client-side table sorter orders the table rows immediately without a page reload or chart re-render
+- **AND** the clicked column header toggles its directional indicator icon (`bi-chevron-down` for descending, `bi-chevron-up` for ascending) while non-active sortable headers display a neutral chevron (`bi-chevron-expand`)
+
+#### Scenario: Case-Insensitive Sender Domain Column Sorting (Happy Path)
+- **WHEN** an administrator sorts a sender domain table by the `Absenderdomain` (Sender Domain) column in ascending or descending direction
+- **THEN** the client-side sorter orders domain entries alphabetically using case-insensitive natural comparison (`toLowerCase()` / `localeCompare`), consistent with mailbox address and user email sorting conventions
+
+#### Scenario: Chronological Date Column Sorting (Happy Path)
+- **WHEN** an administrator sorts the 7-day sender domain table by the `Datum / Tag` column
+- **THEN** the client-side sorter orders rows chronologically based on the underlying ISO date value (`data-sort-value`), supporting both newest-first (descending) and oldest-first (ascending) sequences
+
+#### Scenario: Numeric Metric Column Sorting (Happy Path)
+- **WHEN** an administrator sorts either sender domain table by any metric count column (`Verworfen`, `Weitergeleitet`, `Gespeichert`, or `Gesamt`)
+- **THEN** the client-side sorter orders rows numerically based on parsed integer values rather than string lexicographical order (e.g., `100` ranks above `20` in descending order)
 
 #### Scenario: Sender Domain Metrics Persistence Across Transaction Pruning
 - **WHEN** detailed transaction records in `mailtransactions` are deleted or purged according to retention limits (`maxAgeHours`)
@@ -561,7 +580,7 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 
 #### Scenario: Empty Sender Domains Graceful State
 - **WHEN** no inbound email traffic has been recorded for the queried time window
-- **THEN** the sender domain tables render a localized empty state message indicating that no records were found
+- **THEN** the sender domain tables render a localized empty state message indicating that no records were found spanning all columns (5 columns for 24-hour table, 6 columns for 7-day table)
 
 #### Scenario: Web Console Code Quality Standards
 - **WHEN** classes and controllers supporting the statistics dashboard are developed or inspected

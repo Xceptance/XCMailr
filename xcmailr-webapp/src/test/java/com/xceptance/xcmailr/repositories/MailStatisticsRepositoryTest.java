@@ -146,4 +146,56 @@ public class MailStatisticsRepositoryTest
         assertEquals(8L, dto.storeCount(), "Store count must be 8L");
         assertEquals(8L, dto.getTotalCount(), "Total count must equal 8L");
     }
+
+    @Test
+    @DisplayName("Happy Path: findDailyDomainStatisticsSince groups records by calendar date and domain, ordered by date DESC then total DESC")
+    public void testFindDailyDomainStatisticsSinceGroupsByDateAndDomain()
+    {
+        final Date twoDaysAgo = Date.valueOf(LocalDate.now().minusDays(2));
+
+        // Two entries for example.com on today across different quarter-hours
+        final MailStatistics today1 = new MailStatistics(
+            new MailStatisticsKey(today, 10, "example.com", "xcmailr.test"), 1, 2, 3);
+        final MailStatistics today2 = new MailStatistics(
+            new MailStatisticsKey(today, 20, "example.com", "xcmailr.test"), 4, 5, 6);
+        // One entry for external.com on today with higher volume
+        final MailStatistics todayExternal = new MailStatistics(
+            new MailStatisticsKey(today, 15, "external.com", "xcmailr.test"), 10, 20, 30);
+
+        // One entry for example.com on yesterday
+        final MailStatistics yesterdayExample = new MailStatistics(
+            new MailStatisticsKey(yesterday, 5, "example.com", "xcmailr.test"), 2, 0, 1);
+
+        // One entry for old.com on twoDaysAgo
+        final MailStatistics twoDaysAgoOld = new MailStatistics(
+            new MailStatisticsKey(twoDaysAgo, 8, "old.com", "xcmailr.test"), 5, 5, 5);
+
+        mailStatisticsRepository.saveAll(List.of(today1, today2, todayExternal, yesterdayExample, twoDaysAgoOld));
+
+        final List<DomainStatisticsDto> dailyResults = mailStatisticsRepository.findDailyDomainStatisticsSince(yesterday);
+        assertNotNull(dailyResults);
+        assertEquals(3, dailyResults.size(), "Should return 3 daily domain entries for today and yesterday, excluding twoDaysAgo");
+
+        // 1st: today, external.com (total: 60)
+        final DomainStatisticsDto r1 = dailyResults.get(0);
+        assertEquals(today, r1.date());
+        assertEquals(today, r1.getDate());
+        assertEquals("external.com", r1.domain());
+        assertEquals(60L, r1.totalCount());
+
+        // 2nd: today, example.com (drops: 1+4=5, forwards: 2+5=7, stores: 3+6=9, total: 21)
+        final DomainStatisticsDto r2 = dailyResults.get(1);
+        assertEquals(today, r2.date());
+        assertEquals("example.com", r2.domain());
+        assertEquals(5L, r2.dropCount());
+        assertEquals(7L, r2.forwardCount());
+        assertEquals(9L, r2.storeCount());
+        assertEquals(21L, r2.totalCount());
+
+        // 3rd: yesterday, example.com (total: 3)
+        final DomainStatisticsDto r3 = dailyResults.get(2);
+        assertEquals(yesterday, r3.date());
+        assertEquals("example.com", r3.domain());
+        assertEquals(3L, r3.totalCount());
+    }
 }
