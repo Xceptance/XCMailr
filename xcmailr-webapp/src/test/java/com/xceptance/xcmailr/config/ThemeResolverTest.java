@@ -23,6 +23,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -207,5 +210,119 @@ class ThemeResolverTest
         final ThemeResolver resolver = new ThemeResolver(exact32Slug, mockResourceLoader);
 
         assertEquals(ThemeResolver.DEFAULT_THEME, resolver.getActiveTheme());
+    }
+
+    @Test
+    @DisplayName("resolveActiveColorMode returns 'light' when request is null")
+    void testResolveActiveColorModeNullRequest()
+    {
+        final ThemeResolver resolver = new ThemeResolver("xceptance", mockResourceLoader);
+        assertEquals(ThemeResolver.COLOR_MODE_LIGHT, resolver.resolveActiveColorMode(null));
+    }
+
+    @Test
+    @DisplayName("resolveActiveColorMode returns 'light' when cookies array is null")
+    void testResolveActiveColorModeNullCookies()
+    {
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getCookies()).thenReturn(null);
+
+        final ThemeResolver resolver = new ThemeResolver("xceptance", mockResourceLoader);
+        assertEquals(ThemeResolver.COLOR_MODE_LIGHT, resolver.resolveActiveColorMode(request));
+    }
+
+    @Test
+    @DisplayName("resolveActiveColorMode returns 'light' when cookies array is empty")
+    void testResolveActiveColorModeEmptyCookies()
+    {
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getCookies()).thenReturn(new Cookie[0]);
+
+        final ThemeResolver resolver = new ThemeResolver("xceptance", mockResourceLoader);
+        assertEquals(ThemeResolver.COLOR_MODE_LIGHT, resolver.resolveActiveColorMode(request));
+    }
+
+    @Test
+    @DisplayName("resolveActiveColorMode returns 'light' when color mode cookie is absent")
+    void testResolveActiveColorModeUnrelatedCookies()
+    {
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final Cookie sessionCookie = new Cookie("JSESSIONID", "XYZ123");
+        when(request.getCookies()).thenReturn(new Cookie[] { sessionCookie });
+
+        final ThemeResolver resolver = new ThemeResolver("xceptance", mockResourceLoader);
+        assertEquals(ThemeResolver.COLOR_MODE_LIGHT, resolver.resolveActiveColorMode(request));
+    }
+
+    @Test
+    @DisplayName("resolveActiveColorMode returns 'dark' when color mode cookie equals 'dark'")
+    void testResolveActiveColorModeDarkCookie()
+    {
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final Cookie colorCookie = new Cookie(ThemeResolver.COLOR_MODE_COOKIE_NAME, "dark");
+        when(request.getCookies()).thenReturn(new Cookie[] { colorCookie });
+
+        final ThemeResolver resolver = new ThemeResolver("xceptance", mockResourceLoader);
+        assertEquals(ThemeResolver.COLOR_MODE_DARK, resolver.resolveActiveColorMode(request));
+    }
+
+    @Test
+    @DisplayName("resolveActiveColorMode is case-insensitive and returns 'dark' for 'DARK'")
+    void testResolveActiveColorModeCaseInsensitiveDarkCookie()
+    {
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final Cookie colorCookie = new Cookie(ThemeResolver.COLOR_MODE_COOKIE_NAME, "DARK");
+        when(request.getCookies()).thenReturn(new Cookie[] { colorCookie });
+
+        final ThemeResolver resolver = new ThemeResolver("xceptance", mockResourceLoader);
+        assertEquals(ThemeResolver.COLOR_MODE_DARK, resolver.resolveActiveColorMode(request));
+    }
+
+    @Test
+    @DisplayName("resolveActiveColorMode returns 'light' when color mode cookie equals 'light'")
+    void testResolveActiveColorModeLightCookie()
+    {
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final Cookie colorCookie = new Cookie(ThemeResolver.COLOR_MODE_COOKIE_NAME, "light");
+        when(request.getCookies()).thenReturn(new Cookie[] { colorCookie });
+
+        final ThemeResolver resolver = new ThemeResolver("xceptance", mockResourceLoader);
+        assertEquals(ThemeResolver.COLOR_MODE_LIGHT, resolver.resolveActiveColorMode(request));
+    }
+
+    @ParameterizedTest(name = "Malformed cookie value [{0}] defaults safely to 'light'")
+    @ValueSource(strings = {
+        "dark\"><script>alert(1)</script>",
+        "dark' OR '1'='1",
+        "../../etc/passwd",
+        "blue",
+        "system",
+        "auto",
+        "",
+        "   "
+    })
+    @DisplayName("resolveActiveColorMode rejects invalid or injection values and defaults to 'light'")
+    void testResolveActiveColorModeMalformedValuesDefaultToLight(final String invalidValue)
+    {
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final Cookie colorCookie = new Cookie(ThemeResolver.COLOR_MODE_COOKIE_NAME, invalidValue);
+        when(request.getCookies()).thenReturn(new Cookie[] { colorCookie });
+
+        final ThemeResolver resolver = new ThemeResolver("xceptance", mockResourceLoader);
+        assertEquals(ThemeResolver.COLOR_MODE_LIGHT, resolver.resolveActiveColorMode(request));
+    }
+
+    @Test
+    @DisplayName("resolveActiveColorMode finds cookie when multiple cookies are present")
+    void testResolveActiveColorModeMultipleCookies()
+    {
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final Cookie sessionCookie = new Cookie("JSESSIONID", "abc");
+        final Cookie colorCookie = new Cookie(ThemeResolver.COLOR_MODE_COOKIE_NAME, "dark");
+        final Cookie otherCookie = new Cookie("other", "123");
+        when(request.getCookies()).thenReturn(new Cookie[] { sessionCookie, colorCookie, otherCookie });
+
+        final ThemeResolver resolver = new ThemeResolver("xceptance", mockResourceLoader);
+        assertEquals(ThemeResolver.COLOR_MODE_DARK, resolver.resolveActiveColorMode(request));
     }
 }

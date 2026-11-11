@@ -37,6 +37,14 @@
 }
 
 [data-bs-theme="dark"] {
+    /* Bootstrap dark theme palette harmonization (Slate tokens) */
+    --bs-body-bg: #0f172a;
+    --bs-body-color: #f1f5f9;
+    --bs-card-bg: #1e293b;
+    --bs-border-color: #334155;
+    --bs-tertiary-bg: #1e293b;
+    --bs-secondary-bg: #334155;
+
     --xc-primary: #3b82f6;
     --xc-primary-hover: #2563eb;
     --xc-accent: #ef4444;
@@ -211,6 +219,12 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 
 .table {
     --bs-table-bg: transparent;
+}
+
+[data-bs-theme="dark"] .table {
+    --bs-table-color: #f1f5f9;
+    --bs-table-border-color: #334155;
+    --bs-table-hover-bg: rgba(59, 130, 246, 0.08);
 }
 
 .table-hover > tbody > tr:hover > * {

@@ -54,7 +54,7 @@
     <div class="row g-4">
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-2 fw-semibold">
+                <div class="card-header bg-transparent py-2 fw-semibold">
                     <span th:text="#{mail.allMails.inboxMessages}">Inbox Messages</span> (<span th:text="${#lists.size(mails)}">0</span>)
                 </div>
                 <div th:replace="~{mailboxes/fragments/mail-list :: mailList}"></div>

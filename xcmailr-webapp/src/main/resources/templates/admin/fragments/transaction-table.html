@@ -3,9 +3,9 @@
 <body>
 
 <div th:fragment="table" id="transaction-table-container">
-    <div class="table-responsive bg-white rounded shadow-sm border">
+    <div class="table-responsive bg-body rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th scope="col" class="d-none d-sm-table-cell" style="width: 155px;" th:text="#{admin.transactions.column.timestamp}">Timestamp</th>
                     <th scope="col" th:text="#{admin.transactions.column.relay}">Mailbox Relay</th>

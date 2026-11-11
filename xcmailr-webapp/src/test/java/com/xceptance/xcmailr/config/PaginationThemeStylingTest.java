@@ -128,4 +128,36 @@ public final class PaginationThemeStylingTest
         assertFalse(paginationBlock.contains("#0d6efd"),
                     "Pagination block in " + stylesheetPath + " must not reference electric blue #0d6efd");
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "/static/css/xceptance-theme.css", "/static/css/emerald-theme.css" })
+    @DisplayName("Happy Path: Theme stylesheets harmonize Bootstrap dark mode variables with Slate tokens")
+    public void testThemeDefinesHarmonizedDarkThemeTokens(final String stylesheetPath) throws IOException
+    {
+        final String content = loadStylesheet(stylesheetPath);
+
+        assertTrue(content.contains("--bs-body-bg: #0f172a;"),
+                   "Stylesheet " + stylesheetPath + " must define Slate 900 canvas (--bs-body-bg: #0f172a)");
+        assertTrue(content.contains("--bs-body-color: #f1f5f9;"),
+                   "Stylesheet " + stylesheetPath + " must define Slate 100 text (--bs-body-color: #f1f5f9)");
+        assertTrue(content.contains("--bs-card-bg: #1e293b;"),
+                   "Stylesheet " + stylesheetPath + " must define Slate 800 cards (--bs-card-bg: #1e293b)");
+        assertTrue(content.contains("--bs-border-color: #334155;"),
+                   "Stylesheet " + stylesheetPath + " must define Slate 700 borders (--bs-border-color: #334155)");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "/static/css/xceptance-theme.css", "/static/css/emerald-theme.css" })
+    @DisplayName("Happy Path: Theme stylesheets define dark mode table text and border tokens")
+    public void testThemeDefinesDarkModeTableTokens(final String stylesheetPath) throws IOException
+    {
+        final String content = loadStylesheet(stylesheetPath);
+
+        assertTrue(content.contains("[data-bs-theme=\"dark\"] .table {"),
+                   "Stylesheet " + stylesheetPath + " must declare [data-bs-theme=\"dark\"] .table block");
+        assertTrue(content.contains("--bs-table-color: #f1f5f9;"),
+                   "Stylesheet " + stylesheetPath + " must define dark table text color (--bs-table-color: #f1f5f9)");
+        assertTrue(content.contains("--bs-table-border-color: #334155;"),
+                   "Stylesheet " + stylesheetPath + " must define dark table border color (--bs-table-border-color: #334155)");
+    }
 }

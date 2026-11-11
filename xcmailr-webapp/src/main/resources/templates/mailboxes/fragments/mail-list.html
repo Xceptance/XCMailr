@@ -4,9 +4,9 @@
 
 <div th:fragment="mailList" id="mail-list-container"
      th:attr="hx-get=@{'/mailboxes/' + ${mailbox.id} + '/mails'(page=${currentPage != null ? currentPage : 0}, size=${size != null ? size : 25})},hx-trigger='mailListChanged from:body',hx-target='#mail-list-container',hx-swap='outerHTML'">
-    <div class="table-responsive bg-white rounded shadow-sm border">
+    <div class="table-responsive bg-body rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0">
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th scope="col" class="d-none d-sm-table-cell" style="width: 140px;" th:text="#{mail.table.column.received}">Received</th>
                     <th scope="col" th:text="#{mail.table.column.email}">Email</th>

@@ -23,8 +23,11 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import jakarta.servlet.http.Cookie;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -268,6 +271,83 @@ public class WebNavigationSecurityTest
                .andExpect(content().string(containsString("id=\"themeToggle\"")))
                .andExpect(content().string(containsString("-theme.css")))
                .andExpect(content().string(containsString("bootstrap-icons.min.css")));
+    }
+
+    /**
+     * Verifies that requests without a color mode cookie default to light mode
+     * in both the model and the root html data-bs-theme attribute.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Request without cookie defaults activeColorMode to 'light' and renders data-bs-theme='light'")
+    public void testDefaultColorModeRendersLightWithoutCookie() throws Exception
+    {
+        final UserPrincipal principal = new UserPrincipal(standardUser);
+
+        mockMvc.perform(get("/").with(user(principal)))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("activeColorMode", "light"))
+               .andExpect(content().string(containsString("data-bs-theme=\"light\"")));
+    }
+
+    /**
+     * Verifies that requests carrying xcmailr_color_mode=dark populate activeColorMode="dark"
+     * and render data-bs-theme="dark" on the root html element.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Request with dark cookie populates activeColorMode='dark' and renders data-bs-theme='dark'")
+    public void testDarkModeCookiePopulatesModelAndRendersDarkAttribute() throws Exception
+    {
+        final UserPrincipal principal = new UserPrincipal(standardUser);
+
+        mockMvc.perform(get("/").with(user(principal))
+               .cookie(new Cookie("xcmailr_color_mode", "dark")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("activeColorMode", "dark"))
+               .andExpect(content().string(containsString("data-bs-theme=\"dark\"")))
+               .andExpect(content().string(containsString("bi-sun")));
+    }
+
+    /**
+     * Verifies that requests carrying xcmailr_color_mode=light populate activeColorMode="light"
+     * and render data-bs-theme="light" on the root html element.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Request with light cookie populates activeColorMode='light' and renders data-bs-theme='light'")
+    public void testLightModeCookiePopulatesModelAndRendersLightAttribute() throws Exception
+    {
+        final UserPrincipal principal = new UserPrincipal(standardUser);
+
+        mockMvc.perform(get("/").with(user(principal))
+               .cookie(new Cookie("xcmailr_color_mode", "light")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("activeColorMode", "light"))
+               .andExpect(content().string(containsString("data-bs-theme=\"light\"")))
+               .andExpect(content().string(containsString("bi-moon-stars")));
+    }
+
+    /**
+     * Verifies that requests carrying malformed or injection cookie values safely default to light mode.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Request with malformed cookie safely defaults to 'light' without rendering injections")
+    public void testMalformedColorModeCookieDefaultsSafelyToLight() throws Exception
+    {
+        final UserPrincipal principal = new UserPrincipal(standardUser);
+
+        mockMvc.perform(get("/").with(user(principal))
+               .cookie(new Cookie("xcmailr_color_mode", "dark\"><script>alert(1)</script>")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("activeColorMode", "light"))
+               .andExpect(content().string(containsString("data-bs-theme=\"light\"")))
+               .andExpect(content().string(not(containsString("<script>alert(1)</script>"))));
     }
 }
 

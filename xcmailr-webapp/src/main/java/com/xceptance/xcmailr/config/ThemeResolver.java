@@ -18,6 +18,9 @@ package com.xceptance.xcmailr.config;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,6 +73,21 @@ public class ThemeResolver
      * Suffix for theme stylesheet filenames.
      */
     public static final String THEME_CSS_FILE_SUFFIX = "-theme.css";
+
+    /**
+     * Name of the HTTP cookie used to persist the user's color mode preference.
+     */
+    public static final String COLOR_MODE_COOKIE_NAME = "xcmailr_color_mode";
+
+    /**
+     * Dark color mode identifier.
+     */
+    public static final String COLOR_MODE_DARK = "dark";
+
+    /**
+     * Light color mode identifier.
+     */
+    public static final String COLOR_MODE_LIGHT = "light";
 
     private final ResourceLoader resourceLoader;
     private final String configuredTheme;
@@ -136,6 +154,39 @@ public class ThemeResolver
 
         LOGGER.info("Active UI theme resolved: '{}' (resource: '{}')", themeSlug, resourcePath);
         return themeSlug;
+    }
+
+    /**
+     * Resolves the active color mode ({@value #COLOR_MODE_DARK} or {@value #COLOR_MODE_LIGHT})
+     * from the incoming HTTP request cookies.
+     * <p>
+     * If the {@value #COLOR_MODE_COOKIE_NAME} cookie is missing, null, or has any value other than
+     * {@value #COLOR_MODE_DARK} (case-insensitive), this method safely defaults to {@value #COLOR_MODE_LIGHT}.
+     * This prevents cross-site script injection or unexpected theme attribute values on the root HTML tag.
+     * </p>
+     *
+     * @param request the current HTTP servlet request, or {@code null}
+     * @return the resolved color mode identifier ({@value #COLOR_MODE_DARK} or {@value #COLOR_MODE_LIGHT})
+     */
+    @ModelAttribute("activeColorMode")
+    public String resolveActiveColorMode(final HttpServletRequest request)
+    {
+        if (request != null && request.getCookies() != null)
+        {
+            for (final Cookie cookie : request.getCookies())
+            {
+                if (COLOR_MODE_COOKIE_NAME.equals(cookie.getName()))
+                {
+                    final String value = cookie.getValue();
+                    if (COLOR_MODE_DARK.equalsIgnoreCase(value))
+                    {
+                        return COLOR_MODE_DARK;
+                    }
+                    return COLOR_MODE_LIGHT;
+                }
+            }
+        }
+        return COLOR_MODE_LIGHT;
     }
 
     /**

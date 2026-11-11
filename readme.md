@@ -56,7 +56,7 @@ docker compose -f docker-compose.test.yml up -d
 * **Modern Web Console & Responsive UI**: Built with server-side Thymeleaf 3, Bootstrap 5.3, and HTMX 2 for responsive, reactive single-page app UX without requiring Node.js or npm.
 * **Corporate Theme & Design System**: Styled according to Xceptance corporate identity (`#004682` brand blue, `#003868` hover, `#dc3545` accent) with Roboto and Roboto Condensed typography.
 * **Responsive Offcanvas Drawer**: Sticky corporate navbar on desktop screens and a smooth slide-out Bootstrap 5 Offcanvas drawer (`#navbarOffcanvas`) on mobile viewports.
-* **Dark & Light Mode Support**: Native Bootstrap 5.3 color mode switching (`[data-bs-theme]`) with `prefers-color-scheme` auto-detection, `localStorage` persistence, and FOIT-free initialization.
+* **Dark & Light Mode Support**: Native Bootstrap 5.3 color mode switching (`[data-bs-theme]`) with server-side cookie persistence (`xcmailr_color_mode`), `prefers-color-scheme` auto-detection, and zero-flash (FOIT-free) navigation.
 * **Standardized Bootstrap Icons**: Integrated `bootstrap-icons:1.11.3` WebJar providing vector icons for search, actions, navigation, and theme toggling.
 * **Role-Based Access Control & OWASP Compliance**: Server-side Thymeleaf Spring Security 6 dialect (`sec:authorize`) eliminates unauthorized DOM exposure; method-level `@PreAuthorize("hasRole('ADMIN')")` and URL security filters enforce multi-layer Broken Access Control (OWASP A01:2021) defenses.
 * **Embedded SMTP Engine**: Powered by SubEthaSMTP 7.2.2 with virtual-thread dispatching, handling inbound emails directly on port 25000 (configurable).

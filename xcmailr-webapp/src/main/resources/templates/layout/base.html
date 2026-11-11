@@ -4,6 +4,7 @@
       th:fragment="layout(content)"
       th:lang="${#locale.language}"
       lang="en"
+      th:attr="data-bs-theme=${activeColorMode != null ? activeColorMode : 'light'}"
       data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
@@ -15,13 +16,14 @@
     <meta name="htmx-config" content='{"noSwap": [204, 304, "4xx", "5xx"]}'>
     <title th:text="${pageTitle != null ? pageTitle + ' - XCMailr' : 'XCMailr'}">XCMailr</title>
 
-    <!-- Theme Preference Initialization (Prevents Flash of Incorrect Theme - FOIT) -->
+    <!-- Color Mode Preference Fallback for First-Time Visitors (Honors OS dark mode when no cookie is set) -->
     <script>
         (() => {
-            const storedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const activeTheme = storedTheme ? storedTheme : (systemPrefersDark ? 'dark' : 'light');
-            document.documentElement.setAttribute('data-bs-theme', activeTheme);
+            if (!document.cookie.includes('xcmailr_color_mode=')) {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                }
+            }
         })();
     </script>
 
@@ -48,7 +50,7 @@
         <div class="d-flex align-items-center d-lg-none gap-2">
             <button class="theme-toggle-btn" type="button" aria-label="Toggle color theme" title="Toggle theme"
                     th:aria-label="#{common.theme.toggle}" th:title="#{common.theme.toggle}">
-                <i class="bi bi-moon-stars theme-toggle-icon"></i>
+                <i class="bi theme-toggle-icon" th:classappend="${activeColorMode == 'dark' ? 'bi-sun' : 'bi-moon-stars'}"></i>
             </button>
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvas"
                     aria-controls="navbarOffcanvas" aria-expanded="false" aria-label="Toggle navigation"
@@ -91,7 +93,7 @@
                 <li class="nav-item me-2">
                     <button class="theme-toggle-btn" id="themeToggle" type="button" aria-label="Toggle color theme" title="Toggle theme"
                             th:aria-label="#{common.theme.toggle}" th:title="#{common.theme.toggle}">
-                        <i class="bi bi-moon-stars theme-toggle-icon"></i>
+                        <i class="bi theme-toggle-icon" th:classappend="${activeColorMode == 'dark' ? 'bi-sun' : 'bi-moon-stars'}"></i>
                     </button>
                 </li>
 
@@ -267,42 +269,35 @@
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/webjars/htmx.org/4.0.0/dist/htmx.min.js}"></script>
 
-<!-- Global Theme Switcher & HTMX CSRF Handler -->
+<!-- Global Color Mode Switcher & HTMX CSRF Handler -->
 <script>
     (function () {
         'use strict';
 
         /**
-         * Resolves the active theme based on localStorage and OS prefers-color-scheme.
+         * Resolves the active color mode cookie value, or null if unset.
          */
-        function getPreferredTheme() {
-            const storedTheme = localStorage.getItem('theme');
-            if (storedTheme === 'dark' || storedTheme === 'light') {
-                return storedTheme;
-            }
-            return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        function getColorModeCookie() {
+            const match = document.cookie.match(/(?:^|;\s*)xcmailr_color_mode=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : null;
         }
 
         /**
-         * Sets the application color theme on the root document element.
+         * Sets the application color mode on the root document element and persists it in a cookie.
          */
-        function setTheme(theme) {
-            document.documentElement.setAttribute('data-bs-theme', theme);
-            try {
-                localStorage.setItem('theme', theme);
-            } catch (e) {
-                // Ignore storage errors in restricted contexts
-            }
-            updateThemeIcons(theme);
+        function setColorMode(mode) {
+            document.documentElement.setAttribute('data-bs-theme', mode);
+            document.cookie = 'xcmailr_color_mode=' + mode + '; path=/; max-age=31536000; SameSite=Lax';
+            updateThemeIcons(mode);
         }
 
         /**
          * Synchronizes theme switcher icon states across desktop and mobile controls.
          */
-        function updateThemeIcons(theme) {
+        function updateThemeIcons(mode) {
             const icons = document.querySelectorAll('.theme-toggle-icon');
             icons.forEach(function (icon) {
-                if (theme === 'dark') {
+                if (mode === 'dark') {
                     icon.classList.remove('bi-moon-stars');
                     icon.classList.add('bi-sun');
                 } else {
@@ -314,8 +309,8 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             // Synchronize icon with initial theme
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme') || getPreferredTheme();
-            updateThemeIcons(currentTheme);
+            const currentMode = document.documentElement.getAttribute('data-bs-theme') || 'light';
+            updateThemeIcons(currentMode);
 
             // Bind click handlers to theme toggle buttons
             const toggleButtons = document.querySelectorAll('.theme-toggle-btn');
@@ -323,15 +318,17 @@
                 btn.addEventListener('click', function () {
                     const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
                     const next = current === 'dark' ? 'light' : 'dark';
-                    setTheme(next);
+                    setColorMode(next);
                 });
             });
 
-            // Listen for system color scheme changes if user has not explicitly chosen
+            // Listen for system color scheme changes if user has not explicitly set a cookie
             if (window.matchMedia) {
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
-                    if (!localStorage.getItem('theme')) {
-                        setTheme(e.matches ? 'dark' : 'light');
+                    if (!getColorModeCookie()) {
+                        const newMode = e.matches ? 'dark' : 'light';
+                        document.documentElement.setAttribute('data-bs-theme', newMode);
+                        updateThemeIcons(newMode);
                     }
                 });
             }

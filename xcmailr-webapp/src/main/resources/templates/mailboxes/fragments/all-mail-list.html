@@ -4,9 +4,9 @@
 
 <div th:fragment="mailList" id="mail-list-container"
      th:attr="hx-get=@{/mails(page=${currentPage != null ? currentPage : 0}, size=${size != null ? size : 25})},hx-trigger='mailListChanged from:body',hx-target='#mail-list-container',hx-swap='outerHTML'">
-    <div class="table-responsive bg-white rounded shadow-sm border">
+    <div class="table-responsive bg-body rounded shadow-sm border">
         <table class="table table-hover table-middle mb-0" id="mail-list-table">
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th scope="col" class="d-none d-md-table-cell" style="width: 140px;" th:text="#{mail.table.column.received}">Received</th>
                     <th scope="col" th:text="#{mail.table.column.messageAndRecipient}">Message &amp; Recipient</th>
@@ -30,7 +30,7 @@
                     </td>
                     <td>
                         <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
-                            <span class="badge bg-light text-dark border recipient-badge"
+                            <span class="badge bg-body-secondary text-body border recipient-badge"
                                   th:text="${mailboxAddressMap != null and mailboxAddressMap.containsKey(m.mailboxId) ? mailboxAddressMap.get(m.mailboxId) : #messages.msg('mail.unknownMailbox')}">
                                 mailbox@example.com
                             </span>

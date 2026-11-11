@@ -3,7 +3,7 @@
 <body>
 
 <div th:fragment="detail" class="card shadow-sm border-0">
-    <div class="card-header bg-white py-3 border-bottom">
+    <div class="card-header bg-transparent py-3 border-bottom">
         <div class="d-flex justify-content-between align-items-start">
             <div>
                 <h4 class="fw-bold mb-1" th:text="${mail.subject}">Email Subject</h4>
@@ -33,7 +33,7 @@
             <div class="d-inline-flex flex-wrap gap-2">
                 <a th:each="att : ${attachments}"
                    th:href="@{'/mailboxes/' + ${mailbox.id} + '/mails/' + ${mail.id} + '/attachments/' + ${att.index}}"
-                   class="badge bg-light text-dark border text-decoration-none py-2 px-3"
+                   class="badge bg-body-secondary text-body border text-decoration-none py-2 px-3"
                    download>
                     📎 <span th:text="${att.name}">file.pdf</span>
                 </a>
@@ -43,7 +43,7 @@
 
     <div class="card-body p-0">
         <!-- Nav tabs for Content types (Sanitized HTML / Plain Text / Headers) -->
-        <ul class="nav nav-tabs px-3 pt-2 bg-light border-bottom" role="tablist">
+        <ul class="nav nav-tabs px-3 pt-2 bg-body-tertiary border-bottom" role="tablist">
             <li class="nav-item" role="presentation" th:if="${sanitizedHtml != null}">
                 <button class="nav-link active" id="html-tab" data-bs-toggle="tab" data-bs-target="#html-pane" type="button" role="tab" th:text="#{mail.detail.tabHtml}">
                     HTML
@@ -73,13 +73,13 @@
             <!-- Plain Text Body tab -->
             <div class="tab-pane fade" th:classappend="${sanitizedHtml == null ? 'show active' : ''}"
                  id="plain-pane" role="tabpanel">
-                <pre class="bg-light p-3 rounded border text-break mb-0" style="white-space: pre-wrap; font-family: monospace; font-size: 0.95rem;"
+                <pre class="bg-body-tertiary p-3 rounded border text-break mb-0" style="white-space: pre-wrap; font-family: monospace; font-size: 0.95rem;"
                      th:text="${plainText != null ? plainText : #messages.msg('mail.detail.noPlainText')}"></pre>
             </div>
 
             <!-- Headers tab -->
             <div class="tab-pane fade" id="headers-pane" role="tabpanel">
-                <pre class="bg-light p-3 rounded border text-break mb-0" style="white-space: pre-wrap; font-size: 0.85rem; font-family: monospace;"
+                <pre class="bg-body-tertiary p-3 rounded border text-break mb-0" style="white-space: pre-wrap; font-size: 0.85rem; font-family: monospace;"
                      th:text="${headers}"></pre>
             </div>
         </div>
