@@ -15,25 +15,27 @@
     <!-- Quick Stats Cards -->
     <div class="row g-3 mb-4">
         <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <span class="text-muted small" th:text="#{admin.stats.registeredUsers}">Registered Users</span>
                     <i class="bi bi-people text-secondary opacity-75"></i>
                 </div>
                 <div class="fs-2 fw-bold text-body-emphasis" th:text="${totalUsers}">0</div>
+                <div class="text-muted small mt-1" th:text="#{admin.stats.users.breakdown(${adminCount}, ${regularCount})}">1 Admins &middot; 0 Standard</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <span class="text-muted small" th:text="#{admin.stats.activeMailboxes}">Active Mailboxes</span>
                     <i class="bi bi-mailbox text-secondary opacity-75"></i>
                 </div>
-                <div class="fs-2 fw-bold text-body-emphasis" th:text="${totalMailboxes}">0</div>
+                <div class="fs-2 fw-bold text-body-emphasis" th:text="${activeMailboxCount}">0</div>
+                <div class="text-muted small mt-1" th:text="#{admin.stats.mailboxes.breakdown(${expiredMailboxCount}, ${totalMailboxes})}">0 expired (0 total)</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <span class="text-muted small" th:text="#{admin.stats.storedMessages}">Stored Messages</span>
                     <i class="bi bi-inbox text-secondary opacity-75"></i>
@@ -42,7 +44,7 @@
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <span class="text-muted small" th:text="#{admin.stats.loggedTransactions}">Logged Transactions</span>
                     <i class="bi bi-journal-text text-secondary opacity-75"></i>
@@ -52,10 +54,50 @@
         </div>
     </div>
 
+    <!-- Transaction Delivery Status Distribution -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="text-muted small fw-semibold me-2" th:text="#{admin.stats.statusOverview}">Transaction Delivery Status:</span>
+                <span th:each="st : ${statusSummary}">
+                    <span th:if="${st.statuscode == 300}" class="badge bg-success py-2 px-3">
+                        <span th:text="#{admin.transactions.status.forwarded}">Forwarded (300):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode == 250}" class="badge bg-primary py-2 px-3">
+                        <span th:text="#{admin.transactions.status.stored}">Stored (250):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode == 200}" class="badge bg-warning text-dark py-2 px-3">
+                        <span th:text="#{admin.transactions.status.inactive}">Inactive (200):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode == 100}" class="badge bg-secondary py-2 px-3">
+                        <span th:text="#{admin.transactions.status.unknown}">Unknown (100):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode >= 400}" class="badge bg-danger py-2 px-3">
+                        <span th:text="#{admin.transactions.status.error(${st.statuscode})}">Error (400):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                </span>
+                <span th:if="${#lists.isEmpty(statusSummary)}" class="text-muted small" th:text="#{admin.stats.status.empty}">No transactions recorded yet.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: 24 Hours Activity -->
+    <div class="d-flex align-items-center justify-content-between border-top pt-4 mt-4 mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history fs-5 text-secondary"></i>
+            <h4 class="fw-bold mb-0" th:text="#{admin.stats.section.24h.title}">24-Hour Email Activity</h4>
+            <span class="badge rounded-pill bg-body-secondary text-secondary-emphasis border px-2 py-1 small" th:text="#{admin.stats.section.24h.badge}">Today</span>
+        </div>
+        <span class="text-muted small d-none d-md-inline" th:text="#{admin.stats.section.24h.description}">Hourly activity over the preceding 24 hours</span>
+    </div>
+
     <!-- Last 24 Hours Activity Chart Card -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-body py-3 d-flex justify-content-between align-items-center">
-            <span class="fw-semibold" th:text="#{admin.stats.chart.24h.title}">Last 24 Hours Activity</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold" th:text="#{admin.stats.chart.24h.title}">Last 24 Hours Activity</span>
+                <span class="badge rounded-pill bg-body-secondary text-secondary-emphasis border small" th:text="#{admin.stats.chart.periodTotal(${totalVolume24h})}">Total: 0</span>
+            </div>
             <span class="text-muted small" th:text="#{admin.stats.chart.24h.resolution}">Hourly resolution</span>
         </div>
         <div class="card-body">
@@ -100,10 +142,23 @@
         </div>
     </div>
 
+    <!-- Section 2: 7 Days Activity -->
+    <div class="d-flex align-items-center justify-content-between border-top pt-4 mt-5 mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-calendar-week fs-5 text-secondary"></i>
+            <h4 class="fw-bold mb-0" th:text="#{admin.stats.section.7d.title}">7-Day Email Activity</h4>
+            <span class="badge rounded-pill bg-body-secondary text-secondary-emphasis border px-2 py-1 small" th:text="#{admin.stats.section.7d.badge}">Weekly Trend</span>
+        </div>
+        <span class="text-muted small d-none d-md-inline" th:text="#{admin.stats.section.7d.description}">Daily aggregated volume over the preceding 7 days</span>
+    </div>
+
     <!-- Last 7 Days Activity Chart Card -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-body py-3 d-flex justify-content-between align-items-center">
-            <span class="fw-semibold" th:text="#{admin.stats.chart.7d.title}">Last 7 Days Activity</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold" th:text="#{admin.stats.chart.7d.title}">Last 7 Days Activity</span>
+                <span class="badge rounded-pill bg-body-secondary text-secondary-emphasis border small" th:text="#{admin.stats.chart.periodTotal(${totalVolume7d})}">Total: 0</span>
+            </div>
             <span class="text-muted small" th:text="#{admin.stats.chart.7d.resolution}">Daily resolution</span>
         </div>
         <div class="card-body">
@@ -185,7 +240,7 @@
         const COLOR_DROPPED_BORDER = '#dc3545';
         const COLOR_DROPPED_BG = 'rgba(220, 53, 69, 0.15)';
 
-        function createChartConfig(chartData, xTitle) {
+        function createLineChartConfig(chartData, xTitle) {
             const theme = getThemeTokens();
             return {
                 type: 'line',
@@ -292,6 +347,107 @@
             };
         }
 
+        function createBarChartConfig(chartData, xTitle) {
+            const theme = getThemeTokens();
+            return {
+                type: 'bar',
+                data: {
+                    labels: (chartData && chartData.labels) ? chartData.labels : [],
+                    datasets: [
+                        {
+                            label: labelForwarded,
+                            data: (chartData && chartData.forwarded) ? chartData.forwarded : [],
+                            borderColor: COLOR_FORWARDED_BORDER,
+                            backgroundColor: 'rgba(25, 135, 84, 0.75)',
+                            borderWidth: 1,
+                            borderRadius: 2
+                        },
+                        {
+                            label: labelStored,
+                            data: (chartData && chartData.stored) ? chartData.stored : [],
+                            borderColor: COLOR_STORED_BORDER,
+                            backgroundColor: 'rgba(13, 110, 253, 0.75)',
+                            borderWidth: 1,
+                            borderRadius: 2
+                        },
+                        {
+                            label: labelDropped,
+                            data: (chartData && chartData.dropped) ? chartData.dropped : [],
+                            borderColor: COLOR_DROPPED_BORDER,
+                            backgroundColor: 'rgba(220, 53, 69, 0.75)',
+                            borderWidth: 1,
+                            borderRadius: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: theme.textColor,
+                                usePointStyle: true,
+                                boxWidth: 10
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: theme.isDark ? '#212529' : '#ffffff',
+                            titleColor: theme.isDark ? '#f8f9fa' : '#212529',
+                            bodyColor: theme.isDark ? '#e9ecef' : '#495057',
+                            borderColor: theme.borderColor,
+                            borderWidth: 1,
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: xTitle,
+                                color: theme.textColor
+                            },
+                            ticks: {
+                                color: theme.textColor,
+                                maxRotation: 45
+                            },
+                            border: {
+                                color: theme.borderColor
+                            },
+                            grid: {
+                                color: theme.gridColor
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: labelEmails,
+                                color: theme.textColor
+                            },
+                            ticks: {
+                                color: theme.textColor,
+                                precision: 0
+                            },
+                            border: {
+                                color: theme.borderColor
+                            },
+                            grid: {
+                                color: theme.gridColor
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
         let chart24hInstance = null;
         let chart7dInstance = null;
 
@@ -328,7 +484,7 @@
         }
 
         /**
-         * Instantiates Chart.js line charts when DOM layout is resolved.
+         * Instantiates Chart.js charts when DOM layout is resolved.
          */
         function initCharts() {
             const fallback24h = document.getElementById('chart-fallback-24h');
@@ -349,7 +505,7 @@
                     chart24hInstance.destroy();
                     chart24hInstance = null;
                 }
-                chart24hInstance = new Chart(canvas24h.getContext('2d'), createChartConfig(chart24hData, labelTime));
+                chart24hInstance = new Chart(canvas24h.getContext('2d'), createLineChartConfig(chart24hData, labelTime));
                 if (fallback24h) fallback24h.classList.add('d-none');
             }
             if (canvas7d) {
@@ -357,7 +513,7 @@
                     chart7dInstance.destroy();
                     chart7dInstance = null;
                 }
-                chart7dInstance = new Chart(canvas7d.getContext('2d'), createChartConfig(chart7dData, labelDate));
+                chart7dInstance = new Chart(canvas7d.getContext('2d'), createBarChartConfig(chart7dData, labelDate));
                 if (fallback7d) fallback7d.classList.add('d-none');
             }
         }

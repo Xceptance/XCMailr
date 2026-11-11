@@ -50,6 +50,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.xceptance.xcmailr.XcmailrApplication;
 import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.MBox;
 import com.xceptance.xcmailr.models.MailStatistics;
 import com.xceptance.xcmailr.models.MailStatisticsKey;
 import com.xceptance.xcmailr.models.MailTransaction;
@@ -257,14 +258,27 @@ public class AdminWebControllerTest
     @DisplayName("Admin can view system statistics dashboard including 24h and 7d chart series")
     public void testStatisticsDashboard() throws Exception
     {
+        final MBox activeMb = new MBox("active", "xcmailr.test", 0L, false, admin);
+        mailboxRepository.save(activeMb);
+
+        final MBox expiredMb = new MBox("expired", "xcmailr.test", 0L, true, admin);
+        mailboxRepository.save(expiredMb);
+
         mockMvc.perform(get("/admin/statistics")
                .with(user("admin@xcmailr.test").roles("ADMIN")))
                .andExpect(status().isOk())
                .andExpect(view().name("admin/statistics"))
                .andExpect(model().attributeExists("totalUsers"))
-               .andExpect(model().attributeExists("totalMailboxes"))
+               .andExpect(model().attribute("totalUsers", 3L))
+               .andExpect(model().attribute("adminCount", 2L))
+               .andExpect(model().attribute("regularCount", 1L))
+               .andExpect(model().attribute("totalMailboxes", 2L))
+               .andExpect(model().attribute("activeMailboxCount", 1L))
+               .andExpect(model().attribute("expiredMailboxCount", 1L))
                .andExpect(model().attributeExists("totalMails"))
                .andExpect(model().attributeExists("totalTransactions"))
+               .andExpect(model().attributeExists("totalVolume24h"))
+               .andExpect(model().attributeExists("totalVolume7d"))
                .andExpect(model().attributeExists("chart24h"))
                .andExpect(model().attributeExists("chart7d"))
                .andExpect(model().attributeExists("todaySenderDomains"))
@@ -316,6 +330,8 @@ public class AdminWebControllerTest
                .with(user(admin.getMail()).roles("ADMIN")))
                .andExpect(status().isOk())
                .andExpect(view().name("admin/statistics"))
+               .andExpect(model().attribute("totalVolume24h", 2L))
+               .andExpect(model().attribute("totalVolume7d", 2L))
                .andExpect(content().string(containsString("<canvas id=\"chart-last-24h\"></canvas>")))
                .andExpect(content().string(containsString("<canvas id=\"chart-last-7d\"></canvas>")))
                .andExpect(content().string(containsString("id=\"chart-fallback-24h\"")))
@@ -328,6 +344,12 @@ public class AdminWebControllerTest
                .andExpect(content().string(containsString("\"dropped\":")))
                .andExpect(content().string(containsString("labelStored = ")))
                .andExpect(content().string(containsString("function initCharts()")))
+               .andExpect(content().string(containsString("createBarChartConfig")))
+               .andExpect(content().string(containsString("type: 'bar'")))
+               .andExpect(content().string(containsString("stacked: true")))
+               .andExpect(content().string(containsString("Forwarded (300):")))
+               .andExpect(content().string(containsString("Inactive (200):")))
+               .andExpect(content().string(containsString("Total: 2")))
                .andExpect(content().string(containsString("Chart library could not be loaded.")))
                .andExpect(content().string(containsString("chart.options.scales.x.border.color = theme.borderColor;")))
                .andExpect(content().string(containsString("backgroundColor: theme.isDark ? '#212529' : '#ffffff'")))
@@ -490,13 +512,21 @@ public class AdminWebControllerTest
                .andExpect(view().name("admin/statistics"))
                .andExpect(content().string(containsString("Email Statistics")))
                .andExpect(content().string(containsString("Registered Users")))
+               .andExpect(content().string(containsString("2 Admins · 1 Standard")))
                .andExpect(content().string(containsString("Active Mailboxes")))
+               .andExpect(content().string(containsString("0 expired (0 total)")))
                .andExpect(content().string(containsString("Stored Messages")))
                .andExpect(content().string(containsString("Logged Transactions")))
+               .andExpect(content().string(containsString("Transaction Delivery Status:")))
+               .andExpect(content().string(containsString("24-Hour Email Activity")))
+               .andExpect(content().string(containsString("Today")))
                .andExpect(content().string(containsString("Last 24 Hours Activity")))
                .andExpect(content().string(containsString("Hourly resolution")))
+               .andExpect(content().string(containsString("7-Day Email Activity")))
+               .andExpect(content().string(containsString("Weekly Trend")))
                .andExpect(content().string(containsString("Last 7 Days Activity")))
                .andExpect(content().string(containsString("Daily resolution")))
+               .andExpect(content().string(containsString("Total: 0")))
                .andExpect(content().string(containsString("Todays (last 24 hours) sender domains")))
                .andExpect(content().string(containsString("Last 7 days sender domains")))
                .andExpect(content().string(containsString("Sender Domain")))
@@ -521,13 +551,21 @@ public class AdminWebControllerTest
                .andExpect(view().name("admin/statistics"))
                .andExpect(content().string(containsString("E-Mail-Statistiken")))
                .andExpect(content().string(containsString("Registrierte Benutzer")))
+               .andExpect(content().string(containsString("2 Admins · 1 Standard")))
                .andExpect(content().string(containsString("Aktive Postfächer")))
+               .andExpect(content().string(containsString("0 abgelaufen (0 gesamt)")))
                .andExpect(content().string(containsString("Gespeicherte Nachrichten")))
                .andExpect(content().string(containsString("Protokollierte Transaktionen")))
+               .andExpect(content().string(containsString("Transaktions-Zustellungsstatus:")))
+               .andExpect(content().string(containsString("24-Stunden-Aktivität")))
+               .andExpect(content().string(containsString("Heute")))
                .andExpect(content().string(containsString("Aktivität der letzten 24 Stunden")))
                .andExpect(content().string(containsString("Stündliche Auflösung")))
+               .andExpect(content().string(containsString("7-Tage-Aktivität")))
+               .andExpect(content().string(containsString("Wochenverlauf")))
                .andExpect(content().string(containsString("Aktivität der letzten 7 Tage")))
                .andExpect(content().string(containsString("Tägliche Auflösung")))
+               .andExpect(content().string(containsString("Gesamt: 0")))
                .andExpect(content().string(containsString("Heutige (letzte 24 Stunden) Absenderdomains")))
                .andExpect(content().string(containsString("Absenderdomains der letzten 7 Tage")))
                .andExpect(content().string(containsString("Absenderdomain")))

@@ -52,6 +52,14 @@ public interface UserRepository extends JpaRepository<User, Long>
     boolean existsByMailIgnoreCase(final String mail);
 
     /**
+     * Counts the total number of user accounts matching the specified administrator privilege flag.
+     *
+     * @param admin true to count administrator accounts, false to count standard user accounts
+     * @return count of matching user accounts
+     */
+    long countByAdmin(final boolean admin);
+
+    /**
      * Finds a user by their account activation / password reset confirmation token.
      *
      * @param confirmation confirmation token string

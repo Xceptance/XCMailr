@@ -425,7 +425,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **AND** triggering any management action on a row operates exclusively on the mailbox rendered in that row, regardless of original insertion order or display sort order, preventing actions from targeting the wrong mailbox due to view sorting desynchronization
 
 ### Requirement: Admin Management Console
-The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, presenting vertically stacked time-series line charts for email traffic activity over the past 24 hours (hourly resolution) and past 7 days (daily resolution) covering forwarded, stored, and dropped categories with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS`, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
+The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, presenting structured time-series email traffic activity views over the past 24 hours (hourly line chart) and past 7 days (daily stacked bar chart) covering forwarded, stored, and dropped categories with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, organizing activity into distinct sections with modern monochrome badges and standard icons, displaying top metric cards with accurate values and granular breakdowns for administrators/users and active/expired mailboxes, presenting an aggregate transaction delivery status badge distribution, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS`, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
 
 #### Scenario: Domain Whitelist Configuration
 - **WHEN** an administrator adds or removes an allowed domain via the admin console
@@ -492,17 +492,35 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 - **WHEN** an administrator searches for a query string that yields zero matching user accounts
 - **THEN** the table displays the localized empty state message while preserving sortable header links with their chevron indicators intact
 
+#### Scenario: Top Quick Stats Cards and Granular Breakdowns (Happy Path)
+- **WHEN** an administrator views the statistics page (`/admin/statistics`)
+- **THEN** the system displays top metric cards for Registered Users, Active Mailboxes, Stored Messages, and Logged Transactions
+- **AND** the Registered Users card displays the primary total count alongside a subtitle distinguishing administrator accounts from standard user accounts
+- **AND** the Active Mailboxes card displays the accurate count of non-expired mailboxes (`expired = false`) as the primary value alongside a subtitle reporting total and expired mailbox counts
+- **AND** the Stored Messages and Logged Transactions cards report accurate system-wide totals
+
+#### Scenario: Transaction Delivery Status Overview Badges (Happy Path)
+- **WHEN** an administrator views the statistics page (`/admin/statistics`)
+- **THEN** the system displays an aggregate transaction status breakdown badge row rendering formatted counts for Stored (250), Forwarded (300), Inactive Mailbox (200), Unknown Mailbox (100), and Relay or Error status codes using existing localized message keys
+
+#### Scenario: Section Visual Hierarchy and Modern Monochrome Badges (Happy Path)
+- **WHEN** an administrator views the statistics page (`/admin/statistics`)
+- **THEN** the page organizes activity into distinct sections for 24-Hour Activity and 7-Day Activity separated by clean dividers (`border-top`)
+- **AND** each section header features a standard icon (`bi-clock-history` for 24 hours, `bi-calendar-week` for 7 days), section title, subtle monochrome pill badge (`bg-body-secondary text-secondary-emphasis border`), and resolution description without colorful or flashy accents
+
 #### Scenario: Last 24 Hours Email Activity Chart (Happy Path)
 - **WHEN** an administrator views the statistics page (`/admin/statistics`)
 - **THEN** the system renders a line chart (`#chart-last-24h`) displaying email activity over the preceding 24 hours
 - **AND** the chart displays three distinct datasets: forwarded email counts (Status 300), stored email counts (Status 250), and dropped email counts (all other statuses)
 - **AND** the horizontal axis represents 24 continuous hourly buckets formatted with localized hour labels ending at the current hour
+- **AND** the card header displays the total volume of emails processed during the 24-hour window
 
 #### Scenario: Last 7 Days Email Activity Chart (Happy Path)
 - **WHEN** an administrator views the statistics page (`/admin/statistics`)
-- **THEN** the system renders a line chart (`#chart-last-7d`) displaying email activity over the preceding 7 days
-- **AND** the chart displays three distinct datasets: forwarded email counts (Status 300), stored email counts (Status 250), and dropped email counts (all other statuses)
-- **AND** the horizontal axis represents 7 continuous daily buckets formatted with localized day labels ending on the current day
+- **THEN** the system renders a daily stacked bar chart (`#chart-last-7d`) displaying email activity over the preceding 7 days
+- **AND** each daily bar is segmented into stacked bars for stored (blue), forwarded (green), and dropped (red) messages without overlapping zero-lines
+- **AND** inactive days render with no bars rather than drawing baseline zero-lines
+- **AND** the card header displays the total volume of emails processed during the 7-day window
 
 #### Scenario: Chart Theme and Responsiveness (Happy Path)
 - **WHEN** an administrator views or toggles the application theme between light and dark modes
@@ -521,7 +539,7 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 #### Scenario: Empty Email Traffic Zero-Fill Continuity (Edge Case)
 - **WHEN** no email forwarding, storing, or drop transactions occurred within specific hours or days of the queried time windows
 - **THEN** the backend data model provides continuous time series buckets with count values set to `0` for inactive intervals
-- **AND** the charts render a continuous unbroken zero baseline without missing data points or jagged gaps
+- **AND** the 24-hour line chart renders an unbroken zero baseline while the 7-day bar chart cleanly displays days with zero bar height
 
 #### Scenario: Localization of Chart Metrics (Happy Path)
 - **WHEN** an administrator views the statistics page in English or German

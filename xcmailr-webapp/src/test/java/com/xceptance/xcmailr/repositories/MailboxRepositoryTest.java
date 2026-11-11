@@ -501,4 +501,28 @@ public class MailboxRepositoryTest
         assertTrue(mailboxRepository.findById(legitimateBox.getId()).isPresent(), "Legitimate mailbox must remain intact");
         assertTrue(mailboxRepository.findById(foreignBox.getId()).isPresent(), "Foreign mailbox must remain intact");
     }
+
+    @Test
+    @DisplayName("countByExpired correctly partitions active and expired mailboxes")
+    public void testCountByExpired()
+    {
+        mailboxRepository.deleteAll();
+
+        // Empty state boundary check
+        assertEquals(0L, mailboxRepository.countByExpired(false));
+        assertEquals(0L, mailboxRepository.countByExpired(true));
+
+        // Create 3 active mailboxes and 2 expired mailboxes
+        final MBox active1 = new MBox("act1", "xcmailr.test", 0L, false, primaryUser);
+        final MBox active2 = new MBox("act2", "xcmailr.test", System.currentTimeMillis() + 100_000L, false, primaryUser);
+        final MBox active3 = new MBox("act3", "xcmailr.test", System.currentTimeMillis() + 200_000L, false, foreignUser);
+        final MBox expired1 = new MBox("exp1", "xcmailr.test", System.currentTimeMillis() - 100_000L, true, primaryUser);
+        final MBox expired2 = new MBox("exp2", "xcmailr.test", System.currentTimeMillis() - 200_000L, true, foreignUser);
+
+        mailboxRepository.saveAll(List.of(active1, active2, active3, expired1, expired2));
+
+        assertEquals(3L, mailboxRepository.countByExpired(false), "Active mailboxes count must be 3");
+        assertEquals(2L, mailboxRepository.countByExpired(true), "Expired mailboxes count must be 2");
+        assertEquals(5L, mailboxRepository.count(), "Total mailboxes count must equal sum of active and expired");
+    }
 }

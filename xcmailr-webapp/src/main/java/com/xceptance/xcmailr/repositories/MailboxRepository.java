@@ -57,6 +57,14 @@ public interface MailboxRepository extends JpaRepository<MBox, Long>
     boolean existsByAddressIgnoreCaseAndDomainIgnoreCase(final String address, final String domain);
 
     /**
+     * Counts the total number of mailboxes matching the specified expiration status.
+     *
+     * @param expired true to count expired mailboxes, false to count active mailboxes
+     * @return count of matching mailboxes
+     */
+    long countByExpired(final boolean expired);
+
+    /**
      * Retrieves all mailboxes owned by the specified user.
      *
      * @param usr owning user

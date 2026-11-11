@@ -524,11 +524,17 @@ public class AdminWebController
         final List<Status> statusSummary = transactionRepository.getStatusCounts();
         final long totalTransactions = transactionRepository.count();
         final long totalUsers = userRepository.count();
+        final long adminCount = userRepository.countByAdmin(true);
+        final long regularCount = userRepository.countByAdmin(false);
         final long totalMailboxes = mailboxRepository.count();
+        final long activeMailboxCount = mailboxRepository.countByExpired(false);
+        final long expiredMailboxCount = mailboxRepository.countByExpired(true);
         final long totalMails = mailRepository.count();
 
         final ChartDataDto chart24h = statisticsService.getLast24HoursChartData();
         final ChartDataDto chart7d = statisticsService.getLast7DaysChartData();
+        final long totalVolume24h = calculateTotalVolume(chart24h);
+        final long totalVolume7d = calculateTotalVolume(chart7d);
 
         final Date today = Date.valueOf(LocalDate.now());
         final Date weekAgo = Date.valueOf(LocalDate.now().minusDays(6));
@@ -538,14 +544,38 @@ public class AdminWebController
         model.addAttribute("statusSummary", statusSummary);
         model.addAttribute("totalTransactions", totalTransactions);
         model.addAttribute("totalUsers", totalUsers);
+        model.addAttribute("adminCount", adminCount);
+        model.addAttribute("regularCount", regularCount);
         model.addAttribute("totalMailboxes", totalMailboxes);
+        model.addAttribute("activeMailboxCount", activeMailboxCount);
+        model.addAttribute("expiredMailboxCount", expiredMailboxCount);
         model.addAttribute("totalMails", totalMails);
         model.addAttribute("chart24h", chart24h);
         model.addAttribute("chart7d", chart7d);
+        model.addAttribute("totalVolume24h", totalVolume24h);
+        model.addAttribute("totalVolume7d", totalVolume7d);
         model.addAttribute("todaySenderDomains", todaySenderDomains);
         model.addAttribute("weekSenderDomains", weekSenderDomains);
 
         return "admin/statistics";
+    }
+
+    /**
+     * Calculates the aggregate sum of all forwarded, stored, and dropped counts in a chart data transfer object.
+     *
+     * @param chartData the chart data transfer object to summarize
+     * @return the total volume of emails represented across all buckets
+     */
+    private static long calculateTotalVolume(final ChartDataDto chartData)
+    {
+        if (chartData == null)
+        {
+            return 0L;
+        }
+        final long forwardedSum = chartData.forwarded().stream().mapToLong(Long::longValue).sum();
+        final long storedSum = chartData.stored().stream().mapToLong(Long::longValue).sum();
+        final long droppedSum = chartData.dropped().stream().mapToLong(Long::longValue).sum();
+        return forwardedSum + storedSum + droppedSum;
     }
 
     private User getAdmin(final Principal principal)
