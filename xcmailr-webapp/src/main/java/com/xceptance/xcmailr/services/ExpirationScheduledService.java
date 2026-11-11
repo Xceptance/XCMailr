@@ -18,12 +18,15 @@ package com.xceptance.xcmailr.services;
 import java.sql.Date;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import jakarta.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +65,7 @@ public class ExpirationScheduledService
     private final UserRepository userRepository;
     private final MailTransactionRepository mailTransactionRepository;
     private final MailStatisticsRepository mailStatisticsRepository;
+    private final MailTransactionQueueService transactionQueueService;
 
     /**
      * Constructs the expiration and maintenance scheduled service.
@@ -72,13 +76,15 @@ public class ExpirationScheduledService
      * @param userRepository repository for users
      * @param mailTransactionRepository repository for transaction audit logs
      * @param mailStatisticsRepository repository for aggregate email statistics
+     * @param transactionQueueService in-memory transaction buffer queue
      */
     public ExpirationScheduledService(final XcmailrProperties properties,
                                       final MailboxRepository mailboxRepository,
                                       final MailRepository mailRepository,
                                       final UserRepository userRepository,
                                       final MailTransactionRepository mailTransactionRepository,
-                                      final MailStatisticsRepository mailStatisticsRepository)
+                                      final MailStatisticsRepository mailStatisticsRepository,
+                                      final MailTransactionQueueService transactionQueueService)
     {
         this.properties = properties;
         this.mailboxRepository = mailboxRepository;
@@ -86,6 +92,7 @@ public class ExpirationScheduledService
         this.userRepository = userRepository;
         this.mailTransactionRepository = mailTransactionRepository;
         this.mailStatisticsRepository = mailStatisticsRepository;
+        this.transactionQueueService = transactionQueueService;
     }
 
     /**
@@ -185,71 +192,95 @@ public class ExpirationScheduledService
     }
 
     /**
-     * Aggregates SMTP transaction logs into {@link MailStatistics} and cleans old transaction rows.
+     * Gracefully flushes remaining buffered transactions from the in-memory queue to the database
+     * and updates statistics before Spring context shutdown.
+     */
+    @PreDestroy
+    @Transactional
+    public void onShutdown()
+    {
+        LOG.info("Flushing buffered mail transactions on service shutdown...");
+        aggregateAndCleanTransactions(System.currentTimeMillis());
+    }
+
+    /**
+     * Drains pending transactions from {@link MailTransactionQueueService}, persists them to
+     * {@link MailTransactionRepository}, aggregates drop, forward, and store counts into
+     * {@link MailStatisticsRepository}, and cleans transactions older than the configured retention period.
      *
      * @param now current epoch milliseconds
      */
+    @Transactional
     public void aggregateAndCleanTransactions(final long now)
     {
-        final int maxAgeHours = properties.getMailTransaction().getMaxAgeHours();
-        if (maxAgeHours <= 0)
-        {
-            return;
-        }
+        // 1. Drain pending transactions from the in-memory queue
+        final List<MailTransaction> transactions = transactionQueueService.drainAll();
 
-        // Aggregate statistics for un-aggregated transactions
-        final List<MailTransaction> transactions = mailTransactionRepository.findAll();
-        final Map<MailStatisticsKey, int[]> statsMap = new HashMap<>();
-
-        for (final MailTransaction tx : transactions)
+        if (!transactions.isEmpty())
         {
-            final int status = tx.getStatus();
-            if (status == 100 || status == 300) // 100: dropped, 300: forwarded
+            // Batch persist transactions to mailtransactions audit log
+            mailTransactionRepository.saveAll(transactions);
+
+            // In-memory aggregation per 15-minute slot key: int[3] -> [drops, forwards, stores]
+            final Map<MailStatisticsKey, int[]> statsMap = new HashMap<>();
+
+            for (final MailTransaction tx : transactions)
             {
+                final int status = tx.getStatus();
                 final MailStatisticsKey key = createStatisticsKey(tx);
                 if (key != null)
                 {
-                    final int[] counts = statsMap.computeIfAbsent(key, k -> new int[2]); // [drops, forwards]
-                    if (status == 100)
+                    final int[] counts = statsMap.computeIfAbsent(key, k -> new int[3]);
+                    if (status == 300)
                     {
-                        counts[0]++;
+                        // Outbound forwarding
+                        counts[1]++;
+                    }
+                    else if (status == 250)
+                    {
+                        // Inbound local mailbox delivery
+                        counts[2]++;
                     }
                     else
                     {
-                        counts[1]++;
+                        // Dropped / rejected (100, 200, 400, 500, 600, 0, etc.)
+                        counts[0]++;
                     }
+                }
+            }
+
+            // Persist aggregated statistics with UPDATE vs. INSERT logic
+            for (final Map.Entry<MailStatisticsKey, int[]> entry : statsMap.entrySet())
+            {
+                final MailStatisticsKey key = entry.getKey();
+                final int drops = entry.getValue()[0];
+                final int forwards = entry.getValue()[1];
+                final int stores = entry.getValue()[2];
+
+                final Optional<MailStatistics> existing = mailStatisticsRepository.findById(key);
+                if (existing.isPresent())
+                {
+                    final MailStatistics stat = existing.get();
+                    stat.setDropCount(stat.getDropCount() + drops);
+                    stat.setForwardCount(stat.getForwardCount() + forwards);
+                    stat.setStoreCount(stat.getStoreCount() + stores);
+                    mailStatisticsRepository.save(stat);
+                }
+                else
+                {
+                    final MailStatistics stat = new MailStatistics(key, drops, forwards, stores);
+                    mailStatisticsRepository.save(stat);
                 }
             }
         }
 
-        // Persist aggregated statistics
-        for (final Map.Entry<MailStatisticsKey, int[]> entry : statsMap.entrySet())
+        // 2. Retention cleanup: delete old transactions past retention window
+        final int maxAgeHours = properties.getMailTransaction().getMaxAgeHours();
+        if (maxAgeHours > 0)
         {
-            final MailStatisticsKey key = entry.getKey();
-            final int drops = entry.getValue()[0];
-            final int forwards = entry.getValue()[1];
-
-            final Optional<MailStatistics> existing = mailStatisticsRepository.findById(key);
-            if (existing.isPresent())
-            {
-                final MailStatistics stat = existing.get();
-                stat.setDropCount(stat.getDropCount() + drops);
-                stat.setForwardCount(stat.getForwardCount() + forwards);
-                mailStatisticsRepository.save(stat);
-            }
-            else
-            {
-                final MailStatistics stat = new MailStatistics();
-                stat.setKey(key);
-                stat.setDropCount(drops);
-                stat.setForwardCount(forwards);
-                mailStatisticsRepository.save(stat);
-            }
+            final long cutoff = now - (maxAgeHours * 3600_000L);
+            mailTransactionRepository.deleteByTsBefore(cutoff);
         }
-
-        // Delete old transactions past retention window
-        final long cutoff = now - (maxAgeHours * 3600_000L);
-        mailTransactionRepository.deleteByTsBefore(cutoff);
     }
 
     /**
@@ -263,12 +294,18 @@ public class ExpirationScheduledService
 
     /**
      * Builds a {@link MailStatisticsKey} from a transaction record.
+     * Normalizes the calendar date to midnight and computes the 15-minute slot.
      *
      * @param tx the mail transaction
-     * @return key, or null if source or target domain is missing
+     * @return key, or null if transaction is null or if source or target domain is missing/malformed
      */
-    private MailStatisticsKey createStatisticsKey(final MailTransaction tx)
+    public MailStatisticsKey createStatisticsKey(final MailTransaction tx)
     {
+        if (tx == null)
+        {
+            return null;
+        }
+
         final String sourceDomain = getDomain(tx.getSourceaddr());
         final String targetDomain = getDomain(tx.getRelayaddr());
         if (sourceDomain == null || targetDomain == null)
@@ -276,33 +313,52 @@ public class ExpirationScheduledService
             return null;
         }
 
-        final Date date = new Date(tx.getTs());
+        final long ts = Math.max(0L, tx.getTs());
+        final LocalDate localDate = LocalDate.ofInstant(Instant.ofEpochMilli(ts), ZoneId.systemDefault());
+        final Date date = Date.valueOf(localDate);
         final int quarterHour = getQuarterHour(tx.getTs());
+
         return new MailStatisticsKey(date, quarterHour, sourceDomain, targetDomain);
     }
 
     /**
-     * Extracts domain name from an email address.
+     * Extracts the normalized lowercase domain name from an email address.
      *
      * @param email full email address
-     * @return domain name or null
+     * @return normalized domain name or null if missing or malformed
      */
-    private String getDomain(final String email)
+    public String getDomain(final String email)
     {
+        if (email == null || email.isBlank())
+        {
+            return null;
+        }
         final String[] parts = HelperUtils.splitMailAddress(email);
-        return (parts != null && parts.length > 1) ? parts[1].toLowerCase() : null;
+        if (parts == null || parts.length < 2)
+        {
+            return null;
+        }
+        final String domain = parts[1].trim().toLowerCase();
+        return domain.isEmpty() ? null : domain;
     }
 
     /**
      * Computes the 15-minute bucket index of the day (0-95).
+     * Formula: (hour * 4) + (minute / 15).
      *
      * @param timestamp epoch timestamp
      * @return bucket index (0..95)
      */
-    private int getQuarterHour(final long timestamp)
+    public int getQuarterHour(final long timestamp)
     {
+        if (timestamp < 0L)
+        {
+            return 0;
+        }
         final Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(timestamp);
-        return (cal.get(Calendar.HOUR_OF_DAY) * 4) + (cal.get(Calendar.MINUTE) / 15);
+        final int hour = cal.get(Calendar.HOUR_OF_DAY);
+        final int minute = cal.get(Calendar.MINUTE);
+        return (hour * 4) + (minute / 15);
     }
 }

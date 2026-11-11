@@ -37,6 +37,46 @@ import org.joda.time.Period;
 @Table(name = "mailtransactions")
 public class MailTransaction
 {
+    /**
+     * Mail address does not match expected regex/syntax pattern.
+     */
+    public static final int STATUS_PATTERN_ERROR = 0;
+
+    /**
+     * Target mailbox does not exist (dropped).
+     */
+    public static final int STATUS_MAILBOX_NOT_FOUND = 100;
+
+    /**
+     * Target mailbox exists but is inactive or expired (dropped / suppressed).
+     */
+    public static final int STATUS_MAILBOX_INACTIVE = 200;
+
+    /**
+     * Mail received and stored in inbox (forwarding disabled).
+     */
+    public static final int STATUS_STORED = 250;
+
+    /**
+     * Mail forwarded successfully to target address.
+     */
+    public static final int STATUS_FORWARDED = 300;
+
+    /**
+     * Mail forwarding failed because target mail server is unreachable (dropped).
+     */
+    public static final int STATUS_TARGET_UNREACHABLE = 400;
+
+    /**
+     * Relay denied because recipient domain does not belong to this server (dropped).
+     */
+    public static final int STATUS_RELAY_DENIED = 500;
+
+    /**
+     * Owning user account is inactive (dropped).
+     */
+    public static final int STATUS_USER_INACTIVE = 600;
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -69,6 +109,7 @@ public class MailTransaction
      * 0 - Mail has a wrong Pattern<br/>
      * 100 - Mail does not exist<br/>
      * 200 - Mail exists but is inactive <br/>
+     * 250 - Mail received and stored in inbox (forwarding disabled)<br/>
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 500 - Relay denied (recipient's address does not belong to this server)<br/>
@@ -83,7 +124,7 @@ public class MailTransaction
      * @param target
      *            Original Recipients-Address of the Mail
      */
-    public MailTransaction(int stat, String source, String relay, String target)
+    public MailTransaction(final int stat, final String source, final String relay, final String target)
     {
         ts = DateTime.now().getMillis();
         this.status = stat;
@@ -139,6 +180,7 @@ public class MailTransaction
      * 0 - Mail has a wrong Pattern <br/>
      * 100 - Mail does not exist<br/>
      * 200 - Mail exists but is inactive <br/>
+     * 250 - Mail received and stored in inbox (forwarding disabled)<br/>
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 500 - Relay denied (recipient's address does not belong to this server)<br/>
@@ -156,6 +198,7 @@ public class MailTransaction
      * 0 - Mail has a wrong Pattern<br/>
      * 100 - Mail does not exist<br/>
      * 200 - Mail exists but is inactive <br/>
+     * 250 - Mail received and stored in inbox (forwarding disabled)<br/>
      * 300 - Mail has been forwarded successfully <br/>
      * 400 - the Mail can't be forwarded (target not reachable)<br/>
      * 500 - Relay denied (recipient's address does not belong to this server)<br/>
@@ -164,7 +207,7 @@ public class MailTransaction
      * @param status
      *            the Status to set
      */
-    public void setStatus(int status)
+    public void setStatus(final int status)
     {
         this.status = status;
     }

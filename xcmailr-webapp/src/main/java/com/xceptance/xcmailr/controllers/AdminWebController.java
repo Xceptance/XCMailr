@@ -16,7 +16,9 @@
 package com.xceptance.xcmailr.controllers;
 
 import java.security.Principal;
+import java.sql.Date;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -46,8 +48,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.xceptance.xcmailr.dto.ChartDataDto;
+import com.xceptance.xcmailr.dto.DomainStatisticsDto;
 import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository;
 import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
@@ -84,13 +88,15 @@ public class AdminWebController
     private final MailboxRepository mailboxRepository;
     private final MailRepository mailRepository;
     private final EmailStatisticsService statisticsService;
+    private final MailStatisticsRepository mailStatisticsRepository;
 
     public AdminWebController(final UserRepository userRepository,
                               final DomainRepository domainRepository,
                               final MailTransactionRepository transactionRepository,
                               final MailboxRepository mailboxRepository,
                               final MailRepository mailRepository,
-                              final EmailStatisticsService statisticsService)
+                              final EmailStatisticsService statisticsService,
+                              final MailStatisticsRepository mailStatisticsRepository)
     {
         this.userRepository = userRepository;
         this.domainRepository = domainRepository;
@@ -98,6 +104,7 @@ public class AdminWebController
         this.mailboxRepository = mailboxRepository;
         this.mailRepository = mailRepository;
         this.statisticsService = statisticsService;
+        this.mailStatisticsRepository = mailStatisticsRepository;
     }
 
     /**
@@ -505,7 +512,11 @@ public class AdminWebController
     }
 
     /**
-     * Displays transaction overview and statistics dashboard.
+     * Displays transaction overview and statistics dashboard including 24-hour and 7-day
+     * activity charts and aggregated sender domain breakdowns.
+     *
+     * @param model the Spring MVC model to populate with statistics attributes
+     * @return view name for the admin statistics dashboard template
      */
     @GetMapping("/statistics")
     public String showStatistics(final Model model)
@@ -519,6 +530,11 @@ public class AdminWebController
         final ChartDataDto chart24h = statisticsService.getLast24HoursChartData();
         final ChartDataDto chart7d = statisticsService.getLast7DaysChartData();
 
+        final Date today = Date.valueOf(LocalDate.now());
+        final Date weekAgo = Date.valueOf(LocalDate.now().minusDays(6));
+        final List<DomainStatisticsDto> todaySenderDomains = mailStatisticsRepository.findDomainStatisticsSince(today);
+        final List<DomainStatisticsDto> weekSenderDomains = mailStatisticsRepository.findDomainStatisticsSince(weekAgo);
+
         model.addAttribute("statusSummary", statusSummary);
         model.addAttribute("totalTransactions", totalTransactions);
         model.addAttribute("totalUsers", totalUsers);
@@ -526,6 +542,8 @@ public class AdminWebController
         model.addAttribute("totalMails", totalMails);
         model.addAttribute("chart24h", chart24h);
         model.addAttribute("chart7d", chart7d);
+        model.addAttribute("todaySenderDomains", todaySenderDomains);
+        model.addAttribute("weekSenderDomains", weekSenderDomains);
 
         return "admin/statistics";
     }

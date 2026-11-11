@@ -39,7 +39,6 @@ import org.subethamail.smtp.helper.SimpleMessageListener;
 import com.xceptance.xcmailr.config.XcmailrProperties;
 import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
-import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.util.JakartaMimeMessageParser;
 
@@ -54,6 +53,7 @@ import com.xceptance.xcmailr.models.MailTransaction;
  * <p>
  * Handles inbound SMTP RCPT validation (anti-relay protection), mailbox precondition checks,
  * message persistence into database storage, loop detection, and mail forwarding.
+ * Transaction audit events are enqueued asynchronously via {@link MailTransactionQueueService}.
  * </p>
  *
  * @author Xceptance Software Technologies GmbH
@@ -70,31 +70,31 @@ public class MailDeliveryService implements SimpleMessageListener
     private final DomainRepository domainRepository;
     private final MailboxRepository mailboxRepository;
     private final MailRepository mailRepository;
-    private final MailTransactionRepository mailTransactionRepository;
+    private final MailTransactionQueueService transactionQueueService;
     private final OutboundMailService outboundMailService;
 
     /**
-     * Constructs the mail delivery service with repositories and mail dispatch service.
+     * Constructs the mail delivery service with repositories, transaction queue, and mail dispatch service.
      *
      * @param properties application properties
      * @param domainRepository repository for whitelisted domains
      * @param mailboxRepository repository for virtual mailboxes
      * @param mailRepository repository for persisted mail bodies
-     * @param mailTransactionRepository repository for SMTP transaction audit logs
+     * @param transactionQueueService asynchronous buffer queue for transaction audit events
      * @param outboundMailService outbound mail forwarding service
      */
     public MailDeliveryService(final XcmailrProperties properties,
                                final DomainRepository domainRepository,
                                final MailboxRepository mailboxRepository,
                                final MailRepository mailRepository,
-                               final MailTransactionRepository mailTransactionRepository,
+                               final MailTransactionQueueService transactionQueueService,
                                final OutboundMailService outboundMailService)
     {
         this.properties = properties;
         this.domainRepository = domainRepository;
         this.mailboxRepository = mailboxRepository;
         this.mailRepository = mailRepository;
-        this.mailTransactionRepository = mailTransactionRepository;
+        this.transactionQueueService = transactionQueueService;
         this.outboundMailService = outboundMailService;
     }
 
@@ -112,7 +112,7 @@ public class MailDeliveryService implements SimpleMessageListener
         if (split == null || split.length != 2)
         {
             LOG.warn("Relay rejected: malformed recipient address '{}'", recipient);
-            recordTransaction(0, from, recipient, null);
+            recordTransaction(MailTransaction.STATUS_PATTERN_ERROR, from, recipient, null);
             return false;
         }
 
@@ -120,7 +120,7 @@ public class MailDeliveryService implements SimpleMessageListener
         if (!isDomainHandled(domain))
         {
             LOG.warn("Relay rejected: unmanaged domain '{}' from sender '{}' to recipient '{}'", domain, from, recipient);
-            recordTransaction(500, from, recipient, null);
+            recordTransaction(MailTransaction.STATUS_RELAY_DENIED, from, recipient, null);
             return false;
         }
 
@@ -144,7 +144,7 @@ public class MailDeliveryService implements SimpleMessageListener
         final String[] split = HelperUtils.splitMailAddress(recipient);
         if (split == null || split.length != 2)
         {
-            recordTransaction(0, from, recipient, null);
+            recordTransaction(MailTransaction.STATUS_PATTERN_ERROR, from, recipient, null);
             return;
         }
 
@@ -153,7 +153,7 @@ public class MailDeliveryService implements SimpleMessageListener
         if (optionalMbox.isEmpty())
         {
             LOG.info("Mailbox not found for recipient '{}'", recipient);
-            recordTransaction(100, from, recipient, null);
+            recordTransaction(MailTransaction.STATUS_MAILBOX_NOT_FOUND, from, recipient, null);
             return;
         }
 
@@ -164,7 +164,7 @@ public class MailDeliveryService implements SimpleMessageListener
         if (!mbox.isActive())
         {
             LOG.info("Mailbox '{}' is inactive / expired", recipient);
-            recordTransaction(200, from, recipient, forwardTarget);
+            recordTransaction(MailTransaction.STATUS_MAILBOX_INACTIVE, from, recipient, forwardTarget);
             mailboxRepository.incrementSuppressions(mbox.getId());
             return;
         }
@@ -173,7 +173,7 @@ public class MailDeliveryService implements SimpleMessageListener
         if (mbox.getUsr() == null || !mbox.getUsr().isActive())
         {
             LOG.info("Owning user for mailbox '{}' is inactive", recipient);
-            recordTransaction(600, from, recipient, forwardTarget);
+            recordTransaction(MailTransaction.STATUS_USER_INACTIVE, from, recipient, forwardTarget);
             mailboxRepository.incrementSuppressions(mbox.getId());
             return;
         }
@@ -258,7 +258,8 @@ public class MailDeliveryService implements SimpleMessageListener
         // 7. Check if forwarding is enabled for this mailbox
         if (!mbox.isForwardEmails())
         {
-            LOG.debug("Mailbox '{}' is configured not to forward emails", recipient);
+            LOG.debug("Mailbox '{}' is configured not to forward emails; stored in inbox", recipient);
+            recordTransaction(MailTransaction.STATUS_STORED, from, recipient, forwardTarget);
             return;
         }
 
@@ -293,13 +294,13 @@ public class MailDeliveryService implements SimpleMessageListener
 
             // Update forward counters
             mailboxRepository.incrementForwards(mbox.getId());
-            recordTransaction(300, from, recipient, forwardTarget);
+            recordTransaction(MailTransaction.STATUS_FORWARDED, from, recipient, forwardTarget);
             LOG.info("Successfully forwarded email to '{}'", forwardTarget);
         }
         catch (final Exception e)
         {
             LOG.error("Failed to forward email from " + recipient + " to " + forwardTarget, e);
-            recordTransaction(400, from, recipient, forwardTarget);
+            recordTransaction(MailTransaction.STATUS_TARGET_UNREACHABLE, from, recipient, forwardTarget);
         }
     }
 
@@ -388,7 +389,8 @@ public class MailDeliveryService implements SimpleMessageListener
     }
 
     /**
-     * Records an SMTP transaction log entry if MTX logging is active.
+     * Records an SMTP transaction log entry asynchronously via the in-memory queue
+     * if MTX logging is active.
      *
      * @param status transaction status code
      * @param source sender address
@@ -400,7 +402,7 @@ public class MailDeliveryService implements SimpleMessageListener
         if (properties.getMailTransaction().getMaxAgeHours() != 0)
         {
             final MailTransaction mtx = new MailTransaction(status, source, relay, target);
-            mailTransactionRepository.save(mtx);
+            transactionQueueService.enqueue(mtx);
         }
     }
 

@@ -77,7 +77,7 @@ class EmailStatisticsServiceTest
     }
 
     @Test
-    @DisplayName("Happy Path: Last 24 Hours aggregates forwarded and dropped counts into correct hourly buckets")
+    @DisplayName("Happy Path: Last 24 Hours aggregates forwarded, stored, and dropped counts into correct hourly buckets")
     void testGetLast24HoursChartData_HappyPath()
     {
         // Fixed anchor time: 2026-11-10T15:30:00Z
@@ -89,12 +89,14 @@ class EmailStatisticsServiceTest
         final long startEpoch = startZdt.toInstant().toEpochMilli();
 
         final List<TransactionStatEntry> entries = new ArrayList<>();
-        // Bucket 0: 2026-11-09T16:15:00Z -> 1 forwarded (300), 1 dropped (100)
+        // Bucket 0: 2026-11-09T16:15:00Z -> 1 forwarded (300), 1 stored (250), 1 dropped (100)
         entries.add(createEntry(startEpoch + 15 * 60_000L, 300));
+        entries.add(createEntry(startEpoch + 18 * 60_000L, 250));
         entries.add(createEntry(startEpoch + 20 * 60_000L, 100));
 
-        // Bucket 12: 12 hours after start -> 2 forwarded (300)
+        // Bucket 12: 12 hours after start -> 2 forwarded (300), 1 stored (250)
         entries.add(createEntry(startEpoch + 12 * 3600_000L + 5 * 60_000L, 300));
+        entries.add(createEntry(startEpoch + 12 * 3600_000L + 8 * 60_000L, 250));
         entries.add(createEntry(startEpoch + 12 * 3600_000L + 10 * 60_000L, 300));
 
         // Bucket 23 (current hour): 2026-11-10T15:10:00Z -> 1 dropped (400)
@@ -107,6 +109,7 @@ class EmailStatisticsServiceTest
         assertNotNull(dto);
         assertEquals(24, dto.labels().size());
         assertEquals(24, dto.forwarded().size());
+        assertEquals(24, dto.stored().size());
         assertEquals(24, dto.dropped().size());
 
         // First label is 16:00, last label is 15:00
@@ -115,14 +118,17 @@ class EmailStatisticsServiceTest
 
         // Bucket 0
         assertEquals(1L, dto.forwarded().get(0));
+        assertEquals(1L, dto.stored().get(0));
         assertEquals(1L, dto.dropped().get(0));
 
         // Bucket 12
         assertEquals(2L, dto.forwarded().get(12));
+        assertEquals(1L, dto.stored().get(12));
         assertEquals(0L, dto.dropped().get(12));
 
         // Bucket 23
         assertEquals(0L, dto.forwarded().get(23));
+        assertEquals(0L, dto.stored().get(23));
         assertEquals(1L, dto.dropped().get(23));
     }
 
@@ -140,6 +146,7 @@ class EmailStatisticsServiceTest
         for (int i = 0; i < 24; i++)
         {
             assertEquals(0L, dto.forwarded().get(i), "Forwarded count must be zero for bucket " + i);
+            assertEquals(0L, dto.stored().get(i), "Stored count must be zero for bucket " + i);
             assertEquals(0L, dto.dropped().get(i), "Dropped count must be zero for bucket " + i);
         }
     }
@@ -172,7 +179,7 @@ class EmailStatisticsServiceTest
     }
 
     @Test
-    @DisplayName("Happy Path: Last 7 Days aggregates forwarded and dropped counts across daily buckets")
+    @DisplayName("Happy Path: Last 7 Days aggregates forwarded, stored, and dropped counts across daily buckets")
     void testGetLast7DaysChartData_HappyPath()
     {
         // Anchor: 2026-11-10T14:00:00Z (Tuesday)
@@ -184,13 +191,15 @@ class EmailStatisticsServiceTest
         final long day0Epoch = startDay.atStartOfDay(UTC).toInstant().toEpochMilli();
 
         final List<TransactionStatEntry> entries = new ArrayList<>();
-        // Day 0 (2026-11-04): 3 forwarded, 1 dropped
+        // Day 0 (2026-11-04): 3 forwarded, 1 stored, 1 dropped
         entries.add(createEntry(day0Epoch + 3600_000L, 300));
         entries.add(createEntry(day0Epoch + 7200_000L, 300));
+        entries.add(createEntry(day0Epoch + 9000_000L, 250)); // stored
         entries.add(createEntry(day0Epoch + 10800_000L, 300));
         entries.add(createEntry(day0Epoch + 14400_000L, 500)); // dropped
 
-        // Day 6 (Today, 2026-11-10): 2 forwarded, 0 dropped
+        // Day 6 (Today, 2026-11-10): 2 forwarded, 1 stored, 0 dropped
+        entries.add(createEntry(now - 2000L, 250)); // stored
         entries.add(createEntry(now - 1000L, 300));
         entries.add(createEntry(now, 300));
 
@@ -200,22 +209,28 @@ class EmailStatisticsServiceTest
 
         assertNotNull(dto);
         assertEquals(7, dto.labels().size());
+        assertEquals(7, dto.forwarded().size());
+        assertEquals(7, dto.stored().size());
+        assertEquals(7, dto.dropped().size());
         assertEquals("2026-11-04", dto.labels().get(0));
         assertEquals("2026-11-10", dto.labels().get(6));
 
         // Day 0
         assertEquals(3L, dto.forwarded().get(0));
+        assertEquals(1L, dto.stored().get(0));
         assertEquals(1L, dto.dropped().get(0));
 
         // Day 1 to 5: zero-filled
         for (int i = 1; i <= 5; i++)
         {
             assertEquals(0L, dto.forwarded().get(i), "Day " + i + " must be zero-filled");
+            assertEquals(0L, dto.stored().get(i), "Day " + i + " must be zero-filled");
             assertEquals(0L, dto.dropped().get(i), "Day " + i + " must be zero-filled");
         }
 
         // Day 6
         assertEquals(2L, dto.forwarded().get(6));
+        assertEquals(1L, dto.stored().get(6));
         assertEquals(0L, dto.dropped().get(6));
     }
 
@@ -233,6 +248,7 @@ class EmailStatisticsServiceTest
         for (int i = 0; i < 7; i++)
         {
             assertEquals(0L, dto.forwarded().get(i));
+            assertEquals(0L, dto.stored().get(i));
             assertEquals(0L, dto.dropped().get(i));
         }
     }

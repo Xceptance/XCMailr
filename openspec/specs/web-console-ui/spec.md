@@ -425,7 +425,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **AND** triggering any management action on a row operates exclusively on the mailbox rendered in that row, regardless of original insertion order or display sort order, preventing actions from targeting the wrong mailbox due to view sorting desynchronization
 
 ### Requirement: Admin Management Console
-The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, and presenting vertically stacked time-series line charts for email traffic activity over the past 24 hours (hourly resolution) and past 7 days (daily resolution) with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling when client scripting is disabled or blocked.
+The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, presenting vertically stacked time-series line charts for email traffic activity over the past 24 hours (hourly resolution) and past 7 days (daily resolution) covering forwarded, stored, and dropped categories with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS`, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
 
 #### Scenario: Domain Whitelist Configuration
 - **WHEN** an administrator adds or removes an allowed domain via the admin console
@@ -433,7 +433,7 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 
 #### Scenario: Paged Transaction Auditing
 - **WHEN** an administrator inspects the mail transaction log
-- **THEN** the system displays paginated records with filtering by timestamp, status, and address
+- **THEN** the system displays paginated records with filtering by timestamp, status, and address, displaying distinct badges for Forwarded (300), Stored (250), Inactive (200), Unknown (100), and Error statuses
 
 #### Scenario: Default Domain Whitelist Seeding on Startup
 - **WHEN** the application starts up against a fresh or migrated legacy database
@@ -495,13 +495,13 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 #### Scenario: Last 24 Hours Email Activity Chart (Happy Path)
 - **WHEN** an administrator views the statistics page (`/admin/statistics`)
 - **THEN** the system renders a line chart (`#chart-last-24h`) displaying email activity over the preceding 24 hours
-- **AND** the chart displays two distinct datasets: forwarded email counts and dropped email counts
+- **AND** the chart displays three distinct datasets: forwarded email counts (Status 300), stored email counts (Status 250), and dropped email counts (all other statuses)
 - **AND** the horizontal axis represents 24 continuous hourly buckets formatted with localized hour labels ending at the current hour
 
 #### Scenario: Last 7 Days Email Activity Chart (Happy Path)
 - **WHEN** an administrator views the statistics page (`/admin/statistics`)
 - **THEN** the system renders a line chart (`#chart-last-7d`) displaying email activity over the preceding 7 days
-- **AND** the chart displays two distinct datasets: forwarded email counts and dropped email counts
+- **AND** the chart displays three distinct datasets: forwarded email counts (Status 300), stored email counts (Status 250), and dropped email counts (all other statuses)
 - **AND** the horizontal axis represents 7 continuous daily buckets formatted with localized day labels ending on the current day
 
 #### Scenario: Chart Theme and Responsiveness (Happy Path)
@@ -519,13 +519,36 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 - **THEN** the statistics view displays an accessible fallback notification within the chart containers rather than an empty blank void
 
 #### Scenario: Empty Email Traffic Zero-Fill Continuity (Edge Case)
-- **WHEN** no email forwarding or drop transactions occurred within specific hours or days of the queried time windows
+- **WHEN** no email forwarding, storing, or drop transactions occurred within specific hours or days of the queried time windows
 - **THEN** the backend data model provides continuous time series buckets with count values set to `0` for inactive intervals
 - **AND** the charts render a continuous unbroken zero baseline without missing data points or jagged gaps
 
 #### Scenario: Localization of Chart Metrics (Happy Path)
 - **WHEN** an administrator views the statistics page in English or German
-- **THEN** chart card titles, dataset legend labels (`Forwarded` / `Weitergeleitet`, `Dropped` / `Verworfen`), and axis labels render using message bundles corresponding to the user's active locale
+- **THEN** chart card titles, dataset legend labels (`Forwarded` / `Weitergeleitet`, `Stored` / `Gespeichert`, `Dropped` / `Verworfen`), and axis labels render using message bundles corresponding to the user's active locale
+
+#### Scenario: Todays Sender Domains Breakdown Table (Happy Path)
+- **WHEN** an administrator views the statistics page (`/admin/statistics`)
+- **THEN** beneath the 24-hour activity chart, the system displays a card containing a table of sender domains active today (last 24 hours)
+- **AND** the table lists each sender domain alongside counts for stored, forwarded, and dropped emails, ordered by total email volume descending
+
+#### Scenario: Last 7 Days Sender Domains Breakdown Table (Happy Path)
+- **WHEN** an administrator views the statistics page (`/admin/statistics`)
+- **THEN** beneath the 7-day activity chart, the system displays a card containing a table of sender domains active over the last 7 days
+- **AND** the table lists each sender domain alongside counts for stored, forwarded, and dropped emails, ordered by total email volume descending
+
+#### Scenario: Sender Domain Metrics Persistence Across Transaction Pruning
+- **WHEN** detailed transaction records in `mailtransactions` are deleted or purged according to retention limits (`maxAgeHours`)
+- **THEN** the sender domain breakdown tables continue to display historical domain counts from `MAIL_STATISTICS` for the full 7-day and 30-day reporting windows
+
+#### Scenario: Empty Sender Domains Graceful State
+- **WHEN** no inbound email traffic has been recorded for the queried time window
+- **THEN** the sender domain tables render a localized empty state message indicating that no records were found
+
+#### Scenario: Web Console Code Quality Standards
+- **WHEN** classes and controllers supporting the statistics dashboard are developed or inspected
+- **THEN** all method parameters, local variables, and controller fields declare `final`
+- **AND** all public methods and classes provide complete Javadoc and descriptive code comments
 
 ### Requirement: Role-Based Navigation Visibility
 The system SHALL conditionally render navigation links and action items based on the visitor's authentication state and granted roles, ensuring that administrative and personal account controls are never exposed to unauthorized sessions.

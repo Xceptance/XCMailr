@@ -43,6 +43,7 @@ import com.xceptance.xcmailr.repositories.UserRepository;
 
 import com.xceptance.xcmailr.models.Domain;
 import com.xceptance.xcmailr.models.MBox;
+import com.xceptance.xcmailr.models.MailTransaction;
 import com.xceptance.xcmailr.models.User;
 
 /**
@@ -69,6 +70,9 @@ public class ConcurrentMailDeliveryIT
     private MailTransactionRepository mailTransactionRepository;
 
     @Autowired
+    private MailTransactionQueueService transactionQueueService;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -85,6 +89,7 @@ public class ConcurrentMailDeliveryIT
         mailboxRepository.deleteAll();
         userRepository.deleteAll();
         domainRepository.deleteAll();
+        transactionQueueService.clear();
 
         final Domain domain = new Domain("xcmailr.test");
         domainRepository.save(domain);
@@ -258,6 +263,65 @@ public class ConcurrentMailDeliveryIT
                      "Suppression counter must equal total concurrent deliveries for inactive owner");
         assertEquals(0, mailRepository.findByMailboxOrderByReceiveTimeAsc(box.getId()).size(),
                      "No emails must be persisted when owner is inactive");
+    }
+
+    @Test
+    @DisplayName("Concurrent deliveries to mailbox without forwarding enqueue status 250 without lock contention")
+    public void testConcurrentDeliveriesStoredWithoutForwardingEnqueuesStatus250() throws Exception
+    {
+        final MBox storeBox = new MBox("concurrent-store", "xcmailr.test", 0L, false, testUser);
+        storeBox.setActive(true);
+        storeBox.setForwardEmails(false);
+        mailboxRepository.save(storeBox);
+
+        final int concurrency = 20;
+        final CountDownLatch readyLatch = new CountDownLatch(concurrency);
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final List<Future<?>> futures = new ArrayList<>();
+
+        for (int i = 0; i < concurrency; i++)
+        {
+            final int index = i;
+            futures.add(executorService.submit(() -> {
+                readyLatch.countDown();
+                try
+                {
+                    startLatch.await();
+                    final String rawMessage = "From: sender" + index + "@example.com\r\n"
+                        + "To: concurrent-store@xcmailr.test\r\n"
+                        + "Subject: Concurrent Stored " + index + "\r\n\r\n"
+                        + "Body payload " + index;
+                    final ByteArrayInputStream stream = new ByteArrayInputStream(rawMessage.getBytes(StandardCharsets.UTF_8));
+                    mailDeliveryService.deliver("sender" + index + "@example.com", "concurrent-store@xcmailr.test", stream);
+                }
+                catch (final Exception e)
+                {
+                    throw new RuntimeException("Concurrent delivery failed for index " + index, e);
+                }
+            }));
+        }
+
+        readyLatch.await(5, TimeUnit.SECONDS);
+        startLatch.countDown();
+
+        for (final Future<?> future : futures)
+        {
+            future.get(10, TimeUnit.SECONDS);
+        }
+
+        final MBox reloaded = mailboxRepository.findById(storeBox.getId()).orElseThrow();
+        assertEquals(0, reloaded.getSuppressions(), "Suppression counter must remain zero for active stored mailboxes");
+        assertEquals(0, reloaded.getForwards(), "Forward counter must remain zero when forwarding is disabled");
+        assertEquals(concurrency, mailRepository.findByMailboxOrderByReceiveTimeAsc(storeBox.getId()).size(),
+                     "All concurrent emails must be persisted in database");
+
+        // Verify all 20 transactions were enqueued with status 250
+        final List<MailTransaction> drained = transactionQueueService.drainAll();
+        assertEquals(concurrency, drained.size(), "All concurrent transactions must be enqueued");
+        for (final MailTransaction mtx : drained)
+        {
+            assertEquals(250, mtx.getStatus(), "Enqueued transactions must have status 250");
+        }
     }
 }
 

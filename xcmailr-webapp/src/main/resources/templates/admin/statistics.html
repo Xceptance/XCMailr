@@ -66,6 +66,40 @@
         </div>
     </div>
 
+    <!-- Todays Sender Domains Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-body py-3 fw-semibold" th:text="#{admin.stats.domains.today.title}">
+            Todays (last 24 hours) sender domains
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" th:text="#{admin.stats.domains.column.domain}">Sender Domain</th>
+                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.drops}">Drops</th>
+                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.forwards}">Forwards</th>
+                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.stored}">Stored</th>
+                            <th scope="col" class="text-end" style="width: 140px;" th:text="#{admin.stats.domains.column.total}">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(todaySenderDomains)}">
+                            <td colspan="5" class="text-center text-muted py-4" th:text="#{admin.stats.domains.empty}">No sender domain activity recorded for this time window.</td>
+                        </tr>
+                        <tr th:each="d : ${todaySenderDomains}">
+                            <td><span class="fw-semibold text-break" th:text="${d.domain}">example.com</span></td>
+                            <td class="text-end text-danger" th:text="${d.dropCount}">0</td>
+                            <td class="text-end text-success" th:text="${d.forwardCount}">0</td>
+                            <td class="text-end text-primary" th:text="${d.storeCount}">0</td>
+                            <td class="text-end fw-bold" th:text="${d.totalCount}">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Last 7 Days Activity Chart Card -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-body py-3 d-flex justify-content-between align-items-center">
@@ -80,39 +114,37 @@
         </div>
     </div>
 
-    <!-- Status Breakdown Card -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-body py-3 fw-semibold" th:text="#{admin.stats.breakdownTitle}">
-            Transaction Delivery Breakdown
+    <!-- Last 7 Days Sender Domains Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-body py-3 fw-semibold" th:text="#{admin.stats.domains.week.title}">
+            Last 7 days sender domains
         </div>
         <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th scope="col" th:text="#{admin.stats.column.category}">Status Category</th>
-                        <th scope="col" style="width: 120px;" th:text="#{admin.stats.column.code}">Code</th>
-                        <th scope="col" class="text-end" style="width: 150px;" th:text="#{admin.stats.column.count}">Total Count</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:if="${#lists.isEmpty(statusSummary)}">
-                        <td colspan="3" class="text-center text-muted py-4" th:text="#{admin.transactions.status.empty}">No transactions recorded yet.</td>
-                    </tr>
-                    <tr th:each="st : ${statusSummary}">
-                        <td>
-                            <span th:if="${st.statuscode == 300}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill" th:text="#{admin.stats.status.300}">Forwarded</span>
-                            <span th:if="${st.statuscode == 200}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill" th:text="#{admin.stats.status.200}">Inactive Mailbox</span>
-                            <span th:if="${st.statuscode == 100}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill" th:text="#{admin.stats.status.100}">Unknown Mailbox</span>
-                            <span th:if="${st.statuscode == 400}" class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill" th:text="#{admin.stats.status.400}">Target Unreachable</span>
-                            <span th:if="${st.statuscode == 500}" class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill" th:text="#{admin.stats.status.500}">Relay Denied</span>
-                            <span th:if="${st.statuscode == 600}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill" th:text="#{admin.stats.status.600}">Inactive User</span>
-                            <span th:if="${st.statuscode == 0}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill" th:text="#{admin.stats.status.0}">Invalid Pattern</span>
-                        </td>
-                        <td><code th:text="${st.statuscode}">300</code></td>
-                        <td class="text-end fw-bold" th:text="${st.count}">0</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" th:text="#{admin.stats.domains.column.domain}">Sender Domain</th>
+                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.drops}">Drops</th>
+                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.forwards}">Forwards</th>
+                            <th scope="col" class="text-end" style="width: 120px;" th:text="#{admin.stats.domains.column.stored}">Stored</th>
+                            <th scope="col" class="text-end" style="width: 140px;" th:text="#{admin.stats.domains.column.total}">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(weekSenderDomains)}">
+                            <td colspan="5" class="text-center text-muted py-4" th:text="#{admin.stats.domains.empty}">No sender domain activity recorded for this time window.</td>
+                        </tr>
+                        <tr th:each="d : ${weekSenderDomains}">
+                            <td><span class="fw-semibold text-break" th:text="${d.domain}">example.com</span></td>
+                            <td class="text-end text-danger" th:text="${d.dropCount}">0</td>
+                            <td class="text-end text-success" th:text="${d.forwardCount}">0</td>
+                            <td class="text-end text-primary" th:text="${d.storeCount}">0</td>
+                            <td class="text-end fw-bold" th:text="${d.totalCount}">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -123,9 +155,10 @@
     <script th:inline="javascript">
     /*<![CDATA[*/
     (() => {
-        const chart24hData = /*[[${chart24h}]]*/ { labels: [], forwarded: [], dropped: [] };
-        const chart7dData = /*[[${chart7d}]]*/ { labels: [], forwarded: [], dropped: [] };
+        const chart24hData = /*[[${chart24h}]]*/ { labels: [], forwarded: [], stored: [], dropped: [] };
+        const chart7dData = /*[[${chart7d}]]*/ { labels: [], forwarded: [], stored: [], dropped: [] };
         const labelForwarded = /*[[#{admin.stats.chart.forwarded}]]*/ 'Forwarded';
+        const labelStored = /*[[#{admin.stats.chart.stored}]]*/ 'Stored';
         const labelDropped = /*[[#{admin.stats.chart.dropped}]]*/ 'Dropped';
         const labelEmails = /*[[#{admin.stats.chart.emails}]]*/ 'Emails';
         const labelTime = /*[[#{admin.stats.chart.time}]]*/ 'Time';
@@ -144,9 +177,11 @@
             };
         }
 
-        // Palette matching corporate Bootstrap success and danger accents
+        // Palette matching corporate Bootstrap success, primary, and danger accents
         const COLOR_FORWARDED_BORDER = '#198754';
         const COLOR_FORWARDED_BG = 'rgba(25, 135, 84, 0.15)';
+        const COLOR_STORED_BORDER = '#0d6efd';
+        const COLOR_STORED_BG = 'rgba(13, 110, 253, 0.15)';
         const COLOR_DROPPED_BORDER = '#dc3545';
         const COLOR_DROPPED_BG = 'rgba(220, 53, 69, 0.15)';
 
@@ -162,6 +197,16 @@
                             data: (chartData && chartData.forwarded) ? chartData.forwarded : [],
                             borderColor: COLOR_FORWARDED_BORDER,
                             backgroundColor: COLOR_FORWARDED_BG,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: labelStored,
+                            data: (chartData && chartData.stored) ? chartData.stored : [],
+                            borderColor: COLOR_STORED_BORDER,
+                            backgroundColor: COLOR_STORED_BG,
                             tension: 0.3,
                             fill: true,
                             pointRadius: 2,

@@ -41,6 +41,7 @@
                     <td class="d-none d-lg-table-cell text-break" th:text="${tx.targetaddr}">recipient@example.com</td>
                     <td>
                         <span th:if="${tx.status == 300}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill" th:text="#{admin.transactions.badge.300}">Forwarded (300)</span>
+                        <span th:if="${tx.status == 250}" class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle rounded-pill" th:text="#{admin.transactions.badge.250}">Stored (250)</span>
                         <span th:if="${tx.status == 200}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill" th:text="#{admin.transactions.badge.200}">Inactive (200)</span>
                         <span th:if="${tx.status == 100}" class="badge bg-body-secondary text-secondary border border-secondary-subtle rounded-pill" th:text="#{admin.transactions.badge.100}">Unknown (100)</span>
                         <span th:if="${tx.status == 400}" class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle rounded-pill" th:text="#{admin.transactions.badge.400}">Failed (400)</span>

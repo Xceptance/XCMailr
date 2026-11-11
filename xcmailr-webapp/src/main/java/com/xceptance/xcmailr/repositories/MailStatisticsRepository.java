@@ -25,6 +25,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.xceptance.xcmailr.dto.DomainStatisticsDto;
 import com.xceptance.xcmailr.models.MailStatistics;
 import com.xceptance.xcmailr.models.MailStatisticsKey;
 
@@ -53,4 +54,22 @@ public interface MailStatisticsRepository extends JpaRepository<MailStatistics, 
     @Transactional
     @Query("DELETE FROM MailStatistics ms WHERE ms.key.date < :date")
     void deleteByKeyDateBefore(@Param("date") final Date date);
+
+    /**
+     * Aggregates email delivery statistics grouped by sender domain since a given calendar date.
+     * Orders the results by total traffic volume (drops + forwards + stores) descending.
+     *
+     * @param startDate earliest inclusive SQL date for statistics aggregation
+     * @return list of domain statistics records ordered by total traffic volume descending
+     */
+    @Query("SELECT new com.xceptance.xcmailr.dto.DomainStatisticsDto(" +
+           "ms.key.fromDomain, " +
+           "COALESCE(SUM(ms.dropCount), 0L), " +
+           "COALESCE(SUM(ms.forwardCount), 0L), " +
+           "COALESCE(SUM(ms.storeCount), 0L)) " +
+           "FROM MailStatistics ms " +
+           "WHERE ms.key.date >= :startDate " +
+           "GROUP BY ms.key.fromDomain " +
+           "ORDER BY (COALESCE(SUM(ms.dropCount), 0L) + COALESCE(SUM(ms.forwardCount), 0L) + COALESCE(SUM(ms.storeCount), 0L)) DESC")
+    List<DomainStatisticsDto> findDomainStatisticsSince(@Param("startDate") final Date startDate);
 }

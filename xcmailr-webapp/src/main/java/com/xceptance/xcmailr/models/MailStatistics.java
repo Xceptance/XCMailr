@@ -16,7 +16,6 @@
 package com.xceptance.xcmailr.models;
 
 import java.io.Serializable;
-import java.sql.Date;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
@@ -25,13 +24,17 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
+/**
+ * JPA entity representing aggregated email traffic statistics bucketed by date,
+ * 15-minute quarter-hour interval, sender domain, and target domain. Tracks dropped,
+ * forwarded, and locally stored email counts.
+ *
+ * @author Patrick Thum, Xceptance Software Technologies GmbH
+ */
 @Entity
 @Table(name = "MAIL_STATISTICS")
 public class MailStatistics implements Serializable
 {
-    /**
-     * 
-     */
     private static final long serialVersionUID = 6489599509883330752L;
 
     @EmbeddedId
@@ -43,41 +46,112 @@ public class MailStatistics implements Serializable
     @Column(name = "FORWARD_COUNT")
     private int forwardCount;
 
+    @Column(name = "STORE_COUNT")
+    private int storeCount;
+
+    /**
+     * Default no-arg constructor required by JPA.
+     */
+    public MailStatistics()
+    {
+    }
+
+    /**
+     * Parameterized constructor initializing the statistics key and metric counters.
+     *
+     * @param key the composite statistics key (date, quarter-hour, fromDomain, targetDomain)
+     * @param dropCount count of dropped messages
+     * @param forwardCount count of forwarded messages
+     * @param storeCount count of locally stored messages
+     */
+    public MailStatistics(final MailStatisticsKey key, final int dropCount, final int forwardCount, final int storeCount)
+    {
+        this.key = key;
+        this.dropCount = dropCount;
+        this.forwardCount = forwardCount;
+        this.storeCount = storeCount;
+    }
+
+    /**
+     * Returns the composite primary key.
+     *
+     * @return the statistics key
+     */
     public MailStatisticsKey getKey()
     {
         return key;
     }
 
-    public void setKey(MailStatisticsKey key)
+    /**
+     * Sets the composite primary key.
+     *
+     * @param key the statistics key to set
+     */
+    public void setKey(final MailStatisticsKey key)
     {
         this.key = key;
     }
 
+    /**
+     * Returns the number of dropped emails in this time interval and domain bucket.
+     *
+     * @return drop count
+     */
     public int getDropCount()
     {
         return dropCount;
     }
 
-    public void setDropCount(int dropCount)
+    /**
+     * Sets the number of dropped emails.
+     *
+     * @param dropCount drop count to set
+     */
+    public void setDropCount(final int dropCount)
     {
         this.dropCount = dropCount;
     }
 
+    /**
+     * Returns the number of forwarded emails in this time interval and domain bucket.
+     *
+     * @return forward count
+     */
     public int getForwardCount()
     {
         return forwardCount;
     }
 
-    public void setForwardCount(int forwardCount)
+    /**
+     * Sets the number of forwarded emails.
+     *
+     * @param forwardCount forward count to set
+     */
+    public void setForwardCount(final int forwardCount)
     {
         this.forwardCount = forwardCount;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
+    /**
+     * Returns the number of locally stored emails in this time interval and domain bucket.
+     *
+     * @return store count
      */
+    public int getStoreCount()
+    {
+        return storeCount;
+    }
+
+    /**
+     * Sets the number of locally stored emails.
+     *
+     * @param storeCount store count to set
+     */
+    public void setStoreCount(final int storeCount)
+    {
+        this.storeCount = storeCount;
+    }
+
     @Override
     public int hashCode()
     {
@@ -85,17 +159,13 @@ public class MailStatistics implements Serializable
         int result = 1;
         result = prime * result + dropCount;
         result = prime * result + forwardCount;
+        result = prime * result + storeCount;
         result = prime * result + ((key == null) ? 0 : key.hashCode());
         return result;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
         if (this == obj)
         {
@@ -109,12 +179,16 @@ public class MailStatistics implements Serializable
         {
             return false;
         }
-        MailStatistics other = (MailStatistics) obj;
+        final MailStatistics other = (MailStatistics) obj;
         if (dropCount != other.dropCount)
         {
             return false;
         }
         if (forwardCount != other.forwardCount)
+        {
+            return false;
+        }
+        if (storeCount != other.storeCount)
         {
             return false;
         }
@@ -132,23 +206,28 @@ public class MailStatistics implements Serializable
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString()
     {
-        return String.format("MailStatistics [date=%s, quarterHour=%s, fromDomain=%s, targetDomain=%s, dropCount=%s, forwardCount=%s]",
-                             key.getDate(), key.getQuarterHour(), key.getFromDomain(), key.getTargetDomain(), dropCount,
-                             forwardCount);
+        final String dateStr = (key != null && key.getDate() != null) ? key.getDate().toString() : "null";
+        final String qHourStr = (key != null) ? String.valueOf(key.getQuarterHour()) : "null";
+        final String fromStr = (key != null) ? key.getFromDomain() : "null";
+        final String targetStr = (key != null) ? key.getTargetDomain() : "null";
+
+        return String.format("MailStatistics [date=%s, quarterHour=%s, fromDomain=%s, targetDomain=%s, dropCount=%d, forwardCount=%d, storeCount=%d]",
+                             dateStr, qHourStr, fromStr, targetStr, dropCount, forwardCount, storeCount);
     }
 
-    public static String format(int value)
+    /**
+     * Formats an integer value with space grouping separators.
+     *
+     * @param value the numeric value to format
+     * @return formatted string representation
+     */
+    public static String format(final int value)
     {
-        DecimalFormat formatter = new DecimalFormat("");
-        DecimalFormatSymbols decimalFormatSymbols = DecimalFormatSymbols.getInstance();
+        final DecimalFormat formatter = new DecimalFormat("");
+        final DecimalFormatSymbols decimalFormatSymbols = DecimalFormatSymbols.getInstance();
         decimalFormatSymbols.setGroupingSeparator(' ');
         formatter.setDecimalFormatSymbols(decimalFormatSymbols);
         formatter.setGroupingUsed(true);

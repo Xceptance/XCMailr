@@ -41,6 +41,9 @@
                     <span th:if="${st.statuscode == 300}" class="badge bg-success py-2 px-3">
                         <span th:text="#{admin.transactions.status.forwarded}">Forwarded (300):</span> <strong th:text="${st.count}">0</strong>
                     </span>
+                    <span th:if="${st.statuscode == 250}" class="badge bg-primary py-2 px-3">
+                        <span th:text="#{admin.transactions.status.stored}">Stored (250):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
                     <span th:if="${st.statuscode == 200}" class="badge bg-warning text-dark py-2 px-3">
                         <span th:text="#{admin.transactions.status.inactive}">Inactive (200):</span> <strong th:text="${st.count}">0</strong>
                     </span>

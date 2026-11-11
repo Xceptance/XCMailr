@@ -54,6 +54,9 @@ public class EmailStatisticsService
     /** HTTP / SMTP status code indicating successful email forwarding. */
     public static final int STATUS_FORWARDED = 300;
 
+    /** HTTP / SMTP status code indicating successful email receipt and local storage without forwarding. */
+    public static final int STATUS_STORED = 250;
+
     /** Number of hours in the 24-hour activity window. */
     public static final int HOURS_IN_DAY = 24;
 
@@ -120,6 +123,7 @@ public class EmailStatisticsService
         }
 
         final long[] forwarded = new long[HOURS_IN_DAY];
+        final long[] stored = new long[HOURS_IN_DAY];
         final long[] dropped = new long[HOURS_IN_DAY];
 
         final List<TransactionStatEntry> entries = transactionRepository.findStatsSince(startEpochMs);
@@ -145,13 +149,17 @@ public class EmailStatisticsService
             {
                 forwarded[bucketIndex]++;
             }
+            else if (entry.getStatus() == STATUS_STORED)
+            {
+                stored[bucketIndex]++;
+            }
             else
             {
                 dropped[bucketIndex]++;
             }
         }
 
-        return new ChartDataDto(labels, toLongList(forwarded), toLongList(dropped));
+        return new ChartDataDto(labels, toLongList(forwarded), toLongList(stored), toLongList(dropped));
     }
 
     /**
@@ -186,6 +194,7 @@ public class EmailStatisticsService
         }
 
         final long[] forwarded = new long[DAYS_IN_WEEK];
+        final long[] stored = new long[DAYS_IN_WEEK];
         final long[] dropped = new long[DAYS_IN_WEEK];
 
         final List<TransactionStatEntry> entries = transactionRepository.findStatsSince(startEpochMs);
@@ -212,13 +221,17 @@ public class EmailStatisticsService
             {
                 forwarded[bucketIndex]++;
             }
+            else if (entry.getStatus() == STATUS_STORED)
+            {
+                stored[bucketIndex]++;
+            }
             else
             {
                 dropped[bucketIndex]++;
             }
         }
 
-        return new ChartDataDto(labels, toLongList(forwarded), toLongList(dropped));
+        return new ChartDataDto(labels, toLongList(forwarded), toLongList(stored), toLongList(dropped));
     }
 
     private static List<Long> toLongList(final long[] array)

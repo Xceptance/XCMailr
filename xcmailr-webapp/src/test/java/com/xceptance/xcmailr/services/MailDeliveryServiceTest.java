@@ -83,8 +83,7 @@ public class MailDeliveryServiceTest
     @Mock
     private MailRepository mailRepository;
 
-    @Mock
-    private MailTransactionRepository mailTransactionRepository;
+    private MailTransactionQueueService transactionQueueService;
 
     @Mock
     private OutboundMailService outboundMailService;
@@ -107,12 +106,14 @@ public class MailDeliveryServiceTest
         properties.getMbox().setMaxSize(10 * 1024 * 1024); // 10MB
         properties.getMailTransaction().setMaxAgeHours(24);
 
+        transactionQueueService = new MailTransactionQueueService();
+
         deliveryService = new MailDeliveryService(
             properties,
             domainRepository,
             mailboxRepository,
             mailRepository,
-            mailTransactionRepository,
+            transactionQueueService,
             outboundMailService
         );
     }
@@ -128,7 +129,7 @@ public class MailDeliveryServiceTest
         final boolean accepted = deliveryService.accept("sender@external.org", "target@xcmailr.test");
 
         assertTrue(accepted, "Configured whitelisted domain must be accepted");
-        verify(mailTransactionRepository, never()).save(any(MailTransaction.class));
+        assertTrue(transactionQueueService.isEmpty(), "No transaction should be enqueued for accepted recipient");
     }
 
     @Test
@@ -140,7 +141,7 @@ public class MailDeliveryServiceTest
         final boolean accepted = deliveryService.accept("sender@external.org", "target@custom-database-domain.org");
 
         assertTrue(accepted, "Database whitelisted domain must be accepted");
-        verify(mailTransactionRepository, never()).save(any(MailTransaction.class));
+        assertTrue(transactionQueueService.isEmpty(), "No transaction should be enqueued for accepted recipient");
     }
 
     @Test
@@ -153,9 +154,8 @@ public class MailDeliveryServiceTest
 
         assertFalse(accepted, "Unmanaged external domain must be rejected to prevent open relay");
 
-        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
-        verify(mailTransactionRepository).save(captor.capture());
-        final MailTransaction mtx = captor.getValue();
+        assertEquals(1, transactionQueueService.size());
+        final MailTransaction mtx = transactionQueueService.drainAll().get(0);
         assertEquals(500, mtx.getStatus(), "Transaction status 500 (relay denied) must be logged");
         assertEquals("victim@unmanaged-relay.com", mtx.getRelayaddr());
     }
@@ -168,9 +168,8 @@ public class MailDeliveryServiceTest
 
         assertFalse(accepted, "Malformed recipient address must be rejected");
 
-        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
-        verify(mailTransactionRepository).save(captor.capture());
-        final MailTransaction mtx = captor.getValue();
+        assertEquals(1, transactionQueueService.size());
+        final MailTransaction mtx = transactionQueueService.drainAll().get(0);
         assertEquals(0, mtx.getStatus(), "Transaction status 0 (malformed address) must be logged");
     }
 
@@ -193,9 +192,8 @@ public class MailDeliveryServiceTest
         verify(mailRepository, never()).save(any(Mail.class));
 
         // Verify transaction status 100 (mailbox not found) is recorded
-        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
-        verify(mailTransactionRepository).save(captor.capture());
-        final MailTransaction mtx = captor.getValue();
+        assertEquals(1, transactionQueueService.size());
+        final MailTransaction mtx = transactionQueueService.drainAll().get(0);
         assertEquals(100, mtx.getStatus());
         assertEquals("unknown@xcmailr.test", mtx.getRelayaddr());
     }
@@ -225,9 +223,8 @@ public class MailDeliveryServiceTest
         verify(mailboxRepository, never()).save(inactiveBox);
 
         // Verify transaction status 200 (mailbox inactive) recorded
-        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
-        verify(mailTransactionRepository).save(captor.capture());
-        final MailTransaction mtx = captor.getValue();
+        assertEquals(1, transactionQueueService.size());
+        final MailTransaction mtx = transactionQueueService.drainAll().get(0);
         assertEquals(200, mtx.getStatus());
         assertEquals("owner@realdomain.org", mtx.getTargetaddr());
     }
@@ -257,9 +254,8 @@ public class MailDeliveryServiceTest
         verify(mailboxRepository, never()).save(activeBox);
 
         // Verify transaction status 600 (user inactive) recorded
-        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
-        verify(mailTransactionRepository).save(captor.capture());
-        final MailTransaction mtx = captor.getValue();
+        assertEquals(1, transactionQueueService.size());
+        final MailTransaction mtx = transactionQueueService.drainAll().get(0);
         assertEquals(600, mtx.getStatus());
         assertEquals("disabled@realdomain.org", mtx.getTargetaddr());
     }
@@ -325,6 +321,13 @@ public class MailDeliveryServiceTest
 
         // Verify outbound mail was NOT dispatched
         verify(outboundMailService, never()).send(any(MimeMessage.class));
+
+        // Verify transaction status 250 (stored without forwarding) enqueued
+        assertEquals(1, transactionQueueService.size());
+        final MailTransaction mtx = transactionQueueService.drainAll().get(0);
+        assertEquals(250, mtx.getStatus());
+        assertEquals("store@realdomain.org", mtx.getTargetaddr());
+        assertEquals("storebox@xcmailr.test", mtx.getRelayaddr());
     }
 
     @Test
@@ -360,10 +363,9 @@ public class MailDeliveryServiceTest
         verify(mailboxRepository).incrementForwards(mbox.getId());
         verify(mailboxRepository, never()).save(mbox);
 
-        // Verify transaction status 300 (forwarded) recorded
-        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
-        verify(mailTransactionRepository).save(captor.capture());
-        final MailTransaction mtx = captor.getValue();
+        // Verify transaction status 300 (forwarded) recorded in queue
+        assertEquals(1, transactionQueueService.size());
+        final MailTransaction mtx = transactionQueueService.drainAll().get(0);
         assertEquals(300, mtx.getStatus());
         assertEquals("forward_destination@realdomain.org", mtx.getTargetaddr());
     }
@@ -666,9 +668,8 @@ public class MailDeliveryServiceTest
         verify(outboundMailService, never()).send(any(MimeMessage.class));
         verify(mailboxRepository, never()).incrementForwards(anyLong());
 
-        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
-        verify(mailTransactionRepository).save(captor.capture());
-        assertEquals(200, captor.getValue().getStatus(), "Transaction status 200 (inactive mailbox) must be recorded");
+        assertEquals(1, transactionQueueService.size());
+        assertEquals(200, transactionQueueService.drainAll().get(0).getStatus(), "Transaction status 200 (inactive mailbox) must be recorded");
     }
 
     @Test
@@ -686,9 +687,8 @@ public class MailDeliveryServiceTest
         verify(outboundMailService, never()).send(any(MimeMessage.class));
         verify(mailboxRepository, never()).incrementForwards(anyLong());
 
-        final ArgumentCaptor<MailTransaction> captor = ArgumentCaptor.forClass(MailTransaction.class);
-        verify(mailTransactionRepository).save(captor.capture());
-        assertEquals(100, captor.getValue().getStatus(), "Transaction status 100 (mailbox not found) must be recorded");
+        assertEquals(1, transactionQueueService.size());
+        assertEquals(100, transactionQueueService.drainAll().get(0).getStatus(), "Transaction status 100 (mailbox not found) must be recorded");
     }
 
     @Test

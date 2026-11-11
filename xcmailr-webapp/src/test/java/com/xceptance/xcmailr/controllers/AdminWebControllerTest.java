@@ -49,15 +49,17 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.xceptance.xcmailr.XcmailrApplication;
+import com.xceptance.xcmailr.models.Domain;
+import com.xceptance.xcmailr.models.MailStatistics;
+import com.xceptance.xcmailr.models.MailStatisticsKey;
+import com.xceptance.xcmailr.models.MailTransaction;
+import com.xceptance.xcmailr.models.User;
 import com.xceptance.xcmailr.repositories.DomainRepository;
 import com.xceptance.xcmailr.repositories.MailRepository;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository;
 import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
-
-import com.xceptance.xcmailr.models.Domain;
-import com.xceptance.xcmailr.models.MailTransaction;
-import com.xceptance.xcmailr.models.User;
 
 /**
  * Integration tests for {@link AdminWebController} testing administrative controls,
@@ -87,6 +89,9 @@ public class AdminWebControllerTest
     @Autowired
     private MailRepository mailRepository;
 
+    @Autowired
+    private MailStatisticsRepository mailStatisticsRepository;
+
     private User admin;
     private User adminDe;
     private User regularUser;
@@ -99,6 +104,7 @@ public class AdminWebControllerTest
             .apply(springSecurity())
             .build();
 
+        mailStatisticsRepository.deleteAll();
         transactionRepository.deleteAll();
         mailRepository.deleteAll();
         mailboxRepository.deleteAll();
@@ -261,6 +267,8 @@ public class AdminWebControllerTest
                .andExpect(model().attributeExists("totalTransactions"))
                .andExpect(model().attributeExists("chart24h"))
                .andExpect(model().attributeExists("chart7d"))
+               .andExpect(model().attributeExists("todaySenderDomains"))
+               .andExpect(model().attributeExists("weekSenderDomains"))
                .andExpect(content().string(containsString("id=\"chart-last-24h\"")))
                .andExpect(content().string(containsString("id=\"chart-last-7d\"")))
                .andExpect(content().string(containsString("/webjars/chart.js/4.6.1/dist/chart.umd.js")))
@@ -271,6 +279,7 @@ public class AdminWebControllerTest
                    final com.xceptance.xcmailr.dto.ChartDataDto dto24 = (com.xceptance.xcmailr.dto.ChartDataDto) c24;
                    assertEquals(24, dto24.labels().size());
                    assertEquals(24, dto24.forwarded().size());
+                   assertEquals(24, dto24.stored().size());
                    assertEquals(24, dto24.dropped().size());
 
                    final Object c7 = result.getModelAndView().getModel().get("chart7d");
@@ -279,6 +288,7 @@ public class AdminWebControllerTest
                    final com.xceptance.xcmailr.dto.ChartDataDto dto7 = (com.xceptance.xcmailr.dto.ChartDataDto) c7;
                    assertEquals(7, dto7.labels().size());
                    assertEquals(7, dto7.forwarded().size());
+                   assertEquals(7, dto7.stored().size());
                    assertEquals(7, dto7.dropped().size());
                });
     }
@@ -314,8 +324,9 @@ public class AdminWebControllerTest
                .andExpect(content().string(containsString("const chart24hData = {")))
                .andExpect(content().string(containsString("const chart7dData = {")))
                .andExpect(content().string(containsString("\"forwarded\":")))
+               .andExpect(content().string(containsString("\"stored\":")))
                .andExpect(content().string(containsString("\"dropped\":")))
-               .andExpect(content().string(containsString("systemPrefersDark")))
+               .andExpect(content().string(containsString("labelStored = ")))
                .andExpect(content().string(containsString("function initCharts()")))
                .andExpect(content().string(containsString("Chart library could not be loaded.")))
                .andExpect(content().string(containsString("chart.options.scales.x.border.color = theme.borderColor;")))
@@ -340,6 +351,7 @@ public class AdminWebControllerTest
                .andExpect(content().string(containsString("Aktivität der letzten 7 Tage")))
                .andExpect(content().string(containsString("Diagramm-Bibliothek konnte nicht geladen werden.")))
                .andExpect(content().string(containsString("\"Weitergeleitet\"")))
+               .andExpect(content().string(containsString("\"Gespeichert\"")))
                .andExpect(content().string(containsString("\"Verworfen\"")));
     }
 
@@ -485,7 +497,13 @@ public class AdminWebControllerTest
                .andExpect(content().string(containsString("Hourly resolution")))
                .andExpect(content().string(containsString("Last 7 Days Activity")))
                .andExpect(content().string(containsString("Daily resolution")))
-               .andExpect(content().string(containsString("Transaction Delivery Breakdown")));
+               .andExpect(content().string(containsString("Todays (last 24 hours) sender domains")))
+               .andExpect(content().string(containsString("Last 7 days sender domains")))
+               .andExpect(content().string(containsString("Sender Domain")))
+               .andExpect(content().string(containsString("Drops")))
+               .andExpect(content().string(containsString("Forwards")))
+               .andExpect(content().string(containsString("Stored")))
+               .andExpect(content().string(containsString("Total")));
     }
 
     /**
@@ -510,7 +528,61 @@ public class AdminWebControllerTest
                .andExpect(content().string(containsString("Stündliche Auflösung")))
                .andExpect(content().string(containsString("Aktivität der letzten 7 Tage")))
                .andExpect(content().string(containsString("Tägliche Auflösung")))
-               .andExpect(content().string(containsString("Transaktions-Zustellungsübersicht")));
+               .andExpect(content().string(containsString("Heutige (letzte 24 Stunden) Absenderdomains")))
+               .andExpect(content().string(containsString("Absenderdomains der letzten 7 Tage")))
+               .andExpect(content().string(containsString("Absenderdomain")))
+               .andExpect(content().string(containsString("Verworfen")))
+               .andExpect(content().string(containsString("Weitergeleitet")))
+               .andExpect(content().string(containsString("Gespeichert")))
+               .andExpect(content().string(containsString("Gesamt")));
+    }
+
+    /**
+     * Verifies that the sender domain breakdown tables render domain rows when data is present
+     * and render the localized empty state message when no data is recorded.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin statistics dashboard renders sender domain breakdown tables and empty state handling")
+    public void testAdminStatisticsSenderDomainsHappyPathAndEmptyState() throws Exception
+    {
+        // 1. Special Case: Empty state when no statistics records exist
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("No sender domain activity recorded for this time window.")));
+
+        // 2. Happy Path: Insert MailStatistics record for today
+        final java.sql.Date today = java.sql.Date.valueOf(java.time.LocalDate.now());
+        final MailStatisticsKey key = new MailStatisticsKey(today, 40, "alpha-sender.com", "xcmailr.test");
+        final MailStatistics stat = new MailStatistics(key, 5, 10, 15);
+        mailStatisticsRepository.save(stat);
+
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("alpha-sender.com")))
+               .andExpect(content().string(containsString("30"))); // totalCount = 5 + 10 + 15 = 30
+    }
+
+    /**
+     * Verifies that status 250 transactions render the Stored (250) badge in transaction logs.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin transactions audit log renders Stored (250) badge for local stored deliveries")
+    public void testAdminTransactionsStored250Badge() throws Exception
+    {
+        final MailTransaction tx250 = new MailTransaction(250, "sender@test.com", "box@xcmailr.test", null);
+        tx250.setTs(System.currentTimeMillis());
+        transactionRepository.save(tx250);
+
+        mockMvc.perform(get("/admin/transactions")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("Stored (250)")));
     }
 
     // =========================================================================

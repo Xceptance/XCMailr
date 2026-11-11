@@ -80,6 +80,9 @@ public class SmtpDeliveryIT
     private MailTransactionRepository mailTransactionRepository;
 
     @Autowired
+    private MailTransactionQueueService transactionQueueService;
+
+    @Autowired
     private DomainRepository domainRepository;
 
     @Autowired
@@ -95,6 +98,7 @@ public class SmtpDeliveryIT
         mailboxRepository.deleteAll();
         userRepository.deleteAll();
         domainRepository.deleteAll();
+        transactionQueueService.clear();
 
         // Ensure whitelisted domain
         final Domain domain = new Domain("xcmailr.test");
@@ -103,6 +107,22 @@ public class SmtpDeliveryIT
         testUser = new User("Smtp", "Tester", "smtp_forward_target@realdomain.test", "password", "en");
         testUser.setActive(true);
         userRepository.save(testUser);
+    }
+
+    /**
+     * Drains any transactions enqueued in {@link MailTransactionQueueService}, persists them to
+     * {@link MailTransactionRepository}, and returns all stored transactions.
+     *
+     * @return all transactions
+     */
+    private List<MailTransaction> getAllTransactions()
+    {
+        final List<MailTransaction> queued = transactionQueueService.drainAll();
+        if (!queued.isEmpty())
+        {
+            mailTransactionRepository.saveAll(queued);
+        }
+        return mailTransactionRepository.findAll();
     }
 
     @Test
@@ -121,7 +141,7 @@ public class SmtpDeliveryIT
         assertNotNull(exception.getMessage(), "Relay attempt should fail");
 
         // Verify MTX status 500 (relay denied)
-        final List<MailTransaction> transactions = mailTransactionRepository.findAll();
+        final List<MailTransaction> transactions = getAllTransactions();
         assertFalse(transactions.isEmpty(), "Relay rejection should be recorded in MailTransaction");
         final MailTransaction mtx = transactions.stream()
                                                 .filter(t -> t.getStatus() == 500)
@@ -155,7 +175,7 @@ public class SmtpDeliveryIT
         assertTrue(new String(savedMail.getMessage(), StandardCharsets.UTF_8).contains("Hello from SMTP integration test!"));
 
         // Verify transaction logged
-        final List<MailTransaction> transactions = mailTransactionRepository.findAll();
+        final List<MailTransaction> transactions = getAllTransactions();
         final MailTransaction forwardTx = transactions.stream()
                                                       .filter(t -> t.getStatus() == 300)
                                                       .findFirst()
@@ -187,7 +207,7 @@ public class SmtpDeliveryIT
         assertEquals(1, reloaded.getSuppressions(), "Suppressions counter should be incremented");
 
         // Verify transaction status 200
-        final List<MailTransaction> transactions = mailTransactionRepository.findAll();
+        final List<MailTransaction> transactions = getAllTransactions();
         final MailTransaction dropTx = transactions.stream()
                                                    .filter(t -> t.getStatus() == 200)
                                                    .findFirst()
@@ -221,7 +241,7 @@ public class SmtpDeliveryIT
         assertEquals(0, reloaded.getForwards(), "Forward counter should NOT be incremented when loop is broken");
 
         // No status 300 forward transaction should exist
-        final List<MailTransaction> transactions = mailTransactionRepository.findAll();
+        final List<MailTransaction> transactions = getAllTransactions();
         final boolean forwardTxExists = transactions.stream().anyMatch(t -> t.getStatus() == 300);
         assertFalse(forwardTxExists, "Forward transaction should not be created for looped message");
     }
@@ -246,7 +266,7 @@ public class SmtpDeliveryIT
         assertEquals(0, mailRepository.count(), "No mail should be stored for non-existent mailbox");
 
         // Verify transaction status 100 (mailbox not found) was recorded
-        final List<MailTransaction> transactions = mailTransactionRepository.findAll();
+        final List<MailTransaction> transactions = getAllTransactions();
         final MailTransaction dropTx = transactions.stream()
                                                    .filter(t -> t.getStatus() == 100)
                                                    .findFirst()
@@ -287,13 +307,42 @@ public class SmtpDeliveryIT
         assertEquals(1, reloaded.getSuppressions(), "Suppressions counter should be incremented");
 
         // Verify transaction status 600 was recorded
-        final List<MailTransaction> transactions = mailTransactionRepository.findAll();
+        final List<MailTransaction> transactions = getAllTransactions();
         final MailTransaction dropTx = transactions.stream()
                                                    .filter(t -> t.getStatus() == 600)
                                                    .findFirst()
                                                    .orElse(null);
         assertNotNull(dropTx, "Should have logged status 600 for inactive user drop");
         assertEquals("disabled_owner@realdomain.test", dropTx.getTargetaddr());
+    }
+
+    @Test
+    @DisplayName("Should deliver and store email when forwarding is disabled, and log status 250 in queue")
+    public void testInboundDeliveryStoredWithoutForwarding() throws Exception
+    {
+        final int port = smtpServerService.getPort();
+        assertTrue(port > 0, "SMTP server port should be bound");
+
+        final MBox storeBox = new MBox("storeonly", "xcmailr.test", 0L, false, testUser);
+        storeBox.setActive(true);
+        storeBox.setForwardEmails(false);
+        mailboxRepository.save(storeBox);
+
+        sendSmtpEmail(port, "sender@example.com", "storeonly@xcmailr.test",
+                      "Store Only Subject", "Mail stored without forward", null);
+
+        // Verify Mail entity saved
+        final List<Mail> mails = mailRepository.findByMailboxOrderByReceiveTimeAsc(storeBox.getId());
+        assertEquals(1, mails.size(), "Email should be stored in database");
+
+        // Verify status 250 logged in queue
+        final List<MailTransaction> transactions = getAllTransactions();
+        final MailTransaction storeTx = transactions.stream()
+                                                    .filter(t -> t.getStatus() == 250)
+                                                    .findFirst()
+                                                    .orElse(null);
+        assertNotNull(storeTx, "Should have logged status 250 for stored message");
+        assertEquals("storeonly@xcmailr.test", storeTx.getRelayaddr());
     }
 
     /**
