@@ -17,16 +17,15 @@ package com.xceptance.xcmailr.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.time.Instant;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,12 +34,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.xceptance.xcmailr.dto.ChartDataDto;
-import com.xceptance.xcmailr.repositories.MailTransactionRepository;
-import com.xceptance.xcmailr.repositories.MailTransactionRepository.TransactionStatEntry;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository.DailyTrafficStatEntry;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository.QuarterHourTrafficStatEntry;
 
 /**
  * Unit tests for {@link EmailStatisticsService} following the test pyramid.
- * Verifies happy path aggregation, zero-fill continuity, and edge case boundary clamping.
+ * Verifies happy path aggregation, zero-fill continuity, and boundary handling from {@code MAIL_STATISTICS}.
  *
  * @author Xceptance Software Technologies GmbH
  */
@@ -48,36 +48,84 @@ class EmailStatisticsServiceTest
 {
     private static final ZoneId UTC = ZoneOffset.UTC;
 
-    private MailTransactionRepository transactionRepository;
+    private MailStatisticsRepository mailStatisticsRepository;
     private EmailStatisticsService statisticsService;
 
     @BeforeEach
     void setUp()
     {
-        transactionRepository = mock(MailTransactionRepository.class);
-        statisticsService = new EmailStatisticsService(transactionRepository, UTC);
+        mailStatisticsRepository = mock(MailStatisticsRepository.class);
+        statisticsService = new EmailStatisticsService(mailStatisticsRepository, UTC);
     }
 
-    private static TransactionStatEntry createEntry(final long ts, final int status)
+    private static DailyTrafficStatEntry createDailyEntry(final Date date, final long forwarded, final long stored, final long dropped)
     {
-        return new TransactionStatEntry()
+        return new DailyTrafficStatEntry()
         {
             @Override
-            public Long getTs()
+            public Date getDate()
             {
-                return ts;
+                return date;
             }
 
             @Override
-            public int getStatus()
+            public long getForwardCount()
             {
-                return status;
+                return forwarded;
+            }
+
+            @Override
+            public long getStoreCount()
+            {
+                return stored;
+            }
+
+            @Override
+            public long getDropCount()
+            {
+                return dropped;
+            }
+        };
+    }
+
+    private static QuarterHourTrafficStatEntry createQuarterHourEntry(final Date date, final int quarterHour, final long forwarded, final long stored, final long dropped)
+    {
+        return new QuarterHourTrafficStatEntry()
+        {
+            @Override
+            public Date getDate()
+            {
+                return date;
+            }
+
+            @Override
+            public int getQuarterHour()
+            {
+                return quarterHour;
+            }
+
+            @Override
+            public long getForwardCount()
+            {
+                return forwarded;
+            }
+
+            @Override
+            public long getStoreCount()
+            {
+                return stored;
+            }
+
+            @Override
+            public long getDropCount()
+            {
+                return dropped;
             }
         };
     }
 
     @Test
-    @DisplayName("Happy Path: Last 24 Hours aggregates forwarded, stored, and dropped counts into correct hourly buckets")
+    @DisplayName("Happy Path: Last 24 Hours aggregates quarter-hour forwarded, stored, and dropped counts into correct hourly buckets")
     void testGetLast24HoursChartData_HappyPath()
     {
         // Fixed anchor time: 2026-11-10T15:30:00Z
@@ -85,24 +133,22 @@ class EmailStatisticsServiceTest
         final long now = nowZdt.toInstant().toEpochMilli();
 
         // 24 hours window starts at 2026-11-09T16:00:00Z
-        final ZonedDateTime startZdt = nowZdt.truncatedTo(ChronoUnit.HOURS).minusHours(23);
-        final long startEpoch = startZdt.toInstant().toEpochMilli();
+        final Date yesterday = Date.valueOf(LocalDate.of(2026, 11, 9));
+        final Date today = Date.valueOf(LocalDate.of(2026, 11, 10));
 
-        final List<TransactionStatEntry> entries = new ArrayList<>();
-        // Bucket 0: 2026-11-09T16:15:00Z -> 1 forwarded (300), 1 stored (250), 1 dropped (100)
-        entries.add(createEntry(startEpoch + 15 * 60_000L, 300));
-        entries.add(createEntry(startEpoch + 18 * 60_000L, 250));
-        entries.add(createEntry(startEpoch + 20 * 60_000L, 100));
+        final List<QuarterHourTrafficStatEntry> entries = new ArrayList<>();
+        // Bucket 0: 2026-11-09 16:00 (quarterHour 64) -> 1 forwarded, 1 stored, 1 dropped
+        entries.add(createQuarterHourEntry(yesterday, 64, 1, 1, 1));
+        // Bucket 0: 2026-11-09 16:15 (quarterHour 65) -> 1 forwarded, 0 stored, 0 dropped
+        entries.add(createQuarterHourEntry(yesterday, 65, 1, 0, 0));
 
-        // Bucket 12: 12 hours after start -> 2 forwarded (300), 1 stored (250)
-        entries.add(createEntry(startEpoch + 12 * 3600_000L + 5 * 60_000L, 300));
-        entries.add(createEntry(startEpoch + 12 * 3600_000L + 8 * 60_000L, 250));
-        entries.add(createEntry(startEpoch + 12 * 3600_000L + 10 * 60_000L, 300));
+        // Bucket 12: 12 hours after start (2026-11-10 04:00, quarterHour 16) -> 2 forwarded, 1 stored, 0 dropped
+        entries.add(createQuarterHourEntry(today, 16, 2, 1, 0));
 
-        // Bucket 23 (current hour): 2026-11-10T15:10:00Z -> 1 dropped (400)
-        entries.add(createEntry(nowZdt.truncatedTo(ChronoUnit.HOURS).toInstant().toEpochMilli() + 10 * 60_000L, 400));
+        // Bucket 23 (current hour): 2026-11-10 15:00 (quarterHour 60) -> 0 forwarded, 0 stored, 1 dropped
+        entries.add(createQuarterHourEntry(today, 60, 0, 0, 1));
 
-        when(transactionRepository.findStatsSince(anyLong())).thenReturn(entries);
+        when(mailStatisticsRepository.findQuarterHourTrafficStatsSince(any(Date.class))).thenReturn(entries);
 
         final ChartDataDto dto = statisticsService.getLast24HoursChartData(now);
 
@@ -116,8 +162,8 @@ class EmailStatisticsServiceTest
         assertEquals("16:00", dto.labels().get(0));
         assertEquals("15:00", dto.labels().get(23));
 
-        // Bucket 0
-        assertEquals(1L, dto.forwarded().get(0));
+        // Bucket 0: 1+1=2 forwarded, 1 stored, 1 dropped
+        assertEquals(2L, dto.forwarded().get(0));
         assertEquals(1L, dto.stored().get(0));
         assertEquals(1L, dto.dropped().get(0));
 
@@ -133,11 +179,11 @@ class EmailStatisticsServiceTest
     }
 
     @Test
-    @DisplayName("Special Case: Zero-fill continuity ensures continuous zero baseline when no transactions exist")
+    @DisplayName("Special Case: Zero-fill continuity ensures continuous zero baseline when no statistics exist")
     void testGetLast24HoursChartData_ZeroFillWhenEmpty()
     {
         final long now = ZonedDateTime.of(2026, 11, 10, 12, 0, 0, 0, UTC).toInstant().toEpochMilli();
-        when(transactionRepository.findStatsSince(anyLong())).thenReturn(List.of());
+        when(mailStatisticsRepository.findQuarterHourTrafficStatsSince(any(Date.class))).thenReturn(List.of());
 
         final ChartDataDto dto = statisticsService.getLast24HoursChartData(now);
 
@@ -152,30 +198,37 @@ class EmailStatisticsServiceTest
     }
 
     @Test
-    @DisplayName("Edge Case: Boundary clamping handles transactions at exact boundary, past now, or before window")
-    void testGetLast24HoursChartData_BoundaryClamping()
+    @DisplayName("Edge Case: Boundary handling ignores quarter hours before window start, beyond current hour, or invalid entries")
+    void testGetLast24HoursChartData_BoundaryHandling()
     {
         final ZonedDateTime nowZdt = ZonedDateTime.of(2026, 11, 10, 10, 15, 0, 0, UTC);
         final long now = nowZdt.toInstant().toEpochMilli();
-        final ZonedDateTime startZdt = nowZdt.truncatedTo(ChronoUnit.HOURS).minusHours(23);
-        final long startEpoch = startZdt.toInstant().toEpochMilli();
+        // Window: 2026-11-09 11:00 (quarterHour 44) to 2026-11-10 10:00 (quarterHour 40)
+        final Date yesterday = Date.valueOf(LocalDate.of(2026, 11, 9));
+        final Date today = Date.valueOf(LocalDate.of(2026, 11, 10));
 
-        final List<TransactionStatEntry> entries = new ArrayList<>();
-        // Before window (should be ignored)
-        entries.add(createEntry(startEpoch - 1000L, 300));
+        final List<QuarterHourTrafficStatEntry> entries = new ArrayList<>();
+        // Before window (10:45 yesterday, quarterHour 43) -> ignored
+        entries.add(createQuarterHourEntry(yesterday, 43, 10, 0, 0));
 
-        // Exact start boundary
-        entries.add(createEntry(startEpoch, 300));
+        // Exact start boundary (11:00 yesterday, quarterHour 44) -> bucket 0
+        entries.add(createQuarterHourEntry(yesterday, 44, 5, 2, 1));
 
-        // In the future / beyond now (clamped to bucket 23)
-        entries.add(createEntry(now + 3600_000L, 200));
+        // Beyond window (11:00 today, quarterHour 44) -> ignored
+        entries.add(createQuarterHourEntry(today, 44, 15, 0, 0));
 
-        when(transactionRepository.findStatsSince(anyLong())).thenReturn(entries);
+        // Invalid quarterHour (<0 or >95) or null date -> ignored
+        entries.add(createQuarterHourEntry(today, -1, 1, 0, 0));
+        entries.add(createQuarterHourEntry(today, 96, 1, 0, 0));
+        entries.add(createQuarterHourEntry(null, 20, 1, 0, 0));
+
+        when(mailStatisticsRepository.findQuarterHourTrafficStatsSince(any(Date.class))).thenReturn(entries);
 
         final ChartDataDto dto = statisticsService.getLast24HoursChartData(now);
 
-        assertEquals(1L, dto.forwarded().get(0), "Exact start boundary should fall in bucket 0");
-        assertEquals(1L, dto.dropped().get(23), "Future transaction should be defensively clamped to bucket 23");
+        assertEquals(5L, dto.forwarded().get(0), "Exact start boundary should fall in bucket 0");
+        assertEquals(2L, dto.stored().get(0));
+        assertEquals(1L, dto.dropped().get(0));
     }
 
     @Test
@@ -187,23 +240,17 @@ class EmailStatisticsServiceTest
         final long now = nowZdt.toInstant().toEpochMilli();
 
         // 7 days: 2026-11-04 to 2026-11-10
-        final LocalDate startDay = LocalDate.of(2026, 11, 4);
-        final long day0Epoch = startDay.atStartOfDay(UTC).toInstant().toEpochMilli();
+        final Date day0 = Date.valueOf(LocalDate.of(2026, 11, 4));
+        final Date day6 = Date.valueOf(LocalDate.of(2026, 11, 10));
 
-        final List<TransactionStatEntry> entries = new ArrayList<>();
+        final List<DailyTrafficStatEntry> entries = new ArrayList<>();
         // Day 0 (2026-11-04): 3 forwarded, 1 stored, 1 dropped
-        entries.add(createEntry(day0Epoch + 3600_000L, 300));
-        entries.add(createEntry(day0Epoch + 7200_000L, 300));
-        entries.add(createEntry(day0Epoch + 9000_000L, 250)); // stored
-        entries.add(createEntry(day0Epoch + 10800_000L, 300));
-        entries.add(createEntry(day0Epoch + 14400_000L, 500)); // dropped
+        entries.add(createDailyEntry(day0, 3, 1, 1));
 
         // Day 6 (Today, 2026-11-10): 2 forwarded, 1 stored, 0 dropped
-        entries.add(createEntry(now - 2000L, 250)); // stored
-        entries.add(createEntry(now - 1000L, 300));
-        entries.add(createEntry(now, 300));
+        entries.add(createDailyEntry(day6, 2, 1, 0));
 
-        when(transactionRepository.findStatsSince(anyLong())).thenReturn(entries);
+        when(mailStatisticsRepository.findDailyTrafficStatsSince(any(Date.class))).thenReturn(entries);
 
         final ChartDataDto dto = statisticsService.getLast7DaysChartData(now);
 
@@ -235,11 +282,11 @@ class EmailStatisticsServiceTest
     }
 
     @Test
-    @DisplayName("Special Case: Last 7 Days zero-fill continuity when no transactions exist")
+    @DisplayName("Special Case: Last 7 Days zero-fill continuity when no statistics exist")
     void testGetLast7DaysChartData_ZeroFillWhenEmpty()
     {
         final long now = ZonedDateTime.of(2026, 11, 10, 12, 0, 0, 0, UTC).toInstant().toEpochMilli();
-        when(transactionRepository.findStatsSince(anyLong())).thenReturn(List.of());
+        when(mailStatisticsRepository.findDailyTrafficStatsSince(any(Date.class))).thenReturn(List.of());
 
         final ChartDataDto dto = statisticsService.getLast7DaysChartData(now);
 
@@ -254,34 +301,41 @@ class EmailStatisticsServiceTest
     }
 
     @Test
-    @DisplayName("Edge Case: Last 7 Days handles entries before start day or clamped to end day")
-    void testGetLast7DaysChartData_BoundaryClamping()
+    @DisplayName("Edge Case: Last 7 Days ignores entries before start date or beyond current date")
+    void testGetLast7DaysChartData_BoundaryHandling()
     {
         final ZonedDateTime nowZdt = ZonedDateTime.of(2026, 11, 10, 12, 0, 0, 0, UTC);
         final long now = nowZdt.toInstant().toEpochMilli();
-        final LocalDate startDay = LocalDate.of(2026, 11, 4);
-        final long startEpoch = startDay.atStartOfDay(UTC).toInstant().toEpochMilli();
 
-        final List<TransactionStatEntry> entries = new ArrayList<>();
-        // Before start epoch
-        entries.add(createEntry(startEpoch - 1000L, 300));
+        final Date pastDate = Date.valueOf(LocalDate.of(2026, 11, 3));
+        final Date startDate = Date.valueOf(LocalDate.of(2026, 11, 4));
+        final Date futureDate = Date.valueOf(LocalDate.of(2026, 11, 11));
+
+        final List<DailyTrafficStatEntry> entries = new ArrayList<>();
+        // Before start date
+        entries.add(createDailyEntry(pastDate, 10, 10, 10));
+        // Valid start date
+        entries.add(createDailyEntry(startDate, 1, 2, 3));
         // Future date beyond 7 days
-        final long futureEpoch = LocalDate.of(2026, 11, 12).atStartOfDay(UTC).toInstant().toEpochMilli();
-        entries.add(createEntry(futureEpoch, 100));
+        entries.add(createDailyEntry(futureDate, 5, 5, 5));
+        // Null date entry
+        entries.add(createDailyEntry(null, 1, 1, 1));
 
-        when(transactionRepository.findStatsSince(anyLong())).thenReturn(entries);
+        when(mailStatisticsRepository.findDailyTrafficStatsSince(any(Date.class))).thenReturn(entries);
 
         final ChartDataDto dto = statisticsService.getLast7DaysChartData(now);
 
-        assertEquals(0L, dto.forwarded().get(0), "Transaction before start epoch should be ignored");
-        assertEquals(1L, dto.dropped().get(6), "Transaction on future date should be defensively clamped to bucket 6");
+        assertEquals(1L, dto.forwarded().get(0));
+        assertEquals(2L, dto.stored().get(0));
+        assertEquals(3L, dto.dropped().get(0));
     }
 
     @Test
     @DisplayName("Special Case: Default no-arg methods execute without throwing")
     void testDefaultNoArgMethods()
     {
-        when(transactionRepository.findStatsSince(anyLong())).thenReturn(List.of());
+        when(mailStatisticsRepository.findQuarterHourTrafficStatsSince(any(Date.class))).thenReturn(List.of());
+        when(mailStatisticsRepository.findDailyTrafficStatsSince(any(Date.class))).thenReturn(List.of());
 
         final ChartDataDto h24 = statisticsService.getLast24HoursChartData();
         final ChartDataDto d7 = statisticsService.getLast7DaysChartData();

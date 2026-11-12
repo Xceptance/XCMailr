@@ -35,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.xceptance.xcmailr.dto.DomainStatisticsDto;
 import com.xceptance.xcmailr.models.MailStatistics;
 import com.xceptance.xcmailr.models.MailStatisticsKey;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository.DailyTrafficStatEntry;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository.QuarterHourTrafficStatEntry;
 
 /**
  * Repository slice and integration tests for {@link MailStatisticsRepository} domain aggregation query.
@@ -197,5 +199,83 @@ public class MailStatisticsRepositoryTest
         assertEquals(yesterday, r3.date());
         assertEquals("example.com", r3.domain());
         assertEquals(3L, r3.totalCount());
+    }
+
+    @Test
+    @DisplayName("Happy Path: findDailyTrafficStatsSince aggregates drop, forward, and store totals across all domains ordered by date ASC")
+    public void testFindDailyTrafficStatsSinceAggregatesAcrossDomains()
+    {
+        final Date twoDaysAgo = Date.valueOf(LocalDate.now().minusDays(2));
+
+        // Today: domain A has (10 drops, 20 forwards, 30 stores), domain B has (5 drops, 15 forwards, 25 stores)
+        final MailStatistics todayA = new MailStatistics(
+            new MailStatisticsKey(today, 10, "doma.com", "xcmailr.test"), 10, 20, 30);
+        final MailStatistics todayB = new MailStatistics(
+            new MailStatisticsKey(today, 20, "domb.com", "xcmailr.test"), 5, 15, 25);
+
+        // Yesterday: domain A has (2 drops, 4 forwards, 6 stores)
+        final MailStatistics yesterdayA = new MailStatistics(
+            new MailStatisticsKey(yesterday, 10, "doma.com", "xcmailr.test"), 2, 4, 6);
+
+        // Older than cutoff: should be excluded
+        final MailStatistics oldEntry = new MailStatistics(
+            new MailStatisticsKey(twoDaysAgo, 10, "old.com", "xcmailr.test"), 100, 100, 100);
+
+        mailStatisticsRepository.saveAll(List.of(todayA, todayB, yesterdayA, oldEntry));
+
+        final List<DailyTrafficStatEntry> results = mailStatisticsRepository.findDailyTrafficStatsSince(yesterday);
+        assertNotNull(results);
+        assertEquals(2, results.size(), "Should return exactly 2 daily entries (yesterday and today)");
+
+        // 1st entry: yesterday
+        final DailyTrafficStatEntry day1 = results.get(0);
+        assertEquals(yesterday, day1.getDate());
+        assertEquals(4L, day1.getForwardCount());
+        assertEquals(6L, day1.getStoreCount());
+        assertEquals(2L, day1.getDropCount());
+
+        // 2nd entry: today (aggregated across doma.com and domb.com)
+        final DailyTrafficStatEntry day2 = results.get(1);
+        assertEquals(today, day2.getDate());
+        assertEquals(35L, day2.getForwardCount(), "Forwards: 20 + 15 = 35");
+        assertEquals(55L, day2.getStoreCount(), "Stores: 30 + 25 = 55");
+        assertEquals(15L, day2.getDropCount(), "Drops: 10 + 5 = 15");
+    }
+
+    @Test
+    @DisplayName("Happy Path: findQuarterHourTrafficStatsSince aggregates totals by date and quarter-hour slot across domains")
+    public void testFindQuarterHourTrafficStatsSinceAggregatesAcrossDomains()
+    {
+        // Slot 12 on today: domain A (1 drop, 2 forwards, 3 stores), domain B (4 drops, 5 forwards, 6 stores)
+        final MailStatistics slot12A = new MailStatistics(
+            new MailStatisticsKey(today, 12, "doma.com", "xcmailr.test"), 1, 2, 3);
+        final MailStatistics slot12B = new MailStatistics(
+            new MailStatisticsKey(today, 12, "domb.com", "xcmailr.test"), 4, 5, 6);
+
+        // Slot 13 on today: domain A (10 drops, 20 forwards, 30 stores)
+        final MailStatistics slot13A = new MailStatistics(
+            new MailStatisticsKey(today, 13, "doma.com", "xcmailr.test"), 10, 20, 30);
+
+        mailStatisticsRepository.saveAll(List.of(slot12A, slot12B, slot13A));
+
+        final List<QuarterHourTrafficStatEntry> results = mailStatisticsRepository.findQuarterHourTrafficStatsSince(today);
+        assertNotNull(results);
+        assertEquals(2, results.size(), "Should return 2 quarter-hour intervals");
+
+        // 1st entry: slot 12
+        final QuarterHourTrafficStatEntry entry1 = results.get(0);
+        assertEquals(today, entry1.getDate());
+        assertEquals(12, entry1.getQuarterHour());
+        assertEquals(7L, entry1.getForwardCount(), "Forwards: 2 + 5 = 7");
+        assertEquals(9L, entry1.getStoreCount(), "Stores: 3 + 6 = 9");
+        assertEquals(5L, entry1.getDropCount(), "Drops: 1 + 4 = 5");
+
+        // 2nd entry: slot 13
+        final QuarterHourTrafficStatEntry entry2 = results.get(1);
+        assertEquals(today, entry2.getDate());
+        assertEquals(13, entry2.getQuarterHour());
+        assertEquals(20L, entry2.getForwardCount());
+        assertEquals(30L, entry2.getStoreCount());
+        assertEquals(10L, entry2.getDropCount());
     }
 }

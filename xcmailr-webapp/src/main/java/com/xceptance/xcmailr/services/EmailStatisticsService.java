@@ -15,6 +15,7 @@
  */
 package com.xceptance.xcmailr.services;
 
+import java.sql.Date;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -22,7 +23,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -32,15 +32,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.xceptance.xcmailr.dto.ChartDataDto;
-import com.xceptance.xcmailr.repositories.MailTransactionRepository;
-import com.xceptance.xcmailr.repositories.MailTransactionRepository.TransactionStatEntry;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository.DailyTrafficStatEntry;
+import com.xceptance.xcmailr.repositories.MailStatisticsRepository.QuarterHourTrafficStatEntry;
 
 /**
  * Service providing statistical time-series aggregations of inbound and relay email
- * transactions for administrative dashboard charts.
+ * traffic metrics for administrative dashboard charts.
  * <p>
- * Aggregates email delivery metrics into continuous time buckets with automatic
- * zero-filling for inactive intervals and defensive boundary clamping.
+ * Aggregates email delivery metrics from {@code MAIL_STATISTICS} into continuous time buckets
+ * with automatic zero-filling for inactive intervals and defensive boundary handling.
  * </p>
  *
  * @author Xceptance Software Technologies GmbH
@@ -66,29 +67,29 @@ public class EmailStatisticsService
     private static final DateTimeFormatter HOURLY_LABEL_FORMATTER = DateTimeFormatter.ofPattern("HH:00");
     private static final DateTimeFormatter DAILY_LABEL_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    private final MailTransactionRepository transactionRepository;
+    private final MailStatisticsRepository mailStatisticsRepository;
     private final ZoneId zoneId;
 
     /**
      * Constructs the statistics service using system default time zone.
      *
-     * @param transactionRepository the repository providing transaction audit records
+     * @param mailStatisticsRepository the repository providing aggregated mail statistics
      */
     @Autowired
-    public EmailStatisticsService(final MailTransactionRepository transactionRepository)
+    public EmailStatisticsService(final MailStatisticsRepository mailStatisticsRepository)
     {
-        this(transactionRepository, ZoneId.systemDefault());
+        this(mailStatisticsRepository, ZoneId.systemDefault());
     }
 
     /**
      * Constructs the statistics service with an explicit time zone for deterministic testing.
      *
-     * @param transactionRepository the repository providing transaction audit records
+     * @param mailStatisticsRepository the repository providing aggregated mail statistics
      * @param zoneId the time zone for date truncation and bucket boundary calculations
      */
-    public EmailStatisticsService(final MailTransactionRepository transactionRepository, final ZoneId zoneId)
+    public EmailStatisticsService(final MailStatisticsRepository mailStatisticsRepository, final ZoneId zoneId)
     {
-        this.transactionRepository = transactionRepository;
+        this.mailStatisticsRepository = mailStatisticsRepository;
         this.zoneId = zoneId != null ? zoneId : ZoneId.systemDefault();
     }
 
@@ -104,7 +105,8 @@ public class EmailStatisticsService
 
     /**
      * Computes the 24-hour email activity chart dataset ending at the given epoch millisecond.
-     * Generates 24 continuous hourly buckets ending at the hour of {@code now}.
+     * Generates 24 continuous hourly buckets ending at the hour of {@code now} by aggregating
+     * 15-minute intervals from {@code MAIL_STATISTICS}.
      *
      * @param now epoch milliseconds representing the current time
      * @return time-series chart data with 24 continuous hourly buckets
@@ -113,7 +115,7 @@ public class EmailStatisticsService
     {
         final ZonedDateTime nowZdt = Instant.ofEpochMilli(now).atZone(zoneId).truncatedTo(ChronoUnit.HOURS);
         final ZonedDateTime startZdt = nowZdt.minusHours(HOURS_IN_DAY - 1);
-        final long startEpochMs = startZdt.toInstant().toEpochMilli();
+        final ZonedDateTime endExclusiveZdt = startZdt.plusHours(HOURS_IN_DAY);
 
         final List<String> labels = new ArrayList<>(HOURS_IN_DAY);
         for (int i = 0; i < HOURS_IN_DAY; i++)
@@ -126,36 +128,28 @@ public class EmailStatisticsService
         final long[] stored = new long[HOURS_IN_DAY];
         final long[] dropped = new long[HOURS_IN_DAY];
 
-        final List<TransactionStatEntry> entries = transactionRepository.findStatsSince(startEpochMs);
-        for (final TransactionStatEntry entry : entries)
+        final Date queryStartDate = Date.valueOf(startZdt.toLocalDate());
+        final List<QuarterHourTrafficStatEntry> entries = mailStatisticsRepository.findQuarterHourTrafficStatsSince(queryStartDate);
+
+        for (final QuarterHourTrafficStatEntry entry : entries)
         {
-            final long ts = entry.getTs();
-            if (ts < startEpochMs)
+            if (entry == null || entry.getDate() == null || entry.getQuarterHour() < 0 || entry.getQuarterHour() > 95)
             {
                 continue;
             }
 
-            int bucketIndex = (int) ((ts - startEpochMs) / 3600_000L);
-            if (bucketIndex < 0)
+            final ZonedDateTime slotZdt = entry.getDate().toLocalDate().atStartOfDay(zoneId).plusMinutes(entry.getQuarterHour() * 15L);
+            if (slotZdt.isBefore(startZdt) || !slotZdt.isBefore(endExclusiveZdt))
             {
                 continue;
             }
-            if (bucketIndex >= HOURS_IN_DAY)
-            {
-                bucketIndex = HOURS_IN_DAY - 1;
-            }
 
-            if (entry.getStatus() == STATUS_FORWARDED)
+            final int bucketIndex = (int) ChronoUnit.HOURS.between(startZdt, slotZdt);
+            if (bucketIndex >= 0 && bucketIndex < HOURS_IN_DAY)
             {
-                forwarded[bucketIndex]++;
-            }
-            else if (entry.getStatus() == STATUS_STORED)
-            {
-                stored[bucketIndex]++;
-            }
-            else
-            {
-                dropped[bucketIndex]++;
+                forwarded[bucketIndex] += entry.getForwardCount();
+                stored[bucketIndex] += entry.getStoreCount();
+                dropped[bucketIndex] += entry.getDropCount();
             }
         }
 
@@ -174,7 +168,8 @@ public class EmailStatisticsService
 
     /**
      * Computes the 7-day email activity chart dataset ending at the given epoch millisecond.
-     * Generates 7 continuous daily buckets ending on the local date of {@code now}.
+     * Generates 7 continuous daily buckets ending on the local date of {@code now} by aggregating
+     * daily email volume from {@code MAIL_STATISTICS}.
      *
      * @param now epoch milliseconds representing the current time
      * @return time-series chart data with 7 continuous daily buckets
@@ -183,8 +178,6 @@ public class EmailStatisticsService
     {
         final LocalDate today = Instant.ofEpochMilli(now).atZone(zoneId).toLocalDate();
         final LocalDate startDay = today.minusDays(DAYS_IN_WEEK - 1);
-        final ZonedDateTime startZdt = startDay.atStartOfDay(zoneId);
-        final long startEpochMs = startZdt.toInstant().toEpochMilli();
 
         final List<String> labels = new ArrayList<>(DAYS_IN_WEEK);
         for (int i = 0; i < DAYS_IN_WEEK; i++)
@@ -197,37 +190,23 @@ public class EmailStatisticsService
         final long[] stored = new long[DAYS_IN_WEEK];
         final long[] dropped = new long[DAYS_IN_WEEK];
 
-        final List<TransactionStatEntry> entries = transactionRepository.findStatsSince(startEpochMs);
-        for (final TransactionStatEntry entry : entries)
+        final Date queryStartDate = Date.valueOf(startDay);
+        final List<DailyTrafficStatEntry> entries = mailStatisticsRepository.findDailyTrafficStatsSince(queryStartDate);
+
+        for (final DailyTrafficStatEntry entry : entries)
         {
-            final long ts = entry.getTs();
-            if (ts < startEpochMs)
+            if (entry == null || entry.getDate() == null)
             {
                 continue;
             }
 
-            final LocalDate entryDate = Instant.ofEpochMilli(ts).atZone(zoneId).toLocalDate();
-            int bucketIndex = (int) ChronoUnit.DAYS.between(startDay, entryDate);
-            if (bucketIndex < 0)
+            final LocalDate entryDate = entry.getDate().toLocalDate();
+            final int bucketIndex = (int) ChronoUnit.DAYS.between(startDay, entryDate);
+            if (bucketIndex >= 0 && bucketIndex < DAYS_IN_WEEK)
             {
-                continue;
-            }
-            if (bucketIndex >= DAYS_IN_WEEK)
-            {
-                bucketIndex = DAYS_IN_WEEK - 1;
-            }
-
-            if (entry.getStatus() == STATUS_FORWARDED)
-            {
-                forwarded[bucketIndex]++;
-            }
-            else if (entry.getStatus() == STATUS_STORED)
-            {
-                stored[bucketIndex]++;
-            }
-            else
-            {
-                dropped[bucketIndex]++;
+                forwarded[bucketIndex] += entry.getForwardCount();
+                stored[bucketIndex] += entry.getStoreCount();
+                dropped[bucketIndex] += entry.getDropCount();
             }
         }
 

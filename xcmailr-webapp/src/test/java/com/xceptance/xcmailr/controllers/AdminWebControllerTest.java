@@ -49,6 +49,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.xceptance.xcmailr.XcmailrApplication;
+import com.xceptance.xcmailr.dto.ChartDataDto;
 import com.xceptance.xcmailr.dto.DomainStatisticsDto;
 import com.xceptance.xcmailr.models.Domain;
 import com.xceptance.xcmailr.models.MBox;
@@ -326,6 +327,14 @@ public class AdminWebControllerTest
         final MailTransaction dropTx = new MailTransaction(200, "sender@ext.com", "target@xcmailr.test", null);
         dropTx.setTs(now - 7200_000L);
         transactionRepository.save(dropTx);
+
+        final java.time.LocalDate todayLd = java.time.LocalDate.now();
+        final java.time.LocalTime nowLt = java.time.LocalTime.now();
+        final int currentQuarterHour = (nowLt.getHour() * 4) + (nowLt.getMinute() / 15);
+        final java.sql.Date today = java.sql.Date.valueOf(todayLd);
+        final MailStatisticsKey statKey = new MailStatisticsKey(today, currentQuarterHour, "ext.com", "xcmailr.test");
+        final MailStatistics stat = new MailStatistics(statKey, 1, 1, 0);
+        mailStatisticsRepository.save(stat);
 
         mockMvc.perform(get("/admin/statistics")
                .with(user(admin.getMail()).roles("ADMIN")))
@@ -655,6 +664,66 @@ public class AdminWebControllerTest
                    assertEquals(4L, second.dropCount());
                    assertEquals(5L, second.forwardCount());
                    assertEquals(6L, second.storeCount());
+               });
+    }
+
+    /**
+     * Verifies that the admin statistics dashboard populates {@code chart24h} and {@code chart7d} model
+     * attributes with metrics derived directly from {@code MAIL_STATISTICS}, ensuring parity with domain breakdown tables.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin statistics dashboard populates chart24h and chart7d model attributes from MAIL_STATISTICS (Happy Path)")
+    public void testAdminStatisticsChartsPopulatedFromMailStatistics() throws Exception
+    {
+        final java.time.LocalDate todayLd = java.time.LocalDate.now();
+        final java.time.LocalTime nowLt = java.time.LocalTime.now();
+        final int currentQuarterHour = (nowLt.getHour() * 4) + (nowLt.getMinute() / 15);
+
+        final java.sql.Date today = java.sql.Date.valueOf(todayLd);
+        final java.sql.Date twoDaysAgo = java.sql.Date.valueOf(todayLd.minusDays(2));
+
+        // Insert statistics records directly into MAIL_STATISTICS (and zero rows in mailtransactions)
+        final MailStatisticsKey keyToday = new MailStatisticsKey(today, currentQuarterHour, "today-chart.com", "xcmailr.test");
+        final MailStatistics statToday = new MailStatistics(keyToday, 100, 200, 300);
+        mailStatisticsRepository.save(statToday);
+
+        final MailStatisticsKey keyPast = new MailStatisticsKey(twoDaysAgo, 20, "past-chart.com", "xcmailr.test");
+        final MailStatistics statPast = new MailStatistics(keyPast, 40, 50, 60);
+        mailStatisticsRepository.save(statPast);
+
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attributeExists("chart24h"))
+               .andExpect(model().attributeExists("chart7d"))
+               .andExpect(result -> {
+                   final Object chart24hObj = result.getModelAndView().getModel().get("chart24h");
+                   assertNotNull(chart24hObj);
+                   assertTrue(chart24hObj instanceof ChartDataDto);
+                   final ChartDataDto chart24h = (ChartDataDto) chart24hObj;
+                   assertEquals(24, chart24h.labels().size());
+
+                   final long sum24hForwarded = chart24h.forwarded().stream().mapToLong(Long::longValue).sum();
+                   final long sum24hStored = chart24h.stored().stream().mapToLong(Long::longValue).sum();
+                   final long sum24hDropped = chart24h.dropped().stream().mapToLong(Long::longValue).sum();
+                   assertEquals(200L, sum24hForwarded);
+                   assertEquals(300L, sum24hStored);
+                   assertEquals(100L, sum24hDropped);
+
+                   final Object chart7dObj = result.getModelAndView().getModel().get("chart7d");
+                   assertNotNull(chart7dObj);
+                   assertTrue(chart7dObj instanceof ChartDataDto);
+                   final ChartDataDto chart7d = (ChartDataDto) chart7dObj;
+                   assertEquals(7, chart7d.labels().size());
+
+                   final long sum7dForwarded = chart7d.forwarded().stream().mapToLong(Long::longValue).sum();
+                   final long sum7dStored = chart7d.stored().stream().mapToLong(Long::longValue).sum();
+                   final long sum7dDropped = chart7d.dropped().stream().mapToLong(Long::longValue).sum();
+                   assertEquals(250L, sum7dForwarded);
+                   assertEquals(360L, sum7dStored);
+                   assertEquals(140L, sum7dDropped);
                });
     }
 

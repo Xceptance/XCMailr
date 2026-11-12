@@ -91,4 +91,62 @@ public interface MailStatisticsRepository extends JpaRepository<MailStatistics, 
            "GROUP BY ms.key.date, ms.key.fromDomain " +
            "ORDER BY ms.key.date DESC, (COALESCE(SUM(ms.dropCount), 0L) + COALESCE(SUM(ms.forwardCount), 0L) + COALESCE(SUM(ms.storeCount), 0L)) DESC")
     List<DomainStatisticsDto> findDailyDomainStatisticsSince(@Param("startDate") final Date startDate);
+
+    /**
+     * Projection holding aggregated daily email traffic totals for chart rendering.
+     */
+    public interface DailyTrafficStatEntry
+    {
+        Date getDate();
+        long getForwardCount();
+        long getStoreCount();
+        long getDropCount();
+    }
+
+    /**
+     * Projection holding aggregated quarter-hour interval email traffic totals for chart rendering.
+     */
+    public interface QuarterHourTrafficStatEntry
+    {
+        Date getDate();
+        int getQuarterHour();
+        long getForwardCount();
+        long getStoreCount();
+        long getDropCount();
+    }
+
+    /**
+     * Aggregates email delivery statistics grouped by calendar date since a given date.
+     * Orders the results by calendar date ascending.
+     *
+     * @param startDate earliest inclusive SQL date for statistics aggregation
+     * @return list of daily traffic statistics projection entries
+     */
+    @Query("SELECT ms.key.date AS date, " +
+           "COALESCE(SUM(ms.forwardCount), 0L) AS forwardCount, " +
+           "COALESCE(SUM(ms.storeCount), 0L) AS storeCount, " +
+           "COALESCE(SUM(ms.dropCount), 0L) AS dropCount " +
+           "FROM MailStatistics ms " +
+           "WHERE ms.key.date >= :startDate " +
+           "GROUP BY ms.key.date " +
+           "ORDER BY ms.key.date ASC")
+    List<DailyTrafficStatEntry> findDailyTrafficStatsSince(@Param("startDate") final Date startDate);
+
+    /**
+     * Aggregates email delivery statistics grouped by calendar date and quarter-hour interval since a given date.
+     * Orders the results by calendar date ascending and quarter-hour ascending.
+     *
+     * @param startDate earliest inclusive SQL date for statistics aggregation
+     * @return list of quarter-hour traffic statistics projection entries
+     */
+    @Query("SELECT ms.key.date AS date, " +
+           "ms.key.quarterHour AS quarterHour, " +
+           "COALESCE(SUM(ms.forwardCount), 0L) AS forwardCount, " +
+           "COALESCE(SUM(ms.storeCount), 0L) AS storeCount, " +
+           "COALESCE(SUM(ms.dropCount), 0L) AS dropCount " +
+           "FROM MailStatistics ms " +
+           "WHERE ms.key.date >= :startDate " +
+           "GROUP BY ms.key.date, ms.key.quarterHour " +
+           "ORDER BY ms.key.date ASC, ms.key.quarterHour ASC")
+    List<QuarterHourTrafficStatEntry> findQuarterHourTrafficStatsSince(@Param("startDate") final Date startDate);
 }
