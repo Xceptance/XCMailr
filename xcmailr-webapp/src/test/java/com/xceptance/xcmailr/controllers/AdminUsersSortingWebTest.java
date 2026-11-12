@@ -195,14 +195,14 @@ public final class AdminUsersSortingWebTest
     }
 
     /**
-     * Verifies that sorting by Name ASC sorts directory-style (surname ASC, forename ASC)
-     * and renders the active up-chevron on the Name header.
+     * Verifies that sorting by Last Name ASC sorts directory-style (surname ASC, forename ASC)
+     * and renders the active up-chevron on the Last Name header.
      *
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Happy path: Name ASC sorts composite surname/forename ascending with up-chevron")
-    public void testSorting_HappyPath_NameAscending_SortsCompositeSurnameForename() throws Exception
+    @DisplayName("Happy path: Last Name ASC sorts composite surname/forename ascending with up-chevron")
+    public void testSorting_HappyPath_LastNameAscending_SortsCompositeSurnameForename() throws Exception
     {
         // 1. Adams, Bob
         final User u1 = new User("Bob", "Adams", "bob.adams@xcmailr.test", "Pw123!", "en");
@@ -222,10 +222,10 @@ public final class AdminUsersSortingWebTest
         final MvcResult result = mockMvc.perform(get("/admin/users")
                 .header("HX-Request", "true")
                 .with(user("admin@xcmailr.test").roles("ADMIN"))
-                .param("sort", "name")
+                .param("sort", "lastname")
                 .param("dir", "asc"))
             .andExpect(status().isOk())
-            .andExpect(model().attribute("sort", "name"))
+            .andExpect(model().attribute("sort", "lastname"))
             .andExpect(model().attribute("dir", "asc"))
             .andExpect(content().string(containsString("bi bi-chevron-up sort-icon text-primary ms-1")))
             .andReturn();
@@ -244,14 +244,14 @@ public final class AdminUsersSortingWebTest
     }
 
     /**
-     * Verifies that sorting by Name DESC sorts directory-style (surname DESC, forename DESC)
-     * and renders the active down-chevron on the Name header.
+     * Verifies that sorting by Last Name DESC sorts directory-style (surname DESC, forename DESC)
+     * and renders the active down-chevron on the Last Name header.
      *
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Happy path: Name DESC sorts composite surname/forename descending with down-chevron")
-    public void testSorting_HappyPath_NameDescending_SortsCompositeSurnameForename() throws Exception
+    @DisplayName("Happy path: Last Name DESC sorts composite surname/forename descending with down-chevron")
+    public void testSorting_HappyPath_LastNameDescending_SortsCompositeSurnameForename() throws Exception
     {
         final User u1 = new User("Bob", "Adams", "bob.adams@xcmailr.test", "Pw123!", "en");
         u1.setActive(true);
@@ -267,10 +267,10 @@ public final class AdminUsersSortingWebTest
         final MvcResult result = mockMvc.perform(get("/admin/users")
                 .header("HX-Request", "true")
                 .with(user("admin@xcmailr.test").roles("ADMIN"))
-                .param("sort", "name")
+                .param("sort", "lastname")
                 .param("dir", "desc"))
             .andExpect(status().isOk())
-            .andExpect(model().attribute("sort", "name"))
+            .andExpect(model().attribute("sort", "lastname"))
             .andExpect(model().attribute("dir", "desc"))
             .andExpect(content().string(containsString("bi bi-chevron-down sort-icon text-primary ms-1")))
             .andReturn();
@@ -286,6 +286,100 @@ public final class AdminUsersSortingWebTest
         assertTrue(u4Idx < u3Idx, "Taylor, Charlie must precede Smith, Zoe");
         assertTrue(u3Idx < u2Idx, "Smith, Zoe must precede Smith, Alice (secondary forename DESC)");
         assertTrue(u2Idx < u1Idx, "Smith, Alice must precede Adams, Bob");
+    }
+
+    /**
+     * Verifies that sorting by First Name ASC sorts directory-style (forename ASC, surname ASC)
+     * and renders the active up-chevron on the First Name header.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: First Name ASC sorts composite forename/surname ascending with up-chevron")
+    public void testSorting_HappyPath_FirstNameAscending_SortsCompositeForenameSurname() throws Exception
+    {
+        // 1. Adams, Alice
+        final User u1 = new User("Alice", "Adams", "alice.adams@xcmailr.test", "Pw123!", "en");
+        u1.setActive(true);
+        // 2. Smith, Alice (same forename Alice, surname Smith > Adams)
+        final User u2 = new User("Alice", "Smith", "alice.smith@xcmailr.test", "Pw123!", "en");
+        u2.setActive(true);
+        // 3. Adams, Bob
+        final User u3 = new User("Bob", "Adams", "bob.adams@xcmailr.test", "Pw123!", "en");
+        u3.setActive(true);
+        // 4. Taylor, Charlie
+        final User u4 = new User("Charlie", "Taylor", "charlie.taylor@xcmailr.test", "Pw123!", "en");
+        u4.setActive(true);
+
+        userRepository.saveAll(List.of(u1, u2, u3, u4));
+
+        final MvcResult result = mockMvc.perform(get("/admin/users")
+                .header("HX-Request", "true")
+                .with(user("admin@xcmailr.test").roles("ADMIN"))
+                .param("sort", "firstname")
+                .param("dir", "asc"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("sort", "firstname"))
+            .andExpect(model().attribute("dir", "asc"))
+            .andExpect(content().string(containsString("bi bi-chevron-up sort-icon text-primary ms-1")))
+            .andReturn();
+
+        final String html = result.getResponse().getContentAsString();
+
+        final int u1Idx = html.indexOf("id=\"user-row-" + u1.getId() + "\"");
+        final int u2Idx = html.indexOf("id=\"user-row-" + u2.getId() + "\"");
+        final int u3Idx = html.indexOf("id=\"user-row-" + u3.getId() + "\"");
+        final int u4Idx = html.indexOf("id=\"user-row-" + u4.getId() + "\"");
+
+        assertTrue(u1Idx != -1 && u2Idx != -1 && u3Idx != -1 && u4Idx != -1, "All user rows must be rendered");
+        assertTrue(u1Idx < u2Idx, "Alice Adams must precede Alice Smith (secondary surname ASC)");
+        assertTrue(u2Idx < u3Idx, "Alice Smith must precede Bob Adams");
+        assertTrue(u3Idx < u4Idx, "Bob Adams must precede Charlie Taylor");
+    }
+
+    /**
+     * Verifies that sorting by First Name DESC sorts directory-style (forename DESC, surname DESC)
+     * and renders the active down-chevron on the First Name header.
+     *
+     * @throws Exception if mock MVC request execution fails
+     */
+    @Test
+    @DisplayName("Happy path: First Name DESC sorts composite forename/surname descending with down-chevron")
+    public void testSorting_HappyPath_FirstNameDescending_SortsCompositeForenameSurname() throws Exception
+    {
+        final User u1 = new User("Alice", "Adams", "alice.adams@xcmailr.test", "Pw123!", "en");
+        u1.setActive(true);
+        final User u2 = new User("Alice", "Smith", "alice.smith@xcmailr.test", "Pw123!", "en");
+        u2.setActive(true);
+        final User u3 = new User("Bob", "Adams", "bob.adams@xcmailr.test", "Pw123!", "en");
+        u3.setActive(true);
+        final User u4 = new User("Charlie", "Taylor", "charlie.taylor@xcmailr.test", "Pw123!", "en");
+        u4.setActive(true);
+
+        userRepository.saveAll(List.of(u1, u2, u3, u4));
+
+        final MvcResult result = mockMvc.perform(get("/admin/users")
+                .header("HX-Request", "true")
+                .with(user("admin@xcmailr.test").roles("ADMIN"))
+                .param("sort", "firstname")
+                .param("dir", "desc"))
+            .andExpect(status().isOk())
+            .andExpect(model().attribute("sort", "firstname"))
+            .andExpect(model().attribute("dir", "desc"))
+            .andExpect(content().string(containsString("bi bi-chevron-down sort-icon text-primary ms-1")))
+            .andReturn();
+
+        final String html = result.getResponse().getContentAsString();
+
+        final int u1Idx = html.indexOf("id=\"user-row-" + u1.getId() + "\"");
+        final int u2Idx = html.indexOf("id=\"user-row-" + u2.getId() + "\"");
+        final int u3Idx = html.indexOf("id=\"user-row-" + u3.getId() + "\"");
+        final int u4Idx = html.indexOf("id=\"user-row-" + u4.getId() + "\"");
+
+        assertTrue(u1Idx != -1 && u2Idx != -1 && u3Idx != -1 && u4Idx != -1, "All user rows must be rendered");
+        assertTrue(u4Idx < u3Idx, "Charlie Taylor must precede Bob Adams");
+        assertTrue(u3Idx < u2Idx, "Bob Adams must precede Alice Smith");
+        assertTrue(u2Idx < u1Idx, "Alice Smith must precede Alice Adams (secondary surname DESC)");
     }
 
     /**
@@ -513,11 +607,11 @@ public final class AdminUsersSortingWebTest
                 .header("HX-Request", "true")
                 .with(user("admin@xcmailr.test").roles("ADMIN"))
                 .param("page", "0")
-                .param("sort", "name")
+                .param("sort", "lastname")
                 .param("dir", "desc"))
             .andExpect(status().isOk())
             // Pagination links must include active sort and dir
-            .andExpect(content().string(containsString("sort=name")))
+            .andExpect(content().string(containsString("sort=lastname")))
             .andExpect(content().string(containsString("dir=desc")))
             .andExpect(content().string(containsString("page=1")));
     }
@@ -624,7 +718,7 @@ public final class AdminUsersSortingWebTest
      * @throws Exception if mock MVC request execution fails
      */
     @Test
-    @DisplayName("Special case: Case-insensitive composite Name ordering across varied casing")
+    @DisplayName("Special case: Case-insensitive composite Last Name ordering across varied casing")
     public void testSorting_SpecialCase_CaseInsensitiveCompositeNameOrdering() throws Exception
     {
         final User u1 = new User("Alice", "smith", "alice@xcmailr.test", "Pw123!", "en");
@@ -639,7 +733,7 @@ public final class AdminUsersSortingWebTest
         final MvcResult result = mockMvc.perform(get("/admin/users")
                 .header("HX-Request", "true")
                 .with(user("admin@xcmailr.test").roles("ADMIN"))
-                .param("sort", "name")
+                .param("sort", "lastname")
                 .param("dir", "asc"))
             .andExpect(status().isOk())
             .andReturn();
@@ -740,7 +834,7 @@ public final class AdminUsersSortingWebTest
     {
         mockMvc.perform(get("/admin/users")
                 .with(user("admin@xcmailr.test").roles("ADMIN"))
-                .param("sort", "name")
+                .param("sort", "lastname")
                 .param("dir", "desc"))
             .andExpect(status().isOk())
             .andExpect(view().name("admin/users"))

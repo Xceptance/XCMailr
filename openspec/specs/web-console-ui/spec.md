@@ -425,7 +425,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **AND** triggering any management action on a row operates exclusively on the mailbox rendered in that row, regardless of original insertion order or display sort order, preventing actions from targeting the wrong mailbox due to view sorting desynchronization
 
 ### Requirement: Admin Management Console
-The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, preserving deactivated user accounts and their associated mailboxes indefinitely without automatic deletion by background tasks, presenting structured time-series email traffic activity views over the past 24 hours (hourly line chart) and past 7 days (daily stacked bar chart) covering forwarded, stored, and dropped categories backed by aggregated email traffic metrics from `MAIL_STATISTICS` with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, organizing activity into distinct sections with modern monochrome badges and standard icons, displaying top metric cards with accurate values and granular breakdowns for administrators/users and active/expired mailboxes, presenting an aggregate transaction delivery status badge distribution, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS` with the 24-hour table aggregating across the sliding 24-hour window matching the activity chart and daily date and weekday breakdowns in the 7-day view and client-side case-insensitive column sorting with directional visual chevrons across both tables, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
+The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls including dedicated First Name and Last Name columns, preserving deactivated user accounts and their associated mailboxes indefinitely without automatic deletion by background tasks, presenting structured time-series email traffic activity views over the past 24 hours (hourly line chart) and past 7 days (daily stacked bar chart) covering forwarded, stored, and dropped categories backed by aggregated email traffic metrics from `MAIL_STATISTICS` with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, organizing activity into distinct sections with modern monochrome badges and standard icons, displaying top metric cards with accurate values and granular breakdowns for administrators/users and active/expired mailboxes, presenting an aggregate transaction delivery status badge distribution, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS` with the 24-hour table aggregating across the sliding 24-hour window matching the activity chart and daily date and weekday breakdowns in the 7-day view and client-side case-insensitive column sorting with directional visual chevrons across both tables, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
 
 #### Scenario: Domain Whitelist Configuration
 - **WHEN** an administrator adds or removes an allowed domain via the admin console
@@ -444,10 +444,22 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 - **THEN** the server orders user accounts using case-insensitive natural ordering (`ignoreCase()`) on the `mail` attribute in the requested direction
 - **AND** the table header renders an active directional chevron (`bi-chevron-up` for ASC, `bi-chevron-down` for DESC) with localized tooltip feedback
 
-#### Scenario: User Table Column Sorting by Name (Happy Path)
-- **WHEN** an administrator sorts the user table by name in ascending or descending direction
+#### Scenario: User Table Column Sorting by First Name (Happy Path)
+- **WHEN** an administrator sorts the user table by first name (`sort=firstname` or alias `forename`) in ascending or descending direction
+- **THEN** the server orders user accounts primarily by `forename` and secondarily by `surname` in the requested direction using case-insensitive ordering (`ignoreCase()`)
+- **AND** applies `mail ASC` case-insensitively as a secondary tiebreaker to guarantee deterministic ordering across paginated views
+- **AND** the table header renders an active directional chevron (`bi-chevron-up` for ASC, `bi-chevron-down` for DESC) on the First Name column with localized tooltip feedback
+
+#### Scenario: User Table Column Sorting by Last Name (Happy Path)
+- **WHEN** an administrator sorts the user table by last name (`sort=lastname` or alias `surname`) in ascending or descending direction
 - **THEN** the server orders user accounts primarily by `surname` and secondarily by `forename` in the requested direction using case-insensitive ordering (`ignoreCase()`)
-- **AND** applies `mail ASC` as a secondary tiebreaker to guarantee deterministic ordering across paginated views
+- **AND** applies `mail ASC` case-insensitively as a secondary tiebreaker to guarantee deterministic ordering across paginated views
+- **AND** the table header renders an active directional chevron (`bi-chevron-up` for ASC, `bi-chevron-down` for DESC) on the Last Name column with localized tooltip feedback
+
+#### Scenario: User Table Column Sorting by Name (Happy Path)
+- **WHEN** an administrator sorts the user table by user name
+- **THEN** the administrator sorts either by First Name (`sort=firstname`) or Last Name (`sort=lastname`), with the server ordering by the selected name component with secondary tiebreakers
+- **AND** legacy single `sort=name` queries without first/last specification are safely normalized to default sorting by `email` ascending
 
 #### Scenario: User Table Column Sorting by Status and Role (Happy Path)
 - **WHEN** an administrator sorts the user table by status (`active`) in ascending direction (`dir=asc`)
@@ -469,7 +481,7 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 - **THEN** the server filters users matching the search query across email, forename, or surname and orders the filtered results according to the active column sort
 
 #### Scenario: Unknown or Invalid Sort Column Fallback (Error Case)
-- **WHEN** an inbound request provides a sort column parameter that is not in the allowed whitelist (`email`, `mail`, `name`, `status`, `role`), such as a non-existent column name or random text
+- **WHEN** an inbound request provides a sort column parameter that is not in the allowed whitelist (`email`, `mail`, `firstname`, `forename`, `lastname`, `surname`, `status`, `role`), such as a non-existent column name or random text
 - **THEN** the server safely normalizes the sort column to the default (`email`), applies default ascending direction, and renders the table without throwing an exception
 
 #### Scenario: Invalid Sort Direction Fallback (Error Case)
@@ -481,7 +493,7 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 - **THEN** the server's strict whitelist parser rejects the unsanitized input, normalizes the query to `mail ASC`, returns HTTP 200 with safely ordered data, and logs no SQL syntax exceptions
 
 #### Scenario: Case-Insensitive Parameter Normalization (Special Case)
-- **WHEN** an inbound request provides sort or direction parameters with mixed casing (e.g., `sort=NAME`, `sort=StAtUs`, `dir=ASC`, `dir=Desc`)
+- **WHEN** an inbound request provides sort or direction parameters with mixed casing (e.g., `sort=FIRSTNAME`, `sort=LastName`, `sort=StAtUs`, `dir=ASC`, `dir=Desc`)
 - **THEN** the server normalizes the parameters to lowercase and matches the corresponding whitelist property correctly
 
 #### Scenario: Duplicate Value Deterministic Ordering (Special Case)
@@ -490,7 +502,7 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 
 #### Scenario: Empty Search Results Sorting Headers (Special Case)
 - **WHEN** an administrator searches for a query string that yields zero matching user accounts
-- **THEN** the table displays the localized empty state message while preserving sortable header links with their chevron indicators intact
+- **THEN** the table displays the localized empty state message spanning all columns (6 columns) while preserving sortable header links with their chevron indicators intact
 
 #### Scenario: User Account Deactivation and Data Preservation (Happy Path)
 - **WHEN** an administrator deactivates an active user account via `/admin/users/{id}/toggle-active`

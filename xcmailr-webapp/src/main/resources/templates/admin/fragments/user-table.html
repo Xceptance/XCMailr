@@ -31,13 +31,24 @@
                     </th>
                     <th scope="col" class="d-none d-md-table-cell">
                         <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
-                           th:attr="hx-get=@{/admin/users(sort='name', dir=${sort == 'name' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
-                           th:title="#{admin.users.sort.name}"
-                           title="Sort by Name">
-                            <span th:text="#{admin.users.column.name}">Name</span>
-                            <i th:if="${sort != 'name'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
-                            <i th:if="${sort == 'name' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
-                            <i th:if="${sort == 'name' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                           th:attr="hx-get=@{/admin/users(sort='firstname', dir=${sort == 'firstname' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                           th:title="#{admin.users.sort.firstName}"
+                           title="Sort by First Name">
+                            <span th:text="#{admin.users.column.firstName}">First Name</span>
+                            <i th:if="${sort != 'firstname'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'firstname' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'firstname' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="d-none d-md-table-cell">
+                        <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                           th:attr="hx-get=@{/admin/users(sort='lastname', dir=${sort == 'lastname' ? (dir == 'asc' ? 'desc' : 'asc') : 'asc'}, page=0, size=${page.size}, search=${search})},hx-target='#user-table-container',hx-swap='outerHTML'"
+                           th:title="#{admin.users.sort.lastName}"
+                           title="Sort by Last Name">
+                            <span th:text="#{admin.users.column.lastName}">Last Name</span>
+                            <i th:if="${sort != 'lastname'}" class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'lastname' and dir == 'asc'}" class="bi bi-chevron-up sort-icon text-primary ms-1" aria-hidden="true"></i>
+                            <i th:if="${sort == 'lastname' and dir == 'desc'}" class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
                         </a>
                     </th>
                     <th scope="col" style="width: 110px;">
@@ -67,7 +78,7 @@
             </thead>
             <tbody>
                 <tr th:if="${#lists.isEmpty(users)}">
-                    <td colspan="5" class="text-center text-muted py-4">
+                    <td colspan="6" class="text-center text-muted py-4">
                         <em th:text="#{admin.users.empty}">No user accounts found.</em>
                     </td>
                 </tr>
@@ -85,7 +96,8 @@
                             </span>
                         </div>
                     </td>
-                    <td class="d-none d-md-table-cell" th:text="${u.forename + ' ' + u.surname}">John Doe</td>
+                    <td class="d-none d-md-table-cell" th:text="${u.forename}">John</td>
+                    <td class="d-none d-md-table-cell" th:text="${u.surname}">Doe</td>
                     <td>
                         <span th:if="${u.active}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill">
                             <span class="status-dot status-dot-active"></span><span th:text="#{common.status.active}">Active</span>

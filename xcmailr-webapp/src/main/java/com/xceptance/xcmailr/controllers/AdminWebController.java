@@ -126,7 +126,7 @@ public class AdminWebController
      * Returns "email" if the input parameter is null, blank, or not in the allowed set.
      *
      * @param sort the requested sort column name
-     * @return the normalized whitelist property key ("email", "name", "status", "role"),
+     * @return the normalized whitelist property key ("email", "firstname", "lastname", "status", "role"),
      *         or "email" as the safe fallback
      */
     static String resolveSortField(final String sort)
@@ -138,7 +138,11 @@ public class AdminWebController
         final String cleanSort = sort.trim().toLowerCase();
         return switch (cleanSort)
         {
-            case "email", "mail", "name", "status", "role" -> "mail".equals(cleanSort) ? "email" : cleanSort;
+            case "email", "mail" -> "email";
+            case "firstname", "forename" -> "firstname";
+            case "lastname", "surname" -> "lastname";
+            case "status" -> "status";
+            case "role" -> "role";
             default -> "email";
         };
     }
@@ -165,7 +169,9 @@ public class AdminWebController
      * Only whitelisted column keys are mapped to entity attributes:
      * <ul>
      *   <li>"email" maps to case-insensitive natural ordering by {@code mail}</li>
-     *   <li>"name" maps to directory-style composite ordering by {@code surname} then {@code forename}
+     *   <li>"firstname" maps to case-insensitive ordering by {@code forename} then {@code surname},
+     *       with {@code mail ASC} as secondary tiebreaker</li>
+     *   <li>"lastname" maps to directory-style composite ordering by {@code surname} then {@code forename},
      *       both case-insensitive, with {@code mail ASC} as secondary tiebreaker</li>
      *   <li>"status" maps to {@code active} boolean flag (active accounts first on ASC to match mailbox status
      *       ordering, inactive accounts first on DESC) with {@code mail ASC} as secondary tiebreaker</li>
@@ -194,8 +200,14 @@ public class AdminWebController
             // Case-insensitive natural ordering by registered email address
             case "email" -> Sort.by(Sort.Order.by("mail").with(direction).ignoreCase());
 
+            // Case-insensitive ordering by forename first, surname second, both case-insensitive
+            case "firstname" -> Sort.by(
+                Sort.Order.by("forename").with(direction).ignoreCase(),
+                Sort.Order.by("surname").with(direction).ignoreCase(),
+                mailTiebreaker);
+
             // Composite directory-style sort: surname first, forename second, both case-insensitive
-            case "name" -> Sort.by(
+            case "lastname" -> Sort.by(
                 Sort.Order.by("surname").with(direction).ignoreCase(),
                 Sort.Order.by("forename").with(direction).ignoreCase(),
                 mailTiebreaker);

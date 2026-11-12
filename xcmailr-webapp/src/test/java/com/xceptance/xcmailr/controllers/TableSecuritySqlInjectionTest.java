@@ -387,7 +387,7 @@ public class TableSecuritySqlInjectionTest
     public void testAdminUsersSqlInjectionInDirFallsBackToDesc(final String payload) throws Exception
     {
         mockMvc.perform(get("/admin/users")
-               .param("sort", "name")
+               .param("sort", "lastname")
                .param("dir", payload)
                .with(user(adminUser.getMail()).roles("ADMIN")))
                .andExpect(status().isOk())

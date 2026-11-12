@@ -431,6 +431,8 @@ public class AdminWebControllerTest
                .andExpect(content().string(containsString("User Management")))
                .andExpect(content().string(containsString("Manage registered user accounts")))
                .andExpect(content().string(containsString("Email")))
+               .andExpect(content().string(containsString("First Name")))
+               .andExpect(content().string(containsString("Last Name")))
                .andExpect(content().string(containsString("Actions")))
                .andExpect(content().string(containsString("You")));
     }
@@ -451,6 +453,8 @@ public class AdminWebControllerTest
                .andExpect(content().string(containsString("Benutzerverwaltung")))
                .andExpect(content().string(containsString("Registrierte Benutzerkonten")))
                .andExpect(content().string(containsString("E-Mail")))
+               .andExpect(content().string(containsString("Vorname")))
+               .andExpect(content().string(containsString("Nachname")))
                .andExpect(content().string(containsString("Aktionen")))
                .andExpect(content().string(containsString("Sie")));
     }
@@ -1009,7 +1013,10 @@ public class AdminWebControllerTest
     {
         assertEquals("email", AdminWebController.resolveSortField("email"));
         assertEquals("email", AdminWebController.resolveSortField("mail"));
-        assertEquals("name", AdminWebController.resolveSortField("name"));
+        assertEquals("firstname", AdminWebController.resolveSortField("firstname"));
+        assertEquals("firstname", AdminWebController.resolveSortField("forename"));
+        assertEquals("lastname", AdminWebController.resolveSortField("lastname"));
+        assertEquals("lastname", AdminWebController.resolveSortField("surname"));
         assertEquals("status", AdminWebController.resolveSortField("status"));
         assertEquals("role", AdminWebController.resolveSortField("role"));
     }
@@ -1024,6 +1031,7 @@ public class AdminWebControllerTest
         assertEquals("email", AdminWebController.resolveSortField(null));
         assertEquals("email", AdminWebController.resolveSortField(""));
         assertEquals("email", AdminWebController.resolveSortField("   "));
+        assertEquals("email", AdminWebController.resolveSortField("name")); // retired key safely falls back to email
         assertEquals("email", AdminWebController.resolveSortField("unknown"));
         assertEquals("email", AdminWebController.resolveSortField("password"));
         assertEquals("email", AdminWebController.resolveSortField("id; DROP TABLE users;--"));
@@ -1038,7 +1046,10 @@ public class AdminWebControllerTest
     {
         assertEquals("email", AdminWebController.resolveSortField("EMAIL"));
         assertEquals("email", AdminWebController.resolveSortField("  mAiL  "));
-        assertEquals("name", AdminWebController.resolveSortField("NaMe"));
+        assertEquals("firstname", AdminWebController.resolveSortField("  FiRsTNaMe "));
+        assertEquals("firstname", AdminWebController.resolveSortField("FoReNaMe"));
+        assertEquals("lastname", AdminWebController.resolveSortField("  LaStNaMe "));
+        assertEquals("lastname", AdminWebController.resolveSortField("SuRnAmE"));
         assertEquals("status", AdminWebController.resolveSortField("STATUS "));
         assertEquals("role", AdminWebController.resolveSortField("  RoLe  "));
     }
@@ -1104,35 +1115,63 @@ public class AdminWebControllerTest
         assertEquals(Sort.Direction.DESC, emailDescOrders.get(0).getDirection());
         assertTrue(emailDescOrders.get(0).isIgnoreCase());
 
-        // 3. Name ASC: composite surname ASC ignoreCase(), forename ASC ignoreCase(), tiebreaker mail ASC ignoreCase()
-        final Sort nameAsc = AdminWebController.resolveSort("name", "asc");
-        final List<Sort.Order> nameAscOrders = nameAsc.toList();
-        assertEquals(3, nameAscOrders.size());
-        assertEquals("surname", nameAscOrders.get(0).getProperty());
-        assertEquals(Sort.Direction.ASC, nameAscOrders.get(0).getDirection());
-        assertTrue(nameAscOrders.get(0).isIgnoreCase());
-        assertEquals("forename", nameAscOrders.get(1).getProperty());
-        assertEquals(Sort.Direction.ASC, nameAscOrders.get(1).getDirection());
-        assertTrue(nameAscOrders.get(1).isIgnoreCase());
-        assertEquals("mail", nameAscOrders.get(2).getProperty());
-        assertEquals(Sort.Direction.ASC, nameAscOrders.get(2).getDirection());
-        assertTrue(nameAscOrders.get(2).isIgnoreCase());
+        // 3. First Name ASC: forename ASC ignoreCase(), surname ASC ignoreCase(), tiebreaker mail ASC ignoreCase()
+        final Sort firstNameAsc = AdminWebController.resolveSort("firstname", "asc");
+        final List<Sort.Order> firstNameAscOrders = firstNameAsc.toList();
+        assertEquals(3, firstNameAscOrders.size());
+        assertEquals("forename", firstNameAscOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.ASC, firstNameAscOrders.get(0).getDirection());
+        assertTrue(firstNameAscOrders.get(0).isIgnoreCase());
+        assertEquals("surname", firstNameAscOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.ASC, firstNameAscOrders.get(1).getDirection());
+        assertTrue(firstNameAscOrders.get(1).isIgnoreCase());
+        assertEquals("mail", firstNameAscOrders.get(2).getProperty());
+        assertEquals(Sort.Direction.ASC, firstNameAscOrders.get(2).getDirection());
+        assertTrue(firstNameAscOrders.get(2).isIgnoreCase());
 
-        // 4. Name DESC: composite surname DESC ignoreCase(), forename DESC ignoreCase(), tiebreaker mail ASC ignoreCase()
-        final Sort nameDesc = AdminWebController.resolveSort("name", "desc");
-        final List<Sort.Order> nameDescOrders = nameDesc.toList();
-        assertEquals(3, nameDescOrders.size());
-        assertEquals("surname", nameDescOrders.get(0).getProperty());
-        assertEquals(Sort.Direction.DESC, nameDescOrders.get(0).getDirection());
-        assertTrue(nameDescOrders.get(0).isIgnoreCase());
-        assertEquals("forename", nameDescOrders.get(1).getProperty());
-        assertEquals(Sort.Direction.DESC, nameDescOrders.get(1).getDirection());
-        assertTrue(nameDescOrders.get(1).isIgnoreCase());
-        assertEquals("mail", nameDescOrders.get(2).getProperty());
-        assertEquals(Sort.Direction.ASC, nameDescOrders.get(2).getDirection());
-        assertTrue(nameDescOrders.get(2).isIgnoreCase());
+        // 4. First Name DESC: forename DESC ignoreCase(), surname DESC ignoreCase(), tiebreaker mail ASC ignoreCase()
+        final Sort firstNameDesc = AdminWebController.resolveSort("forename", "desc");
+        final List<Sort.Order> firstNameDescOrders = firstNameDesc.toList();
+        assertEquals(3, firstNameDescOrders.size());
+        assertEquals("forename", firstNameDescOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.DESC, firstNameDescOrders.get(0).getDirection());
+        assertTrue(firstNameDescOrders.get(0).isIgnoreCase());
+        assertEquals("surname", firstNameDescOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.DESC, firstNameDescOrders.get(1).getDirection());
+        assertTrue(firstNameDescOrders.get(1).isIgnoreCase());
+        assertEquals("mail", firstNameDescOrders.get(2).getProperty());
+        assertEquals(Sort.Direction.ASC, firstNameDescOrders.get(2).getDirection());
+        assertTrue(firstNameDescOrders.get(2).isIgnoreCase());
 
-        // 5. Status ASC: active DESC (active before inactive), tiebreaker mail ASC ignoreCase()
+        // 5. Last Name ASC: surname ASC ignoreCase(), forename ASC ignoreCase(), tiebreaker mail ASC ignoreCase()
+        final Sort lastNameAsc = AdminWebController.resolveSort("lastname", "asc");
+        final List<Sort.Order> lastNameAscOrders = lastNameAsc.toList();
+        assertEquals(3, lastNameAscOrders.size());
+        assertEquals("surname", lastNameAscOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.ASC, lastNameAscOrders.get(0).getDirection());
+        assertTrue(lastNameAscOrders.get(0).isIgnoreCase());
+        assertEquals("forename", lastNameAscOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.ASC, lastNameAscOrders.get(1).getDirection());
+        assertTrue(lastNameAscOrders.get(1).isIgnoreCase());
+        assertEquals("mail", lastNameAscOrders.get(2).getProperty());
+        assertEquals(Sort.Direction.ASC, lastNameAscOrders.get(2).getDirection());
+        assertTrue(lastNameAscOrders.get(2).isIgnoreCase());
+
+        // 6. Last Name DESC: surname DESC ignoreCase(), forename DESC ignoreCase(), tiebreaker mail ASC ignoreCase()
+        final Sort lastNameDesc = AdminWebController.resolveSort("surname", "desc");
+        final List<Sort.Order> lastNameDescOrders = lastNameDesc.toList();
+        assertEquals(3, lastNameDescOrders.size());
+        assertEquals("surname", lastNameDescOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.DESC, lastNameDescOrders.get(0).getDirection());
+        assertTrue(lastNameDescOrders.get(0).isIgnoreCase());
+        assertEquals("forename", lastNameDescOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.DESC, lastNameDescOrders.get(1).getDirection());
+        assertTrue(lastNameDescOrders.get(1).isIgnoreCase());
+        assertEquals("mail", lastNameDescOrders.get(2).getProperty());
+        assertEquals(Sort.Direction.ASC, lastNameDescOrders.get(2).getDirection());
+        assertTrue(lastNameDescOrders.get(2).isIgnoreCase());
+
+        // 7. Status ASC: active DESC (active before inactive), tiebreaker mail ASC ignoreCase()
         final Sort statusAsc = AdminWebController.resolveSort("status", "asc");
         final List<Sort.Order> statusAscOrders = statusAsc.toList();
         assertEquals(2, statusAscOrders.size());
@@ -1142,7 +1181,7 @@ public class AdminWebControllerTest
         assertEquals(Sort.Direction.ASC, statusAscOrders.get(1).getDirection());
         assertTrue(statusAscOrders.get(1).isIgnoreCase());
 
-        // 6. Status DESC: active ASC (inactive before active), tiebreaker mail ASC ignoreCase()
+        // 8. Status DESC: active ASC (inactive before active), tiebreaker mail ASC ignoreCase()
         final Sort statusDesc = AdminWebController.resolveSort("status", "desc");
         final List<Sort.Order> statusDescOrders = statusDesc.toList();
         assertEquals(2, statusDescOrders.size());
@@ -1152,7 +1191,7 @@ public class AdminWebControllerTest
         assertEquals(Sort.Direction.ASC, statusDescOrders.get(1).getDirection());
         assertTrue(statusDescOrders.get(1).isIgnoreCase());
 
-        // 7. Role ASC: admin DESC (admin before user), tiebreaker mail ASC ignoreCase()
+        // 9. Role ASC: admin DESC (admin before user), tiebreaker mail ASC ignoreCase()
         final Sort roleAsc = AdminWebController.resolveSort("role", "asc");
         final List<Sort.Order> roleAscOrders = roleAsc.toList();
         assertEquals(2, roleAscOrders.size());
@@ -1162,7 +1201,7 @@ public class AdminWebControllerTest
         assertEquals(Sort.Direction.ASC, roleAscOrders.get(1).getDirection());
         assertTrue(roleAscOrders.get(1).isIgnoreCase());
 
-        // 8. Role DESC: admin ASC (user before admin), tiebreaker mail ASC ignoreCase()
+        // 10. Role DESC: admin ASC (user before admin), tiebreaker mail ASC ignoreCase()
         final Sort roleDesc = AdminWebController.resolveSort("role", "desc");
         final List<Sort.Order> roleDescOrders = roleDesc.toList();
         assertEquals(2, roleDescOrders.size());
@@ -1195,16 +1234,27 @@ public class AdminWebControllerTest
     @DisplayName("Layer 1 Unit: resolveSort normalizes mixed case and guarantees secondary tiebreakers")
     public void testResolveSort_SpecialCases()
     {
-        final Sort mixedCase = AdminWebController.resolveSort("  NAME  ", "DESC");
-        final List<Sort.Order> orders = mixedCase.toList();
-        assertEquals(3, orders.size());
-        assertEquals("surname", orders.get(0).getProperty());
-        assertEquals(Sort.Direction.DESC, orders.get(0).getDirection());
-        assertEquals("forename", orders.get(1).getProperty());
-        assertEquals(Sort.Direction.DESC, orders.get(1).getDirection());
-        assertEquals("mail", orders.get(2).getProperty());
-        assertEquals(Sort.Direction.ASC, orders.get(2).getDirection());
-        assertTrue(orders.get(2).isIgnoreCase());
+        final Sort mixedCaseFirst = AdminWebController.resolveSort("  FiRsTnAmE  ", "DESC");
+        final List<Sort.Order> firstOrders = mixedCaseFirst.toList();
+        assertEquals(3, firstOrders.size());
+        assertEquals("forename", firstOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.DESC, firstOrders.get(0).getDirection());
+        assertEquals("surname", firstOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.DESC, firstOrders.get(1).getDirection());
+        assertEquals("mail", firstOrders.get(2).getProperty());
+        assertEquals(Sort.Direction.ASC, firstOrders.get(2).getDirection());
+        assertTrue(firstOrders.get(2).isIgnoreCase());
+
+        final Sort mixedCaseLast = AdminWebController.resolveSort("  LaStNaMe  ", "DESC");
+        final List<Sort.Order> lastOrders = mixedCaseLast.toList();
+        assertEquals(3, lastOrders.size());
+        assertEquals("surname", lastOrders.get(0).getProperty());
+        assertEquals(Sort.Direction.DESC, lastOrders.get(0).getDirection());
+        assertEquals("forename", lastOrders.get(1).getProperty());
+        assertEquals(Sort.Direction.DESC, lastOrders.get(1).getDirection());
+        assertEquals("mail", lastOrders.get(2).getProperty());
+        assertEquals(Sort.Direction.ASC, lastOrders.get(2).getDirection());
+        assertTrue(lastOrders.get(2).isIgnoreCase());
     }
 
     /**
@@ -1218,11 +1268,29 @@ public class AdminWebControllerTest
     {
         mockMvc.perform(get("/admin/users")
                .header("HX-Request", "true")
+               .param("sort", "firstname")
+               .param("dir", "desc")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("sort", "firstname"))
+               .andExpect(model().attribute("dir", "desc"));
+
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("sort", "lastname")
+               .param("dir", "asc")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("sort", "lastname"))
+               .andExpect(model().attribute("dir", "asc"));
+
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
                .param("sort", "name")
                .param("dir", "desc")
                .with(user(admin.getMail()).roles("ADMIN")))
                .andExpect(status().isOk())
-               .andExpect(model().attribute("sort", "name"))
+               .andExpect(model().attribute("sort", "email"))
                .andExpect(model().attribute("dir", "desc"));
 
         mockMvc.perform(get("/admin/users")
@@ -1233,6 +1301,62 @@ public class AdminWebControllerTest
                .andExpect(status().isOk())
                .andExpect(model().attribute("sort", "email"))
                .andExpect(model().attribute("dir", "desc"));
+    }
+
+    /**
+     * WebMvc Slice Test: Verifies that sort=firstname and sort=lastname render directional chevrons
+     * on the respective First Name and Last Name column headers, while unwhitelisted sort keys safely
+     * fall back to email sorting.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Layer 1 Web: listUsers renders directional chevrons for sort=firstname and sort=lastname")
+    public void testListUsers_SortingRenderedHeaders() throws Exception
+    {
+        // 1. First Name ASC
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("sort", "firstname")
+               .param("dir", "asc")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("sort", "firstname"))
+               .andExpect(model().attribute("dir", "asc"))
+               .andExpect(content().string(containsString("sort=firstname")))
+               .andExpect(content().string(containsString("bi-chevron-up sort-icon text-primary")))
+               .andExpect(content().string(containsString("First Name")))
+               .andExpect(content().string(containsString("Last Name")));
+
+        // 2. Last Name DESC
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("sort", "lastname")
+               .param("dir", "desc")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("sort", "lastname"))
+               .andExpect(model().attribute("dir", "desc"))
+               .andExpect(content().string(containsString("sort=lastname")))
+               .andExpect(content().string(containsString("bi-chevron-down sort-icon text-primary")));
+
+        // 3. Retired sort=name falls back safely to email ascending/descending
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("sort", "name")
+               .param("dir", "asc")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("sort", "email"))
+               .andExpect(model().attribute("dir", "asc"));
+
+        // 4. Empty state colspan check
+        mockMvc.perform(get("/admin/users")
+               .header("HX-Request", "true")
+               .param("search", "nonexistent-user-query-12345")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("<td colspan=\"6\"")));
     }
 
     /**
