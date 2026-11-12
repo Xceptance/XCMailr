@@ -186,6 +186,47 @@ public class ExpirationScheduledServiceTest
     }
 
     @Test
+    @DisplayName("Should preserve inactive and unconfirmed users with expired confirmation timestamps across maintenance runs")
+    public void testInactiveUsersPreservedAcrossMaintenanceRuns()
+    {
+        final long now = System.currentTimeMillis();
+        // User 1: Inactive user deactivated by administrator (with past confirmation timestamp)
+        final User deactivatedUser = new User("Deactivated", "User", "deactivated@xcmailr.test", "pass", "en");
+        deactivatedUser.setActive(false);
+        deactivatedUser.setConfirmation("legacy-token-123");
+        deactivatedUser.setTs_confirm(now - (7L * 86_400_000L)); // 7 days ago
+        userRepository.save(deactivatedUser);
+
+        // User 2: Unconfirmed registration whose confirmation link expired
+        final User unconfirmedUser = new User("Unconfirmed", "User", "unconfirmed@xcmailr.test", "pass", "en");
+        unconfirmedUser.setActive(false);
+        unconfirmedUser.setConfirmation("reg-token-456");
+        unconfirmedUser.setTs_confirm(now - 3600_000L * 24); // 24 hours ago
+        userRepository.save(unconfirmedUser);
+
+        // User 3: Inactive user without any confirmation tokens
+        final User inactiveNoTokenUser = new User("Inactive", "NoToken", "inactive_no_token@xcmailr.test", "pass", "en");
+        inactiveNoTokenUser.setActive(false);
+        inactiveNoTokenUser.setConfirmation(null);
+        inactiveNoTokenUser.setTs_confirm(null);
+        userRepository.save(inactiveNoTokenUser);
+
+        // Execute scheduled maintenance tasks
+        expirationService.runMaintenanceTasks();
+
+        // Verify that all users remain in the repository and are not purged
+        assertTrue(userRepository.findById(deactivatedUser.getId()).isPresent(),
+                   "Deactivated user must remain in repository after maintenance run");
+        assertTrue(userRepository.findById(unconfirmedUser.getId()).isPresent(),
+                   "Unconfirmed user must remain in repository after maintenance run");
+        assertTrue(userRepository.findById(inactiveNoTokenUser.getId()).isPresent(),
+                   "Inactive user without token must remain in repository after maintenance run");
+
+        final User reloadedDeactivated = userRepository.findById(deactivatedUser.getId()).orElseThrow();
+        assertFalse(reloadedDeactivated.isActive(), "Deactivated user status must remain false");
+    }
+
+    @Test
     @DisplayName("Unit: Should calculate quarter-hour slot index (0..95) and handle boundary conditions")
     public void testQuarterHourCalculationAndBoundaries()
     {

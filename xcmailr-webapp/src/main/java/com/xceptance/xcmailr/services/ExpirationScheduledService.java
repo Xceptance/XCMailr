@@ -109,7 +109,6 @@ public class ExpirationScheduledService
         expireMailboxes(now);
         purgeExpiredMails(now);
         expireUserTokens(now);
-        purgeExpiredInactiveUsers(now);
         aggregateAndCleanTransactions(now);
         purgeOldStatistics();
 
@@ -167,26 +166,6 @@ public class ExpirationScheduledService
                 user.setApiTokenCreationTimestamp(0L);
                 userRepository.save(user);
                 LOG.info("Revoked expired API token for user '{}'", user.getMail());
-            }
-        }
-    }
-
-    /**
-     * Deletes inactive user registrations whose confirmation period has expired.
-     *
-     * @param now current epoch milliseconds
-     */
-    public void purgeExpiredInactiveUsers(final long now)
-    {
-        final int confirmHours = properties.getApp().getConfirmationPeriodHours();
-        if (confirmHours > 0)
-        {
-            final long cutoff = now - (confirmHours * 3600_000L);
-            final List<User> expiredUsers = userRepository.findExpiredInactiveUsers(cutoff);
-            if (!expiredUsers.isEmpty())
-            {
-                userRepository.deleteAll(expiredUsers);
-                LOG.info("Purged {} unconfirmed user registrations older than {} hours", expiredUsers.size(), confirmHours);
             }
         }
     }

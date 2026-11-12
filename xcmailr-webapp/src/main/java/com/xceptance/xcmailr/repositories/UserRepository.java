@@ -76,15 +76,6 @@ public interface UserRepository extends JpaRepository<User, Long>
     Optional<User> findByApiToken(final String apiToken);
 
     /**
-     * Finds inactive user accounts whose confirmation token has expired before the specified timestamp.
-     *
-     * @param timestamp epoch millisecond expiration limit
-     * @return list of expired inactive users eligible for cleanup
-     */
-    @Query("SELECT u FROM User u WHERE u.active = false AND u.confirmation IS NOT NULL AND u.ts_confirm < :timestamp")
-    List<User> findExpiredInactiveUsers(@Param("timestamp") final Long timestamp);
-
-    /**
      * Finds active users whose API token was created before the specified timestamp.
      *
      * @param timestamp epoch millisecond expiration cutoff

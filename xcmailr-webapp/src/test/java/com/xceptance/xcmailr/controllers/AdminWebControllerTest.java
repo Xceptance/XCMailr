@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -164,6 +165,29 @@ public class AdminWebControllerTest
 
         final User updated = userRepository.findById(regularUser.getId()).orElseThrow();
         assertFalse(updated.isActive(), "Regular user should now be inactive");
+    }
+
+    @Test
+    @DisplayName("Admin activating inactive user clears lingering confirmation token and timestamp")
+    public void testAdminActivatingUserClearsConfirmationTokens() throws Exception
+    {
+        final User inactiveWithToken = new User("Inactive", "Pending", "inactive_pending@xcmailr.test", "password", "en");
+        inactiveWithToken.setActive(false);
+        inactiveWithToken.setConfirmation("pending-token-999");
+        inactiveWithToken.setTs_confirm(System.currentTimeMillis() - 3600_000L);
+        userRepository.save(inactiveWithToken);
+
+        mockMvc.perform(post("/admin/users/" + inactiveWithToken.getId() + "/toggle-active")
+               .header("HX-Request", "true")
+               .with(user("admin@xcmailr.test").roles("ADMIN"))
+               .with(csrf()))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "userListChanged"));
+
+        final User activated = userRepository.findById(inactiveWithToken.getId()).orElseThrow();
+        assertTrue(activated.isActive(), "User should now be active");
+        assertNull(activated.getConfirmation(), "Confirmation token should be cleared upon activation");
+        assertNull(activated.getTs_confirm(), "Confirmation timestamp should be cleared upon activation");
     }
 
     @Test

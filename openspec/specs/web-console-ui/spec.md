@@ -425,7 +425,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **AND** triggering any management action on a row operates exclusively on the mailbox rendered in that row, regardless of original insertion order or display sort order, preventing actions from targeting the wrong mailbox due to view sorting desynchronization
 
 ### Requirement: Admin Management Console
-The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, presenting structured time-series email traffic activity views over the past 24 hours (hourly line chart) and past 7 days (daily stacked bar chart) covering forwarded, stored, and dropped categories backed by aggregated email traffic metrics from `MAIL_STATISTICS` with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, organizing activity into distinct sections with modern monochrome badges and standard icons, displaying top metric cards with accurate values and granular breakdowns for administrators/users and active/expired mailboxes, presenting an aggregate transaction delivery status badge distribution, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS` with the 24-hour table aggregating across the sliding 24-hour window matching the activity chart and daily date and weekday breakdowns in the 7-day view and client-side case-insensitive column sorting with directional visual chevrons across both tables, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
+The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls, preserving deactivated user accounts and their associated mailboxes indefinitely without automatic deletion by background tasks, presenting structured time-series email traffic activity views over the past 24 hours (hourly line chart) and past 7 days (daily stacked bar chart) covering forwarded, stored, and dropped categories backed by aggregated email traffic metrics from `MAIL_STATISTICS` with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, organizing activity into distinct sections with modern monochrome badges and standard icons, displaying top metric cards with accurate values and granular breakdowns for administrators/users and active/expired mailboxes, presenting an aggregate transaction delivery status badge distribution, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS` with the 24-hour table aggregating across the sliding 24-hour window matching the activity chart and daily date and weekday breakdowns in the 7-day view and client-side case-insensitive column sorting with directional visual chevrons across both tables, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
 
 #### Scenario: Domain Whitelist Configuration
 - **WHEN** an administrator adds or removes an allowed domain via the admin console
@@ -491,6 +491,19 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 #### Scenario: Empty Search Results Sorting Headers (Special Case)
 - **WHEN** an administrator searches for a query string that yields zero matching user accounts
 - **THEN** the table displays the localized empty state message while preserving sortable header links with their chevron indicators intact
+
+#### Scenario: User Account Deactivation and Data Preservation (Happy Path)
+- **WHEN** an administrator deactivates an active user account via `/admin/users/{id}/toggle-active`
+- **THEN** the user's active status is set to `false`, the user's mailboxes and emails are retained without deletion, and the user continues to be displayed in the user management table with an inactive badge
+- **AND** the inactive user account remains in the database indefinitely unless explicitly deleted by an administrator or self-service deletion
+
+#### Scenario: Inactive User Reactivation and Token Sanitization (Happy Path)
+- **WHEN** an administrator activates an inactive user account via `/admin/users/{id}/toggle-active`
+- **THEN** the user's active status is set to `true`, any lingering confirmation tokens and expiration timestamps are cleared, and the user can authenticate immediately
+
+#### Scenario: Background Maintenance User Purge Exemption
+- **WHEN** periodic background maintenance tasks (such as scheduled mailbox and retention expiration) execute
+- **THEN** user accounts (active or inactive, confirmed or unconfirmed) are never deleted or purged from the database
 
 #### Scenario: Top Quick Stats Cards and Granular Breakdowns (Happy Path)
 - **WHEN** an administrator views the statistics page (`/admin/statistics`)

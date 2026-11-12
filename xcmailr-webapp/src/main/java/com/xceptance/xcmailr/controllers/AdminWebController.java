@@ -270,6 +270,12 @@ public class AdminWebController
 
     /**
      * Toggles activation status of a user account.
+     * When activating an inactive user, defensively clears any lingering confirmation tokens and timestamps.
+     *
+     * @param id target user ID
+     * @param hxRequest optional HTMX request header
+     * @param principal authenticated administrator principal
+     * @return response entity triggering userListChanged for HTMX or redirect to user overview
      */
     @PostMapping("/users/{id}/toggle-active")
     public Object toggleUserActive(@PathVariable("id") final long id,
@@ -284,7 +290,13 @@ public class AdminWebController
 
         final User targetUser = userRepository.findById(id)
                                               .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        targetUser.setActive(!targetUser.isActive());
+        final boolean newActiveState = !targetUser.isActive();
+        targetUser.setActive(newActiveState);
+        if (newActiveState)
+        {
+            targetUser.setConfirmation(null);
+            targetUser.setTs_confirm(null);
+        }
         userRepository.save(targetUser);
 
         LOG.info("Admin {} toggled active status for user {} to {}", currentAdmin.getMail(), targetUser.getMail(), targetUser.isActive());
