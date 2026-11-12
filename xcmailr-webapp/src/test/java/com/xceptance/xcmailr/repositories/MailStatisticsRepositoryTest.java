@@ -278,4 +278,102 @@ public class MailStatisticsRepositoryTest
         assertEquals(30L, entry2.getStoreCount());
         assertEquals(10L, entry2.getDropCount());
     }
+
+    @Test
+    @DisplayName("Happy Path: findSliding24HoursDomainStatistics aggregates across date boundary and orders by volume descending")
+    public void testFindSliding24HoursDomainStatisticsHappyPath()
+    {
+        final int startQuarterHour = 60; // 15:00
+
+        // Yesterday: slot 59 (before 15:00 -> EXCLUDED)
+        final MailStatistics yestExcluded = new MailStatistics(
+            new MailStatisticsKey(yesterday, 59, "excluded-yest.com", "xcmailr.test"), 100, 100, 100);
+
+        // Yesterday: slot 60 (at 15:00 -> INCLUDED)
+        final MailStatistics yestIncludedA = new MailStatistics(
+            new MailStatisticsKey(yesterday, 60, "alpha.com", "xcmailr.test"), 10, 20, 30); // 60 total
+
+        // Yesterday: slot 95 (end of yesterday -> INCLUDED)
+        final MailStatistics yestIncludedB = new MailStatistics(
+            new MailStatisticsKey(yesterday, 95, "beta.com", "xcmailr.test"), 5, 5, 10); // 20 total
+
+        // Today: slot 0 (start of today -> INCLUDED)
+        final MailStatistics todayIncludedA = new MailStatistics(
+            new MailStatisticsKey(today, 0, "alpha.com", "xcmailr.test"), 15, 25, 0); // 40 total (alpha sum = 100)
+
+        // Today: slot 59 (14:45 -> INCLUDED)
+        final MailStatistics todayIncludedB = new MailStatistics(
+            new MailStatisticsKey(today, 59, "beta.com", "xcmailr.test"), 50, 10, 0); // 60 total (beta sum = 80)
+
+        // Today: slot 60 (at 15:00 -> EXCLUDED)
+        final MailStatistics todayExcluded = new MailStatistics(
+            new MailStatisticsKey(today, 60, "excluded-today.com", "xcmailr.test"), 200, 200, 200);
+
+        mailStatisticsRepository.saveAll(List.of(
+            yestExcluded, yestIncludedA, yestIncludedB, todayIncludedA, todayIncludedB, todayExcluded));
+
+        final List<DomainStatisticsDto> results =
+            mailStatisticsRepository.findSliding24HoursDomainStatistics(yesterday, today, startQuarterHour);
+
+        assertNotNull(results);
+        assertEquals(2, results.size(), "Only alpha.com and beta.com should be included within the sliding 24h window");
+
+        // 1st: alpha.com (100 total: drops 25, forwards 45, stores 30)
+        final DomainStatisticsDto first = results.get(0);
+        assertEquals("alpha.com", first.domain());
+        assertEquals(25L, first.dropCount());
+        assertEquals(45L, first.forwardCount());
+        assertEquals(30L, first.storeCount());
+        assertEquals(100L, first.getTotalCount());
+
+        // 2nd: beta.com (80 total: drops 55, forwards 15, stores 10)
+        final DomainStatisticsDto second = results.get(1);
+        assertEquals("beta.com", second.domain());
+        assertEquals(55L, second.dropCount());
+        assertEquals(15L, second.forwardCount());
+        assertEquals(10L, second.storeCount());
+        assertEquals(80L, second.getTotalCount());
+    }
+
+    @Test
+    @DisplayName("Boundary: findSliding24HoursDomainStatistics at hour 23 (startQuarterHour = 96) and hour 0 (startQuarterHour = 4)")
+    public void testFindSliding24HoursDomainStatisticsBoundaries()
+    {
+        // Data across yesterday and today
+        final MailStatistics yestSlot2 = new MailStatistics(
+            new MailStatisticsKey(yesterday, 2, "slot2.com", "xcmailr.test"), 1, 0, 0);
+        final MailStatistics yestSlot50 = new MailStatistics(
+            new MailStatisticsKey(yesterday, 50, "slot50.com", "xcmailr.test"), 2, 0, 0);
+        final MailStatistics todaySlot2 = new MailStatistics(
+            new MailStatisticsKey(today, 2, "slot2.com", "xcmailr.test"), 4, 0, 0);
+        final MailStatistics todaySlot50 = new MailStatistics(
+            new MailStatisticsKey(today, 50, "slot50.com", "xcmailr.test"), 8, 0, 0);
+
+        mailStatisticsRepository.saveAll(List.of(yestSlot2, yestSlot50, todaySlot2, todaySlot50));
+
+        // When startQuarterHour = 96 (hour 23: full current calendar day, no yesterday records)
+        final List<DomainStatisticsDto> resultsHour23 =
+            mailStatisticsRepository.findSliding24HoursDomainStatistics(yesterday, today, 96);
+        assertEquals(2, resultsHour23.size());
+        final long totalHour23 = resultsHour23.stream().mapToLong(DomainStatisticsDto::getTotalCount).sum();
+        assertEquals(12L, totalHour23, "Should include todaySlot2 (4) + todaySlot50 (8) = 12");
+
+        // When startQuarterHour = 4 (hour 0: yesterday from slot 4 onward + today slots 0..3)
+        final List<DomainStatisticsDto> resultsHour0 =
+            mailStatisticsRepository.findSliding24HoursDomainStatistics(yesterday, today, 4);
+        assertEquals(2, resultsHour0.size());
+        final long totalHour0 = resultsHour0.stream().mapToLong(DomainStatisticsDto::getTotalCount).sum();
+        // yestSlot2 (excluded), yestSlot50 (included: 2), todaySlot2 (included: 4), todaySlot50 (excluded)
+        assertEquals(6L, totalHour0, "Should include yestSlot50 (2) + todaySlot2 (4) = 6");
+    }
+
+    @Test
+    @DisplayName("Edge Case: findSliding24HoursDomainStatistics on empty dataset returns empty list")
+    public void testFindSliding24HoursDomainStatisticsEmpty()
+    {
+        final List<DomainStatisticsDto> results =
+            mailStatisticsRepository.findSliding24HoursDomainStatistics(yesterday, today, 60);
+        assertNotNull(results);
+        assertTrue(results.isEmpty());
+    }
 }

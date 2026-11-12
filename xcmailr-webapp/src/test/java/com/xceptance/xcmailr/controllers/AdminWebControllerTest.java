@@ -748,8 +748,9 @@ public class AdminWebControllerTest
         // 2. Insert statistics record for today
         final java.time.LocalDate todayLd = java.time.LocalDate.now();
         final java.sql.Date sampleDate = java.sql.Date.valueOf(todayLd);
+        final int currentHourSlot = java.time.LocalTime.now().getHour() * 4;
 
-        final MailStatisticsKey key = new MailStatisticsKey(sampleDate, 15, "sortable-domain.com", "xcmailr.test");
+        final MailStatisticsKey key = new MailStatisticsKey(sampleDate, currentHourSlot, "sortable-domain.com", "xcmailr.test");
         final MailStatistics stat = new MailStatistics(key, 10, 20, 30);
         mailStatisticsRepository.save(stat);
 
@@ -1208,5 +1209,56 @@ public class AdminWebControllerTest
                .andExpect(status().isOk())
                .andExpect(model().attribute("sort", "email"))
                .andExpect(model().attribute("dir", "desc"));
+    }
+
+    /**
+     * Verifies that the admin statistics dashboard populates the 24-hour sender domain table
+     * with data aggregated across the sliding 24-hour window (including yesterday afternoon and today).
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Admin statistics dashboard populates sliding 24-hour sender domains table across date boundary")
+    public void testAdminStatisticsSliding24HourSenderDomains() throws Exception
+    {
+        final java.time.ZonedDateTime now = java.time.ZonedDateTime.now();
+        final java.sql.Date today = java.sql.Date.valueOf(now.toLocalDate());
+        final java.sql.Date yesterday = java.sql.Date.valueOf(now.toLocalDate().minusDays(1));
+        final int currentHour = now.getHour();
+        final int startQuarterHour = (currentHour + 1) * 4;
+
+        // Domain 1: traffic yesterday afternoon (within sliding 24h window if startQuarterHour <= 95)
+        if (startQuarterHour <= 95)
+        {
+            final MailStatisticsKey yestKey = new MailStatisticsKey(yesterday, startQuarterHour, "yesterday-sender.com", "xcmailr.test");
+            mailStatisticsRepository.save(new MailStatistics(yestKey, 10, 20, 30));
+        }
+
+        // Domain 2: traffic today at current hour (within sliding 24h window)
+        final int todayQuarter = currentHour * 4;
+        final MailStatisticsKey todayKey = new MailStatisticsKey(today, todayQuarter, "today-sender.com", "xcmailr.test");
+        mailStatisticsRepository.save(new MailStatistics(todayKey, 5, 15, 20));
+
+        mockMvc.perform(get("/admin/statistics")
+               .with(user(admin.getMail()).roles("ADMIN")))
+               .andExpect(status().isOk())
+               .andExpect(model().attributeExists("todaySenderDomains"))
+               .andExpect(result -> {
+                   final Object domainStatsObj = result.getModelAndView().getModel().get("todaySenderDomains");
+                   assertNotNull(domainStatsObj);
+                   assertTrue(domainStatsObj instanceof List<?>);
+                   @SuppressWarnings("unchecked")
+                   final List<DomainStatisticsDto> domainStats = (List<DomainStatisticsDto>) domainStatsObj;
+                   assertFalse(domainStats.isEmpty());
+                   final boolean hasTodayDomain = domainStats.stream()
+                       .anyMatch(d -> "today-sender.com".equals(d.domain()));
+                   assertTrue(hasTodayDomain, "today-sender.com must be present in todaySenderDomains");
+                   if (startQuarterHour <= 95)
+                   {
+                       final boolean hasYestDomain = domainStats.stream()
+                           .anyMatch(d -> "yesterday-sender.com".equals(d.domain()));
+                       assertTrue(hasYestDomain, "yesterday-sender.com must be present in sliding 24h window");
+                   }
+               });
     }
 }

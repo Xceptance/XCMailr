@@ -20,6 +20,7 @@ import java.sql.Date;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -536,9 +537,13 @@ public class AdminWebController
         final long totalVolume24h = calculateTotalVolume(chart24h);
         final long totalVolume7d = calculateTotalVolume(chart7d);
 
-        final Date today = Date.valueOf(LocalDate.now());
-        final Date weekAgo = Date.valueOf(LocalDate.now().minusDays(6));
-        final List<DomainStatisticsDto> todaySenderDomains = mailStatisticsRepository.findDomainStatisticsSince(today);
+        final ZonedDateTime now = ZonedDateTime.now();
+        final Date today = Date.valueOf(now.toLocalDate());
+        final Date yesterday = Date.valueOf(now.toLocalDate().minusDays(1));
+        final int startQuarterHour = (now.getHour() + 1) * 4;
+        final Date weekAgo = Date.valueOf(now.toLocalDate().minusDays(6));
+        final List<DomainStatisticsDto> todaySenderDomains =
+            mailStatisticsRepository.findSliding24HoursDomainStatistics(yesterday, today, startQuarterHour);
         final List<DomainStatisticsDto> weekSenderDomains = mailStatisticsRepository.findDailyDomainStatisticsSince(weekAgo);
 
         model.addAttribute("statusSummary", statusSummary);

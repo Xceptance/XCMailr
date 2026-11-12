@@ -74,6 +74,31 @@ public interface MailStatisticsRepository extends JpaRepository<MailStatistics, 
     List<DomainStatisticsDto> findDomainStatisticsSince(@Param("startDate") final Date startDate);
 
     /**
+     * Aggregates email delivery statistics grouped by sender domain across a sliding 24-hour interval
+     * spanning yesterday and today.
+     * Orders the results by total traffic volume (drops + forwards + stores) descending.
+     *
+     * @param yesterday previous calendar day date
+     * @param today current calendar day date
+     * @param startQuarterHour the starting 15-minute interval on yesterday (inclusive); records on today are strictly before this interval
+     * @return list of domain statistics records ordered by total traffic volume descending
+     */
+    @Query("SELECT new com.xceptance.xcmailr.dto.DomainStatisticsDto(" +
+           "ms.key.fromDomain, " +
+           "COALESCE(SUM(ms.dropCount), 0L), " +
+           "COALESCE(SUM(ms.forwardCount), 0L), " +
+           "COALESCE(SUM(ms.storeCount), 0L)) " +
+           "FROM MailStatistics ms " +
+           "WHERE (ms.key.date = :yesterday AND ms.key.quarterHour >= :startQuarterHour) " +
+           "   OR (ms.key.date = :today AND ms.key.quarterHour < :startQuarterHour) " +
+           "GROUP BY ms.key.fromDomain " +
+           "ORDER BY (COALESCE(SUM(ms.dropCount), 0L) + COALESCE(SUM(ms.forwardCount), 0L) + COALESCE(SUM(ms.storeCount), 0L)) DESC")
+    List<DomainStatisticsDto> findSliding24HoursDomainStatistics(
+        @Param("yesterday") final Date yesterday,
+        @Param("today") final Date today,
+        @Param("startQuarterHour") final int startQuarterHour);
+
+    /**
      * Aggregates email delivery statistics grouped by calendar date and sender domain since a given date.
      * Orders the results by calendar date descending, and within each day by total traffic volume (drops + forwards + stores) descending.
      *
