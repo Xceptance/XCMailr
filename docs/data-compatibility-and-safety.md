@@ -16,7 +16,7 @@ XCMailr enforces multi-layer data protection designed specifically for zero-data
 |                                   Strict validation only: NO create/alter/drop.   |
 |                                                                                   |
 |  2. Flyway Migration Match   -->  baseline-on-migrate: true, baseline-version: 0  |
-|                                   V1-V4 migration chain; non-destructive DDL only.|
+|                                   V1-V6 migration chain; non-destructive DDL only.|
 |                                                                                   |
 |  3. 1:1 Entity Mappings      -->  Exact table names, column types & sequences     |
 |                                   No renamed tables, dropped fields, or schema drift|
@@ -60,6 +60,8 @@ The database schema in legacy XCMailr was managed via Flyway starting with versi
 - `V2__Change_Mail_Message_Type.sql`: Standardizes `mail.message` storage to `BLOB`.
 - `V3__Remove_Mail2MailBox_Reference.sql`: Removes foreign key from `mail` to `mailboxes` to allow independent mailbox lifecycles.
 - `V4__Add_Mailbox_Comment.sql`: Adds optional `comment` column (`VARCHAR(255)`) to `mailboxes` using non-destructive `IF NOT EXISTS` DDL.
+- `V5__Add_Store_Count_To_Mail_Statistics.sql`: Adds `STORE_COUNT` column (`INT DEFAULT 0`) to `MAIL_STATISTICS` using non-destructive `IF NOT EXISTS` DDL.
+- `V6__Clean_Legacy_Confirmation_Tokens.sql`: Clears historical `confirmation` tokens and `ts_confirm` timestamps on active users and mailbox-owning inactive users so legacy accounts are never mistaken for unconfirmed registrations.
 
 ### Flyway Configuration:
 ```yaml
@@ -72,23 +74,23 @@ spring:
 ```
 
 ### Protection on an existing production database:
-1. **Existing Flyway History**: Production databases that already contain a `flyway_schema_history` table at version 3 will automatically apply `V4__Add_Mailbox_Comment.sql` (a non-destructive addition using `IF NOT EXISTS` logic that preserves all existing rows and indexes). Databases already at version 4 execute **zero** SQL statements.
+1. **Existing Flyway History**: Production databases that already contain a `flyway_schema_history` table at version 3 will automatically apply `V4__Add_Mailbox_Comment.sql`, `V5__Add_Store_Count_To_Mail_Statistics.sql`, and `V6__Clean_Legacy_Confirmation_Tokens.sql` (non-destructive additions and token cleanup that preserve all existing user accounts, mailboxes, and emails). Databases already at version 6 execute **zero** SQL statements.
 2. **Idempotent Statements**: All statements in `V1__Initial_Setup.sql` and subsequent migrations employ idempotent syntax (`IF NOT EXISTS` / `IF EXISTS`). Even if executed against an un-baselined existing database, no tables or existing rows are overwritten.
 
 ---
 
 ## 4. 1:1 Entity and Table Schema Alignment
 
-All domain entities in `models.*` maintain strict 1:1 compatibility with the legacy database tables and columns:
+All domain entities in `com.xceptance.xcmailr.models.*` maintain strict 1:1 compatibility with the legacy database tables and columns:
 
 | Entity | Target Table | Primary Columns Preserved | Notes |
 | :--- | :--- | :--- | :--- |
-| [`models.User`](../xcmailr-webapp/src/main/java/models/User.java) | `users` | `id`, `forename`, `surname`, `mail`, `passwd`, `admin`, `active`, `confirmation`, `ts_confirm`, `bad_pw_count`, `language`, `apitoken`, `api_token_creation_timestamp` | Full legacy account lifecycle preserved. |
-| [`models.MBox`](../xcmailr-webapp/src/main/java/models/MBox.java) | `mailboxes` | `id`, `address`, `ts_active`, `expired`, `domain`, `forwards`, `suppressions`, `usr_id`, `forward_emails`, `version`, `comment` | Optimistic locking (`version`) and user foreign key maintained; nullable `comment` added in V4. |
-| [`models.Mail`](../xcmailr-webapp/src/main/java/models/Mail.java) | `mail` | `id`, `sender`, `subject`, `receive_time`, `message` (BLOB), `mailbox_id`, `uuid` | MIME payloads stored as raw byte arrays. |
-| [`models.Domain`](../xcmailr-webapp/src/main/java/models/Domain.java) | `register_domains` | `id`, `domainname` | Allowed domain whitelist table. |
-| [`models.MailTransaction`](../xcmailr-webapp/src/main/java/models/MailTransaction.java) | `mailtransactions` | `id`, `ts`, `status`, `sourceaddr`, `relayaddr`, `targetaddr` | Transaction history table. |
-| [`models.MailStatistics`](../xcmailr-webapp/src/main/java/models/MailStatistics.java) | `MAIL_STATISTICS` | `date`, `QUARTER_HOUR`, `FROM_DOMAIN`, `TARGET_DOMAIN`, `DROP_COUNT`, `FORWARD_COUNT` | Aggregate metrics table. |
+| [`User`](../xcmailr-webapp/src/main/java/com/xceptance/xcmailr/models/User.java) | `users` | `id`, `forename`, `surname`, `mail`, `passwd`, `admin`, `active`, `confirmation`, `ts_confirm`, `bad_pw_count`, `language`, `apitoken`, `api_token_creation_timestamp` | Full legacy account lifecycle preserved; historical confirmation tokens cleared in V6. |
+| [`MBox`](../xcmailr-webapp/src/main/java/com/xceptance/xcmailr/models/MBox.java) | `mailboxes` | `id`, `address`, `ts_active`, `expired`, `domain`, `forwards`, `suppressions`, `usr_id`, `forward_emails`, `version`, `comment` | Optimistic locking (`version`) and user foreign key maintained; nullable `comment` added in V4. |
+| [`Mail`](../xcmailr-webapp/src/main/java/com/xceptance/xcmailr/models/Mail.java) | `mail` | `id`, `sender`, `subject`, `receive_time`, `message` (BLOB), `mailbox_id`, `uuid` | MIME payloads stored as raw byte arrays. |
+| [`Domain`](../xcmailr-webapp/src/main/java/com/xceptance/xcmailr/models/Domain.java) | `register_domains` | `id`, `domainname` | Allowed domain whitelist table. |
+| [`MailTransaction`](../xcmailr-webapp/src/main/java/com/xceptance/xcmailr/models/MailTransaction.java) | `mailtransactions` | `id`, `ts`, `status`, `sourceaddr`, `relayaddr`, `targetaddr` | Transaction history table. |
+| [`MailStatistics`](../xcmailr-webapp/src/main/java/com/xceptance/xcmailr/models/MailStatistics.java) | `MAIL_STATISTICS` | `date`, `QUARTER_HOUR`, `FROM_DOMAIN`, `TARGET_DOMAIN`, `DROP_COUNT`, `FORWARD_COUNT`, `STORE_COUNT` | Aggregate metrics table; `STORE_COUNT` added in V5. |
 
 ### Primary Key Sequences
 Primary key generation uses the existing sequence objects in the database (`users_seq`, `mailboxes_seq`, `mail_seq`, `register_domains_seq`, `mailtransactions_seq`). The application picks up the current sequence values, ensuring no ID collisions with existing records.

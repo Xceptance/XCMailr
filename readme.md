@@ -464,6 +464,8 @@ server {
 ```
 
 ## Development & Testing Guides
+* **[Developer Guide](docs/developer-guide.md)**: Quick-start setup, codebase map, feature/bugfix workflow, coding conventions, and TDD test pyramid commands.
+* **[Schema Extension & Database Migration Guide](docs/schema-migration-guide.md)**: Authoring Flyway migrations (`V1`–`V6` history and `V7+` templates) and cross-database compatibility rules.
 * **[Local Email Testing Guide](docs/local-testing-guide.md)**: Running XCMailr locally and testing with Mailpit.
 * **[Cloud Test Deployment Guide](docs/cloud-test-deployment-guide.md)**: Ephemeral cloud VM setup, Docker Compose with Mailpit, and teardown.
 * **[Load Testing Guide](docs/load-testing-guide.md)**: Running the XLT load test suite in embedded mode.
