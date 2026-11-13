@@ -282,7 +282,13 @@ public class AdminWebController
 
     /**
      * Toggles activation status of a user account.
-     * When activating an inactive user, defensively clears any lingering confirmation tokens and timestamps.
+     * <p>
+     * Unconditionally clears any lingering {@code confirmation} token and {@code ts_confirm}
+     * expiration timestamp on both activation and deactivation. This ensures that activating
+     * a pending account makes it immediately usable, and deactivating a legacy active user
+     * strips any historical confirmation token from the database so the account can never be
+     * mistaken for an expired unconfirmed registration by background maintenance tasks.
+     * </p>
      *
      * @param id target user ID
      * @param hxRequest optional HTMX request header
@@ -304,11 +310,10 @@ public class AdminWebController
                                               .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         final boolean newActiveState = !targetUser.isActive();
         targetUser.setActive(newActiveState);
-        if (newActiveState)
-        {
-            targetUser.setConfirmation(null);
-            targetUser.setTs_confirm(null);
-        }
+        // Unconditionally clear confirmation tokens and timestamps on both activation and deactivation
+        // to sanitize legacy historical tokens and prevent deactivated accounts from being purged.
+        targetUser.setConfirmation(null);
+        targetUser.setTs_confirm(null);
         userRepository.save(targetUser);
 
         LOG.info("Admin {} toggled active status for user {} to {}", currentAdmin.getMail(), targetUser.getMail(), targetUser.isActive());

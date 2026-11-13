@@ -218,8 +218,17 @@ When `require-confirmation` is `false`:
 * No confirmation token is created, and no SMTP email is sent.
 * Upon registration, the user is redirected to `/login?ready` and can log in immediately.
 
+### Unconfirmed Registration Cleanup & Deactivated Account Safeguards
+
+Abandoned registrations that are never confirmed are automatically cleaned up by the background maintenance scheduler (`ExpirationScheduledService.purgeExpiredInactiveUsers`) once their confirmation window (`xcmailr.app.confirmation-period-hours`, default `1` hour) has elapsed.
+
+To ensure administrator-deactivated accounts and legacy database accounts (which in legacy XCMailr retained their initial `confirmation` token after activation) are **never** accidentally deleted without requiring a data migration, XCMailr enforces three code-level safeguards:
+* **Empty-Mailbox Query Guard (`u.boxes IS EMPTY`)**: Only inactive accounts with a non-null confirmation token, a positive expired timestamp (`u.ts_confirm > 0 AND u.ts_confirm < cutoff`), and **zero mailboxes** (`u.boxes IS EMPTY`) are eligible for cleanup. Any inactive account that owns mailboxes is preserved indefinitely along with all of its mailboxes and emails.
+* **Unconditional Token Sanitation on Admin Toggle**: Whenever an administrator activates or deactivates a user via `/admin/users/{id}/toggle-active`, any lingering `confirmation` token and `ts_confirm` timestamp are immediately cleared (`null`), ensuring deactivated legacy accounts are never mistaken for unconfirmed signups.
+* **Active-Account Guard on Password Reset**: `POST /forgot-password` generates a reset token and sends a recovery email only when `user.isActive()` is `true` (while returning the identical `/login?resetRequested` redirect for inactive or unknown addresses), preventing password-reset requests from planting expiring confirmation tokens on deactivated accounts.
+
 ### Security Guarantees
-* **Anti-Enumeration (CWE-204)**: During web login, credentials (email + password) are validated **before** checking account activation status. Attempting to log in with an unconfirmed email but an invalid password returns a generic error (`/login?error`) rather than an activation notice, preventing attackers from probing whether an email address is registered.
+* **Anti-Enumeration (CWE-204)**: During web login, credentials (email + password) are validated **before** checking account activation status. Attempting to log in with an unconfirmed email but an invalid password returns a generic error (`/login?error`) rather than an activation notice, preventing attackers from probing whether an email address is registered. Similarly, `/forgot-password` returns the same redirect regardless of whether an email exists or is active.
 * **Token Redaction (CWE-532)**: Confirmation tokens and activation URLs are strictly excluded from application logs to prevent bearer token leakage.
 
 ## UI Theming & Custom Stylesheets

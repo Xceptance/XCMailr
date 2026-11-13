@@ -50,7 +50,7 @@ import com.xceptance.xcmailr.models.User;
 
 /**
  * Scheduled background service for mailbox expiration, retention cleanup, API token expiry,
- * and statistical aggregation.
+ * unconfirmed user registration cleanup, and statistical aggregation.
  *
  * @author Xceptance Software Technologies GmbH
  */
@@ -109,6 +109,7 @@ public class ExpirationScheduledService
         expireMailboxes(now);
         purgeExpiredMails(now);
         expireUserTokens(now);
+        purgeExpiredInactiveUsers(now);
         aggregateAndCleanTransactions(now);
         purgeOldStatistics();
 
@@ -166,6 +167,34 @@ public class ExpirationScheduledService
                 user.setApiTokenCreationTimestamp(0L);
                 userRepository.save(user);
                 LOG.info("Revoked expired API token for user '{}'", user.getMail());
+            }
+        }
+    }
+
+    /**
+     * Deletes genuinely unconfirmed user registrations whose confirmation window has expired.
+     * <p>
+     * Only accounts that are inactive ({@code active = false}), possess a non-null confirmation token,
+     * have a positive expiration timestamp older than the configured confirmation grace window, and
+     * own zero mailboxes ({@code boxes IS EMPTY}) are purged. Administrator-deactivated accounts
+     * (whose tokens are cleared upon deactivation) and any legacy accounts that own mailboxes are
+     * strictly preserved.
+     * </p>
+     *
+     * @param now current epoch milliseconds
+     */
+    public void purgeExpiredInactiveUsers(final long now)
+    {
+        final int confirmHours = properties.getApp().getConfirmationPeriodHours();
+        if (confirmHours > 0)
+        {
+            // Compute grace cutoff beyond the token's expiration timestamp
+            final long cutoff = now - (confirmHours * 3_600_000L);
+            final List<User> expiredUsers = userRepository.findExpiredInactiveUsers(cutoff);
+            if (!expiredUsers.isEmpty())
+            {
+                userRepository.deleteAll(expiredUsers);
+                LOG.info("Purged {} unconfirmed user registrations older than {} hours", expiredUsers.size(), confirmHours);
             }
         }
     }

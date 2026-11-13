@@ -202,6 +202,53 @@ public class WebAuthControllerTest
         assertNotNull(updated.getConfirmation(), "Confirmation token for reset must be set");
     }
 
+    /**
+     * Verifies that submitting {@code POST /forgot-password} for an inactive or administrator-deactivated
+     * account returns the standard anti-enumeration redirect ({@code /login?resetRequested}) without
+     * generating a confirmation token or setting an expiration timestamp that could mark the account
+     * for background deletion or allow self-reactivation via {@code /confirm/{token}}.
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("Special Case: POST /forgot-password for inactive/deactivated user does not set confirmation token")
+    public void testForgotPasswordInactiveDeactivatedUserPreservesNullToken() throws Exception
+    {
+        final User deactivated = new User("Inactive", "Copperfield", "inactive_david@xcmailr.test", passwordEncoder.encode("secret"), "en");
+        deactivated.setActive(false);
+        deactivated.setConfirmation(null);
+        deactivated.setTs_confirm(null);
+        userRepository.save(deactivated);
+
+        mockMvc.perform(post("/forgot-password")
+               .with(csrf())
+               .param("mail", "inactive_david@xcmailr.test"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?resetRequested"));
+
+        final User reloaded = userRepository.findById(deactivated.getId()).orElseThrow();
+        assertFalse(reloaded.isActive(), "Deactivated user must remain inactive");
+        assertNull(reloaded.getConfirmation(), "Confirmation token must not be generated for inactive user");
+        assertNull(reloaded.getTs_confirm(), "Confirmation timestamp must not be set for inactive user");
+    }
+
+    /**
+     * Verifies that submitting {@code POST /forgot-password} for an unknown email address
+     * returns the standard anti-enumeration redirect without error.
+     *
+     * @throws Exception if MockMvc request fails
+     */
+    @Test
+    @DisplayName("Error Case: POST /forgot-password for non-existent email returns anti-enumeration redirect")
+    public void testForgotPasswordNonExistentEmail() throws Exception
+    {
+        mockMvc.perform(post("/forgot-password")
+               .with(csrf())
+               .param("mail", "does_not_exist@xcmailr.test"))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/login?resetRequested"));
+    }
+
     @Test
     @DisplayName("POST /pwreset/{token} should update password with valid token")
     public void testResetPassword() throws Exception

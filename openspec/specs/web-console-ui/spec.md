@@ -7,7 +7,7 @@ Provides a responsive, server-driven web management console using Thymeleaf and 
 ## Requirements
 
 ### Requirement: User Authentication and Self-Service
-The system SHALL provide web views for user registration, email verification, session login, password reset, and profile management including language preference updates and self-service account deletion, handling both success and error conditions gracefully and ensuring that profile language updates take immediate effect across subsequent views and asynchronous HTMX requests without requiring re-authentication.
+The system SHALL provide web views for user registration, email verification, session login, password reset (issuing reset tokens and dispatching emails exclusively for active accounts while preserving anti-enumeration responses for inactive or unknown addresses), and profile management including language preference updates and self-service account deletion, handling both success and error conditions gracefully and ensuring that profile language updates take immediate effect across subsequent views and asynchronous HTMX requests without requiring re-authentication.
 
 #### Scenario: User Login and Session Management
 - **WHEN** a user enters valid email and password credentials for an active account on the login page
@@ -138,6 +138,15 @@ The system SHALL provide web views for user registration, email verification, se
 #### Scenario: Privilege Escalation Prevention During Session Principal Synchronization (Security Case)
 - **WHEN** the system synchronizes the in-session `UserPrincipal` upon profile update
 - **THEN** only non-security profile fields (`forename`, `surname`, `language`) are copied, while roles, authorities, admin privileges, password hashes, and account activation states remain strictly immutable and protected against tampering
+
+#### Scenario: Password Reset Request for Active Account (Happy Path)
+- **WHEN** an unauthenticated visitor submits `POST /forgot-password` with the email address of an existing active user (`active = true`)
+- **THEN** the system generates a new confirmation token, updates `ts_confirm` to the current timestamp, persists the user record, dispatches the password-reset email, and redirects to `/login?resetRequested`
+
+#### Scenario: Password Reset Request for Inactive or Deactivated Account (Security / Special Case)
+- **WHEN** an unauthenticated visitor submits `POST /forgot-password` with the email address of an inactive or administrator-deactivated user (`active = false`)
+- **THEN** the system does not generate or overwrite `confirmation` or `ts_confirm`, does not persist changes to the user record, and does not dispatch a password-reset email
+- **AND** still redirects to `/login?resetRequested` so that account existence or activation state cannot be enumerated (CWE-204 protection), while preventing inactive or deactivated accounts from being marked for unconfirmed-user cleanup or reactivated via `/confirm/{token}`
 
 ### Requirement: Dynamic Mailbox Dashboard
 The system SHALL render an interactive mailbox dashboard supporting search, inline editing, modal dialogs, and bulk actions via HTMX without full page reloads, ensuring modal hosts are placed outside layout stacking contexts to prevent backdrop occlusion, while adapting table columns and actions responsively across viewport sizes with a calm corporate palette, presenting mailbox active duration selection via responsive segmented radio button pills, honoring forwarding preferences on creation, preserving duration and forwarding selections across validation error re-renders, rendering timestamps localized to the client browser's timezone, defaulting table order to creation order (`id DESC`) so newly created mailboxes appear at the top, providing full-dataset server-side column sorting with case-insensitive natural alphabetical ordering for email addresses, displaying clear modern sortable indicator chevrons that adapt cleanly to mobile viewports, treating permanent unlimited mailboxes as having infinite lifespan ($+\infty$) in expiration sorting, offering extended status filter options (`ALL`, `ACTIVE`, `EXPIRED`, `EXPIRING`, `UNLIMITED`), providing uniform vertical alignment across all table header elements, presenting a streamlined 7-column layout without redundant calculated mail counts, displaying a localized item range pagination summary (e.g., `Showing 1–15 of 17 mailboxes` or `Zeige 1–15 von 17 Postfächern`) matching the authenticated user's preferred language, offering direct 1-click validity extension buttons (`+1d`, `+7d`, `+30d`, `∞`) in table row quick actions, and providing an expiration extension selector with presets (`Keep current`, `+1d`, `+7d`, `+30d`, `Unlimited`) within the Edit Mailbox modal dialog.
@@ -425,7 +434,7 @@ The system SHALL render an interactive mailbox dashboard supporting search, inli
 - **AND** triggering any management action on a row operates exclusively on the mailbox rendered in that row, regardless of original insertion order or display sort order, preventing actions from targeting the wrong mailbox due to view sorting desynchronization
 
 ### Requirement: Admin Management Console
-The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls including dedicated First Name and Last Name columns, preserving deactivated user accounts and their associated mailboxes indefinitely without automatic deletion by background tasks, presenting structured time-series email traffic activity views over the past 24 hours (hourly line chart) and past 7 days (daily stacked bar chart) covering forwarded, stored, and dropped categories backed by aggregated email traffic metrics from `MAIL_STATISTICS` with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, organizing activity into distinct sections with modern monochrome badges and standard icons, displaying top metric cards with accurate values and granular breakdowns for administrators/users and active/expired mailboxes, presenting an aggregate transaction delivery status badge distribution, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS` with the 24-hour table aggregating across the sliding 24-hour window matching the activity chart and daily date and weekday breakdowns in the 7-day view and client-side case-insensitive column sorting with directional visual chevrons across both tables, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
+The system SHALL provide administrative interfaces for managing user accounts, reviewing transaction logs, analyzing traffic metrics, and maintaining the domain whitelist, offering server-side column sorting with bidirectional visual chevrons across user management table controls including dedicated First Name and Last Name columns, clearing confirmation tokens and expiration timestamps whenever an administrator activates or deactivates a user account, preserving administrator-deactivated user accounts and any inactive accounts owning mailboxes indefinitely while periodically purging genuinely abandoned unconfirmed registrations (`active = false`, `confirmation IS NOT NULL`, `ts_confirm > 0`, `ts_confirm < cutoff`, and `boxes IS EMPTY`), presenting structured time-series email traffic activity views over the past 24 hours (hourly line chart) and past 7 days (daily stacked bar chart) covering forwarded, stored, and dropped categories backed by aggregated email traffic metrics from `MAIL_STATISTICS` with zero-filled continuity, dynamic theme synchronization, robust DOM-ready lifecycle execution, and graceful fallback handling, organizing activity into distinct sections with modern monochrome badges and standard icons, displaying top metric cards with accurate values and granular breakdowns for administrators/users and active/expired mailboxes, presenting an aggregate transaction delivery status badge distribution, displaying 24-hour and 7-day sender domain traffic breakdown tables backed by aggregated domain metrics from `MAIL_STATISTICS` with the 24-hour table aggregating across the sliding 24-hour window matching the activity chart and daily date and weekday breakdowns in the 7-day view and client-side case-insensitive column sorting with directional visual chevrons across both tables, and enforcing consistent code hygiene with `final` modifiers, Javadoc, and comprehensive test pyramid coverage.
 
 #### Scenario: Domain Whitelist Configuration
 - **WHEN** an administrator adds or removes an allowed domain via the admin console
@@ -506,16 +515,29 @@ The system SHALL provide administrative interfaces for managing user accounts, r
 
 #### Scenario: User Account Deactivation and Data Preservation (Happy Path)
 - **WHEN** an administrator deactivates an active user account via `/admin/users/{id}/toggle-active`
-- **THEN** the user's active status is set to `false`, the user's mailboxes and emails are retained without deletion, and the user continues to be displayed in the user management table with an inactive badge
-- **AND** the inactive user account remains in the database indefinitely unless explicitly deleted by an administrator or self-service deletion
+- **THEN** the user's active status is set to `false`, any lingering historical `confirmation` token and `ts_confirm` timestamp are cleared (`null`), the user's mailboxes and emails are retained without deletion, and the user continues to be displayed in the user management table with an inactive badge
+- **AND** the deactivated user account remains in the database indefinitely unless explicitly deleted by an administrator or self-service deletion
 
 #### Scenario: Inactive User Reactivation and Token Sanitization (Happy Path)
 - **WHEN** an administrator activates an inactive user account via `/admin/users/{id}/toggle-active`
-- **THEN** the user's active status is set to `true`, any lingering confirmation tokens and expiration timestamps are cleared, and the user can authenticate immediately
+- **THEN** the user's active status is set to `true`, any lingering confirmation tokens and expiration timestamps are cleared (`null`), and the user can authenticate immediately
 
 #### Scenario: Background Maintenance User Purge Exemption
 - **WHEN** periodic background maintenance tasks (such as scheduled mailbox and retention expiration) execute
-- **THEN** user accounts (active or inactive, confirmed or unconfirmed) are never deleted or purged from the database
+- **THEN** active user accounts, administrator-deactivated user accounts (whose confirmation tokens have been cleared), and any inactive user accounts that own one or more mailboxes (`boxes IS NOT EMPTY`) are strictly exempted and never deleted or purged from the database
+- **AND** only genuinely abandoned, unconfirmed user registrations (`active = false`, `confirmation IS NOT NULL`, `ts_confirm > 0`, `ts_confirm < cutoff`, and `boxes IS EMPTY`) are purged once their confirmation window has expired
+
+#### Scenario: Scheduled Purge of Expired Unconfirmed Registrations Without Mailboxes (Happy Path)
+- **WHEN** periodic background maintenance executes and an inactive user record has a non-null confirmation token, a positive `ts_confirm` older than the configured confirmation grace period (`now - (confirmGraceHours * 3,600,000)`), and zero mailboxes (`boxes IS EMPTY`)
+- **THEN** the system deletes the expired unconfirmed user record from the database
+
+#### Scenario: Legacy Deactivated User With Mailboxes Protected From Purge (Special Case)
+- **WHEN** periodic background maintenance executes and an inactive user record still carries a legacy non-null confirmation token and expired `ts_confirm` timestamp in the database, but owns one or more mailboxes (`boxes IS NOT EMPTY`)
+- **THEN** the empty-mailbox query safeguard (`u.boxes IS EMPTY`) excludes the user from cleanup and preserves the user and all of their mailboxes intact without requiring a database migration
+
+#### Scenario: Unactivated User Within Confirmation Grace Period Protected From Purge (Boundary Case)
+- **WHEN** periodic background maintenance executes and an inactive unconfirmed user has a `ts_confirm` timestamp within the active confirmation window (`ts_confirm >= cutoff`) or `ts_confirm <= 0`
+- **THEN** the system retains the unconfirmed user record so the user can complete email verification within the allowed timeframe
 
 #### Scenario: Top Quick Stats Cards and Granular Breakdowns (Happy Path)
 - **WHEN** an administrator views the statistics page (`/admin/statistics`)

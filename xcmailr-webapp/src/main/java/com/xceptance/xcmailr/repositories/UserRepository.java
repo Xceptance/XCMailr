@@ -76,6 +76,21 @@ public interface UserRepository extends JpaRepository<User, Long>
     Optional<User> findByApiToken(final String apiToken);
 
     /**
+     * Finds genuinely unconfirmed user registrations whose confirmation window has expired.
+     * <p>
+     * Safeguard against legacy database records: Legacy XCMailr never cleared {@code confirmation}
+     * or {@code ts_confirm} upon account activation. By enforcing {@code u.ts_confirm > 0} and
+     * {@code u.boxes IS EMPTY}, any already-deactivated legacy user who owns mailboxes is strictly
+     * excluded from cleanup without requiring a database migration.
+     * </p>
+     *
+     * @param timestamp epoch millisecond expiration cutoff
+     * @return list of expired unconfirmed users with zero mailboxes eligible for cleanup
+     */
+    @Query("SELECT u FROM User u WHERE u.active = false AND u.confirmation IS NOT NULL AND u.ts_confirm > 0 AND u.ts_confirm < :timestamp AND u.boxes IS EMPTY")
+    List<User> findExpiredInactiveUsers(@Param("timestamp") final Long timestamp);
+
+    /**
      * Finds active users whose API token was created before the specified timestamp.
      *
      * @param timestamp epoch millisecond expiration cutoff

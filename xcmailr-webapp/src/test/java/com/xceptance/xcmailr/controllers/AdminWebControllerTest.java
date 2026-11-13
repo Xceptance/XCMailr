@@ -64,6 +64,7 @@ import com.xceptance.xcmailr.repositories.MailStatisticsRepository;
 import com.xceptance.xcmailr.repositories.MailTransactionRepository;
 import com.xceptance.xcmailr.repositories.MailboxRepository;
 import com.xceptance.xcmailr.repositories.UserRepository;
+import com.xceptance.xcmailr.services.ExpirationScheduledService;
 
 /**
  * Integration tests for {@link AdminWebController} testing administrative controls,
@@ -95,6 +96,9 @@ public class AdminWebControllerTest
 
     @Autowired
     private MailStatisticsRepository mailStatisticsRepository;
+
+    @Autowired
+    private ExpirationScheduledService expirationService;
 
     private User admin;
     private User adminDe;
@@ -188,6 +192,83 @@ public class AdminWebControllerTest
         assertTrue(activated.isActive(), "User should now be active");
         assertNull(activated.getConfirmation(), "Confirmation token should be cleared upon activation");
         assertNull(activated.getTs_confirm(), "Confirmation timestamp should be cleared upon activation");
+    }
+
+    /**
+     * Verifies that deactivating an active legacy user who still carries a historical
+     * confirmation token and timestamp clears both {@code confirmation} and {@code ts_confirm}.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Happy Path: Admin deactivating active legacy user clears lingering confirmation token and timestamp")
+    public void testAdminDeactivatingLegacyUserClearsConfirmationTokens() throws Exception
+    {
+        final User activeLegacyWithToken = new User("Legacy", "Active", "legacy_active@xcmailr.test", "password", "en");
+        activeLegacyWithToken.setActive(true);
+        activeLegacyWithToken.setConfirmation("legacy-2019-token-xyz");
+        activeLegacyWithToken.setTs_confirm(System.currentTimeMillis() - (365L * 86_400_000L));
+        userRepository.save(activeLegacyWithToken);
+
+        mockMvc.perform(post("/admin/users/" + activeLegacyWithToken.getId() + "/toggle-active")
+               .header("HX-Request", "true")
+               .with(user("admin@xcmailr.test").roles("ADMIN"))
+               .with(csrf()))
+               .andExpect(status().isOk())
+               .andExpect(header().string("HX-Trigger", "userListChanged"));
+
+        final User deactivated = userRepository.findById(activeLegacyWithToken.getId()).orElseThrow();
+        assertFalse(deactivated.isActive(), "User should now be inactive");
+        assertNull(deactivated.getConfirmation(), "Confirmation token must be cleared upon admin deactivation");
+        assertNull(deactivated.getTs_confirm(), "Confirmation timestamp must be cleared upon admin deactivation");
+    }
+
+    /**
+     * Verifies that deactivating a legacy active user who owns zero mailboxes and carries a
+     * historical confirmation token protects the account from being deleted by subsequent
+     * scheduled maintenance runs.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Special Case: Admin deactivating legacy user with zero mailboxes protects account from scheduled purge")
+    public void testAdminDeactivatingLegacyUserWithoutMailboxesSurvivesScheduledPurge() throws Exception
+    {
+        final User legacyZeroBoxUser = new User("ZeroBox", "Legacy", "zerobox_legacy@xcmailr.test", "password", "en");
+        legacyZeroBoxUser.setActive(true);
+        legacyZeroBoxUser.setConfirmation("legacy-2018-token-abc");
+        legacyZeroBoxUser.setTs_confirm(System.currentTimeMillis() - (500L * 86_400_000L));
+        userRepository.save(legacyZeroBoxUser);
+
+        // Admin deactivates the user via standard non-HTMX form POST
+        mockMvc.perform(post("/admin/users/" + legacyZeroBoxUser.getId() + "/toggle-active")
+               .with(user("admin@xcmailr.test").roles("ADMIN"))
+               .with(csrf()))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/admin/users?updated"));
+
+        // Run background maintenance task
+        expirationService.runMaintenanceTasks();
+
+        final User reloaded = userRepository.findById(legacyZeroBoxUser.getId()).orElse(null);
+        assertNotNull(reloaded, "Deactivated legacy user with zero mailboxes must survive scheduled maintenance");
+        assertFalse(reloaded.isActive(), "Deactivated legacy user must remain inactive");
+        assertNull(reloaded.getConfirmation(), "Confirmation token must remain null");
+    }
+
+    /**
+     * Verifies that attempting to toggle active status on a non-existent user ID returns HTTP 404 Not Found.
+     *
+     * @throws Exception if request execution fails
+     */
+    @Test
+    @DisplayName("Error Case: Admin toggling active state for non-existent user ID returns 404 Not Found")
+    public void testAdminToggleActiveNonExistentUserReturnsNotFound() throws Exception
+    {
+        mockMvc.perform(post("/admin/users/99999999/toggle-active")
+               .with(user("admin@xcmailr.test").roles("ADMIN"))
+               .with(csrf()))
+               .andExpect(status().isNotFound());
     }
 
     @Test

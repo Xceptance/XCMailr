@@ -271,7 +271,15 @@ public class WebAuthController
     }
 
     /**
-     * Initiates password recovery process.
+     * Initiates password recovery process for active user accounts.
+     * <p>
+     * Only active accounts ({@code user.isActive() == true}) receive a newly generated reset
+     * token and recovery email. Inactive or administrator-deactivated accounts are left untouched
+     * so that {@code confirmation} and {@code ts_confirm} are never planted on a deactivated
+     * account (which would otherwise mark it for unconfirmed-registration cleanup or allow
+     * bypassing administrative deactivation via {@code /confirm/{token}}). Always returns the
+     * identical redirect to preserve CWE-204 anti-enumeration.
+     * </p>
      *
      * @param mail email of the account to reset
      * @return redirect to login with info message
@@ -282,7 +290,8 @@ public class WebAuthController
         final String cleanMail = mail.trim().toLowerCase();
         final Optional<User> userOpt = userRepository.findByMailIgnoreCase(cleanMail);
 
-        if (userOpt.isPresent())
+        // Only issue a reset token for active accounts; never mutate confirmation state on inactive/deactivated users.
+        if (userOpt.isPresent() && userOpt.get().isActive())
         {
             final User user = userOpt.get();
             final String token = UUID.randomUUID().toString();

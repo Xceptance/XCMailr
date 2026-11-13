@@ -16,9 +16,15 @@
 package com.xceptance.xcmailr.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -166,6 +172,76 @@ public class WebAuthControllerUnitTest
         assertEquals("auth/reset-password", view);
         assertEquals("auth.password.error.minLength", model.getAttribute("errorMessageKey"));
         assertEquals("valid-token", model.getAttribute("token"));
+    }
+
+    /**
+     * Verifies the happy path for {@link WebAuthController#forgotPasswordSubmit(String)}:
+     * an active user with uppercase/whitespace-padded email input receives a newly generated
+     * confirmation token, a future expiration timestamp, repository persistence, and an
+     * outbound password-reset email.
+     */
+    @Test
+    @DisplayName("Happy Path: forgotPasswordSubmit for active user generates token, saves user, and sends email")
+    public void testForgotPasswordSubmitActiveUserGeneratesTokenSavesAndSendsEmail()
+    {
+        final User activeUser = new User("Active", "User", "active@example.test", "encodedPass", "en");
+        activeUser.setActive(true);
+        when(userRepository.findByMailIgnoreCase("active@example.test")).thenReturn(Optional.of(activeUser));
+
+        final long before = System.currentTimeMillis();
+        final String view = controller.forgotPasswordSubmit("  ACTIVE@Example.test  ");
+
+        assertEquals("redirect:/login?resetRequested", view);
+        assertNotNull(activeUser.getConfirmation(), "Reset confirmation token must be generated for active user");
+        assertNotNull(activeUser.getTs_confirm(), "Reset confirmation timestamp must be set for active user");
+        assertTrue(activeUser.getTs_confirm() > before, "Reset expiration timestamp must be in the future");
+        verify(userRepository).save(activeUser);
+        verify(outboundMailService).sendAsync(eq("active@example.test"), anyString(), anyString());
+    }
+
+    /**
+     * Verifies the security and data-integrity safeguard for {@link WebAuthController#forgotPasswordSubmit(String)}:
+     * submitting a password-reset request for an inactive or administrator-deactivated user must NOT
+     * generate or overwrite {@code confirmation} or {@code ts_confirm}, must NOT persist the user,
+     * and must NOT dispatch an email, while still returning the identical redirect to prevent enumeration.
+     */
+    @Test
+    @DisplayName("Special Case: forgotPasswordSubmit for inactive user does not generate token or send email")
+    public void testForgotPasswordSubmitInactiveUserDoesNotGenerateTokenOrSendEmail()
+    {
+        final User deactivatedUser = new User("Deactivated", "User", "deactivated@example.test", "encodedPass", "en");
+        deactivatedUser.setActive(false);
+        deactivatedUser.setConfirmation(null);
+        deactivatedUser.setTs_confirm(null);
+        when(userRepository.findByMailIgnoreCase("deactivated@example.test")).thenReturn(Optional.of(deactivatedUser));
+
+        final String view = controller.forgotPasswordSubmit("deactivated@example.test");
+
+        assertEquals("redirect:/login?resetRequested", view,
+                     "Must return identical redirect for CWE-204 anti-enumeration");
+        assertNull(deactivatedUser.getConfirmation(),
+                   "Inactive user confirmation token must remain null so account cannot be marked for purge or self-reactivated");
+        assertNull(deactivatedUser.getTs_confirm(),
+                   "Inactive user confirmation timestamp must remain null");
+        verify(userRepository, never()).save(any(User.class));
+        verify(outboundMailService, never()).sendAsync(anyString(), anyString(), anyString());
+    }
+
+    /**
+     * Verifies the error/unknown-account case for {@link WebAuthController#forgotPasswordSubmit(String)}:
+     * submitting a non-existent email address returns the standard redirect without side effects.
+     */
+    @Test
+    @DisplayName("Error Case: forgotPasswordSubmit for non-existent email returns redirect without saving or sending email")
+    public void testForgotPasswordSubmitUnknownEmailReturnsRedirectWithoutSideEffects()
+    {
+        when(userRepository.findByMailIgnoreCase("unknown@example.test")).thenReturn(Optional.empty());
+
+        final String view = controller.forgotPasswordSubmit("unknown@example.test");
+
+        assertEquals("redirect:/login?resetRequested", view);
+        verify(userRepository, never()).save(any(User.class));
+        verify(outboundMailService, never()).sendAsync(anyString(), anyString(), anyString());
     }
 }
 
