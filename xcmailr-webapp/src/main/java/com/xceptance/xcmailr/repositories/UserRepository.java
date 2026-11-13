@@ -78,16 +78,18 @@ public interface UserRepository extends JpaRepository<User, Long>
     /**
      * Finds genuinely unconfirmed user registrations whose confirmation window has expired.
      * <p>
-     * Safeguard against legacy database records: Legacy XCMailr never cleared {@code confirmation}
-     * or {@code ts_confirm} upon account activation. By enforcing {@code u.ts_confirm > 0} and
-     * {@code u.boxes IS EMPTY}, any already-deactivated legacy user who owns mailboxes is strictly
-     * excluded from cleanup without requiring a database migration.
+     * Legacy database records are sanitized at startup by Flyway migration
+     * {@code V6__Clean_Legacy_Confirmation_Tokens.sql}, which sets {@code confirmation = NULL}
+     * and {@code ts_confirm = NULL} on all active users and any inactive users who own mailboxes,
+     * and runtime administrative status changes clear both fields unconditionally. Consequently,
+     * an inactive user with a non-null confirmation token and {@code 0 < ts_confirm < :timestamp}
+     * uniquely identifies an expired unconfirmed registration.
      * </p>
      *
      * @param timestamp epoch millisecond expiration cutoff
-     * @return list of expired unconfirmed users with zero mailboxes eligible for cleanup
+     * @return list of expired unconfirmed users eligible for cleanup
      */
-    @Query("SELECT u FROM User u WHERE u.active = false AND u.confirmation IS NOT NULL AND u.ts_confirm > 0 AND u.ts_confirm < :timestamp AND u.boxes IS EMPTY")
+    @Query("SELECT u FROM User u WHERE u.active = false AND u.confirmation IS NOT NULL AND u.ts_confirm > 0 AND u.ts_confirm < :timestamp")
     List<User> findExpiredInactiveUsers(@Param("timestamp") final Long timestamp);
 
     /**

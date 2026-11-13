@@ -21,17 +21,23 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
+
+import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
 
 import com.xceptance.xcmailr.config.XcmailrProperties;
 import com.xceptance.xcmailr.repositories.MailRepository;
@@ -82,6 +88,12 @@ public class ExpirationScheduledServiceTest
 
     @Autowired
     private XcmailrProperties properties;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private User testUser;
 
@@ -188,16 +200,16 @@ public class ExpirationScheduledServiceTest
     /**
      * Verifies the happy path for unconfirmed registration cleanup: genuinely abandoned
      * unconfirmed registrations ({@code active = false}, non-null {@code confirmation},
-     * {@code ts_confirm > 0} older than the cutoff, and zero mailboxes) are purged during
-     * scheduled maintenance runs.
+     * and {@code ts_confirm > 0} older than the cutoff) are purged during scheduled
+     * maintenance runs.
      */
     @Test
-    @DisplayName("Happy Path: Should purge expired unconfirmed user registrations without mailboxes")
+    @DisplayName("Happy Path: Should purge expired unconfirmed user registrations")
     public void testPurgeExpiredUnconfirmedUsersHappyPath()
     {
         final long now = System.currentTimeMillis();
 
-        // Expired unconfirmed registration with 0 mailboxes (24 hours past confirmation cutoff)
+        // Expired unconfirmed registration (24 hours past confirmation cutoff)
         final User expiredUnconfirmedUser = new User("Unconfirmed", "Expired", "unconfirmed_expired@xcmailr.test", "pass", "en");
         expiredUnconfirmedUser.setActive(false);
         expiredUnconfirmedUser.setConfirmation("reg-token-456");
@@ -207,20 +219,23 @@ public class ExpirationScheduledServiceTest
         // Execute scheduled maintenance tasks
         expirationService.runMaintenanceTasks();
 
-        // Verify that the expired unconfirmed registration with empty mailboxes was purged
+        // Verify that the expired unconfirmed registration was purged
         assertFalse(userRepository.findById(expiredUnconfirmedUser.getId()).isPresent(),
-                    "Expired unconfirmed registration with zero mailboxes must be purged");
+                    "Expired unconfirmed registration must be purged");
     }
 
     /**
-     * Verifies the legacy production database safeguard: an already-deactivated legacy user
-     * who still carries a historical non-null {@code confirmation} token and expired
-     * {@code ts_confirm} timestamp, but owns one or more mailboxes ({@code boxes IS NOT EMPTY}),
-     * is strictly excluded from cleanup and retains all mailboxes intact.
+     * Verifies the legacy production database safeguard after the {@code V6} Flyway migration:
+     * an already-deactivated legacy user who owned mailboxes and carried a historical 2019
+     * {@code confirmation} token has their token and timestamp cleared to {@code null} by
+     * {@code V6__Clean_Legacy_Confirmation_Tokens.sql}, and is strictly preserved along with
+     * all of their mailboxes across scheduled maintenance runs.
+     *
+     * @throws Exception if executing the V6 migration SQL fails
      */
     @Test
-    @DisplayName("Special Case: Should preserve legacy deactivated user with expired confirmation token who owns mailboxes")
-    public void testLegacyDeactivatedUserWithMailboxesPreserved()
+    @DisplayName("Special Case: Should preserve V6-migrated legacy deactivated user who owns mailboxes")
+    public void testLegacyDeactivatedUserWithMailboxesPreserved() throws Exception
     {
         final long now = System.currentTimeMillis();
 
@@ -229,51 +244,59 @@ public class ExpirationScheduledServiceTest
         legacyDeactivatedWithBoxes.setActive(false);
         legacyDeactivatedWithBoxes.setConfirmation("legacy-2019-token");
         legacyDeactivatedWithBoxes.setTs_confirm(now - (365L * 86_400_000L));
-        userRepository.save(legacyDeactivatedWithBoxes);
+        userRepository.saveAndFlush(legacyDeactivatedWithBoxes);
 
         final MBox userBox = new MBox("legacybox", "xcmailr.test", 0L, false, legacyDeactivatedWithBoxes);
-        mailboxRepository.save(userBox);
+        mailboxRepository.saveAndFlush(userBox);
 
-        // Flush and clear or invoke maintenance task
+        // Apply V6 data migration to sanitize legacy tokens on active users and mailbox owners
+        final ClassPathResource v6Resource = new ClassPathResource("db/migration/V6__Clean_Legacy_Confirmation_Tokens.sql");
+        final String v6Sql = StreamUtils.copyToString(v6Resource.getInputStream(), StandardCharsets.UTF_8);
+        jdbcTemplate.execute(v6Sql);
+        entityManager.flush();
+        entityManager.clear();
+
+        // Execute scheduled maintenance task
         expirationService.runMaintenanceTasks();
 
-        assertTrue(userRepository.findById(legacyDeactivatedWithBoxes.getId()).isPresent(),
-                   "Legacy deactivated user owning mailboxes must never be purged");
+        final User preservedUser = userRepository.findById(legacyDeactivatedWithBoxes.getId()).orElseThrow();
+        assertNull(preservedUser.getConfirmation(), "Migrated legacy deactivated user must have null confirmation token");
+        assertNull(preservedUser.getTs_confirm(), "Migrated legacy deactivated user must have null ts_confirm");
         assertTrue(mailboxRepository.findById(userBox.getId()).isPresent(),
                    "Mailboxes owned by legacy deactivated user must remain intact");
     }
 
     /**
-     * Verifies that administrator-deactivated accounts (whose confirmation tokens are null)
-     * and active legacy accounts (who still carry historical confirmation tokens in the database)
-     * are preserved across maintenance runs even when they own zero mailboxes.
+     * Verifies that administrator-deactivated accounts (whose confirmation tokens are null),
+     * V6-migrated active accounts (whose historical confirmation tokens were cleared to null),
+     * and active accounts are preserved across maintenance runs.
      */
     @Test
-    @DisplayName("Special Case: Should preserve admin-deactivated users without tokens and active legacy users with historical tokens")
+    @DisplayName("Special Case: Should preserve admin-deactivated users without tokens and active users")
     public void testAdminDeactivatedAndActiveLegacyUsersPreserved()
     {
         final long now = System.currentTimeMillis();
 
-        // Admin-deactivated user (tokens cleared on toggle, 0 mailboxes)
+        // Admin-deactivated user (tokens cleared on toggle or V6 migration, 0 mailboxes)
         final User adminDeactivatedUser = new User("Admin", "Deactivated", "admin_deactivated@xcmailr.test", "pass", "en");
         adminDeactivatedUser.setActive(false);
         adminDeactivatedUser.setConfirmation(null);
         adminDeactivatedUser.setTs_confirm(null);
         userRepository.save(adminDeactivatedUser);
 
-        // Active legacy user with leftover historical confirmation token and 0 mailboxes
-        final User activeLegacyUser = new User("Active", "Legacy", "active_legacy@xcmailr.test", "pass", "en");
-        activeLegacyUser.setActive(true);
-        activeLegacyUser.setConfirmation("legacy-active-token");
-        activeLegacyUser.setTs_confirm(now - (100L * 86_400_000L));
-        userRepository.save(activeLegacyUser);
+        // Active user (protected by u.active = false predicate even if a token is present)
+        final User activeUser = new User("Active", "Legacy", "active_legacy@xcmailr.test", "pass", "en");
+        activeUser.setActive(true);
+        activeUser.setConfirmation("legacy-active-token");
+        activeUser.setTs_confirm(now - (100L * 86_400_000L));
+        userRepository.save(activeUser);
 
         expirationService.runMaintenanceTasks();
 
         assertTrue(userRepository.findById(adminDeactivatedUser.getId()).isPresent(),
-                   "Admin-deactivated user without confirmation token must remain in repository");
-        assertTrue(userRepository.findById(activeLegacyUser.getId()).isPresent(),
-                   "Active legacy user with historical token must remain in repository");
+                    "Admin-deactivated user without confirmation token must remain in repository");
+        assertTrue(userRepository.findById(activeUser.getId()).isPresent(),
+                    "Active user must remain in repository");
     }
 
     /**
@@ -348,23 +371,34 @@ public class ExpirationScheduledServiceTest
     }
 
     /**
-     * Verifies the repository query {@link UserRepository#findExpiredInactiveUsers(Long)} directly,
-     * ensuring only inactive users with non-null confirmation tokens, positive expired timestamps,
-     * and empty mailbox collections are returned.
+     * Verifies the simplified repository query {@link UserRepository#findExpiredInactiveUsers(Long)}
+     * directly: returns inactive users with non-null confirmation tokens and positive expired
+     * timestamps ({@code 0 < ts_confirm < cutoff}) without performing a runtime {@code u.boxes IS EMPTY}
+     * subquery check (since legacy tokens are cleaned up at startup by the {@code V6} Flyway migration),
+     * while excluding boundary timestamps ({@code ts_confirm == cutoff}) and migrated/deactivated users
+     * with {@code null} confirmation tokens.
      */
     @Test
-    @DisplayName("Repository: findExpiredInactiveUsers returns only expired unconfirmed users with empty mailboxes")
+    @DisplayName("Repository: findExpiredInactiveUsers evaluates token and timestamp without runtime mailbox filter")
     public void testFindExpiredInactiveUsersRepositoryQuery()
     {
         final long now = System.currentTimeMillis();
         final long cutoff = now - 3_600_000L;
 
-        // Eligible user: inactive, token != null, ts_confirm > 0 && < cutoff, boxes empty
-        final User eligible = new User("Eligible", "User", "eligible_repo@xcmailr.test", "pass", "en");
-        eligible.setActive(false);
-        eligible.setConfirmation("eligible-token");
-        eligible.setTs_confirm(cutoff - 1_000L);
-        userRepository.save(eligible);
+        // Eligible 1: inactive, token != null, ts_confirm > 0 && < cutoff, no mailboxes
+        final User eligibleNoBox = new User("Eligible", "NoBox", "eligible_repo@xcmailr.test", "pass", "en");
+        eligibleNoBox.setActive(false);
+        eligibleNoBox.setConfirmation("eligible-token-1");
+        eligibleNoBox.setTs_confirm(cutoff - 1_000L);
+        userRepository.save(eligibleNoBox);
+
+        // Eligible 2: proves runtime query no longer filters on u.boxes IS EMPTY
+        final User eligibleWithBox = new User("Eligible", "WithBox", "withbox_repo@xcmailr.test", "pass", "en");
+        eligibleWithBox.setActive(false);
+        eligibleWithBox.setConfirmation("eligible-token-2");
+        eligibleWithBox.setTs_confirm(cutoff - 10_000L);
+        userRepository.save(eligibleWithBox);
+        mailboxRepository.save(new MBox("repobox", "xcmailr.test", 0L, false, eligibleWithBox));
 
         // Ineligible 1: exact boundary (ts_confirm == cutoff)
         final User onBoundary = new User("Boundary", "User", "boundary_repo@xcmailr.test", "pass", "en");
@@ -373,17 +407,18 @@ public class ExpirationScheduledServiceTest
         onBoundary.setTs_confirm(cutoff);
         userRepository.save(onBoundary);
 
-        // Ineligible 2: owns a mailbox
-        final User withBox = new User("WithBox", "User", "withbox_repo@xcmailr.test", "pass", "en");
-        withBox.setActive(false);
-        withBox.setConfirmation("withbox-token");
-        withBox.setTs_confirm(cutoff - 10_000L);
-        userRepository.save(withBox);
-        mailboxRepository.save(new MBox("repobox", "xcmailr.test", 0L, false, withBox));
+        // Ineligible 2: V6-migrated / admin-deactivated user (confirmation == null, ts_confirm == null)
+        final User migratedDeactivated = new User("Migrated", "Deactivated", "migrated_repo@xcmailr.test", "pass", "en");
+        migratedDeactivated.setActive(false);
+        migratedDeactivated.setConfirmation(null);
+        migratedDeactivated.setTs_confirm(null);
+        userRepository.save(migratedDeactivated);
 
         final List<User> found = userRepository.findExpiredInactiveUsers(cutoff);
-        assertEquals(1, found.size(), "Only the single eligible unconfirmed user without mailboxes should be returned");
-        assertEquals(eligible.getId(), found.get(0).getId());
+        assertEquals(2, found.size(),
+                     "Both inactive users with non-null expired confirmation tokens must be returned without runtime mailbox filtering");
+        assertTrue(found.stream().anyMatch(u -> u.getId() == eligibleNoBox.getId()));
+        assertTrue(found.stream().anyMatch(u -> u.getId() == eligibleWithBox.getId()));
     }
 
     @Test

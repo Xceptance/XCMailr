@@ -175,10 +175,11 @@ public class ExpirationScheduledService
      * Deletes genuinely unconfirmed user registrations whose confirmation window has expired.
      * <p>
      * Only accounts that are inactive ({@code active = false}), possess a non-null confirmation token,
-     * have a positive expiration timestamp older than the configured confirmation grace window, and
-     * own zero mailboxes ({@code boxes IS EMPTY}) are purged. Administrator-deactivated accounts
-     * (whose tokens are cleared upon deactivation) and any legacy accounts that own mailboxes are
-     * strictly preserved.
+     * and have a positive expiration timestamp older than the configured confirmation grace window
+     * are purged. Existing active accounts and any already-deactivated legacy accounts that own
+     * mailboxes have their historical tokens cleared at startup by Flyway migration
+     * {@code V6__Clean_Legacy_Confirmation_Tokens.sql}, and administrator-deactivated accounts
+     * have their tokens cleared upon deactivation, ensuring they are strictly preserved.
      * </p>
      *
      * @param now current epoch milliseconds
