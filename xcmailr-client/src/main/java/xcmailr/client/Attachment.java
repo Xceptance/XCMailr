@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) 2013-2026 Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,13 @@ package xcmailr.client;
  */
 public class Attachment
 {
+    /**
+     * Creates a new, empty attachment instance.
+     */
+    public Attachment()
+    {
+    }
+
     /**
      * The name of the attachment.
      */

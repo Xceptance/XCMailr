@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="mailList" id="mail-list-container"
+     th:attr="hx-get=@{/mails(page=${currentPage != null ? currentPage : 0}, size=${size != null ? size : 25})},hx-trigger='mailListChanged from:body',hx-target='#mail-list-container',hx-swap='outerHTML'">
+    <div class="table-responsive bg-body rounded shadow-sm border">
+        <table class="table table-hover table-middle mb-0" id="mail-list-table">
+            <thead>
+                <tr>
+                    <th scope="col" class="d-none d-md-table-cell" style="width: 140px;" th:text="#{mail.table.column.received}">Received</th>
+                    <th scope="col" th:text="#{mail.table.column.messageAndRecipient}">Message &amp; Recipient</th>
+                    <th scope="col" class="text-end" style="width: 1%; white-space: nowrap;" th:text="#{mail.table.column.actions}">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${(mailPage != null and totalElements == 0) or #lists.isEmpty(mails)}">
+                    <td colspan="3" class="text-center text-muted py-5 empty-inbox-state">
+                        <i class="bi bi-envelope-open display-6 d-block mb-2 text-secondary opacity-50"></i>
+                        <em th:text="#{mail.all.empty}">No messages received across your mailboxes yet.</em>
+                    </td>
+                </tr>
+
+                <tr th:each="m : ${mails}" th:id="'mail-row-' + ${m.id}" style="cursor: pointer;"
+                    class="mail-row"
+                    hx-trigger="click"
+                    th:attr="hx-get=@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}},hx-target='#mail-viewer-pane',hx-swap='innerHTML'">
+                    <td class="d-none d-md-table-cell text-nowrap text-muted small">
+                        <time class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime)) : T(java.time.Instant).ofEpochMilli(m.receiveTime).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">2026-10-01 12:00:00</time>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
+                            <span class="badge bg-body-secondary text-body border recipient-badge"
+                                  th:text="${mailboxAddressMap != null and mailboxAddressMap.containsKey(m.mailboxId) ? mailboxAddressMap.get(m.mailboxId) : #messages.msg('mail.unknownMailbox')}">
+                                mailbox@example.com
+                            </span>
+                            <span th:if="${mailboxCommentMap != null and mailboxCommentMap.containsKey(m.mailboxId)}"
+                                  class="badge bg-secondary-subtle text-secondary-emphasis border comment-badge text-truncate"
+                                  style="max-width: 220px;"
+                                  th:text="${mailboxCommentMap.get(m.mailboxId)}"
+                                  th:title="${mailboxCommentMap.get(m.mailboxId)}">
+                                Comment
+                            </span>
+                            <span class="small text-muted d-md-none ms-auto">
+                                <i class="bi bi-clock me-1"></i>
+                                <time class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime)) : T(java.time.Instant).ofEpochMilli(m.receiveTime).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(m.receiveTime))}">12:00</time>
+                            </span>
+                        </div>
+                        <div class="fw-semibold text-break mail-sender" th:text="${m.sender}">
+                            sender@example.com
+                        </div>
+                        <div class="small text-body-secondary text-break mail-subject" th:text="${m.subject}">
+                            Subject line
+                        </div>
+                    </td>
+                    <td class="text-end text-nowrap align-middle" onclick="event.stopPropagation();">
+                        <div class="btn-group btn-group-sm">
+                            <a th:href="@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}}"
+                               class="btn btn-outline-secondary btn-touch-target p-2" th:title="#{mail.action.openTooltip}" title="Open full view">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                            <button class="btn btn-outline-danger btn-touch-target p-2" type="button"
+                                    th:attr="hx-delete=@{'/mailboxes/' + ${m.mailboxId} + '/mails/' + ${m.id}},hx-swap='none',hx-confirm=#{mail.detail.deleteConfirm}"
+                                    th:title="#{mail.action.deleteTooltip}"
+                                    title="Delete email">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- HTMX Pagination Controls & Display Count Bar -->
+        <div th:if="${mailPage != null and totalElements != null and totalElements > 0}" class="d-flex flex-wrap justify-content-between align-items-center p-3 border-top gap-2">
+            <div class="text-muted small">
+                <th:block th:text="#{mail.table.showingPrefix}">Showing</th:block> <span class="fw-semibold" th:text="${mailPage.numberOfElements}">1</span> <th:block th:text="#{mail.table.showingOf}">of</th:block> <span class="fw-semibold" th:text="${totalElements}">1</span> <th:block th:text="#{mail.table.showingMessages}">messages</th:block>
+            </div>
+
+            <!-- Right: Pagination Bar and Display Count Bar -->
+            <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+                <!-- 7-Slot Pagination Bar -->
+                <nav aria-label="Mail pagination" th:aria-label="#{common.aria.pagination.mailboxes}">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${mailPage.first ? 'disabled' : ''}">
+                            <button class="page-link pagination-prev" type="button"
+                                    th:attr="hx-get=@{/mails(page=${currentPage > 0 ? currentPage - 1 : 0}, size=${size})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                                    th:disabled="${mailPage.first}"
+                                    th:text="#{common.pagination.previous}">
+                                Previous
+                            </button>
+                        </li>
+
+                        <th:block th:each="p : ${@paginationHelper.getPageSequence(currentPage + 1, totalPages)}">
+                            <li th:if="${p == -1}" class="page-item disabled" aria-hidden="true">
+                                <span class="page-link">&hellip;</span>
+                            </li>
+                            <li th:if="${p != -1}" class="page-item" th:classappend="${p == currentPage + 1 ? 'active' : ''}">
+                                <button class="page-link pagination-num" type="button" th:text="${p}"
+                                        th:attr="hx-get=@{/mails(page=${p - 1}, size=${size})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'">
+                                    1
+                                </button>
+                            </li>
+                        </th:block>
+
+                        <li class="page-item" th:classappend="${mailPage.last ? 'disabled' : ''}">
+                            <button class="page-link pagination-next" type="button"
+                                    th:attr="hx-get=@{/mails(page=${currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1}, size=${size})},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                                    th:disabled="${mailPage.last}"
+                                    th:text="#{common.pagination.next}">
+                                Next
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Display Count Selector -->
+                <nav aria-label="Page size selector" th:aria-label="#{macro_EntriesPerPage}">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item disabled">
+                            <span class="page-link text-muted" th:text="#{macro_EntriesPerPage}">Display Count</span>
+                        </li>
+                        <li class="page-item" th:classappend="${size == 5 ? 'active' : ''}">
+                            <button class="page-link" type="button"
+                                    th:attr="hx-get=@{/mails(page=0, size=5)},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'">
+                                5
+                            </button>
+                        </li>
+                        <li class="page-item" th:classappend="${size == 15 ? 'active' : ''}">
+                            <button class="page-link" type="button"
+                                    th:attr="hx-get=@{/mails(page=0, size=15)},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'">
+                                15
+                            </button>
+                        </li>
+                        <li class="page-item" th:classappend="${size == 25 ? 'active' : ''}">
+                            <button class="page-link" type="button"
+                                    th:attr="hx-get=@{/mails(page=0, size=25)},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'">
+                                25
+                            </button>
+                        </li>
+                        <li class="page-item" th:classappend="${size == 50 ? 'active' : ''}">
+                            <button class="page-link" type="button"
+                                    th:attr="hx-get=@{/mails(page=0, size=50)},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'">
+                                50
+                            </button>
+                        </li>
+                        <li class="page-item" th:classappend="${size >= 1000 or (size >= totalElements and size != 5 and size != 15 and size != 25 and size != 50) ? 'active' : ''}">
+                            <button class="page-link" type="button"
+                                    th:attr="hx-get=@{/mails(page=0, size=0)},hx-target='#mail-list-container',hx-swap='outerHTML',hx-push-url='true'"
+                                    th:text="#{common.pagination.all}">
+                                all
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+

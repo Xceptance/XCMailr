@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="modal" class="modal-content">
+    <form th:attr="hx-post=@{'/mailboxes/' + ${mailbox.id} + '/edit'}" hx-target="#modal-container" hx-swap="innerHTML">
+        <div class="modal-header">
+            <h5 class="modal-title" th:text="#{mailbox.modal.edit.title}">Edit Mailbox</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" th:aria-label="#{common.button.close}" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <!-- Inline error alert if update fails -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${error}">Validation error</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" th:aria-label="#{common.button.close}" aria-label="Close"></button>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" th:text="#{mailbox.modal.edit.address}">Mailbox Address</label>
+                <input type="text" class="form-control" th:value="${mailbox.fullAddress}" readonly disabled>
+            </div>
+
+            <div class="mb-3">
+                <label for="commentEditInput" class="form-label" th:text="#{mailbox.modal.edit.comment}">Comment / Note</label>
+                <input type="text" class="form-control" id="commentEditInput" name="comment"
+                       th:value="${mailbox.comment}"
+                       maxlength="255"
+                       th:placeholder="#{mailbox.modal.new.commentPlaceholder}"
+                       placeholder="Optional note on test address usage or project context (max. 255 chars)">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-muted" th:text="#{mailbox.modal.edit.currentExpiration}">Current Expiration</label>
+                <div class="fw-semibold">
+                    <span th:if="${mailbox.ts_Active == 0}" class="text-success" th:text="#{common.status.unlimited}">Unlimited</span>
+                    <time th:unless="${mailbox.ts_Active == 0}" class="local-time" th:datetime="${isoFormatter != null ? isoFormatter.format(T(java.time.Instant).ofEpochMilli(mailbox.ts_Active)) : T(java.time.Instant).ofEpochMilli(mailbox.ts_Active).toString()}" th:text="${dateFormatter.format(T(java.time.Instant).ofEpochMilli(mailbox.ts_Active))}">2026-10-01 12:00</time>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label d-block" th:text="#{mailbox.modal.edit.extendBy}">Extend Validity By</label>
+                <div class="btn-group w-100 flex-wrap" role="group" aria-label="Mailbox extension presets" th:aria-label="#{common.aria.toolbar.durationPresets}">
+                    <input type="radio" class="btn-check" name="extendHours" id="extend-0" value="0" autocomplete="off" checked>
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="extend-0" th:text="#{mailbox.modal.edit.extendKeep}">Keep current</label>
+
+                    <input type="radio" class="btn-check" name="extendHours" id="extend-24" value="24" autocomplete="off">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="extend-24">+1d</label>
+
+                    <input type="radio" class="btn-check" name="extendHours" id="extend-168" value="168" autocomplete="off">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="extend-168">+7d</label>
+
+                    <input type="radio" class="btn-check" name="extendHours" id="extend-720" value="720" autocomplete="off">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="extend-720">+30d</label>
+
+                    <input type="radio" class="btn-check" name="extendHours" id="extend-unlimited" value="-1" autocomplete="off">
+                    <label class="btn btn-outline-secondary btn-sm flex-fill" for="extend-unlimited" th:text="#{common.status.unlimited}">Unlimited</label>
+                </div>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="activeEditCheck" name="active" value="true"
+                       th:checked="${mailbox.active}">
+                <label class="form-check-label" for="activeEditCheck" th:text="#{mailbox.modal.edit.active}">
+                    Mailbox is active
+                </label>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="forwardEditCheck" name="forwardEmails" value="true"
+                       th:checked="${mailbox.forwardEmails}">
+                <label class="form-check-label" for="forwardEditCheck" th:text="#{mailbox.modal.edit.forward}">
+                    Forward incoming emails to my account address
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{common.button.cancel}">Cancel</button>
+            <button type="submit" class="btn btn-primary" th:text="#{mailbox.modal.edit.submit}">Save Changes</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

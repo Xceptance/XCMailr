@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::content})}">
+<body>
+
+<div th:fragment="content">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold mb-1" th:text="#{admin.stats.title}">Email Statistics & Metrics</h2>
+            <p class="text-muted mb-0" th:text="#{admin.stats.subtitle}">Aggregate system totals across accounts, mailboxes, and inbound SMTP events.</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small" th:text="#{admin.stats.registeredUsers}">Registered Users</span>
+                    <i class="bi bi-people text-secondary opacity-75"></i>
+                </div>
+                <div class="fs-2 fw-bold text-body-emphasis" th:text="${totalUsers}">0</div>
+                <div class="text-muted small mt-1" th:text="#{admin.stats.users.breakdown(${adminCount}, ${regularCount})}">1 Admins &middot; 0 Standard</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small" th:text="#{admin.stats.activeMailboxes}">Active Mailboxes</span>
+                    <i class="bi bi-mailbox text-secondary opacity-75"></i>
+                </div>
+                <div class="fs-2 fw-bold text-body-emphasis" th:text="${activeMailboxCount}">0</div>
+                <div class="text-muted small mt-1" th:text="#{admin.stats.mailboxes.breakdown(${expiredMailboxCount}, ${totalMailboxes})}">0 expired (0 total)</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small" th:text="#{admin.stats.storedMessages}">Stored Messages</span>
+                    <i class="bi bi-inbox text-secondary opacity-75"></i>
+                </div>
+                <div class="fs-2 fw-bold text-body-emphasis" th:text="${totalMails}">0</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small" th:text="#{admin.stats.loggedTransactions}">Logged Transactions</span>
+                    <i class="bi bi-journal-text text-secondary opacity-75"></i>
+                </div>
+                <div class="fs-2 fw-bold text-body-emphasis" th:text="${totalTransactions}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Delivery Status Distribution -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="text-muted small fw-semibold me-2" th:text="#{admin.stats.statusOverview}">Transaction Delivery Status:</span>
+                <span th:each="st : ${statusSummary}">
+                    <span th:if="${st.statuscode == 300}" class="badge bg-success py-2 px-3">
+                        <span th:text="#{admin.transactions.status.forwarded}">Forwarded (300):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode == 250}" class="badge bg-primary py-2 px-3">
+                        <span th:text="#{admin.transactions.status.stored}">Stored (250):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode == 200}" class="badge bg-warning text-dark py-2 px-3">
+                        <span th:text="#{admin.transactions.status.inactive}">Inactive (200):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode == 100}" class="badge bg-secondary py-2 px-3">
+                        <span th:text="#{admin.transactions.status.unknown}">Unknown (100):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                    <span th:if="${st.statuscode >= 400}" class="badge bg-danger py-2 px-3">
+                        <span th:text="#{admin.transactions.status.error(${st.statuscode})}">Error (400):</span> <strong th:text="${st.count}">0</strong>
+                    </span>
+                </span>
+                <span th:if="${#lists.isEmpty(statusSummary)}" class="text-muted small" th:text="#{admin.stats.status.empty}">No transactions recorded yet.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: 24 Hours Activity -->
+    <div class="d-flex align-items-center justify-content-between border-top pt-4 mt-4 mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history fs-5 text-secondary"></i>
+            <h4 class="fw-bold mb-0" th:text="#{admin.stats.section.24h.title}">24-Hour Email Activity</h4>
+            <span class="badge rounded-pill bg-body-secondary text-secondary-emphasis border px-2 py-1 small" th:text="#{admin.stats.section.24h.badge}">Today</span>
+        </div>
+        <span class="text-muted small d-none d-md-inline" th:text="#{admin.stats.section.24h.description}">Hourly activity over the preceding 24 hours</span>
+    </div>
+
+    <!-- Last 24 Hours Activity Chart Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-body py-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold" th:text="#{admin.stats.chart.24h.title}">Last 24 Hours Activity</span>
+                <span class="badge rounded-pill bg-body-secondary text-secondary-emphasis border small" th:text="#{admin.stats.chart.periodTotal(${totalVolume24h})}">Total: 0</span>
+            </div>
+            <span class="text-muted small" th:text="#{admin.stats.chart.24h.resolution}">Hourly resolution</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+                <div id="chart-fallback-24h" class="d-none alert alert-light text-center small text-muted my-auto" th:text="#{admin.stats.chart.unavailable}">Chart library could not be loaded.</div>
+                <canvas id="chart-last-24h"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Todays Sender Domains Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-body py-3 fw-semibold" th:text="#{admin.stats.domains.today.title}">
+            Todays (last 24 hours) sender domains
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-sortable mb-0">
+                    <thead>
+                        <tr class="align-middle">
+                            <th scope="col">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                                   data-sort-col="0" data-sort-type="string"
+                                   th:title="#{admin.stats.domains.sort.domain}"
+                                   title="Sort by Sender Domain">
+                                    <span th:text="#{admin.stats.domains.column.domain}">Sender Domain</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="1" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.drops}"
+                                   title="Sort by Drops">
+                                    <span th:text="#{admin.stats.domains.column.drops}">Drops</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="2" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.forwards}"
+                                   title="Sort by Forwards">
+                                    <span th:text="#{admin.stats.domains.column.forwards}">Forwards</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="3" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.stored}"
+                                   title="Sort by Stored">
+                                    <span th:text="#{admin.stats.domains.column.stored}">Stored</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 140px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="4" data-sort-type="number" data-sort-dir="desc"
+                                   th:title="#{admin.stats.domains.sort.total}"
+                                   title="Sort by Total">
+                                    <span th:text="#{admin.stats.domains.column.total}">Total</span>
+                                    <i class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(todaySenderDomains)}">
+                            <td colspan="5" class="text-center text-muted py-4" th:text="#{admin.stats.domains.empty}">No sender domain activity recorded for this time window.</td>
+                        </tr>
+                        <tr th:each="d : ${todaySenderDomains}">
+                            <td><span class="fw-semibold text-break" th:text="${d.domain}">example.com</span></td>
+                            <td class="text-end text-danger" th:text="${d.dropCount}" th:attr="data-sort-value=${d.dropCount}">0</td>
+                            <td class="text-end text-success" th:text="${d.forwardCount}" th:attr="data-sort-value=${d.forwardCount}">0</td>
+                            <td class="text-end text-primary" th:text="${d.storeCount}" th:attr="data-sort-value=${d.storeCount}">0</td>
+                            <td class="text-end fw-bold" th:text="${d.totalCount}" th:attr="data-sort-value=${d.totalCount}">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: 7 Days Activity -->
+    <div class="d-flex align-items-center justify-content-between border-top pt-4 mt-5 mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-calendar-week fs-5 text-secondary"></i>
+            <h4 class="fw-bold mb-0" th:text="#{admin.stats.section.7d.title}">7-Day Email Activity</h4>
+            <span class="badge rounded-pill bg-body-secondary text-secondary-emphasis border px-2 py-1 small" th:text="#{admin.stats.section.7d.badge}">Weekly Trend</span>
+        </div>
+        <span class="text-muted small d-none d-md-inline" th:text="#{admin.stats.section.7d.description}">Daily aggregated volume over the preceding 7 days</span>
+    </div>
+
+    <!-- Last 7 Days Activity Chart Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-body py-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold" th:text="#{admin.stats.chart.7d.title}">Last 7 Days Activity</span>
+                <span class="badge rounded-pill bg-body-secondary text-secondary-emphasis border small" th:text="#{admin.stats.chart.periodTotal(${totalVolume7d})}">Total: 0</span>
+            </div>
+            <span class="text-muted small" th:text="#{admin.stats.chart.7d.resolution}">Daily resolution</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+                <div id="chart-fallback-7d" class="d-none alert alert-light text-center small text-muted my-auto" th:text="#{admin.stats.chart.unavailable}">Chart library could not be loaded.</div>
+                <canvas id="chart-last-7d"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last 7 Days Sender Domains Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-body py-3 fw-semibold" th:text="#{admin.stats.domains.week.title}">
+            Last 7 days sender domains
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-sortable mb-0">
+                    <thead>
+                        <tr class="align-middle">
+                            <th scope="col" style="width: 180px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                                   data-sort-col="0" data-sort-type="date" data-sort-dir="desc"
+                                   th:title="#{admin.stats.domains.sort.date}"
+                                   title="Sort by Date">
+                                    <span th:text="#{admin.stats.domains.column.date}">Date / Day</span>
+                                    <i class="bi bi-chevron-down sort-icon text-primary ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center gap-1 text-nowrap py-1"
+                                   data-sort-col="1" data-sort-type="string"
+                                   th:title="#{admin.stats.domains.sort.domain}"
+                                   title="Sort by Sender Domain">
+                                    <span th:text="#{admin.stats.domains.column.domain}">Sender Domain</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="2" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.drops}"
+                                   title="Sort by Drops">
+                                    <span th:text="#{admin.stats.domains.column.drops}">Drops</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="3" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.forwards}"
+                                   title="Sort by Forwards">
+                                    <span th:text="#{admin.stats.domains.column.forwards}">Forwards</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 120px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="4" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.stored}"
+                                   title="Sort by Stored">
+                                    <span th:text="#{admin.stats.domains.column.stored}">Stored</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                            <th scope="col" class="text-end" style="width: 140px;">
+                                <a href="javascript:void(0)" role="button" class="sortable-header text-decoration-none text-body d-inline-flex align-items-center justify-content-end gap-1 text-nowrap py-1 w-100"
+                                   data-sort-col="5" data-sort-type="number"
+                                   th:title="#{admin.stats.domains.sort.total}"
+                                   title="Sort by Total">
+                                    <span th:text="#{admin.stats.domains.column.total}">Total</span>
+                                    <i class="bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1" aria-hidden="true"></i>
+                                </a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(weekSenderDomains)}">
+                            <td colspan="6" class="text-center text-muted py-4" th:text="#{admin.stats.domains.empty}">No sender domain activity recorded for this time window.</td>
+                        </tr>
+                        <tr th:each="d : ${weekSenderDomains}">
+                            <td th:attr="data-sort-value=${d.date != null ? #dates.format(d.date, 'yyyy-MM-dd') : ''}">
+                                <span class="text-nowrap" th:text="${d.date != null ? #dates.format(d.date, #messages.msg('admin.stats.domains.date.format')) : '-'}">Wed, 11/11/2026</span>
+                            </td>
+                            <td><span class="fw-semibold text-break" th:text="${d.domain}">example.com</span></td>
+                            <td class="text-end text-danger" th:text="${d.dropCount}" th:attr="data-sort-value=${d.dropCount}">0</td>
+                            <td class="text-end text-success" th:text="${d.forwardCount}" th:attr="data-sort-value=${d.forwardCount}">0</td>
+                            <td class="text-end text-primary" th:text="${d.storeCount}" th:attr="data-sort-value=${d.storeCount}">0</td>
+                            <td class="text-end fw-bold" th:text="${d.totalCount}" th:attr="data-sort-value=${d.totalCount}">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Library via WebJar -->
+    <script th:src="@{/webjars/chart.js/4.6.1/dist/chart.umd.js}"></script>
+
+    <!-- Client-side Chart.js Initialization and Theme Synchronization -->
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    (() => {
+        const chart24hData = /*[[${chart24h}]]*/ { labels: [], forwarded: [], stored: [], dropped: [] };
+        const chart7dData = /*[[${chart7d}]]*/ { labels: [], forwarded: [], stored: [], dropped: [] };
+        const labelForwarded = /*[[#{admin.stats.chart.forwarded}]]*/ 'Forwarded';
+        const labelStored = /*[[#{admin.stats.chart.stored}]]*/ 'Stored';
+        const labelDropped = /*[[#{admin.stats.chart.dropped}]]*/ 'Dropped';
+        const labelEmails = /*[[#{admin.stats.chart.emails}]]*/ 'Emails';
+        const labelTime = /*[[#{admin.stats.chart.time}]]*/ 'Time';
+        const labelDate = /*[[#{admin.stats.chart.date}]]*/ 'Date';
+
+        /**
+         * Resolves color tokens based on the current Bootstrap color theme.
+         */
+        function getThemeTokens() {
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            return {
+                isDark: isDark,
+                gridColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)',
+                textColor: isDark ? '#adb5bd' : '#495057',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'
+            };
+        }
+
+        // Palette matching corporate Bootstrap success, primary, and danger accents
+        const COLOR_FORWARDED_BORDER = '#198754';
+        const COLOR_FORWARDED_BG = 'rgba(25, 135, 84, 0.15)';
+        const COLOR_STORED_BORDER = '#0d6efd';
+        const COLOR_STORED_BG = 'rgba(13, 110, 253, 0.15)';
+        const COLOR_DROPPED_BORDER = '#dc3545';
+        const COLOR_DROPPED_BG = 'rgba(220, 53, 69, 0.15)';
+
+        function createLineChartConfig(chartData, xTitle) {
+            const theme = getThemeTokens();
+            return {
+                type: 'line',
+                data: {
+                    labels: (chartData && chartData.labels) ? chartData.labels : [],
+                    datasets: [
+                        {
+                            label: labelForwarded,
+                            data: (chartData && chartData.forwarded) ? chartData.forwarded : [],
+                            borderColor: COLOR_FORWARDED_BORDER,
+                            backgroundColor: COLOR_FORWARDED_BG,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: labelStored,
+                            data: (chartData && chartData.stored) ? chartData.stored : [],
+                            borderColor: COLOR_STORED_BORDER,
+                            backgroundColor: COLOR_STORED_BG,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: labelDropped,
+                            data: (chartData && chartData.dropped) ? chartData.dropped : [],
+                            borderColor: COLOR_DROPPED_BORDER,
+                            backgroundColor: COLOR_DROPPED_BG,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: theme.textColor,
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: theme.isDark ? '#212529' : '#ffffff',
+                            titleColor: theme.isDark ? '#f8f9fa' : '#212529',
+                            bodyColor: theme.isDark ? '#e9ecef' : '#495057',
+                            borderColor: theme.borderColor,
+                            borderWidth: 1,
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: xTitle,
+                                color: theme.textColor
+                            },
+                            ticks: {
+                                color: theme.textColor,
+                                maxRotation: 45,
+                                autoSkip: true,
+                                maxTicksLimit: 24
+                            },
+                            border: {
+                                color: theme.borderColor
+                            },
+                            grid: {
+                                color: theme.gridColor
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: labelEmails,
+                                color: theme.textColor
+                            },
+                            ticks: {
+                                color: theme.textColor,
+                                precision: 0
+                            },
+                            border: {
+                                color: theme.borderColor
+                            },
+                            grid: {
+                                color: theme.gridColor
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        function createBarChartConfig(chartData, xTitle) {
+            const theme = getThemeTokens();
+            return {
+                type: 'bar',
+                data: {
+                    labels: (chartData && chartData.labels) ? chartData.labels : [],
+                    datasets: [
+                        {
+                            label: labelForwarded,
+                            data: (chartData && chartData.forwarded) ? chartData.forwarded : [],
+                            borderColor: COLOR_FORWARDED_BORDER,
+                            backgroundColor: 'rgba(25, 135, 84, 0.75)',
+                            borderWidth: 1,
+                            borderRadius: 2
+                        },
+                        {
+                            label: labelStored,
+                            data: (chartData && chartData.stored) ? chartData.stored : [],
+                            borderColor: COLOR_STORED_BORDER,
+                            backgroundColor: 'rgba(13, 110, 253, 0.75)',
+                            borderWidth: 1,
+                            borderRadius: 2
+                        },
+                        {
+                            label: labelDropped,
+                            data: (chartData && chartData.dropped) ? chartData.dropped : [],
+                            borderColor: COLOR_DROPPED_BORDER,
+                            backgroundColor: 'rgba(220, 53, 69, 0.75)',
+                            borderWidth: 1,
+                            borderRadius: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: theme.textColor,
+                                usePointStyle: true,
+                                boxWidth: 10
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: theme.isDark ? '#212529' : '#ffffff',
+                            titleColor: theme.isDark ? '#f8f9fa' : '#212529',
+                            bodyColor: theme.isDark ? '#e9ecef' : '#495057',
+                            borderColor: theme.borderColor,
+                            borderWidth: 1,
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: xTitle,
+                                color: theme.textColor
+                            },
+                            ticks: {
+                                color: theme.textColor,
+                                maxRotation: 45
+                            },
+                            border: {
+                                color: theme.borderColor
+                            },
+                            grid: {
+                                color: theme.gridColor
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: labelEmails,
+                                color: theme.textColor
+                            },
+                            ticks: {
+                                color: theme.textColor,
+                                precision: 0
+                            },
+                            border: {
+                                color: theme.borderColor
+                            },
+                            grid: {
+                                color: theme.gridColor
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        let chart24hInstance = null;
+        let chart7dInstance = null;
+
+        /**
+         * Updates chart axes, tick colors, border, and grid lines when theme changes.
+         */
+        function updateChartThemes() {
+            const theme = getThemeTokens();
+            [chart24hInstance, chart7dInstance].forEach(chart => {
+                if (!chart) return;
+                if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                    chart.options.plugins.legend.labels.color = theme.textColor;
+                }
+                if (chart.options.plugins && chart.options.plugins.tooltip) {
+                    chart.options.plugins.tooltip.backgroundColor = theme.isDark ? '#212529' : '#ffffff';
+                    chart.options.plugins.tooltip.titleColor = theme.isDark ? '#f8f9fa' : '#212529';
+                    chart.options.plugins.tooltip.bodyColor = theme.isDark ? '#e9ecef' : '#495057';
+                    chart.options.plugins.tooltip.borderColor = theme.borderColor;
+                }
+                if (chart.options.scales && chart.options.scales.x) {
+                    if (chart.options.scales.x.title) chart.options.scales.x.title.color = theme.textColor;
+                    if (chart.options.scales.x.ticks) chart.options.scales.x.ticks.color = theme.textColor;
+                    if (chart.options.scales.x.border) chart.options.scales.x.border.color = theme.borderColor;
+                    if (chart.options.scales.x.grid) chart.options.scales.x.grid.color = theme.gridColor;
+                }
+                if (chart.options.scales && chart.options.scales.y) {
+                    if (chart.options.scales.y.title) chart.options.scales.y.title.color = theme.textColor;
+                    if (chart.options.scales.y.ticks) chart.options.scales.y.ticks.color = theme.textColor;
+                    if (chart.options.scales.y.border) chart.options.scales.y.border.color = theme.borderColor;
+                    if (chart.options.scales.y.grid) chart.options.scales.y.grid.color = theme.gridColor;
+                }
+                chart.update('none');
+            });
+        }
+
+        /**
+         * Instantiates Chart.js charts when DOM layout is resolved.
+         */
+        function initCharts() {
+            const fallback24h = document.getElementById('chart-fallback-24h');
+            const fallback7d = document.getElementById('chart-fallback-7d');
+
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js library is not loaded. Admin statistics charts will not be rendered.');
+                if (fallback24h) fallback24h.classList.remove('d-none');
+                if (fallback7d) fallback7d.classList.remove('d-none');
+                return;
+            }
+
+            const canvas24h = document.getElementById('chart-last-24h');
+            const canvas7d = document.getElementById('chart-last-7d');
+
+            if (canvas24h) {
+                if (chart24hInstance) {
+                    chart24hInstance.destroy();
+                    chart24hInstance = null;
+                }
+                chart24hInstance = new Chart(canvas24h.getContext('2d'), createLineChartConfig(chart24hData, labelTime));
+                if (fallback24h) fallback24h.classList.add('d-none');
+            }
+            if (canvas7d) {
+                if (chart7dInstance) {
+                    chart7dInstance.destroy();
+                    chart7dInstance = null;
+                }
+                chart7dInstance = new Chart(canvas7d.getContext('2d'), createBarChartConfig(chart7dData, labelDate));
+                if (fallback7d) fallback7d.classList.add('d-none');
+            }
+        }
+
+        // Initialize when document layout is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initCharts);
+        } else {
+            initCharts();
+        }
+
+        if (window.htmx) {
+            htmx.onLoad(function (target) {
+                if (target && target.querySelector && target.querySelector('#chart-last-24h')) {
+                    initCharts();
+                }
+            });
+        }
+
+        const themeObserver = new MutationObserver(mutations => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+                    updateChartThemes();
+                    break;
+                }
+            }
+        });
+        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    })();
+    /*]]>*/
+    </script>
+
+    <!-- Client-side Interactive Table Sorting -->
+    <script>
+    (() => {
+        function initSortableTables() {
+            const tables = document.querySelectorAll('table.table-sortable');
+            tables.forEach(table => {
+                const thead = table.querySelector('thead');
+                const tbody = table.querySelector('tbody');
+                if (!thead || !tbody) return;
+
+                const headers = thead.querySelectorAll('a.sortable-header[data-sort-col]');
+                headers.forEach(header => {
+                    if (header.dataset.sortBound === 'true') return;
+                    header.dataset.sortBound = 'true';
+
+                    header.addEventListener('click', e => {
+                        e.preventDefault();
+                        const colIndex = parseInt(header.dataset.sortCol, 10);
+                        const sortType = header.dataset.sortType || 'string';
+                        const currentDir = header.dataset.sortDir;
+                        const nextDir = currentDir === 'asc' ? 'desc' : (currentDir === 'desc' ? 'asc' : (sortType === 'string' ? 'asc' : 'desc'));
+
+                        // Update icons across all headers in this table
+                        headers.forEach(h => {
+                            delete h.dataset.sortDir;
+                            const icon = h.querySelector('.sort-icon');
+                            if (icon) {
+                                icon.className = 'bi bi-chevron-expand sort-icon text-body-secondary opacity-50 ms-1';
+                            }
+                        });
+
+                        // Set active direction and icon on clicked header
+                        header.dataset.sortDir = nextDir;
+                        const activeIcon = header.querySelector('.sort-icon');
+                        if (activeIcon) {
+                            activeIcon.className = nextDir === 'asc'
+                                ? 'bi bi-chevron-up sort-icon text-primary ms-1'
+                                : 'bi bi-chevron-down sort-icon text-primary ms-1';
+                        }
+
+                        // Collect and sort data rows
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+                        if (rows.length <= 1 && rows[0] && rows[0].querySelector('td[colspan]')) {
+                            return; // empty state row, nothing to sort
+                        }
+
+                        rows.sort((rowA, rowB) => {
+                            const cellA = rowA.children[colIndex];
+                            const cellB = rowB.children[colIndex];
+                            if (!cellA || !cellB) return 0;
+
+                            const rawA = (cellA.dataset.sortValue !== undefined && cellA.dataset.sortValue !== '')
+                                ? cellA.dataset.sortValue
+                                : cellA.textContent.trim();
+                            const rawB = (cellB.dataset.sortValue !== undefined && cellB.dataset.sortValue !== '')
+                                ? cellB.dataset.sortValue
+                                : cellB.textContent.trim();
+
+                            let diff = 0;
+                            if (sortType === 'number') {
+                                const numA = parseInt(rawA.replace(/[^\d.-]/g, ''), 10) || 0;
+                                const numB = parseInt(rawB.replace(/[^\d.-]/g, ''), 10) || 0;
+                                diff = numA - numB;
+                            } else if (sortType === 'date') {
+                                diff = rawA.localeCompare(rawB);
+                            } else {
+                                diff = rawA.toLowerCase().localeCompare(rawB.toLowerCase());
+                            }
+
+                            return nextDir === 'desc' ? -diff : diff;
+                        });
+
+                        // Re-insert rows in sorted order
+                        rows.forEach(row => tbody.appendChild(row));
+                    });
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSortableTables);
+        } else {
+            initSortableTables();
+        }
+
+        if (window.htmx) {
+            htmx.onLoad(function (target) {
+                if (target && target.querySelector && target.querySelector('table.table-sortable')) {
+                    initSortableTables();
+                }
+            });
+        }
+    })();
+    </script>
+</div>
+
+</body>
+</html>

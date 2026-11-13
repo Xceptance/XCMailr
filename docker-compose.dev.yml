@@ -1,0 +1,11 @@
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: xcmailr-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP relay port for XCMailr outbound mail
+      - "8025:8025"   # Web UI for inspecting received/forwarded emails
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: ""  # in-memory storage for developer simplicity

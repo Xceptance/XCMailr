@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) 2013-2026 Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,14 @@ import xcmailr.client.XCMailrApiException;
  */
 public abstract class AbstractApiImpl
 {
+    /**
+     * The REST API client used to perform HTTP requests.
+     */
     protected final RestApiClient client;
 
+    /**
+     * The GSON instance used for serialization and deserialization.
+     */
     protected final Gson gson;
 
     /**

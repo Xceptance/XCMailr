@@ -1,0 +1,29 @@
+# Git metadata
+.git
+.gitignore
+.gitattributes
+
+# Build directories & binaries
+target/
+**/target/
+
+# IDE and editor configurations
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# OpenSpec and Agent artifacts
+.agents/
+openspec/
+
+# Logs and local temp data
+*.log
+log/
+logs/
+data/
+

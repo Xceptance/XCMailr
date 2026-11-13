@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 Xceptance Software Technologies GmbH
+ * Copyright (c) 2013-2026 Xceptance Software Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,13 @@ import java.nio.charset.StandardCharsets;
  */
 public class Utils
 {
+    /**
+     * Default constructor disabled to prevent instantiation of utility class.
+     */
+    private Utils()
+    {
+    }
+
     private static final String HEX = "0123456789ABCDEF";
 
     private static final String ALPHA_NUMERIC = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
